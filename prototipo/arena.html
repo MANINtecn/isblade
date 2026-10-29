@@ -657,7 +657,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js';
+import { Guardiao } from './js/guardiao.js?v=6';
 import { Net } from './js/net.js?v=6';
 /* <<< CLAUDE [guardiao] */
 import { MuHud } from './js/mu_hud.js?v=11';
@@ -4744,6 +4744,19 @@ var MOBS=[],EPROJ=[],OBST=[],obstGroup=new THREE.Group();scene.add(obstGroup);
 var BOSS_ON=!DG.on;/* chefe ativo: sempre na arena; na dungeon so na sala do chefe */
 
 
+var STONE=new THREE.MeshStandardMaterial({color:0x3b4363,roughness:.92,metalness:.05});
+var STONE2=new THREE.MeshStandardMaterial({color:0x2c3350,roughness:.95,metalness:.05});
+
+function obstPush(x,z,rr){
+  for(var i=0;i<OBST.length;i++){
+    var c=OBST[i],dx=x-c.x,dz=z-c.z,d=Math.hypot(dx,dz),m=c.r+rr;
+    if(d<m){if(d<1e-4){dx=1;dz=0;d=1;}x=c.x+dx/d*m;z=c.z+dz/d*m;}
+  }
+  return [x,z];
+}
+function obstAt(x,z,rr){for(var i=0;i<OBST.length;i++){if(Math.hypot(x-OBST[i].x,z-OBST[i].z)<OBST[i].r+rr)return true;}return false;}
+
+
 function clearObstacles(){
 
   while(obstGroup.children.length){var o=obstGroup.children.pop();o.traverse(function(n){if(n.geometry)n.geometry.dispose();});}
@@ -5557,7 +5570,7 @@ function dgHub(){
 }
 
 function dgStart(key){
-
+  window.dgStart = dgStart;
   DG.diff=key;DG.run=true;DG.menu=false;DG.kills=0;
 
   S.maxhp=Math.round(BOSS_BASE_HP*DIFF().bossHp);
@@ -5637,6 +5650,7 @@ function closeDiff(){
 }
 
 function dgLoadRoom(i,retry){
+  window.dgLoadRoom = dgLoadRoom;
 
   i=clamp(i,0,DGD.rooms.length-1);
 
@@ -6599,7 +6613,7 @@ function buildPad(){
 
   var host=location.hostname;if(host!=='localhost'&&host!=='127.0.0.1')return;
 
-  window.__dbg={cam:cam,camera:camera,player:player,vrm:function(){return vrm;},boss:function(){return boss;},enemy:enemy,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},applyHit:applyHit,dgHub:dgHub,dgStart:dgStart,killMob:typeof removeMob!=='undefined'?removeMob:function(){},DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,mast:function(){return {lv:mastLevel(),xp:mastXp()};}};/* so localhost: permite testes automaticos ler/alterar o estado */
+  window.__dbg={cam:cam,camera:camera,player:player,vrm:function(){return vrm;},boss:function(){return boss;},enemy:enemy,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},applyHit:applyHit,dgHub:dgHub,dgStart:dgStart,killMob:typeof killMob!=='undefined'?killMob:removeMob,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,mast:function(){return {lv:mastLevel(),xp:mastXp()};}};/* so localhost: permite testes automaticos ler/alterar o estado */
 
   var box=document.createElement('div');box.id='dev';box.style.cssText='position:fixed;left:10px;top:10px;bottom:10px;width:min(340px,92vw);z-index:7;overflow:auto;display:none;pointer-events:auto;background:rgba(8,14,30,.94);border:1px solid #f5c451;border-radius:6px;padding:10px 12px;font:11px system-ui;color:#e8f0ff';
 
@@ -8337,7 +8351,7 @@ if(/[?&]dbg=1/.test(location.search))console.log('DBG INIT_DONE');
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — liga o modulo do Guardiao ao jogo */
 Guardiao.init({
-  getScene:function(){return scene;},getCamera:function(){return camera;},
+  getScene:function(){return scene;},getCamera:function(){return camera;},compile:function(){try{if(BLOOM.on){bloomInit();renderer.setRenderTarget(BLOOM.rt);}renderer.compile(scene,camera);}catch(_){}try{renderer.setRenderTarget(null);}catch(_){}},/* compila para o alvo do bloom (o jogo desenha a cena nele): para a tela os shaders sairiam diferentes e recompilariam na 1a skill */
   getWPN:function(){return WPN;},getVrm:function(){return vrm;},getS:function(){return S;},playClip:playClip,gestMsg:gestMsg,
   shake:function(v){S.shake=Math.max(S.shake,v);},
   getFoes:function(){var a=[];if(BOSS_ON&&!S.dead)a.push({x:S.ex,z:S.ez});MOBS.forEach(function(m){if(!m.dead)a.push({x:m.x,z:m.z});});return a;},/* atacantes possiveis (direcao do dano recebido) */
