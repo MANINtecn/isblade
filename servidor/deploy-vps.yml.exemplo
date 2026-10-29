@@ -1,0 +1,22 @@
+# EXEMPLO (nao esta ativo). Atualiza a VPS sozinho a cada push na branch main que mexa em servidor/.
+# Para ativar: copie para  .github/workflows/deploy-vps.yml  no repositorio e crie 3 "secrets" no GitHub
+# (Settings > Secrets and variables > Actions):  VPS_HOST (IP ou dominio),  VPS_USER,  VPS_SSH_KEY (chave privada SOMENTE para deploy).
+# Na VPS, adicione a chave PUBLICA correspondente em ~/.ssh/authorized_keys do usuario que roda o servidor.
+# Recomendacao: use uma chave exclusiva para isto e um usuario sem privilegios de administrador (o script usa sudo so para reiniciar o servico).
+name: deploy-vps
+on:
+  push:
+    branches: [main]
+    paths: ['servidor/**']
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Atualizar a VPS por SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/jogo && bash servidor/atualizar_vps.sh

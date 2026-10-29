@@ -1,0 +1,1333 @@
+[
+  {
+    "name": "SI_Wall_C",
+    "glb": "ti_wall_c.glb",
+    "pos": [
+      -2.16,
+      0.969,
+      2.21
+    ],
+    "rotY": -0.858,
+    "scale": 2.8
+  },
+  {
+    "name": "SI_Wall_A",
+    "glb": "ti_wall_a.glb",
+    "pos": [
+      -2.16,
+      1.002,
+      2.21
+    ],
+    "rotY": -0.858,
+    "scale": 2.8
+  },
+  {
+    "name": "SI_Wall_D",
+    "glb": "ti_wall_d.glb",
+    "pos": [
+      -2.16,
+      0.969,
+      2.21
+    ],
+    "rotY": -0.858,
+    "scale": 2.8
+  },
+  {
+    "name": "SI_Wall_B",
+    "glb": "ti_wall_b.glb",
+    "pos": [
+      -2.16,
+      0.969,
+      2.21
+    ],
+    "rotY": -0.858,
+    "scale": 2.8
+  },
+  {
+    "name": "SI_Agit",
+    "glb": "ti_agit.glb",
+    "pos": [
+      -22.82,
+      8.712,
+      48.89
+    ],
+    "rotY": 2.356,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_SH02",
+    "glb": "ti_shop_02.glb",
+    "pos": [
+      -62.21,
+      9.225,
+      0.54
+    ],
+    "rotY": -1.08,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H02",
+    "glb": "ti_house_02.glb",
+    "pos": [
+      48.36,
+      4.686,
+      -33.63
+    ],
+    "rotY": 2.23,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_SH02",
+    "glb": "ti_shop_02.glb",
+    "pos": [
+      32.67,
+      9.225,
+      5.14
+    ],
+    "rotY": 0.44,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H03",
+    "glb": "ti_house_03.glb",
+    "pos": [
+      18.45,
+      7.187,
+      36.76
+    ],
+    "rotY": -2.658,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H02",
+    "glb": "ti_house_02.glb",
+    "pos": [
+      -45.23,
+      4.686,
+      26.97
+    ],
+    "rotY": -0.813,
+    "scale": 3.19
+  },
+  {
+    "name": "sp_lighthouse001",
+    "glb": "ti_lighthouse.glb",
+    "pos": [
+      152.09,
+      0.0,
+      82.87
+    ],
+    "rotY": 2.19,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_SH01",
+    "glb": "ti_shop_01.glb",
+    "pos": [
+      5.8,
+      7.65,
+      60.45
+    ],
+    "rotY": -3.927,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H04",
+    "glb": "ti_house_04.glb",
+    "pos": [
+      22.12,
+      6.725,
+      -57.54
+    ],
+    "rotY": -0.815,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_SH03",
+    "glb": "ti_shop_03.glb",
+    "pos": [
+      68.99,
+      3.64,
+      -16.41
+    ],
+    "rotY": -5.596,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H03",
+    "glb": "ti_house_03.glb",
+    "pos": [
+      -30.59,
+      7.187,
+      10.44
+    ],
+    "rotY": -0.89,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H04",
+    "glb": "ti_house_04.glb",
+    "pos": [
+      30.91,
+      6.725,
+      -13.52
+    ],
+    "rotY": -4.054,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_Agit",
+    "glb": "ti_agit.glb",
+    "pos": [
+      -41.9,
+      8.712,
+      -16.85
+    ],
+    "rotY": -2.454,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H04",
+    "glb": "ti_house_04.glb",
+    "pos": [
+      53.01,
+      6.725,
+      21.47
+    ],
+    "rotY": -5.723,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H03",
+    "glb": "ti_house_03.glb",
+    "pos": [
+      7.31,
+      7.187,
+      -32.79
+    ],
+    "rotY": -0.89,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H01",
+    "glb": "ti_house_01.glb",
+    "pos": [
+      -1.01,
+      3.117,
+      32.09
+    ],
+    "rotY": 2.336,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_H01",
+    "glb": "ti_house_01.glb",
+    "pos": [
+      -7.16,
+      3.117,
+      -20.39
+    ],
+    "rotY": 0.667,
+    "scale": 3.19
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -91.64,
+      1.136,
+      -14.09
+    ],
+    "rotY": 1.098,
+    "scale": 3.39
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -175.87,
+      1.146,
+      102.84
+    ],
+    "rotY": -0.0,
+    "scale": 3.42
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -53.39,
+      1.162,
+      -54.97
+    ],
+    "rotY": 0.803,
+    "scale": 3.47
+  },
+  {
+    "name": "SI_CH_Body",
+    "glb": "ti_church.glb",
+    "pos": [
+      -17.89,
+      5.951,
+      -57.73
+    ],
+    "rotY": 0.785,
+    "scale": 3.22
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -201.18,
+      1.24,
+      -53.83
+    ],
+    "rotY": -0.0,
+    "scale": 3.7
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -96.05,
+      0.751,
+      -244.55
+    ],
+    "rotY": 1.178,
+    "scale": 3.25
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -72.56,
+      0.769,
+      -200.32
+    ],
+    "rotY": 1.988,
+    "scale": 3.33
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      14.46,
+      0.744,
+      -192.66
+    ],
+    "rotY": 1.178,
+    "scale": 3.22
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -81.82,
+      1.171,
+      8.66
+    ],
+    "rotY": -5.295,
+    "scale": 3.58
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -266.33,
+      1.2,
+      -269.06
+    ],
+    "rotY": -1.571,
+    "scale": 3.67
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -205.15,
+      1.135,
+      -41.53
+    ],
+    "rotY": -0.0,
+    "scale": 3.47
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -154.03,
+      0.827,
+      -215.33
+    ],
+    "rotY": 1.178,
+    "scale": 3.58
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -209.24,
+      1.069,
+      14.29
+    ],
+    "rotY": -1.59,
+    "scale": 3.19
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -109.61,
+      1.199,
+      -25.14
+    ],
+    "rotY": -1.42,
+    "scale": 3.58
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -284.28,
+      1.19,
+      -58.1
+    ],
+    "rotY": -2.553,
+    "scale": 3.64
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -93.32,
+      0.841,
+      -263.64
+    ],
+    "rotY": 1.45,
+    "scale": 3.64
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      31.06,
+      0.79,
+      -193.88
+    ],
+    "rotY": -1.194,
+    "scale": 3.42
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      95.93,
+      0.841,
+      -9.63
+    ],
+    "rotY": -1.112,
+    "scale": 3.64
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      4.05,
+      0.841,
+      100.02
+    ],
+    "rotY": 2.339,
+    "scale": 3.64
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      41.41,
+      0.737,
+      -66.05
+    ],
+    "rotY": 1.454,
+    "scale": 3.19
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      18.79,
+      0.737,
+      -91.51
+    ],
+    "rotY": 4.591,
+    "scale": 3.19
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -153.97,
+      0.711,
+      -262.85
+    ],
+    "rotY": 2.072,
+    "scale": 3.08
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -296.74,
+      1.052,
+      -412.93
+    ],
+    "rotY": -0.877,
+    "scale": 3.14
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -172.77,
+      1.073,
+      -268.88
+    ],
+    "rotY": 1.616,
+    "scale": 3.28
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -283.62,
+      1.136,
+      -386.24
+    ],
+    "rotY": 0.393,
+    "scale": 3.39
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      67.38,
+      0.841,
+      36.15
+    ],
+    "rotY": 2.452,
+    "scale": 3.64
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -71.81,
+      0.776,
+      44.15
+    ],
+    "rotY": 3.905,
+    "scale": 3.36
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -134.0,
+      0.808,
+      -311.9
+    ],
+    "rotY": 1.178,
+    "scale": 3.5
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -242.79,
+      0.718,
+      177.59
+    ],
+    "rotY": -2.82,
+    "scale": 3.11
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -176.89,
+      0.855,
+      131.18
+    ],
+    "rotY": 0.637,
+    "scale": 3.7
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -258.3,
+      1.219,
+      78.2
+    ],
+    "rotY": -0.0,
+    "scale": 3.64
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -293.57,
+      1.164,
+      -161.46
+    ],
+    "rotY": -2.454,
+    "scale": 3.56
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      252.73,
+      0.769,
+      -334.98
+    ],
+    "rotY": -2.553,
+    "scale": 3.33
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -132.41,
+      1.033,
+      -0.2
+    ],
+    "rotY": -2.651,
+    "scale": 3.16
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -288.11,
+      0.848,
+      -366.72
+    ],
+    "rotY": -3.534,
+    "scale": 3.67
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -262.56,
+      0.802,
+      -222.89
+    ],
+    "rotY": -1.276,
+    "scale": 3.47
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -225.39,
+      1.099,
+      -336.06
+    ],
+    "rotY": -1.085,
+    "scale": 3.28
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -203.29,
+      0.751,
+      -355.37
+    ],
+    "rotY": -0.491,
+    "scale": 3.25
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -217.92,
+      1.24,
+      -346.59
+    ],
+    "rotY": 0.589,
+    "scale": 3.7
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -203.38,
+      0.73,
+      -337.54
+    ],
+    "rotY": 1.865,
+    "scale": 3.16
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -244.08,
+      1.136,
+      -362.08
+    ],
+    "rotY": 25.133,
+    "scale": 3.39
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -105.82,
+      0.751,
+      -154.7
+    ],
+    "rotY": 0.311,
+    "scale": 3.25
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -225.12,
+      0.802,
+      -358.84
+    ],
+    "rotY": 25.133,
+    "scale": 3.47
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -204.14,
+      1.069,
+      63.54
+    ],
+    "rotY": -0.76,
+    "scale": 3.19
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -265.95,
+      1.146,
+      -247.57
+    ],
+    "rotY": -0.589,
+    "scale": 3.42
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -277.12,
+      1.105,
+      163.77
+    ],
+    "rotY": -0.0,
+    "scale": 3.3
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -267.95,
+      1.146,
+      -205.16
+    ],
+    "rotY": 1.767,
+    "scale": 3.42
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -288.45,
+      0.79,
+      -209.13
+    ],
+    "rotY": 1.767,
+    "scale": 3.42
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -280.78,
+      0.79,
+      -253.95
+    ],
+    "rotY": -0.589,
+    "scale": 3.42
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -243.58,
+      0.859,
+      -257.72
+    ],
+    "rotY": -0.589,
+    "scale": 3.72
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      84.46,
+      0.848,
+      17.44
+    ],
+    "rotY": -2.479,
+    "scale": 3.67
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -150.08,
+      1.079,
+      7.48
+    ],
+    "rotY": -7.265,
+    "scale": 3.3
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -156.72,
+      1.053,
+      -7.56
+    ],
+    "rotY": -7.79,
+    "scale": 3.22
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -109.56,
+      1.052,
+      -2.44
+    ],
+    "rotY": -0.0,
+    "scale": 3.14
+  },
+  {
+    "name": "SI_G01",
+    "glb": "ti_gate.glb",
+    "pos": [
+      48.26,
+      4.682,
+      -50.06
+    ],
+    "rotY": 0.804,
+    "scale": 2.8
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      78.26,
+      0.834,
+      -33.99
+    ],
+    "rotY": -3.903,
+    "scale": 3.61
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      31.66,
+      1.199,
+      -140.02
+    ],
+    "rotY": -1.693,
+    "scale": 3.58
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -183.59,
+      0.822,
+      -205.3
+    ],
+    "rotY": 1.45,
+    "scale": 3.56
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -140.36,
+      0.73,
+      -275.33
+    ],
+    "rotY": 1.178,
+    "scale": 3.16
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -120.76,
+      1.199,
+      120.31
+    ],
+    "rotY": 0.589,
+    "scale": 3.58
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -264.95,
+      0.718,
+      198.41
+    ],
+    "rotY": -0.0,
+    "scale": 3.11
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      35.88,
+      1.059,
+      -158.48
+    ],
+    "rotY": -3.227,
+    "scale": 3.16
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -218.88,
+      1.059,
+      23.54
+    ],
+    "rotY": -0.0,
+    "scale": 3.16
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -211.17,
+      1.053,
+      46.77
+    ],
+    "rotY": -11.166,
+    "scale": 3.22
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      51.37,
+      0.815,
+      -142.48
+    ],
+    "rotY": -2.639,
+    "scale": 3.53
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      46.43,
+      0.802,
+      -131.0
+    ],
+    "rotY": -1.348,
+    "scale": 3.47
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -53.71,
+      0.815,
+      -195.89
+    ],
+    "rotY": 50.265,
+    "scale": 3.53
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -37.02,
+      0.866,
+      -189.7
+    ],
+    "rotY": -1.963,
+    "scale": 3.75
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -206.55,
+      1.136,
+      144.07
+    ],
+    "rotY": -0.982,
+    "scale": 3.39
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -86.23,
+      1.209,
+      -34.93
+    ],
+    "rotY": 1.098,
+    "scale": 3.61
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      204.41,
+      0.834,
+      -275.8
+    ],
+    "rotY": 3.632,
+    "scale": 3.61
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -175.09,
+      0.866,
+      -75.08
+    ],
+    "rotY": -0.0,
+    "scale": 3.75
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      36.01,
+      0.822,
+      -179.54
+    ],
+    "rotY": -2.846,
+    "scale": 3.56
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -28.31,
+      0.855,
+      81.77
+    ],
+    "rotY": 2.985,
+    "scale": 3.7
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      47.82,
+      0.815,
+      62.01
+    ],
+    "rotY": 1.178,
+    "scale": 3.53
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      22.07,
+      1.256,
+      -172.83
+    ],
+    "rotY": -0.701,
+    "scale": 3.75
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      37.33,
+      0.737,
+      77.62
+    ],
+    "rotY": 3.975,
+    "scale": 3.19
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -207.35,
+      0.711,
+      -133.3
+    ],
+    "rotY": 3.284,
+    "scale": 3.08
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -293.69,
+      0.79,
+      -76.02
+    ],
+    "rotY": -0.0,
+    "scale": 3.42
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -254.76,
+      1.19,
+      -350.03
+    ],
+    "rotY": -2.356,
+    "scale": 3.64
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -289.21,
+      0.776,
+      147.08
+    ],
+    "rotY": -0.491,
+    "scale": 3.36
+  },
+  {
+    "name": "SI_G01",
+    "glb": "ti_gate.glb",
+    "pos": [
+      51.09,
+      4.682,
+      43.42
+    ],
+    "rotY": -0.704,
+    "scale": 2.8
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -220.22,
+      1.146,
+      -40.52
+    ],
+    "rotY": -0.0,
+    "scale": 3.42
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -59.97,
+      1.216,
+      -26.44
+    ],
+    "rotY": -3.621,
+    "scale": 3.72
+  },
+  {
+    "name": "SI_G01",
+    "glb": "ti_gate.glb",
+    "pos": [
+      -53.69,
+      4.682,
+      -42.68
+    ],
+    "rotY": 2.47,
+    "scale": 2.8
+  },
+  {
+    "name": "SI_G01",
+    "glb": "ti_gate.glb",
+    "pos": [
+      -51.04,
+      4.682,
+      51.51
+    ],
+    "rotY": -2.352,
+    "scale": 2.8
+  },
+  {
+    "name": "splandddztree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      234.54,
+      0.815,
+      -251.68
+    ],
+    "rotY": 1.315,
+    "scale": 3.53
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -297.03,
+      0.802,
+      -382.68
+    ],
+    "rotY": -0.0,
+    "scale": 3.47
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -118.03,
+      0.802,
+      -130.53
+    ],
+    "rotY": 2.847,
+    "scale": 3.47
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -213.41,
+      1.164,
+      -172.47
+    ],
+    "rotY": -1.424,
+    "scale": 3.56
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -146.27,
+      1.032,
+      97.18
+    ],
+    "rotY": -0.0,
+    "scale": 3.08
+  },
+  {
+    "name": "splandforest1",
+    "glb": "ti_tree_legend.glb",
+    "pos": [
+      -227.84,
+      1.199,
+      161.53
+    ],
+    "rotY": -0.295,
+    "scale": 3.58
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -242.13,
+      0.859,
+      -341.9
+    ],
+    "rotY": -3.116,
+    "scale": 3.72
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -284.87,
+      0.718,
+      180.44
+    ],
+    "rotY": -47.713,
+    "scale": 3.11
+  },
+  {
+    "name": "splandtree3",
+    "glb": "ti_tree_02.glb",
+    "pos": [
+      -163.43,
+      1.099,
+      -108.42
+    ],
+    "rotY": -3.063,
+    "scale": 3.36
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -93.67,
+      0.827,
+      -226.69
+    ],
+    "rotY": 0.311,
+    "scale": 3.58
+  },
+  {
+    "name": "splandtree1",
+    "glb": "ti_tree_01.glb",
+    "pos": [
+      -150.66,
+      0.737,
+      124.36
+    ],
+    "rotY": 1.973,
+    "scale": 3.19
+  },
+  {
+    "name": "SI_Fighter_Hall",
+    "glb": "ti_fighter_hall.glb",
+    "pos": [
+      78.5,
+      25.769,
+      -86.0
+    ],
+    "rotY": -0.45,
+    "scale": 3.19
+  },
+  {
+    "name": "sp_p_wood01",
+    "glb": "ti_port_dock.glb",
+    "pos": [
+      26.0,
+      -4.5,
+      138.0
+    ],
+    "rotY": 0.1,
+    "scale": 2.8
+  },
+  {
+    "name": "sp_p_wood01",
+    "glb": "ti_port_dock.glb",
+    "pos": [
+      42.0,
+      -4.5,
+      154.0
+    ],
+    "rotY": 0.35,
+    "scale": 2.8
+  }
+]

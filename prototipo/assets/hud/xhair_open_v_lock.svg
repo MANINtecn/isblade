@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 24" width="32" height="24">
+  <defs>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.95"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <!-- Contorno preto externo -->
+    <path d="M4 4 L12.5 16.5" stroke="#000000" stroke-width="4.4" stroke-linecap="square" />
+    <path d="M28 4 L19.5 16.5" stroke="#000000" stroke-width="4.4" stroke-linecap="square" />
+    <polygon points="16,11 19.5,15.5 16,20 12.5,15.5" fill="#000000" />
+    <!-- V Aberto travado no alvo: Ouro Vibrante / Âmbar -->
+    <path d="M4 4 L12.5 16.5" stroke="#ffe600" stroke-width="2.5" stroke-linecap="square" />
+    <path d="M28 4 L19.5 16.5" stroke="#ffe600" stroke-width="2.5" stroke-linecap="square" />
+    <!-- Ponto central travado: Rubi / Vermelho de Dano -->
+    <polygon points="16,12 18.5,15.5 16,19 13.5,15.5" fill="#ff2a55" />
+  </g>
+</svg>

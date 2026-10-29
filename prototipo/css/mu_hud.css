@@ -1,0 +1,943 @@
+/* ==========================================================================
+   MU ONLINE / LINEAGE 2 GOTHIC HUD - IS BLADE / IS ONLINE (V6 ULTRA-COMPACT)
+   - Proporção ultra-wide (2160 x 240) ocupando apenas ~8% a 11% da altura da tela
+   - Vai de ponta a ponta da tela (100vw, canto esquerdo ao canto direito)
+   - Esquerda: Dragão de Bronze + Cristal de HP Dinâmico
+   - Direita: Dragão de Bronze + Cristal de STAMINA Dinâmico + Botões I, C, S, Q, O
+   - Centro Clean: Faixa com Nome, Classe, Level e EXP acima dos 8 Slots Vazios
+   - 100% Responsivo para Desktop e Mobile
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&display=swap');
+
+:root {
+  --mu-gold: #f5c451;
+  --mu-gold-bright: #ffe699;
+  --mu-gold-glow: rgba(245, 196, 81, 0.6);
+  --mu-gold-dark: #8c6721;
+  --mu-hp-red: #ff2a55;
+  --mu-st-cyan: #00d4ff;
+}
+
+/* --------------------------------------------------------------------------
+   1. LIMPEZA DE POLUIÇÃO VISUAL DA TELA DE GAMEPLAY
+   -------------------------------------------------------------------------- */
+#pbars,
+#train,
+#invBtn,
+#skBtn,
+#cfgBtn,
+#charSelectBox,
+#dungeonBtn,
+#cityBtn,
+#skills {
+  display: none !important;
+}
+
+/* Mensagem temporária do sistema acima do HUD */
+#msg {
+  opacity: 0;
+  bottom: calc(clamp(62px, 9.8vw, 132px) * 0.78 + 8px) !important;
+  font-size: 12px !important;
+  color: #e2e8f0 !important;
+  text-shadow: 0 2px 6px #000, 0 0 10px rgba(0, 0, 0, 0.95) !important;
+  pointer-events: none !important;
+  z-index: 90 !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. MOLDURA ESCULPIDA DE TARGET ESTILO LINEAGE 2 / MU ONLINE (#top)
+   Barra Única Slim: Nome do alvo integrado no cristal de vida (altura ~26-30px)
+   Proporção nativa da arte (mu_target_frame_clean.png): 500 x 42 (11.9:1)
+   -------------------------------------------------------------------------- */
+#top {
+  position: fixed !important;
+  left: 50% !important;
+  top: 14px !important;
+  transform: translateX(-50%) translateY(-6px) !important;
+  width: clamp(280px, 28vw, 420px) !important;
+  aspect-ratio: 500 / 42 !important;
+  height: auto !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.95)) !important;
+  text-align: center !important;
+  font-family: 'Cinzel', serif !important;
+  z-index: 40 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+#top.l2-target-active {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) !important;
+}
+
+#top::before,
+#top::after {
+  display: none !important;
+}
+
+.mu-target-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 1;
+  display: block;
+}
+
+#top #brand,
+#top #town-status,
+#top #estate,
+#top #hunter,
+#top #mastTxt,
+#top .bar:not(:first-of-type) {
+  display: none !important;
+}
+
+#top > .bar:first-of-type {
+  display: block !important;
+  position: absolute !important;
+  left: 4.0% !important;
+  width: 92.0% !important;
+  top: 11.9% !important;
+  height: 80.95% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  z-index: 2 !important;
+}
+
+#ehpfill {
+  display: none !important;
+}
+
+.mu-target-crystal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 2;
+  transition: clip-path 0.16s cubic-bezier(0.2, 0.9, 0.3, 1);
+  clip-path: inset(0 0% 0 0);
+}
+
+#ehptxt {
+  display: none !important;
+}
+
+#l2-target-name {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 58% !important;
+  transform: translateY(-50%) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(8px, 0.82vw, 11px);
+  font-weight: 800;
+  color: #fff9e6;
+  letter-spacing: 0.06em;
+  text-shadow:
+    0 1px 2px #000,
+    0 0 4px #000,
+    0 0 8px rgba(0, 0, 0, 0.95),
+    0 0 12px rgba(0, 0, 0, 0.9);
+  margin: 0;
+  padding: 1px 4px 0 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+  z-index: 5;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   3. AVISO DE MIRA DISCRETO (#lockhint)
+   Badge translúcida e angular próxima à base (zero arredondamento)
+   -------------------------------------------------------------------------- */
+#lockhint {
+  left: 50% !important;
+  top: auto !important;
+  bottom: calc(clamp(62px, 9.8vw, 132px) + 12px) !important;
+  transform: translateX(-50%) !important;
+  text-align: center !important;
+  font-family: 'Cinzel', serif !important;
+  font-size: clamp(10px, 0.95vw, 12px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  padding: 6px 16px 5px !important;
+  background: rgba(6, 11, 24, 0.75) !important;
+  border: 1px solid rgba(245, 196, 81, 0.55) !important;
+  border-radius: 0 !important;
+  color: var(--mu-gold-bright) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(245, 196, 81, 0.12) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 45 !important;
+  transition: opacity 0.25s ease !important;
+}
+
+#lockhint small {
+  display: block !important;
+  margin-top: 2px !important;
+  font-family: system-ui, 'Segoe UI', sans-serif !important;
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+  color: #94a3b8 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. MINIMAPA SEMI-TRANSPARENTE E RETO (#map-panel / #minimap-wrap)
+   Zero arredondamento / Zero circular - Moldura reta, limpa e semi-transparente
+   -------------------------------------------------------------------------- */
+#map-panel {
+  top: 14px !important;
+  right: 14px !important;
+  gap: 6px !important;
+  z-index: 50 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+}
+
+#minimap-wrap {
+  width: 132px !important;
+  height: 132px !important;
+  border-radius: 0 !important;
+  border: 1.5px solid rgba(212, 175, 55, 0.65) !important;
+  outline: 1px solid rgba(0, 0, 0, 0.85) !important;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.85),
+    inset 0 0 10px rgba(0, 0, 0, 0.85),
+    0 0 8px rgba(245, 196, 81, 0.25) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: rgba(6, 12, 26, 0.45) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+}
+
+#minimap-wrap::after {
+  display: none !important;
+}
+
+#minimap {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  opacity: 0.9 !important;
+}
+
+.atmo-bar-box {
+  display: flex !important;
+  gap: 6px !important;
+  margin-top: 2px !important;
+}
+
+#atmo-clock {
+  font-family: 'Cinzel', serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  color: var(--mu-gold-bright) !important;
+  background: rgba(6, 11, 24, 0.6) !important;
+  border: 1px solid rgba(212, 175, 55, 0.65) !important;
+  border-radius: 0 !important;
+  padding: 4px 10px 3px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  letter-spacing: 0.04em !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(4px) !important;
+  pointer-events: none !important;
+}
+
+#mu-tp-toggle-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 4px 10px 3px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--mu-gold-bright);
+  background: rgba(6, 11, 24, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.65);
+  border-radius: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  transition: all 0.15s;
+}
+
+#mu-tp-toggle-btn:hover,
+#mu-tp-toggle-btn.active {
+  background: rgba(245, 196, 81, 0.22);
+  border-color: var(--mu-gold);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(245, 196, 81, 0.4);
+}
+/* --------------------------------------------------------------------------
+   5. MIRA EM "V" ABERTA DE ALTO CONTRASTE (#xhair)
+   Formato chevron aberto em Cyan Neon com contorno preto (máximo destaque)
+   Ao travar no alvo (#xhair.lock), transiciona para Âmbar/Ouro e Rubi
+   -------------------------------------------------------------------------- */
+#xhair {
+  position: fixed !important;
+  left: 50% !important;
+  top: 46% !important;
+  width: 38px !important;
+  height: 36px !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: none !important;
+  z-index: 4 !important;
+  background: url('../assets/hud/xhair_tier1.png?v=12') no-repeat center / contain !important;
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.15s ease !important;
+}
+
+#xhair.lock {
+  background-image: url('../assets/hud/xhair_tier1_lock.png?v=12') !important;
+  transform: translate(-50%, -50%) scale(1.12) !important;
+  filter: drop-shadow(0 0 10px rgba(255, 50, 40, 0.85)) drop-shadow(0 0 4px rgba(255, 215, 0, 0.95)) !important;
+}
+
+/* Oculta os antigos elementos circulares e linhas padrão */
+#xhair .r,
+#xhair .d,
+#xhair .t1,
+#xhair .t2,
+#xhair .t3,
+#xhair .t4 {
+  display: none !important;
+}
+
+#xdist {
+  position: absolute !important;
+  left: 50% !important;
+  top: 26px !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  white-space: nowrap !important;
+  font-family: system-ui, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  color: #ffe699 !important;
+  text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.95) !important;
+  letter-spacing: 0.04em !important;
+}
+  font-family: system-ui, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #ffe699 !important;
+  text-shadow: 0 1px 3px #000, 0 0 5px rgba(0, 0, 0, 0.9) !important;
+}
+
+#teleport-bar {
+  display: none !important;
+  position: absolute !important;
+  top: 162px !important;
+  right: 0 !important;
+  width: 230px !important;
+  background: rgba(7, 12, 24, 0.96) !important;
+  border: 1.5px solid var(--mu-gold-dark) !important;
+  border-radius: 6px !important;
+  padding: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95) !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+  justify-content: stretch !important;
+  z-index: 80 !important;
+}
+
+#teleport-bar.mu-tp-open {
+  display: flex !important;
+}
+
+#teleport-bar .tp-btn {
+  flex: 1 1 45% !important;
+  text-align: center !important;
+  justify-content: center !important;
+  align-items: center !important;
+  display: flex !important;
+  padding: 6px 6px 4px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  background: rgba(16, 24, 44, 0.9) !important;
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
+}
+#teleport-bar .tp-btn:hover {
+  border-color: var(--mu-gold) !important;
+  background: rgba(245, 196, 81, 0.18) !important;
+}
+
+
+
+#cfg {
+  right: 14px !important;
+  bottom: calc(clamp(62px, 9.8vw, 132px) + 8px) !important;
+  top: auto !important;
+  max-height: 74vh !important;
+  border: 1.5px solid var(--mu-gold-dark) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95) !important;
+  z-index: 100 !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. CONTAINER DO HUD DE CANTO A CANTO ULTRA-COMPACTO (~8% a 10% da tela)
+   Proporção nativa da arte: 2160 x 240 (9:1)
+   -------------------------------------------------------------------------- */
+#mu-hud-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  /* Reduzido pela metade: altura máxima de 132px nos chifres dos dragões (~88px na barra) */
+  height: clamp(62px, 9.8vw, 132px);
+  z-index: 95;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: 'Cinzel', serif;
+  filter: drop-shadow(0 -4px 14px rgba(0, 0, 0, 0.92));
+}
+
+.mu-hud-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 1;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   4. FAIXA CENTRAL DE IDENTIDADE ACIMA DOS SLOTS (NOME, CLASSE, LEVEL E EXP)
+   Coordenadas exatas em mu_dragon_hud_clean.png (2160 x 240):
+   left: 38.70%, width: 22.59%, top: 32.08%, height: 15.00%
+   -------------------------------------------------------------------------- */
+.mu-hud-nameplate {
+  position: absolute;
+  left: 38.70%;
+  width: 22.59%;
+  top: 33.75% !important;
+  height: 14.50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 0.7vw, 9px);
+  z-index: 5;
+  pointer-events: none;
+  padding: 2px 8px 0 !important;
+}
+
+.mu-player-name {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(7.5px, 0.8vw, 11.5px);
+  font-weight: 900;
+  color: #fff3c4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px #000, 0 0 6px rgba(245, 196, 81, 0.45);
+}
+
+.mu-player-sep {
+  color: rgba(245, 196, 81, 0.55);
+  font-size: clamp(7px, 0.7vw, 10px);
+}
+
+.mu-player-class {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(7px, 0.72vw, 10px);
+  font-weight: 700;
+  color: #cbd5e1;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px #000;
+}
+
+.mu-player-lvl {
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  font-size: clamp(7px, 0.68vw, 9.5px);
+  font-weight: 800;
+  color: var(--mu-gold);
+  background: rgba(245, 196, 81, 0.14);
+  border: 1px solid rgba(245, 196, 81, 0.5);
+  border-radius: 3px;
+  padding: 0px 4px;
+  line-height: 1.25;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Filete sutil de EXP na base interna da faixa de nome */
+.mu-exp-strip {
+  position: absolute;
+  left: 39.44%;
+  width: 21.11%;
+  top: 45.8%;
+  height: 1.25%;
+  background: rgba(4, 7, 14, 0.85);
+  border-radius: 2px;
+  overflow: hidden;
+  z-index: 6;
+  pointer-events: none;
+}
+
+#mu-xp-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #b8860b 0%, #f5c451 60%, #fff3b0 100%);
+  box-shadow: 0 0 6px rgba(245, 196, 81, 0.8);
+  transition: width 0.25s ease-out;
+}
+
+/* --------------------------------------------------------------------------
+   5. CRISTAIS DINÂMICOS DE HP (ESQUERDA) E STAMINA (DIREITA)
+   Coordenadas exatas em mu_dragon_hud_clean.png (2160 x 240):
+   - HP:      left: 4.54%, width: 31.67%, top: 37.92%, height: 25.00%
+   - STAMINA: left: 63.80%, width: 31.67%, top: 37.92%, height: 25.00%
+   -------------------------------------------------------------------------- */
+.mu-bar-slot {
+  position: absolute;
+  top: 37.92%;
+  height: 25.00%;
+  width: 31.67%;
+  z-index: 4;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.mu-bar-slot.hp {
+  left: 4.54%;
+}
+
+.mu-bar-slot.mp {
+  left: 63.80%;
+}
+
+.mu-bar-crystal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 2;
+  transition: clip-path 0.16s cubic-bezier(0.2, 0.9, 0.3, 1);
+  clip-path: inset(0 0% 0 0);
+}
+
+.mu-bar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3px !important;
+  font-family: 'Cinzel', system-ui, sans-serif;
+  font-size: clamp(7.5px, 0.78vw, 11px);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px #000, 0 0 5px #000, 0 0 8px rgba(0, 0, 0, 0.95);
+  z-index: 3;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* --------------------------------------------------------------------------
+   6. OS 8 SLOTS CENTRAIS CUSTOMIZÁVEIS (SKILLS DA ÁRVORE & ITENS DA MOCHILA)
+   Coordenadas medidas em mu_dragon_hud_clean.png (2160 x 240):
+   - top: 62.92%, height: 21.67%, width: 2.13%
+   - Slot 0: 38.98% | Slot 1: 41.81% | Slot 2: 44.63% | Slot 3: 47.50%
+     Slot 4: 50.28% | Slot 5: 53.19% | Slot 6: 56.06% | Slot 7: 58.89%
+   -------------------------------------------------------------------------- */
+#mu-hotbar-host {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.mu-hotbar-slot {
+  position: absolute;
+  top: 62.92%;
+  height: 21.67%;
+  width: 2.13%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.14s ease;
+  overflow: visible;
+}
+
+.mu-hotbar-slot[data-slot="0"] { left: 38.98%; }
+.mu-hotbar-slot[data-slot="1"] { left: 41.81%; }
+.mu-hotbar-slot[data-slot="2"] { left: 44.63%; }
+.mu-hotbar-slot[data-slot="3"] { left: 47.50%; }
+.mu-hotbar-slot[data-slot="4"] { left: 50.28%; }
+.mu-hotbar-slot[data-slot="5"] { left: 53.19%; }
+.mu-hotbar-slot[data-slot="6"] { left: 56.06%; }
+.mu-hotbar-slot[data-slot="7"] { left: 58.89%; }
+
+.mu-hotbar-slot:hover,
+.mu-hotbar-slot.drag-over {
+  background: radial-gradient(circle, rgba(245, 196, 81, 0.22) 0%, rgba(245, 196, 81, 0.04) 100%);
+  border-color: rgba(245, 196, 81, 0.85);
+  box-shadow: 0 0 10px rgba(245, 196, 81, 0.55), inset 0 0 6px rgba(245, 196, 81, 0.35);
+}
+
+.mu-hotbar-slot:active {
+  transform: scale(0.94);
+}
+
+.mu-hotbar-slot .slot-icon {
+  width: 82%;
+  height: 82%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.95));
+}
+
+.mu-hotbar-slot .slot-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mu-hotbar-slot .slot-key {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  font-family: 'Cinzel', system-ui, sans-serif;
+  font-size: clamp(6px, 0.58vw, 8px);
+  font-weight: 800;
+  color: rgba(245, 215, 127, 0.78);
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+  z-index: 5;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.mu-hotbar-slot .slot-cd-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: rgba(2, 4, 10, 0.84);
+  border-top: 1px solid rgba(255, 70, 90, 0.8);
+  z-index: 3;
+  pointer-events: none;
+  transition: height 0.08s linear;
+}
+
+.mu-hotbar-slot .slot-cd-txt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 1px !important;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  font-size: clamp(7px, 0.85vw, 10.5px);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 1px 2px #000, 0 0 6px rgba(255, 40, 70, 0.95);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.mu-hotbar-slot .slot-tip {
+  position: absolute;
+  bottom: 114%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 10, 22, 0.96);
+  border: 1px solid var(--mu-gold);
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--mu-gold-bright);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+  z-index: 30;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.95);
+}
+
+.mu-hotbar-slot:hover .slot-tip {
+  opacity: 1;
+}
+
+/* Seletor Rápido ao clicar num slot (para Mobile e PC) */
+#mu-slot-picker {
+  position: fixed;
+  left: 50%;
+  bottom: calc(clamp(62px, 9.8vw, 132px) + 6px);
+  transform: translateX(-50%);
+  width: min(460px, 94vw);
+  max-height: 56vh;
+  overflow-y: auto;
+  background: rgba(7, 11, 22, 0.97);
+  border: 1.5px solid var(--mu-gold);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.95);
+  z-index: 120;
+  pointer-events: auto;
+  display: none;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+}
+
+#mu-slot-picker.open {
+  display: block;
+}
+
+#mu-slot-picker .pk-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(245, 196, 81, 0.25);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--mu-gold);
+}
+
+#mu-slot-picker .pk-hd button {
+  background: rgba(255, 70, 90, 0.15);
+  border: 1px solid rgba(255, 70, 90, 0.5);
+  color: #fca5a5;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+#mu-slot-picker .pk-sec {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  margin: 6px 0 5px;
+  text-transform: uppercase;
+}
+
+#mu-slot-picker .pk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 6px;
+}
+
+#mu-slot-picker .pk-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(90, 169, 255, 0.35);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+#mu-slot-picker .pk-item:hover {
+  border-color: var(--mu-gold);
+  background: rgba(245, 196, 81, 0.15);
+}
+
+#mu-slot-picker .pk-item .pk-ic {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+#mu-slot-picker .pk-item .pk-ic svg {
+  width: 100%;
+  height: 100%;
+}
+
+#mu-slot-picker .pk-item .pk-nm {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.15;
+}
+#mu-slot-picker .pk-item .pk-sub {
+  font-size: 9px;
+  color: #94a3b8;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   7. OS 5 BOTÕES NATIVOS DO SISTEMA NO CANTO INFERIOR DIREITO (I, C, S, Q, O)
+   Coordenadas exatas em mu_dragon_hud_clean.png (2160 x 240):
+   - top: 72.08%, height: 17.50%, width: 1.94%
+   - I: 82.36% | C: 84.86% | S: 87.41% | Q: 89.95% | O: 92.50%
+   -------------------------------------------------------------------------- */
+.mu-sys-btn {
+  position: absolute;
+  top: 72.08%;
+  height: 17.50%;
+  width: 1.94%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 6;
+  padding: 0;
+  outline: none;
+  transition: all 0.14s ease;
+}
+
+.mu-sys-btn[data-sys="I"] { left: 82.36%; }
+.mu-sys-btn[data-sys="C"] { left: 84.86%; }
+.mu-sys-btn[data-sys="S"] { left: 87.41%; }
+.mu-sys-btn[data-sys="Q"] { left: 89.95%; }
+.mu-sys-btn[data-sys="O"] { left: 92.50%; }
+
+.mu-sys-btn:hover,
+.mu-sys-btn.active {
+  background: radial-gradient(circle, rgba(245, 196, 81, 0.28) 0%, rgba(245, 196, 81, 0.05) 100%);
+  border-color: rgba(245, 196, 81, 0.85);
+  box-shadow: 0 0 10px rgba(245, 196, 81, 0.65), inset 0 0 5px rgba(245, 196, 81, 0.4);
+}
+
+.mu-sys-btn:active {
+  transform: scale(0.93);
+}
+
+.mu-sys-btn span {
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 10, 22, 0.96);
+  border: 1px solid var(--mu-gold);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--mu-gold-bright);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
+}
+
+.mu-sys-btn:hover span {
+  opacity: 1;
+}
+
+#skp .card[draggable="true"],
+#inv .it[draggable="true"] {
+  cursor: grab !important;
+}
+#skp .card[draggable="true"]:active,
+#inv .it[draggable="true"]:active {
+  cursor: grabbing !important;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 768px) {
+  #mu-hud-bottom {
+    height: clamp(50px, 11vw, 84px);
+  }
+  #minimap-wrap {
+    width: 92px !important;
+    height: 92px !important;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   BOTAO DE RETORNO DO SANTUARIO A CIDADE E PROMPTS DE PORTAL
+   -------------------------------------------------------------------------- */
+#btnReturnCity {
+  position: fixed !important;
+  top: 16px !important;
+  left: 16px !important;
+  z-index: 100 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 18px !important;
+  background: rgba(6, 12, 28, 0.94) !important;
+  border: 1.5px solid #f5c451 !important;
+  border-radius: 0px !important;
+  color: #f5c451 !important;
+  font-family: 'Cinzel', serif, system-ui !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  box-shadow: 0 0 16px rgba(245, 196, 81, 0.3), inset 0 0 8px rgba(245, 196, 81, 0.1) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#btnReturnCity:hover {
+  background: rgba(245, 196, 81, 0.22) !important;
+  border-color: #ffe082 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 24px rgba(245, 196, 81, 0.7), inset 0 0 12px rgba(245, 196, 81, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+#btnReturnCity:active {
+  transform: translateY(0px) scale(0.97) !important;
+}
+
+#portal-prompt {
+  border-radius: 0px !important;
+  text-shadow: 0 0 8px rgba(245, 196, 81, 0.6) !important;
+  animation: promptPulse 1.8s ease-in-out infinite alternate !important;
+}
+
+@keyframes promptPulse {
+  0% { box-shadow: 0 0 14px rgba(245, 196, 81, 0.3); border-color: rgba(245, 196, 81, 0.7); }
+  100% { box-shadow: 0 0 24px rgba(245, 196, 81, 0.7); border-color: rgba(245, 196, 81, 1); }
+}

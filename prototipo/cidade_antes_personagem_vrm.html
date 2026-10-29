@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>IS BLADE - Talking Island Village (Lineage 2 Oficial)</title>
+<style>
+:root {
+  --bg: #05060d;
+  --sys: #5aa9ff;
+  --gold: #f5c451;
+  --red: #ff4d6d;
+  --green: #58e08e;
+  --ink: #e8f0ff;
+  --dim: #8b9cc2;
+  --panel: rgba(8, 14, 30, 0.88);
+  --line: rgba(90, 169, 255, 0.35);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, sans-serif; overflow: hidden; user-select: none; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+.ui { position: fixed; z-index: 10; pointer-events: none; }
+
+/* Top Left */
+#brand-box { top: 16px; left: 18px; }
+#brand-title { font-size: 19px; font-weight: 800; letter-spacing: .16em; color: var(--gold); text-shadow: 0 0 14px rgba(245, 196, 81, .55); }
+#location-tag { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--sys); text-transform: uppercase; margin-top: 2px; }
+#town-status { font-size: 10px; color: var(--dim); margin-top: 4px; }
+
+/* Top Right: Minimap & Quick Travel */
+#map-panel { top: 16px; right: 18px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+#minimap-wrap { width: 175px; height: 175px; background: rgba(5, 10, 24, 0.92); border: 2px solid var(--sys); border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 0 24px rgba(0,0,0,.85); }
+#minimap { width: 100%; height: 100%; display: block; }
+#teleport-bar { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 340px; }
+.tp-btn { pointer-events: auto; cursor: pointer; padding: 5px 9px; font-size: 10.5px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; transition: all .15s; }
+.tp-btn:hover { background: rgba(90, 169, 255, 0.25); border-color: var(--gold); color: var(--gold); }
+
+/* Atmosphere Switcher */
+#atmo-bar { display: flex; gap: 4px; margin-top: 4px; }
+.atmo-btn { pointer-events: auto; cursor: pointer; padding: 4px 8px; font-size: 10px; font-weight: 600; color: var(--dim); background: rgba(8,14,30,.7); border: 1px solid var(--line); border-radius: 3px; }
+.atmo-btn.active { color: var(--gold); border-color: var(--gold); background: rgba(245,196,81,.18); }
+
+/* Center Crosshair */
+#xhair { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; pointer-events: none; }
+#xhair .circle { position: absolute; inset: 0; border: 2px solid rgba(232, 240, 255, 0.7); border-radius: 50%; }
+#xhair .dot { position: absolute; left: 10px; top: 10px; width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+
+/* Bottom Left: Vitals */
+#vitals { left: 18px; bottom: 20px; width: 240px; }
+.bar-wrap { position: relative; height: 12px; background: rgba(5, 10, 24, 0.7); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.bar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transition: width .1s; }
+#hp-fill { background: linear-gradient(90deg, #b3123a, var(--red)); }
+#st-fill { background: linear-gradient(90deg, #b8860b, var(--gold)); }
+.bar-label { position: absolute; inset: 0; font-size: 9px; font-weight: 700; text-align: center; line-height: 12px; text-shadow: 0 1px 2px #000; }
+
+/* Bottom Center: Controls Hint */
+#controls-hint { left: 50%; bottom: 18px; transform: translateX(-50%); font-size: 11px; color: var(--dim); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 6px 18px; text-align: center; white-space: nowrap; }
+#controls-hint b { color: var(--gold); }
+
+/* Pointer Lock Overlay */
+#lock-prompt { position: fixed; inset: 0; z-index: 100; background: rgba(4, 7, 16, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; }
+#lock-box { background: var(--panel); border: 2px solid var(--sys); border-radius: 10px; padding: 24px 36px; text-align: center; max-width: 520px; box-shadow: 0 0 35px rgba(0,0,0,.85); }
+#lock-box h2 { font-size: 21px; color: var(--gold); letter-spacing: .12em; margin-bottom: 8px; }
+#lock-box p { font-size: 13px; color: var(--dim); line-height: 1.5; margin-bottom: 16px; }
+#lock-box .click-act { font-size: 13px; font-weight: 700; color: #58e08e; background: rgba(88, 224, 142, 0.15); border: 1px solid #58e08e; padding: 8px 16px; border-radius: 6px; display: inline-block; }
+
+/* Floating Damage Numbers */
+.floating-dmg { position: fixed; font-size: 24px; font-weight: 800; color: #fff; text-shadow: 0 0 8px #ff3344, 0 2px 4px #000; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 50; }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -15px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -60px) scale(0.9); }
+}
+</style>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/GLTFLoader.js"></script>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- Top Left Brand -->
+<div class="ui" id="brand-box">
+  <div id="brand-title">IS BLADE</div>
+  <div id="location-tag">🏛️ Vila da Ilha de Talking (Lineage 2 Interlude)</div>
+  <div id="town-status">Arquitetura Original 1:1 Oficial &bull; Arena Central de Duelo &bull; Sem NPCs</div>
+</div>
+
+<!-- Top Right Minimap & Fast Travel -->
+<div class="ui" id="map-panel">
+  <div id="minimap-wrap">
+    <canvas id="minimap" width="175" height="175"></canvas>
+  </div>
+  <div id="teleport-bar">
+    <button class="tp-btn" onclick="teleportTo('arena')">📍 Arena Central</button>
+    <button class="tp-btn" onclick="teleportTo('church')">⛪ Igreja Norte</button>
+    <button class="tp-btn" onclick="teleportTo('fighter')">🛡️ Guilda Guerreiros</button>
+    <button class="tp-btn" onclick="teleportTo('shops')">🏬 Lojas Leste</button>
+    <button class="tp-btn" onclick="teleportTo('agit')">🏰 Clan Hall Oeste</button>
+    <button class="tp-btn" onclick="teleportTo('port')">⚓ Porto Sul</button>
+    <button class="tp-btn" onclick="teleportTo('lighthouse')">🗼 Farol da Costa</button>
+    <a href="arena.html?mode=duel" class="tp-btn" style="text-decoration:none; color:var(--red); border-color:rgba(255,77,109,0.7);">⚔️ Arena do Boss</a>
+  </div>
+  <div id="atmo-bar">
+    <button class="atmo-btn active" id="btn-day" onclick="setAtmosphere('day')">☀️ Dia</button>
+    <button class="atmo-btn" id="btn-sunset" onclick="setAtmosphere('sunset')">🌅 Pôr do Sol</button>
+    <button class="atmo-btn" id="btn-night" onclick="setAtmosphere('night')">🌙 Noite</button>
+  </div>
+</div>
+
+<!-- Crosshair -->
+<div class="ui" id="xhair">
+  <div class="circle"></div>
+  <div class="dot"></div>
+</div>
+
+<!-- Vitals -->
+<div class="ui" id="vitals">
+  <div style="font-size: 10px; font-weight: 700; color: var(--dim); letter-spacing: .1em;">GUERREIRO TALIBRAC</div>
+  <div class="bar-wrap">
+    <div class="bar-fill" id="hp-fill"></div>
+    <div class="bar-label">HP: 1000 / 1000</div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar-fill" id="st-fill"></div>
+    <div class="bar-label">ESTAMINA: 100 / 100</div>
+  </div>
+</div>
+
+<!-- Controls Hint -->
+<div class="ui" id="controls-hint">
+  <b>W A S D</b> Mover &bull; <b>Shift</b> Correr &bull; <b>Espaço</b> Pular &bull; <b>Q</b> Esquivar &bull; <b>Clique Esq</b> Atacar (Soulshot) &bull; <b>Esc</b> Liberar Mouse
+</div>
+
+<!-- Lock Prompt -->
+<div id="lock-prompt" onclick="lockPointer()">
+  <div id="lock-box">
+    <h2>TALKING ISLAND VILLAGE</h2>
+    <p>A arquitetura clássica da <b>Vila da Ilha de Talking (Lineage 2)</b> com suas casas medievais, igreja de Einhasad, guilda dos guerreiros, lojas e muralhas de pedra.<br>
+       No centro da praça, a nossa <b>Arena de Duelo com o Selo Oficial IS BLADE</b>!</p>
+    <div class="click-act">CLIQUE PARA ENTRAR NA VILA</div>
+  </div>
+</div>
+
+<script>
+// ==================== THREE.JS SETUP ====================
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x78b8e0);
+scene.fog = new THREE.FogExp2(0x78b8e0, 0.0032);
+
+const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1200);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ==================== ÁUDIO (SOULSHOT & COMBATE L2) ====================
+const SFX = {
+  ctx: null,
+  buffers: {},
+  init() {
+    if (this.ctx) return;
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.loadSound('soulshot', 'assets/audio/soul_shot_shot.wav');
+      this.loadSound('swing1', 'assets/audio/public_sword_shing_1.wav');
+      this.loadSound('swing2', 'assets/audio/public_sword_shing_2.wav');
+      this.loadSound('swing3', 'assets/audio/public_sword_shing_3.wav');
+      this.loadSound('hit', 'assets/audio/heavy_swing.wav');
+    } catch(e) {}
+  },
+  loadSound(name, url) {
+    fetch(url)
+      .then(res => res.arrayBuffer())
+      .then(buf => this.ctx.decodeAudioData(buf))
+      .then(decoded => { this.buffers[name] = decoded; })
+      .catch(() => {});
+  },
+  play(name, vol = 0.7, pitchVar = 0.08) {
+    if (!this.ctx || !this.buffers[name]) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.buffers[name];
+    src.playbackRate.value = 1.0 + (Math.random() * pitchVar * 2 - pitchVar);
+    const gain = this.ctx.createGain();
+    gain.gain.value = vol;
+    src.connect(gain);
+    gain.connect(this.ctx.destination);
+    src.start(0);
+  }
+};
+
+// ==================== ILUMINAÇÃO & ATMOSFERA ====================
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x445566, 0.9);
+scene.add(hemiLight);
+
+const dirLight = new THREE.DirectionalLight(0xfffaed, 1.45);
+dirLight.position.set(70, 130, 60);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+dirLight.shadow.camera.near = 10;
+dirLight.shadow.camera.far = 380;
+dirLight.shadow.camera.left = -120;
+dirLight.shadow.camera.right = 120;
+dirLight.shadow.camera.top = 120;
+dirLight.shadow.camera.bottom = -120;
+dirLight.shadow.bias = -0.0004;
+scene.add(dirLight);
+
+function setAtmosphere(mode) {
+  document.querySelectorAll('.atmo-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + mode).classList.add('active');
+
+  if (mode === 'day') {
+    scene.background.setHex(0x78b8e0);
+    scene.fog.color.setHex(0x78b8e0);
+    scene.fog.density = 0.0032;
+    hemiLight.color.setHex(0xffffff);
+    hemiLight.groundColor.setHex(0x445566);
+    hemiLight.intensity = 0.9;
+    dirLight.color.setHex(0xfffaed);
+    dirLight.intensity = 1.45;
+    dirLight.position.set(70, 130, 60);
+  } else if (mode === 'sunset') {
+    scene.background.setHex(0xcc603c);
+    scene.fog.color.setHex(0xcc603c);
+    scene.fog.density = 0.0045;
+    hemiLight.color.setHex(0xffaa77);
+    hemiLight.groundColor.setHex(0x221122);
+    hemiLight.intensity = 0.7;
+    dirLight.color.setHex(0xff6b35);
+    dirLight.intensity = 1.6;
+    dirLight.position.set(110, 40, 50);
+  } else if (mode === 'night') {
+    scene.background.setHex(0x060b18);
+    scene.fog.color.setHex(0x060b18);
+    scene.fog.density = 0.0055;
+    hemiLight.color.setHex(0x3a4c77);
+    hemiLight.groundColor.setHex(0x02040a);
+    hemiLight.intensity = 0.45;
+    dirLight.color.setHex(0x6a89cc);
+    dirLight.intensity = 0.55;
+    dirLight.position.set(40, 90, -70);
+  }
+}
+
+// ==================== TEXTURAS OFICIAIS LINEAGE 2 ====================
+const texLoader = new THREE.TextureLoader();
+
+// Piso de Pedra de Talking Island
+const stoneFloorTex = texLoader.load('assets/talking_island/real_village/si_v_t/Texture/sp_floor02.png');
+stoneFloorTex.wrapS = THREE.RepeatWrapping;
+stoneFloorTex.wrapT = THREE.RepeatWrapping;
+stoneFloorTex.repeat.set(12, 12);
+stoneFloorTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+// Grama / Terra da Ilha
+const earthTex = texLoader.load('assets/talking_island/real_village/si_v_t/Texture/sp_v_floor.png');
+earthTex.wrapS = THREE.RepeatWrapping;
+earthTex.wrapT = THREE.RepeatWrapping;
+earthTex.repeat.set(36, 36);
+earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+// Muros / Calçamento
+const wallCobbleTex = texLoader.load('assets/talking_island/real_village/si_v_t/Texture/sp_ch_wall01.png');
+wallCobbleTex.wrapS = THREE.RepeatWrapping;
+wallCobbleTex.wrapT = THREE.RepeatWrapping;
+wallCobbleTex.repeat.set(4, 4);
+
+// ==================== OCEANO 3D ====================
+const waterGeo = new THREE.PlaneGeometry(1200, 1200, 48, 48);
+waterGeo.rotateX(-Math.PI / 2);
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x0f4270,
+  roughness: 0.15,
+  metalness: 0.8,
+  transparent: true,
+  opacity: 0.92
+});
+const ocean = new THREE.Mesh(waterGeo, waterMat);
+ocean.position.y = -1.5;
+scene.add(ocean);
+
+const waterPos = waterGeo.attributes.position;
+const waterOrigY = new Float32Array(waterPos.count);
+for (let i = 0; i < waterPos.count; i++) waterOrigY[i] = waterPos.getY(i);
+
+// ==================== TERRENO DA ILHA ====================
+const islandGeo = new THREE.CylinderGeometry(160, 200, 14, 64);
+const islandMat = new THREE.MeshStandardMaterial({
+  map: earthTex,
+  color: 0x556b3e,
+  roughness: 0.9,
+  metalness: 0.05
+});
+const island = new THREE.Mesh(islandGeo, islandMat);
+island.position.y = -7;
+island.receiveShadow = true;
+scene.add(island);
+
+// ==================== PAVIMENTO E RUAS DA VILA (TALKING ISLAND OFICIAL) ====================
+const villageFloorGroup = new THREE.Group();
+scene.add(villageFloorGroup);
+
+const cobbleMat = new THREE.MeshStandardMaterial({
+  map: stoneFloorTex,
+  roughness: 0.72,
+  metalness: 0.12
+});
+
+const ringMat = new THREE.MeshStandardMaterial({
+  map: wallCobbleTex,
+  roughness: 0.8,
+  metalness: 0.15
+});
+
+// 1. Pátio Completo da Vila (Área Contínua de Calçamento de Pedra Oficial - Raio 56m)
+// Engloba todo o centro da cidade, conectando os 4 portões diagonais, lojas, agit e igreja
+const courtyardGeo = new THREE.CircleGeometry(56, 64).rotateX(-Math.PI / 2);
+const courtyard = new THREE.Mesh(courtyardGeo, cobbleMat);
+courtyard.position.set(0, 0.015, 0);
+courtyard.receiveShadow = true;
+villageFloorGroup.add(courtyard);
+
+// 2. Praça Central da Arena de Duelo (Diâmetro 44m com Borda de Pedra Entalhada)
+const plazaGeo = new THREE.CircleGeometry(22, 64).rotateX(-Math.PI / 2);
+const plaza = new THREE.Mesh(plazaGeo, cobbleMat);
+plaza.position.set(0, 0.025, 0);
+plaza.receiveShadow = true;
+villageFloorGroup.add(plaza);
+
+const plazaRing = new THREE.Mesh(new THREE.RingGeometry(21.0, 22.8, 64).rotateX(-Math.PI / 2), ringMat);
+plazaRing.position.set(0, 0.035, 0);
+plazaRing.receiveShadow = true;
+villageFloorGroup.add(plazaRing);
+
+// 3. Estradas Autênticas que saem dos 4 Portões Fortificados para o interior da Ilha
+function createRoad(fromX, fromZ, toX, toZ, width = 12) {
+  const dx = toX - fromX;
+  const dz = toZ - fromZ;
+  const length = Math.hypot(dx, dz);
+  const angle = Math.atan2(dx, dz);
+  const roadGeo = new THREE.PlaneGeometry(width, length).rotateX(-Math.PI / 2);
+  const road = new THREE.Mesh(roadGeo, cobbleMat);
+  road.position.set((fromX + toX) / 2, 0.02, (fromZ + toZ) / 2);
+  road.rotation.y = angle;
+  road.receiveShadow = true;
+  villageFloorGroup.add(road);
+}
+
+// Estradas que saem dos 4 Portões Diagonais da Vila:
+createRoad(32.8, -34.1, 75.0, -78.0, 11); // Portão Nordeste (em direção à Guilda dos Guerreiros)
+createRoad(-36.5, -29.0, -80.0, -65.0, 11); // Portão Noroeste (em direção às Colinas)
+createRoad(34.8, 29.5, 78.0, 68.0, 11); // Portão Sudeste (em direção ao Farol da Costa)
+createRoad(-34.7, 35.0, -75.0, 78.0, 11); // Portão Sudoeste
+
+// Avenida Sagrada que sobe para a Igreja de Einhasad
+createRoad(-12.2, -22.0, -12.2, -45.0, 14);
+
+// Estrada do Porto e Farol (Sul / Sudeste)
+createRoad(0, 35.0, 15.0, 85.0, 12);
+createRoad(15.0, 85.0, 95.0, 65.0, 9); // Rumo ao farol
+
+// ==================== ARENA CENTRAL DE DUELO & LOGO IS BLADE ====================
+// Decalque oficial IS BLADE no centro da praça (No lugar do obelisco antigo!)
+const logoTex = texLoader.load('assets/talking_island/textures/is_blade_duel_logo.png');
+logoTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+const logoGeo = new THREE.PlaneGeometry(17, 17).rotateX(-Math.PI / 2);
+const logoMat = new THREE.MeshStandardMaterial({
+  map: logoTex,
+  transparent: true,
+  roughness: 0.55,
+  metalness: 0.25,
+  polygonOffset: true,
+  polygonOffsetFactor: -2,
+  polygonOffsetUnits: -2
+});
+const duelLogo = new THREE.Mesh(logoGeo, logoMat);
+duelLogo.position.set(0, 0.05, 0);
+duelLogo.receiveShadow = true;
+scene.add(duelLogo);
+
+// Anel de luz azul místico ao redor do selo de duelo
+const auraMat = new THREE.MeshBasicMaterial({
+  color: 0x5aa9ff,
+  transparent: true,
+  opacity: 0.7,
+  side: THREE.DoubleSide
+});
+const duelAura = new THREE.Mesh(new THREE.RingGeometry(8.2, 8.7, 64).rotateX(-Math.PI / 2), auraMat);
+duelAura.position.set(0, 0.06, 0);
+scene.add(duelAura);
+
+// ==================== EDIFÍCIOS AUTÊNTICOS DO LINEAGE 2 ====================
+// Carregamento 100% IDÊNTICO extraído diretamente do mapa original 17_25.unr de Talking Island Village
+const gltfLoader = new THREE.GLTFLoader();
+const GLB_DIR = 'assets/talking_island/assembled_glb/';
+const villageGroup = new THREE.Group();
+scene.add(villageGroup);
+
+// Cache de modelos para carregamento instantâneo
+const glbCache = {};
+
+function getGlb(file, callback) {
+  if (glbCache[file]) {
+    callback(glbCache[file].clone(true));
+    return;
+  }
+  gltfLoader.load(GLB_DIR + file, (gltf) => {
+    const root = gltf.scene;
+    root.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material) {
+          child.material.side = THREE.DoubleSide;
+        }
+      }
+    });
+    glbCache[file] = root;
+    callback(root.clone(true));
+  }, undefined, err => console.warn('Erro ao carregar modelo:', file, err));
+}
+
+let lighthouseBeam = null;
+
+// Carregar o layout 1:1 exato da Vila de Talking Island
+fetch('assets/talking_island/village_data_threejs.json')
+  .then(res => res.json())
+  .then(entities => {
+    console.log(`Carregando ${entities.length} entidades oficiais da Vila de Talking Island...`);
+    entities.forEach(ent => {
+      getGlb(ent.glb, (obj) => {
+        obj.position.set(ent.pos[0], ent.pos[1], ent.pos[2]);
+        obj.rotation.y = ent.rotY || 0;
+        const s = ent.scale || 1.0;
+        obj.scale.set(s, s, s);
+        villageGroup.add(obj);
+
+        // Se for o farol, adiciona o feixe giratório de luz
+        if (ent.glb === 'ti_lighthouse.glb' && !lighthouseBeam) {
+          const spot = new THREE.SpotLight(0xfff5bb, 9, 280, Math.PI / 8, 0.35, 1.5);
+          spot.position.set(0, 30, 0);
+          const target = new THREE.Object3D();
+          target.position.set(ent.pos[0] + 50, 10, ent.pos[2] + 50);
+          scene.add(target);
+          spot.target = target;
+          obj.add(spot);
+          lighthouseBeam = { spot, target, angle: 0, originX: ent.pos[0], originZ: ent.pos[2] };
+        }
+      });
+    });
+  })
+  .catch(err => console.error('Erro ao ler village_data_threejs.json:', err));
+
+// Braseiros cerimoniais ao redor da Arena de Duelo
+const braziers = [];
+const BRAZIER_COUNT = 8;
+const BRAZIER_RADIUS = 20.0;
+for (let i = 0; i < BRAZIER_COUNT; i++) {
+  const angle = i * (Math.PI * 2 / BRAZIER_COUNT);
+  const bx = Math.sin(angle) * BRAZIER_RADIUS;
+  const bz = Math.cos(angle) * BRAZIER_RADIUS;
+  
+  gltfLoader.load('assets/talking_island/models/SI_Fighter_brazier.gltf', (gltf) => {
+    const bzObj = gltf.scene;
+    bzObj.position.set(bx, 0, bz);
+    bzObj.scale.set(3.8, 3.8, 3.8);
+    bzObj.rotation.y = angle;
+    
+    const fireLight = new THREE.PointLight(0xff7722, 1.8, 14, 2);
+    fireLight.position.set(0, 2.2, 0);
+    bzObj.add(fireLight);
+    villageGroup.add(bzObj);
+    braziers.push({ light: fireLight, baseInt: 1.8 });
+  });
+}
+
+// ==================== BONECO DE TREINO / DUELO NA ARENA ====================
+const dummyGroup = new THREE.Group();
+dummyGroup.position.set(0, 0, -5);
+scene.add(dummyGroup);
+
+const dummyMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.7 });
+const dBase = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.4, 16), dummyMat);
+dBase.position.y = 0.2;
+const dPost = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.2, 12), dummyMat);
+dPost.position.y = 1.1;
+const dTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.3, 1.1, 16), new THREE.MeshStandardMaterial({ color: 0x223355, roughness: 0.6 }));
+dTorso.position.y = 1.35;
+const dHead = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), new THREE.MeshStandardMaterial({ color: 0x992222, roughness: 0.5 }));
+dHead.position.y = 2.15;
+const dArms = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.14, 0.14), dummyMat);
+dArms.position.y = 1.5;
+
+dummyGroup.add(dBase, dPost, dTorso, dHead, dArms);
+dummyGroup.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+
+// ==================== GUERREIRO TALIBRAC (JOGADOR COM VISUAL COMPLETO) ====================
+const player = {
+  pos: new THREE.Vector3(0, 0, 7),
+  vel: new THREE.Vector3(),
+  rotY: Math.PI,
+  isGrounded: true,
+  speed: 6.8,
+  sprintMult: 1.65,
+  hp: 1000,
+  maxHp: 1000,
+  stamina: 100,
+  maxStamina: 100,
+  comboIndex: 0,
+  lastAttackTime: 0,
+  mesh: null,
+  sword: null,
+  leftArm: null,
+  rightArm: null,
+  leftLeg: null,
+  rightLeg: null,
+  walkTime: 0
+};
+
+const pGroup = new THREE.Group();
+pGroup.position.copy(player.pos);
+scene.add(pGroup);
+
+// Armadura do Guerreiro
+const armorMat = new THREE.MeshStandardMaterial({ color: 0x1b2845, roughness: 0.4, metalness: 0.65 });
+const trimMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.3, metalness: 0.85 });
+const skinMat = new THREE.MeshStandardMaterial({ color: 0xf0cbb0, roughness: 0.7 });
+const hairMat = new THREE.MeshStandardMaterial({ color: 0x2d1e18, roughness: 0.8 });
+const capeMat = new THREE.MeshStandardMaterial({ color: 0x801020, roughness: 0.6, side: THREE.DoubleSide });
+
+// Tronco & Peitoral
+const torso = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.8, 0.38), armorMat);
+torso.position.y = 1.4;
+torso.castShadow = true;
+pGroup.add(torso);
+
+// Cinturão Dourado
+const belt = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.12, 0.4), trimMat);
+belt.position.y = 1.0;
+pGroup.add(belt);
+
+// Ombreiras de Aço (Pauldrons)
+const pauldronL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10), trimMat);
+pauldronL.position.set(-0.42, 1.75, 0);
+pauldronL.scale.set(1.2, 0.9, 1.2);
+pGroup.add(pauldronL);
+
+const pauldronR = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10), trimMat);
+pauldronR.position.set(0.42, 1.75, 0);
+pauldronR.scale.set(1.2, 0.9, 1.2);
+pGroup.add(pauldronR);
+
+// Capa de Batalha Vermelha
+const cape = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 1.1), capeMat);
+cape.position.set(0, 1.25, -0.21);
+cape.rotation.x = 0.1;
+cape.castShadow = true;
+pGroup.add(cape);
+
+// Cabeça & Cabelo de Guerreiro
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), skinMat);
+head.position.set(0, 1.95, 0);
+head.castShadow = true;
+pGroup.add(head);
+
+const hair = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), hairMat);
+hair.position.set(0, 2.02, -0.04);
+hair.scale.set(1.0, 1.08, 1.05);
+pGroup.add(hair);
+
+// Braço Esquerdo
+const leftArmGroup = new THREE.Group();
+leftArmGroup.position.set(-0.42, 1.65, 0);
+const lArm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.65, 10), armorMat);
+lArm.position.y = -0.32;
+lArm.castShadow = true;
+leftArmGroup.add(lArm);
+pGroup.add(leftArmGroup);
+player.leftArm = leftArmGroup;
+
+// Braço Direito (Segura a Espada)
+const rightArmGroup = new THREE.Group();
+rightArmGroup.position.set(0.42, 1.65, 0);
+const rArm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.65, 10), armorMat);
+rArm.position.y = -0.32;
+rArm.castShadow = true;
+rightArmGroup.add(rArm);
+
+// Espada Longa Real de Batalha com Brilho Soulshot
+const swordGroup = new THREE.Group();
+const bladeGeo = new THREE.BoxGeometry(0.07, 1.35, 0.024);
+const bladeMat = new THREE.MeshStandardMaterial({ color: 0xdde8ff, roughness: 0.15, metalness: 0.95 });
+const bladeMesh = new THREE.Mesh(bladeGeo, bladeMat);
+bladeMesh.position.y = 0.7;
+bladeMesh.castShadow = true;
+
+const swordGlowMat = new THREE.MeshBasicMaterial({ color: 0x5aa9ff, transparent: true, opacity: 0.35 });
+const swordGlow = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.38, 0.05), swordGlowMat);
+swordGlow.position.y = 0.7;
+
+const swordGuard = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.06), trimMat);
+swordGuard.position.y = 0.04;
+const swordGrip = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.32, 8), new THREE.MeshStandardMaterial({ color: 0x221108 }));
+swordGrip.position.y = -0.14;
+const swordPommel = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), trimMat);
+swordPommel.position.y = -0.32;
+
+swordGroup.add(bladeMesh, swordGlow, swordGuard, swordGrip, swordPommel);
+swordGroup.position.set(0, -0.65, 0.1);
+swordGroup.rotation.set(-0.4, 0, -0.2);
+rightArmGroup.add(swordGroup);
+pGroup.add(rightArmGroup);
+player.rightArm = rightArmGroup;
+player.sword = swordGroup;
+
+// Pernas
+const leftLegGroup = new THREE.Group();
+leftLegGroup.position.set(-0.18, 0.95, 0);
+const lLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.85, 10), armorMat);
+lLeg.position.y = -0.42;
+lLeg.castShadow = true;
+leftLegGroup.add(lLeg);
+pGroup.add(leftLegGroup);
+player.leftLeg = leftLegGroup;
+
+const rightLegGroup = new THREE.Group();
+rightLegGroup.position.set(0.18, 0.95, 0);
+const rLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.85, 10), armorMat);
+rLeg.position.y = -0.42;
+rLeg.castShadow = true;
+rightLegGroup.add(rLeg);
+pGroup.add(rightLegGroup);
+player.rightLeg = rightLegGroup;
+
+player.mesh = pGroup;
+
+const cameraState = {
+  yaw: Math.PI,
+  pitch: 0.18,
+  dist: 5.5
+};
+
+// ==================== CONTROLES DE TECLADO E MOUSE ====================
+const keys = {};
+let isLocked = false;
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  SFX.init();
+  if (e.code === 'KeyQ') dodgeRoll();
+});
+
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+function lockPointer() {
+  SFX.init();
+  canvas.requestPointerLock();
+}
+
+document.addEventListener('pointerlockchange', () => {
+  isLocked = (document.pointerLockElement === canvas);
+  document.getElementById('lock-prompt').style.display = isLocked ? 'none' : 'flex';
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isLocked) return;
+  const sens = 0.0024;
+  cameraState.yaw -= e.movementX * sens;
+  cameraState.pitch = Math.max(-0.4, Math.min(0.85, cameraState.pitch + e.movementY * sens));
+});
+
+window.addEventListener('mousedown', (e) => {
+  if (!isLocked) return;
+  if (e.button === 0) performAttack();
+});
+
+function dodgeRoll() {
+  if (player.stamina < 25) return;
+  player.stamina -= 25;
+  SFX.play('swing1', 0.5, 0.2);
+  const moveAngle = cameraState.yaw;
+  player.vel.x += Math.sin(moveAngle) * 14;
+  player.vel.z += Math.cos(moveAngle) * 14;
+}
+
+function performAttack() {
+  const now = performance.now();
+  if (now - player.lastAttackTime < 240) return;
+  player.lastAttackTime = now;
+  player.comboIndex = (player.comboIndex % 3) + 1;
+
+  SFX.play('swing' + player.comboIndex, 0.85, 0.1);
+
+  // Animação de Golpe com Espada
+  player.rightArm.rotation.set(-1.2, 0.6, -0.5);
+  player.sword.rotation.set(-1.1, player.comboIndex * 0.8, -1.4);
+  setTimeout(() => {
+    player.rightArm.rotation.set(0, 0, 0);
+    player.sword.rotation.set(-0.4, 0, -0.2);
+  }, 220);
+
+  if (player.comboIndex === 3) {
+    SFX.play('soulshot', 1.0);
+    const flash = new THREE.PointLight(0x55aaff, 6, 12, 2);
+    flash.position.copy(player.pos).add(new THREE.Vector3(Math.sin(player.rotY) * 1.5, 1.4, Math.cos(player.rotY) * 1.5));
+    scene.add(flash);
+    setTimeout(() => scene.remove(flash), 120);
+  }
+
+  const dDist = player.pos.distanceTo(dummyGroup.position);
+  if (dDist < 3.4) {
+    const dmg = (player.comboIndex === 3) ? 680 : Math.floor(240 + Math.random() * 80);
+    spawnDamageNumber(dmg, dummyGroup.position.clone().add(new THREE.Vector3(0, 2.2, 0)));
+    SFX.play('hit', 0.8);
+    dummyGroup.rotation.y = (Math.random() - 0.5) * 0.4;
+    setTimeout(() => dummyGroup.rotation.y = 0, 180);
+  }
+}
+
+function spawnDamageNumber(dmg, worldPos) {
+  const screenPos = worldPos.clone().project(camera);
+  const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+  const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
+  const div = document.createElement('div');
+  div.className = 'floating-dmg';
+  div.textContent = dmg;
+  div.style.left = x + 'px';
+  div.style.top = y + 'px';
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 800);
+}
+
+// Teleportes Turísticos da Vila
+function teleportTo(location) {
+  if (location === 'arena') {
+    player.pos.set(0, 0, 8);
+    cameraState.yaw = Math.PI;
+  } else if (location === 'church') {
+    player.pos.set(-12.2, 0, -25);
+    cameraState.yaw = 0;
+  } else if (location === 'fighter') {
+    player.pos.set(45, 0, -48);
+    cameraState.yaw = -Math.PI / 4;
+  } else if (location === 'shops') {
+    player.pos.set(16, 0, 3);
+    cameraState.yaw = -Math.PI / 2;
+  } else if (location === 'agit') {
+    player.pos.set(-22, 0, -10);
+    cameraState.yaw = Math.PI / 2;
+  } else if (location === 'port') {
+    player.pos.set(15, 0, 68);
+    cameraState.yaw = Math.PI;
+  } else if (location === 'lighthouse') {
+    player.pos.set(94, 18, 48);
+    cameraState.yaw = Math.PI / 4;
+  }
+  player.vel.set(0, 0, 0);
+}
+
+// ==================== MINIMAPA DINÂMICO (LINEAGE 2 OFICIAL) ====================
+const miniCanvas = document.getElementById('minimap');
+const miniCtx = miniCanvas.getContext('2d');
+
+function updateMinimap() {
+  const w = miniCanvas.width;
+  const h = miniCanvas.height;
+  miniCtx.clearRect(0, 0, w, h);
+
+  // Mar profundo
+  miniCtx.fillStyle = '#0a2544';
+  miniCtx.fillRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const cy = h / 2;
+  const scale = 0.65;
+
+  // Base da Ilha
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 80, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#2d4422';
+  miniCtx.fill();
+
+  // Pátio da Vila (Raio ~36 no minimap)
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 37, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#55606d';
+  miniCtx.fill();
+  miniCtx.strokeStyle = '#3d4450';
+  miniCtx.lineWidth = 2;
+  miniCtx.stroke();
+
+  // 4 Estradas Diagonais dos Portões
+  miniCtx.strokeStyle = '#55606d';
+  miniCtx.lineWidth = 5;
+  miniCtx.beginPath();
+  // Nordeste
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx + 42, cy - 42);
+  // Noroeste
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx - 42, cy - 38);
+  // Sudeste (Portão e descida para Porto/Farol)
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx + 40, cy + 38);
+  // Sudoeste
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx - 40, cy + 40);
+  // Estrada para a Igreja (Norte)
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx - 8, cy - 35);
+  // Estrada para o Porto
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx + 10, cy + 55);
+  miniCtx.stroke();
+
+  // Praça Central (Arena de Duelo)
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 14, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#3a4454';
+  miniCtx.fill();
+  miniCtx.strokeStyle = '#f5c451';
+  miniCtx.lineWidth = 1.5;
+  miniCtx.stroke();
+
+  // Selo IS BLADE
+  miniCtx.fillStyle = '#5aa9ff';
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+  miniCtx.fill();
+
+  // Igreja (Norte)
+  miniCtx.fillStyle = '#8899bb';
+  miniCtx.fillRect(cx - 15, cy - 34, 14, 12);
+
+  // Guilda dos Guerreiros (Nordeste)
+  miniCtx.fillStyle = '#996633';
+  miniCtx.fillRect(cx + 28, cy - 42, 12, 12);
+
+  // Lojas (Leste)
+  miniCtx.fillStyle = '#aa8855';
+  miniCtx.fillRect(cx + 12, cy - 2, 9, 8);
+  miniCtx.fillRect(cx + 26, cy - 8, 9, 8);
+
+  // Clan Halls (Oeste)
+  miniCtx.fillStyle = '#556688';
+  miniCtx.fillRect(cx - 24, cy - 10, 11, 9);
+  miniCtx.fillRect(cx - 16, cy + 18, 11, 9);
+
+  // Porto (Sul)
+  miniCtx.fillStyle = '#8b5a2b';
+  miniCtx.fillRect(cx + 8, cy + 46, 6, 14);
+
+  // Farol (Sudeste)
+  miniCtx.beginPath();
+  miniCtx.arc(cx + 58, cy + 34, 4, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#ffe066';
+  miniCtx.fill();
+
+  // Marcador do Jogador
+  const px = cx + player.pos.x * scale;
+  const py = cy + player.pos.z * scale;
+
+  miniCtx.save();
+  miniCtx.translate(px, py);
+  miniCtx.rotate(-player.rotY + Math.PI);
+
+  miniCtx.beginPath();
+  miniCtx.moveTo(0, -6);
+  miniCtx.lineTo(4, 5);
+  miniCtx.lineTo(-4, 5);
+  miniCtx.closePath();
+  miniCtx.fillStyle = '#58e08e';
+  miniCtx.fill();
+  miniCtx.strokeStyle = '#ffffff';
+  miniCtx.lineWidth = 1;
+  miniCtx.stroke();
+
+  miniCtx.restore();
+}
+
+// ==================== LOOP DE RENDERIZAÇÃO ====================
+let lastTime = performance.now();
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min((now - lastTime) / 1000, 0.1);
+  lastTime = now;
+
+  // Movimento
+  const moveDir = new THREE.Vector3();
+  if (keys['KeyW']) moveDir.z -= 1;
+  if (keys['KeyS']) moveDir.z += 1;
+  if (keys['KeyA']) moveDir.x -= 1;
+  if (keys['KeyD']) moveDir.x += 1;
+
+  const isMoving = moveDir.lengthSq() > 0;
+  if (isMoving) {
+    moveDir.normalize();
+    const camAngle = cameraState.yaw;
+    const rotatedX = moveDir.x * Math.cos(camAngle) - moveDir.z * Math.sin(camAngle);
+    const rotatedZ = moveDir.x * Math.sin(camAngle) + moveDir.z * Math.cos(camAngle);
+    
+    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+    const curSpeed = player.speed * (isSprinting ? player.sprintMult : 1.0);
+
+    player.vel.x = rotatedX * curSpeed;
+    player.vel.z = rotatedZ * curSpeed;
+
+    player.rotY = Math.atan2(rotatedX, rotatedZ);
+
+    // Animação de Passada (Pernas e Braços)
+    player.walkTime += dt * (isSprinting ? 14 : 9);
+    const swing = Math.sin(player.walkTime) * 0.45;
+    player.leftLeg.rotation.x = swing;
+    player.rightLeg.rotation.x = -swing;
+    player.leftArm.rotation.x = -swing * 0.6;
+    if (now - player.lastAttackTime > 260) {
+      player.rightArm.rotation.x = swing * 0.6;
+    }
+  } else {
+    player.vel.x *= 0.82;
+    player.vel.z *= 0.82;
+    player.leftLeg.rotation.x *= 0.8;
+    player.rightLeg.rotation.x *= 0.8;
+    player.leftArm.rotation.x *= 0.8;
+  }
+
+  if (keys['Space'] && player.isGrounded) {
+    player.vel.y = 8.5;
+    player.isGrounded = false;
+  }
+
+  player.vel.y -= 22 * dt;
+  player.pos.y += player.vel.y * dt;
+
+  if (player.pos.y <= 0) {
+    player.pos.y = 0;
+    player.vel.y = 0;
+    player.isGrounded = true;
+  }
+
+  player.pos.x += player.vel.x * dt;
+  player.pos.z += player.vel.z * dt;
+
+  player.mesh.position.copy(player.pos);
+  player.mesh.rotation.y = player.rotY;
+
+  player.stamina = Math.min(player.maxStamina, player.stamina + 20 * dt);
+  document.getElementById('st-fill').style.width = (player.stamina / player.maxStamina * 100) + '%';
+
+  // Câmera 3ª Pessoa Dragon Nest
+  const camX = player.pos.x + Math.sin(cameraState.yaw) * cameraState.dist * Math.cos(cameraState.pitch);
+  const camY = player.pos.y + 1.6 + Math.sin(cameraState.pitch) * cameraState.dist;
+  const camZ = player.pos.z + Math.cos(cameraState.yaw) * cameraState.dist * Math.cos(cameraState.pitch);
+
+  camera.position.set(camX, camY, camZ);
+  camera.lookAt(player.pos.clone().add(new THREE.Vector3(0, 1.4, 0)));
+
+  // Animação Aura do Selo
+  auraMat.opacity = 0.55 + Math.sin(now * 0.003) * 0.25;
+
+  // Farol Giratório
+  if (lighthouseBeam) {
+    lighthouseBeam.angle += dt * 0.75;
+    lighthouseBeam.target.position.x = lighthouseBeam.originX + Math.cos(lighthouseBeam.angle) * 90;
+    lighthouseBeam.target.position.z = lighthouseBeam.originZ + Math.sin(lighthouseBeam.angle) * 90;
+  }
+
+
+  // Braseiros tremulando
+  const flicker = Math.sin(now * 0.012) * 0.18 + Math.cos(now * 0.025) * 0.12;
+  braziers.forEach(b => {
+    b.light.intensity = b.baseInt + flicker;
+  });
+
+  // Mar oscilando
+  const t = now * 0.0016;
+  for (let i = 0; i < waterPos.count; i++) {
+    const u = waterPos.getX(i);
+    const v = waterPos.getZ(i);
+    waterPos.setY(i, waterOrigY[i] + Math.sin(u * 0.04 + t) * 0.35 + Math.cos(v * 0.04 + t) * 0.25);
+  }
+  waterPos.needsUpdate = true;
+
+  updateMinimap();
+  renderer.render(scene, camera);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

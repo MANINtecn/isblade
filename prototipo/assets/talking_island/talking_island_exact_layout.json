@@ -1,0 +1,6682 @@
+[
+  {
+    "actor": "StaticMeshActor393",
+    "mesh": "SI_Magic_Hall",
+    "x": -90214.4,
+    "y": 248559.38,
+    "z": -2390.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor652",
+    "mesh": "SI_Magic_Front",
+    "x": -90214.4,
+    "y": 248559.38,
+    "z": -2385.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor79",
+    "mesh": "SI_Magic_Hall_in",
+    "x": -90238.79,
+    "y": 248542.77,
+    "z": -2383.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor50",
+    "mesh": "CH_In_Hall",
+    "x": -84828.06,
+    "y": 245136.36,
+    "z": -3531.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor52",
+    "mesh": "CH_In_Pir_obj",
+    "x": -84519.08,
+    "y": 245446.83,
+    "z": -3534.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor49",
+    "mesh": "CH_In_Front",
+    "x": -84903.77,
+    "y": 245060.72,
+    "z": -3533.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor646",
+    "mesh": "SI_Fight_Bridge_01_2",
+    "x": -78327.82,
+    "y": 250124.84,
+    "z": -3941.81,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor20",
+    "mesh": "SI_Magic_Gate",
+    "x": -90214.4,
+    "y": 248559.38,
+    "z": -2390.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor780",
+    "mesh": "SI_Fighter_Bridge02",
+    "x": -77126.55,
+    "y": 251543.16,
+    "z": -3467.8,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor778",
+    "mesh": "SI_Magic_Startroom01",
+    "x": -90214.4,
+    "y": 248559.38,
+    "z": -2390.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor425",
+    "mesh": "SI_Magic_Startroom02",
+    "x": -90214.4,
+    "y": 248559.38,
+    "z": -2390.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor10",
+    "mesh": "SI_Fight_Bridge_01_1",
+    "x": -79523.77,
+    "y": 248710.55,
+    "z": -3882.81,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor761",
+    "mesh": "SI_Magic_Startroom02_in",
+    "x": -90216.09,
+    "y": 248561.67,
+    "z": -2390.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor458",
+    "mesh": "SI_Wall_C",
+    "x": -84340.0,
+    "y": 242921.0,
+    "z": -3741.0,
+    "pitch": 0,
+    "yaw": 8952,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor495",
+    "mesh": "SI_Wall_A",
+    "x": -84340.0,
+    "y": 242921.0,
+    "z": -3724.0,
+    "pitch": 0,
+    "yaw": 8952,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor400",
+    "mesh": "SI_Magic_Gate",
+    "x": -90215.79,
+    "y": 248559.61,
+    "z": -2385.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor359",
+    "mesh": "SI_Magic_Startroom02",
+    "x": -90215.79,
+    "y": 248559.61,
+    "z": -2390.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor51",
+    "mesh": "CH_In_Pir",
+    "x": -84519.08,
+    "y": 245446.83,
+    "z": -3534.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor984",
+    "mesh": "SI_Fight_Bridge_01_3",
+    "x": -79215.88,
+    "y": 249073.7,
+    "z": -3908.0,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor188",
+    "mesh": "SI_Wall_D",
+    "x": -84340.0,
+    "y": 242921.0,
+    "z": -3738.0,
+    "pitch": 0,
+    "yaw": 8952,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor465",
+    "mesh": "SI_Wall_B",
+    "x": -84340.0,
+    "y": 242921.0,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": 8952,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor338",
+    "mesh": "SI_Magic_Startroom02_in",
+    "x": -90214.6,
+    "y": 248557.89,
+    "z": -2392.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor388",
+    "mesh": "SI_Magic_Startroom01",
+    "x": -90215.79,
+    "y": 248559.61,
+    "z": -2392.0,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor102",
+    "mesh": "SI_Agit",
+    "x": -85078.0,
+    "y": 241254.0,
+    "z": -3485.0,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor253",
+    "mesh": "SI_SH02",
+    "x": -86484.62,
+    "y": 242980.66,
+    "z": -3473.0,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor463",
+    "mesh": "SI_H02_Rf",
+    "x": -82536.0,
+    "y": 244201.0,
+    "z": -3613.0,
+    "pitch": 0,
+    "yaw": -23264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor462",
+    "mesh": "SI_H02",
+    "x": -82536.0,
+    "y": 244201.0,
+    "z": -3613.0,
+    "pitch": 0,
+    "yaw": -23264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor254",
+    "mesh": "SI_SH02_Rf",
+    "x": -86484.62,
+    "y": 242980.66,
+    "z": -3473.0,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor440",
+    "mesh": "SI_SH02",
+    "x": -83096.27,
+    "y": 242816.45,
+    "z": -3473.0,
+    "pitch": 0,
+    "yaw": -4592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor456",
+    "mesh": "SI_H04_Rf",
+    "x": -83472.98,
+    "y": 245055.0,
+    "z": -3549.0,
+    "pitch": 0,
+    "yaw": 8496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor468",
+    "mesh": "SI_SH01_Rf",
+    "x": -84056.0,
+    "y": 240841.0,
+    "z": -3522.0,
+    "pitch": 0,
+    "yaw": 40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor466",
+    "mesh": "SI_H03",
+    "x": -83604.0,
+    "y": 241687.0,
+    "z": -3536.0,
+    "pitch": 0,
+    "yaw": 27720,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor274",
+    "mesh": "SI_H02",
+    "x": -85878.32,
+    "y": 242036.86,
+    "z": -3614.0,
+    "pitch": 0,
+    "yaw": 8480,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor480",
+    "mesh": "SI_H02_Rf",
+    "x": -85878.32,
+    "y": 242036.86,
+    "z": -3614.0,
+    "pitch": 0,
+    "yaw": 8480,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor544",
+    "mesh": "SI_BulletinBoard",
+    "x": -82765.09,
+    "y": 241438.89,
+    "z": -3718.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor545",
+    "mesh": "SI_BulletinBody",
+    "x": -82765.09,
+    "y": 241438.89,
+    "z": -3718.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor139",
+    "mesh": "SI_BulletinBoard",
+    "x": -82873.16,
+    "y": 244808.45,
+    "z": -3717.0,
+    "pitch": 0,
+    "yaw": 10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor140",
+    "mesh": "sp_lighthouse001",
+    "x": -78831.36,
+    "y": 240040.42,
+    "z": -2342.0,
+    "pitch": 0,
+    "yaw": -22840,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor141",
+    "mesh": "sp_lighthouse002",
+    "x": -78830.77,
+    "y": 240041.25,
+    "z": -2342.0,
+    "pitch": 0,
+    "yaw": -22840,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor273",
+    "mesh": "SI_H04_Rf",
+    "x": -82369.89,
+    "y": 242233.12,
+    "z": -3549.0,
+    "pitch": 0,
+    "yaw": 59696,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor473",
+    "mesh": "SI_SH01",
+    "x": -84056.0,
+    "y": 240841.0,
+    "z": -3522.0,
+    "pitch": 0,
+    "yaw": 40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor242",
+    "mesh": "SI_H04",
+    "x": -83472.98,
+    "y": 245055.0,
+    "z": -3549.0,
+    "pitch": 0,
+    "yaw": 8496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor255",
+    "mesh": "SI_H01_Rf",
+    "x": -84518.61,
+    "y": 243728.12,
+    "z": -3663.0,
+    "pitch": 0,
+    "yaw": -6960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor246",
+    "mesh": "SI_SH03",
+    "x": -81799.0,
+    "y": 243586.0,
+    "z": -3644.0,
+    "pitch": 0,
+    "yaw": 58368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor247",
+    "mesh": "SI_SH03_Rf",
+    "x": -81799.0,
+    "y": 243586.0,
+    "z": -3644.0,
+    "pitch": 0,
+    "yaw": 58368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor259",
+    "mesh": "SI_H03",
+    "x": -85355.37,
+    "y": 242627.05,
+    "z": -3537.0,
+    "pitch": 0,
+    "yaw": 9288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor260",
+    "mesh": "SI_H03_Rf",
+    "x": -85355.37,
+    "y": 242627.05,
+    "z": -3537.0,
+    "pitch": 0,
+    "yaw": 9288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor267",
+    "mesh": "SI_H04",
+    "x": -83158.92,
+    "y": 243482.89,
+    "z": -3550.0,
+    "pitch": 0,
+    "yaw": 42288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor301",
+    "mesh": "SI_Agit",
+    "x": -85759.44,
+    "y": 243601.64,
+    "z": -3486.0,
+    "pitch": 0,
+    "yaw": 25592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor302",
+    "mesh": "SI_Agit_Rf",
+    "x": -85759.44,
+    "y": 243601.64,
+    "z": -3486.0,
+    "pitch": 0,
+    "yaw": 25592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor405",
+    "mesh": "SI_Agit_Rf",
+    "x": -85078.0,
+    "y": 241254.0,
+    "z": -3485.0,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor427",
+    "mesh": "Manor_Speaking",
+    "x": -83484.0,
+    "y": 243198.0,
+    "z": -3758.0,
+    "pitch": 0,
+    "yaw": 40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor457",
+    "mesh": "SI_H03_Rf",
+    "x": -83604.0,
+    "y": 241687.0,
+    "z": -3536.0,
+    "pitch": 0,
+    "yaw": 27720,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor476",
+    "mesh": "SI_H04_Rf",
+    "x": -83158.92,
+    "y": 243482.89,
+    "z": -3550.0,
+    "pitch": 0,
+    "yaw": 42288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor478",
+    "mesh": "SI_H04",
+    "x": -82369.89,
+    "y": 242233.12,
+    "z": -3549.0,
+    "pitch": 0,
+    "yaw": 59696,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor516",
+    "mesh": "SI_BulletinBody",
+    "x": -82873.16,
+    "y": 244808.45,
+    "z": -3717.0,
+    "pitch": 0,
+    "yaw": 10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor490",
+    "mesh": "SI_H03_Rf",
+    "x": -84002.03,
+    "y": 244171.02,
+    "z": -3537.0,
+    "pitch": 0,
+    "yaw": 9288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor535",
+    "mesh": "SI_BulletinBody",
+    "x": -86121.0,
+    "y": 241452.0,
+    "z": -3719.0,
+    "pitch": 0,
+    "yaw": 7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor534",
+    "mesh": "SI_BulletinBoard",
+    "x": -86121.0,
+    "y": 241452.0,
+    "z": -3719.0,
+    "pitch": 0,
+    "yaw": 7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor150",
+    "mesh": "SI_H01_Rf",
+    "x": -84299.0,
+    "y": 241854.0,
+    "z": -3662.0,
+    "pitch": 0,
+    "yaw": -24368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor485",
+    "mesh": "SI_H03",
+    "x": -84002.03,
+    "y": 244171.02,
+    "z": -3537.0,
+    "pitch": 0,
+    "yaw": 9288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor149",
+    "mesh": "SI_H01",
+    "x": -84299.0,
+    "y": 241854.0,
+    "z": -3662.0,
+    "pitch": 0,
+    "yaw": -24368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor252",
+    "mesh": "SI_H01",
+    "x": -84518.61,
+    "y": 243728.12,
+    "z": -3663.0,
+    "pitch": 0,
+    "yaw": -6960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor158",
+    "mesh": "splandforest1",
+    "x": -87536.0,
+    "y": 243503.16,
+    "z": -3733.63,
+    "pitch": 0,
+    "yaw": -11448,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor58",
+    "mesh": "CH_In_Pir",
+    "x": -84964.55,
+    "y": 245001.38,
+    "z": -3534.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor5",
+    "mesh": "interior_B_005",
+    "x": -84325.77,
+    "y": 240487.0,
+    "z": -3669.61,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor85",
+    "mesh": "SI_Magic_carpet02",
+    "x": -90168.62,
+    "y": 249812.33,
+    "z": -3597.99,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor86",
+    "mesh": "splandforest1",
+    "x": -90544.0,
+    "y": 239327.16,
+    "z": -3660.88,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor162",
+    "mesh": "O_Ladder02",
+    "x": -83470.11,
+    "y": 240713.8,
+    "z": -3696.0,
+    "pitch": 0,
+    "yaw": 9104,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor159",
+    "mesh": "O_Package01",
+    "x": -84521.47,
+    "y": 241749.23,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 41024,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor161",
+    "mesh": "O_Package03",
+    "x": -84388.09,
+    "y": 241625.98,
+    "z": -3727.0,
+    "pitch": -2048,
+    "yaw": 23456,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor42",
+    "mesh": "interior_B_206",
+    "x": -85103.54,
+    "y": 240906.53,
+    "z": -3720.78,
+    "pitch": 0,
+    "yaw": -24512,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor12",
+    "mesh": "Default_Flame01",
+    "x": -84547.91,
+    "y": 245175.69,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -57344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor113",
+    "mesh": "splandforest1",
+    "x": -86169.73,
+    "y": 244963.22,
+    "z": -3746.63,
+    "pitch": 0,
+    "yaw": -8376,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1",
+    "mesh": "world_bridge01",
+    "x": -88291.44,
+    "y": 253024.44,
+    "z": -3769.29,
+    "pitch": 0,
+    "yaw": -2596,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor6",
+    "mesh": "SI_CH_Body",
+    "x": -84902.08,
+    "y": 245061.69,
+    "z": -3572.0,
+    "pitch": 0,
+    "yaw": -8184,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor576",
+    "mesh": "splandforest1",
+    "x": -91448.13,
+    "y": 244922.62,
+    "z": -3606.19,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor241",
+    "mesh": "interior_B_028",
+    "x": -84055.88,
+    "y": 240470.78,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor537",
+    "mesh": "splandtree1",
+    "x": -87693.35,
+    "y": 251733.94,
+    "z": -3646.75,
+    "pitch": 0,
+    "yaw": -12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor536",
+    "mesh": "splandtree1",
+    "x": -86854.32,
+    "y": 250154.3,
+    "z": -3595.14,
+    "pitch": 0,
+    "yaw": -20736,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor387",
+    "mesh": "O_Box01",
+    "x": -87101.02,
+    "y": 242096.25,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8544,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1599",
+    "mesh": "O_Fence02",
+    "x": -94925.5,
+    "y": 258137.91,
+    "z": -3297.0,
+    "pitch": 0,
+    "yaw": 45528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1743",
+    "mesh": "O_Fence02",
+    "x": -94919.45,
+    "y": 258332.12,
+    "z": -3292.0,
+    "pitch": -1120,
+    "yaw": 52936,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1750",
+    "mesh": "O_Fence02",
+    "x": -94962.71,
+    "y": 258407.09,
+    "z": -3289.0,
+    "pitch": 0,
+    "yaw": 56272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1799",
+    "mesh": "Deco_stone011",
+    "x": -87911.7,
+    "y": 249498.88,
+    "z": -3623.5,
+    "pitch": 10,
+    "yaw": -202752,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor1628",
+    "mesh": "O_Fence02-1",
+    "x": -94991.73,
+    "y": 257980.05,
+    "z": -3288.0,
+    "pitch": 0,
+    "yaw": 11360,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1629",
+    "mesh": "O_Fence02",
+    "x": -94976.51,
+    "y": 258021.44,
+    "z": -3301.0,
+    "pitch": 0,
+    "yaw": 46168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1798",
+    "mesh": "Deco_stone001",
+    "x": -87841.28,
+    "y": 249547.3,
+    "z": -3625.56,
+    "pitch": 10,
+    "yaw": -202752,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor1865",
+    "mesh": "Deco_stone003",
+    "x": -90548.52,
+    "y": 250280.86,
+    "z": -3626.75,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1883",
+    "mesh": "Deco_stone001",
+    "x": -89480.18,
+    "y": 243096.91,
+    "z": -3646.81,
+    "pitch": 0,
+    "yaw": -3648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1885",
+    "mesh": "Deco_stone003",
+    "x": -89470.09,
+    "y": 243059.44,
+    "z": -3628.62,
+    "pitch": 0,
+    "yaw": 13280,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2012",
+    "mesh": "Deco_stone002",
+    "x": -85420.93,
+    "y": 252271.45,
+    "z": -3672.69,
+    "pitch": 0,
+    "yaw": 25520,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1989",
+    "mesh": "Deco_stone009",
+    "x": -85360.81,
+    "y": 252456.73,
+    "z": -3682.81,
+    "pitch": 0,
+    "yaw": 13368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1987",
+    "mesh": "Deco_stone001",
+    "x": -92999.04,
+    "y": 242757.03,
+    "z": -3595.38,
+    "pitch": -62918,
+    "yaw": 65535,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor531",
+    "mesh": "splandtree1",
+    "x": -83746.6,
+    "y": 249880.55,
+    "z": -3530.31,
+    "pitch": 0,
+    "yaw": -12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor240",
+    "mesh": "interior_B_028",
+    "x": -83741.67,
+    "y": 240683.48,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor115",
+    "mesh": "splandtree3",
+    "x": -87184.99,
+    "y": 242690.78,
+    "z": -3754.25,
+    "pitch": 0,
+    "yaw": 55232,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor118",
+    "mesh": "interior_B_202",
+    "x": -81593.69,
+    "y": 243207.77,
+    "z": -3707.58,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor119",
+    "mesh": "O_Package01",
+    "x": -86086.88,
+    "y": 242101.05,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor148",
+    "mesh": "interior_B_206",
+    "x": -81673.54,
+    "y": 243766.02,
+    "z": -3711.78,
+    "pitch": 0,
+    "yaw": -7248,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor147",
+    "mesh": "interior_B_111",
+    "x": -83317.48,
+    "y": 243030.22,
+    "z": -3678.2,
+    "pitch": 0,
+    "yaw": -70128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor146",
+    "mesh": "O_Box01",
+    "x": -83649.43,
+    "y": 240976.06,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor144",
+    "mesh": "O_Box01",
+    "x": -83663.52,
+    "y": 240990.58,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor143",
+    "mesh": "splandtree3",
+    "x": -93774.62,
+    "y": 252609.3,
+    "z": -3426.25,
+    "pitch": 0,
+    "yaw": 16384,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor142",
+    "mesh": "O_Box01",
+    "x": -83775.77,
+    "y": 241031.95,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor607",
+    "mesh": "StoneH_01",
+    "x": -93637.57,
+    "y": 242263.28,
+    "z": -3270.55,
+    "pitch": 10,
+    "yaw": -262144,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor606",
+    "mesh": "Deco_stone011",
+    "x": -94128.18,
+    "y": 249963.19,
+    "z": -3622.25,
+    "pitch": 980,
+    "yaw": -25352,
+    "roll": 2536
+  },
+  {
+    "actor": "StaticMeshActor39",
+    "mesh": "Cylinder01",
+    "x": -84939.6,
+    "y": 245271.38,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -122880,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor15",
+    "mesh": "Cylinder01",
+    "x": -84841.94,
+    "y": 244877.06,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor569",
+    "mesh": "splandtree3",
+    "x": -91589.7,
+    "y": 244483.06,
+    "z": -3526.19,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor83",
+    "mesh": "SI_Magic_carpet02",
+    "x": -89027.36,
+    "y": 248117.41,
+    "z": -3598.02,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor56",
+    "mesh": "O_Box01",
+    "x": -87087.21,
+    "y": 242078.78,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor171",
+    "mesh": "O_Tank01",
+    "x": -86675.0,
+    "y": 242672.0,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -4496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor40",
+    "mesh": "interior_B_204",
+    "x": -81500.65,
+    "y": 243429.92,
+    "z": -3709.48,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor45",
+    "mesh": "interior_B_209",
+    "x": -82077.36,
+    "y": 243797.25,
+    "z": -3706.78,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor44",
+    "mesh": "interior_B_208",
+    "x": -81990.09,
+    "y": 243976.34,
+    "z": -3707.84,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor47",
+    "mesh": "interior_B_sign03",
+    "x": -82234.48,
+    "y": 243731.97,
+    "z": -3649.71,
+    "pitch": 0,
+    "yaw": 41976,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor46",
+    "mesh": "interior_B_210",
+    "x": -81900.15,
+    "y": 243527.97,
+    "z": -3708.17,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor37",
+    "mesh": "O_Package01",
+    "x": -86079.12,
+    "y": 242108.8,
+    "z": -3742.0,
+    "pitch": 3072,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3",
+    "mesh": "interior_B_003",
+    "x": -84548.26,
+    "y": 240746.72,
+    "z": -3715.28,
+    "pitch": 0,
+    "yaw": 40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor30",
+    "mesh": "interior_B_108",
+    "x": -82981.93,
+    "y": 242497.95,
+    "z": -3716.92,
+    "pitch": 0,
+    "yaw": -70128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor22",
+    "mesh": "interior_B_014",
+    "x": -84150.7,
+    "y": 240794.25,
+    "z": -3715.99,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor21",
+    "mesh": "interior_B_013",
+    "x": -84039.06,
+    "y": 240868.77,
+    "z": -3708.76,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor19",
+    "mesh": "interior_B_012",
+    "x": -83798.77,
+    "y": 240944.67,
+    "z": -3715.82,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor18",
+    "mesh": "O_Cart01",
+    "x": -82469.49,
+    "y": 242161.92,
+    "z": -3755.0,
+    "pitch": 0,
+    "yaw": 5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor496",
+    "mesh": "O_Tank04",
+    "x": -84033.31,
+    "y": 244774.03,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor499",
+    "mesh": "splandtree1",
+    "x": -89763.96,
+    "y": 250690.45,
+    "z": -3610.62,
+    "pitch": 0,
+    "yaw": -12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor132",
+    "mesh": "splandforest1",
+    "x": -91735.88,
+    "y": 242489.59,
+    "z": -3579.5,
+    "pitch": 0,
+    "yaw": 16584,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor131",
+    "mesh": "O_Tank02",
+    "x": -83610.16,
+    "y": 240906.23,
+    "z": -3747.0,
+    "pitch": 10,
+    "yaw": 524288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor152",
+    "mesh": "interior_B_109",
+    "x": -84792.4,
+    "y": 241368.39,
+    "z": -3715.14,
+    "pitch": 0,
+    "yaw": -51904,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor228",
+    "mesh": "interior_B_111",
+    "x": -86089.49,
+    "y": 243732.17,
+    "z": -3680.2,
+    "pitch": 0,
+    "yaw": -67416,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor321",
+    "mesh": "O_Box02",
+    "x": -86320.77,
+    "y": 242773.98,
+    "z": -3749.0,
+    "pitch": 0,
+    "yaw": 54040,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor320",
+    "mesh": "interior_B_124",
+    "x": -86449.09,
+    "y": 242733.12,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor319",
+    "mesh": "O_Box01",
+    "x": -84430.38,
+    "y": 241653.25,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": 23616,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor170",
+    "mesh": "O_Package03",
+    "x": -84417.78,
+    "y": 241627.69,
+    "z": -3733.0,
+    "pitch": 2048,
+    "yaw": -8288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor169",
+    "mesh": "O_Package03",
+    "x": -87309.19,
+    "y": 242279.58,
+    "z": -3731.0,
+    "pitch": 0,
+    "yaw": 22176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor168",
+    "mesh": "O_Tank01",
+    "x": -83873.0,
+    "y": 244088.0,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor300",
+    "mesh": "O_LoadLamp01",
+    "x": -84423.4,
+    "y": 240960.62,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor114",
+    "mesh": "splandforest1",
+    "x": -88177.72,
+    "y": 243898.03,
+    "z": -3748.44,
+    "pitch": 0,
+    "yaw": 14816,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor154",
+    "mesh": "O_Box01",
+    "x": -84331.26,
+    "y": 240939.61,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor325",
+    "mesh": "O_Box01",
+    "x": -83790.65,
+    "y": 241045.31,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1228",
+    "mesh": "Deco_stone006",
+    "x": -88828.02,
+    "y": 255762.59,
+    "z": -3766.0,
+    "pitch": 0,
+    "yaw": 36344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1227",
+    "mesh": "Deco_stone005",
+    "x": -88721.86,
+    "y": 255913.83,
+    "z": -3769.0,
+    "pitch": 0,
+    "yaw": -3848,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1226",
+    "mesh": "Deco_stone004",
+    "x": -88678.1,
+    "y": 255959.52,
+    "z": -3773.38,
+    "pitch": 0,
+    "yaw": -3848,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1225",
+    "mesh": "Deco_stone001",
+    "x": -88822.89,
+    "y": 255706.42,
+    "z": -3767.19,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1203",
+    "mesh": "Deco_stone001",
+    "x": -91823.73,
+    "y": 253752.33,
+    "z": -3415.75,
+    "pitch": -688,
+    "yaw": -1843,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1168",
+    "mesh": "Deco_stone001",
+    "x": -91612.69,
+    "y": 253517.58,
+    "z": -3427.44,
+    "pitch": -705,
+    "yaw": -5636,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor282",
+    "mesh": "O_Box01",
+    "x": -85081.61,
+    "y": 241452.14,
+    "z": -3721.0,
+    "pitch": 0,
+    "yaw": 5288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor33",
+    "mesh": "Cylinder01",
+    "x": -85087.71,
+    "y": 245122.92,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -122880,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor484",
+    "mesh": "interior_B_124",
+    "x": -86148.14,
+    "y": 243076.05,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor38",
+    "mesh": "Default_Flame01",
+    "x": -85085.56,
+    "y": 245120.69,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor618",
+    "mesh": "Deco_stone012",
+    "x": -94245.27,
+    "y": 249898.52,
+    "z": -3599.19,
+    "pitch": -1004,
+    "yaw": 7032,
+    "roll": -36
+  },
+  {
+    "actor": "StaticMeshActor619",
+    "mesh": "Deco_stone013",
+    "x": -94221.02,
+    "y": 249990.72,
+    "z": -3621.38,
+    "pitch": 0,
+    "yaw": 21248,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor276",
+    "mesh": "O_Box01",
+    "x": -85092.3,
+    "y": 241445.36,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": 6816,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor296",
+    "mesh": "O_Butter-Making",
+    "x": -85099.06,
+    "y": 242665.05,
+    "z": -3734.0,
+    "pitch": 0,
+    "yaw": -15360,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor235",
+    "mesh": "O_Box02",
+    "x": -84212.51,
+    "y": 240828.23,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor155",
+    "mesh": "O_LoadLamp01",
+    "x": -86238.34,
+    "y": 242832.12,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": -6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor151",
+    "mesh": "interior_B_109",
+    "x": -86384.55,
+    "y": 242822.97,
+    "z": -3712.67,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor251",
+    "mesh": "O_Tank01",
+    "x": -86693.55,
+    "y": 242677.25,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -4496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor561",
+    "mesh": "splandtree3",
+    "x": -94416.0,
+    "y": 245075.0,
+    "z": -3620.38,
+    "pitch": 0,
+    "yaw": 26624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor474",
+    "mesh": "interior_B_220",
+    "x": -81824.45,
+    "y": 243369.45,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor539",
+    "mesh": "splandtree1",
+    "x": -87595.86,
+    "y": 252415.78,
+    "z": -3685.88,
+    "pitch": 0,
+    "yaw": -15128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor528",
+    "mesh": "splandtree1",
+    "x": -83153.85,
+    "y": 249924.39,
+    "z": -3664.94,
+    "pitch": 0,
+    "yaw": 12456,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor525",
+    "mesh": "splandtree1",
+    "x": -80837.04,
+    "y": 243343.88,
+    "z": -3766.56,
+    "pitch": 0,
+    "yaw": 11600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor523",
+    "mesh": "splandtree1",
+    "x": -84118.48,
+    "y": 239427.97,
+    "z": -3758.12,
+    "pitch": 0,
+    "yaw": -24392,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor520",
+    "mesh": "splandtree1",
+    "x": -82783.92,
+    "y": 245358.97,
+    "z": -3723.94,
+    "pitch": 0,
+    "yaw": -15168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor519",
+    "mesh": "splandtree1",
+    "x": -83591.96,
+    "y": 246268.11,
+    "z": -3674.88,
+    "pitch": 0,
+    "yaw": -47888,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor498",
+    "mesh": "splandtree1",
+    "x": -89761.95,
+    "y": 252387.44,
+    "z": -3502.12,
+    "pitch": 0,
+    "yaw": -21616,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor489",
+    "mesh": "splandforest1",
+    "x": -94860.95,
+    "y": 257747.66,
+    "z": -3311.81,
+    "pitch": 0,
+    "yaw": 9144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor501",
+    "mesh": "splandtree3",
+    "x": -90433.44,
+    "y": 252602.75,
+    "z": -3461.94,
+    "pitch": 0,
+    "yaw": -16856,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor494",
+    "mesh": "splandforest1",
+    "x": -94392.33,
+    "y": 256794.36,
+    "z": -3279.88,
+    "pitch": 0,
+    "yaw": -4096,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor492",
+    "mesh": "splandtree1",
+    "x": -81856.45,
+    "y": 241708.81,
+    "z": -3754.06,
+    "pitch": 0,
+    "yaw": -25576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor500",
+    "mesh": "splandtree1",
+    "x": -86827.7,
+    "y": 241423.28,
+    "z": -3718.0,
+    "pitch": 0,
+    "yaw": -40728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor488",
+    "mesh": "splandtree1",
+    "x": -89048.62,
+    "y": 254139.45,
+    "z": -3661.12,
+    "pitch": 0,
+    "yaw": -12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor422",
+    "mesh": "interior_B_125",
+    "x": -86123.0,
+    "y": 243122.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor448",
+    "mesh": "interior_B_220",
+    "x": -81543.32,
+    "y": 243612.34,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 21504,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor836",
+    "mesh": "H_Door_OP_01",
+    "x": -85488.3,
+    "y": 243523.56,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": -72704,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor788",
+    "mesh": "Deco_stone012",
+    "x": -93992.52,
+    "y": 246157.48,
+    "z": -3664.81,
+    "pitch": -1004,
+    "yaw": -46544,
+    "roll": -36
+  },
+  {
+    "actor": "StaticMeshActor513",
+    "mesh": "splandtree1",
+    "x": -92933.92,
+    "y": 236657.61,
+    "z": -3711.56,
+    "pitch": 0,
+    "yaw": 29416,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor511",
+    "mesh": "splandtree1",
+    "x": -90580.56,
+    "y": 238314.98,
+    "z": -3695.25,
+    "pitch": 0,
+    "yaw": -6640,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor433",
+    "mesh": "interior_B_127",
+    "x": -86258.36,
+    "y": 242877.14,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -70656,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1149",
+    "mesh": "Deco_stone001",
+    "x": -94140.52,
+    "y": 242596.52,
+    "z": -3597.38,
+    "pitch": 0,
+    "yaw": 29552,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor662",
+    "mesh": "Deco_stone002",
+    "x": -83198.17,
+    "y": 240832.16,
+    "z": -3764.19,
+    "pitch": 0,
+    "yaw": 42584,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor664",
+    "mesh": "talking_island_rock03",
+    "x": -91793.62,
+    "y": 249979.33,
+    "z": -3826.85,
+    "pitch": -80,
+    "yaw": -28368,
+    "roll": -72
+  },
+  {
+    "actor": "StaticMeshActor2",
+    "mesh": "interior_B_002",
+    "x": -84391.04,
+    "y": 240882.09,
+    "z": -3703.82,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor7",
+    "mesh": "interior_B_007",
+    "x": -84229.54,
+    "y": 240356.53,
+    "z": -3691.79,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor432",
+    "mesh": "interior_B_126",
+    "x": -86558.81,
+    "y": 243090.77,
+    "z": -3650.09,
+    "pitch": 0,
+    "yaw": -26624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor455",
+    "mesh": "talking_island_rock04",
+    "x": -87068.27,
+    "y": 249878.55,
+    "z": -3690.7,
+    "pitch": 552,
+    "yaw": -52304,
+    "roll": 184
+  },
+  {
+    "actor": "StaticMeshActor280",
+    "mesh": "O_Tank01",
+    "x": -87170.32,
+    "y": 242180.48,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 5792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor129",
+    "mesh": "splandforest1",
+    "x": -93488.0,
+    "y": 240207.16,
+    "z": -3419.25,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor412",
+    "mesh": "interior_B_220",
+    "x": -81596.38,
+    "y": 243193.42,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 70656,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor853",
+    "mesh": "H_Door_OP_01",
+    "x": -85430.62,
+    "y": 243476.11,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor700",
+    "mesh": "Deco_stone009",
+    "x": -93291.59,
+    "y": 238081.59,
+    "z": -3543.75,
+    "pitch": 10,
+    "yaw": 100352,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor899",
+    "mesh": "H_Door_OP_01",
+    "x": -84973.79,
+    "y": 241516.17,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": -57344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor410",
+    "mesh": "interior_B_221",
+    "x": -81393.9,
+    "y": 243309.64,
+    "z": -3680.12,
+    "pitch": 0,
+    "yaw": 21504,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor443",
+    "mesh": "splandtree3",
+    "x": -94747.66,
+    "y": 248766.53,
+    "z": -3652.36,
+    "pitch": 0,
+    "yaw": 25600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor716",
+    "mesh": "Deco_stone002",
+    "x": -89133.23,
+    "y": 238659.38,
+    "z": -3709.69,
+    "pitch": 0,
+    "yaw": -72184,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor717",
+    "mesh": "talking_island_rock03",
+    "x": -91913.55,
+    "y": 247295.91,
+    "z": -3822.85,
+    "pitch": -40,
+    "yaw": -10184,
+    "roll": 1272
+  },
+  {
+    "actor": "StaticMeshActor726",
+    "mesh": "talking_island_rock04",
+    "x": -90750.33,
+    "y": 246802.59,
+    "z": -3812.44,
+    "pitch": 496,
+    "yaw": 114024,
+    "roll": -432
+  },
+  {
+    "actor": "StaticMeshActor409",
+    "mesh": "interior_B_124",
+    "x": -86522.99,
+    "y": 243135.03,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 44032,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor406",
+    "mesh": "interior_B_124",
+    "x": -86209.03,
+    "y": 243230.84,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 27648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor429",
+    "mesh": "interior_B_220",
+    "x": -82060.86,
+    "y": 243957.72,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 41984,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor428",
+    "mesh": "interior_B_220",
+    "x": -81871.27,
+    "y": 243964.61,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 25600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1036",
+    "mesh": "Deco_stone001",
+    "x": -89696.04,
+    "y": 242122.56,
+    "z": -3613.0,
+    "pitch": 0,
+    "yaw": 7480,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor419",
+    "mesh": "interior_B_125",
+    "x": -86489.55,
+    "y": 243199.28,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 44032,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1042",
+    "mesh": "splandddztree1",
+    "x": -75236.79,
+    "y": 254963.52,
+    "z": -3288.13,
+    "pitch": 0,
+    "yaw": 26624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor418",
+    "mesh": "interior_B_125",
+    "x": -86261.0,
+    "y": 243258.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 27648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor435",
+    "mesh": "interior_B_221",
+    "x": -82205.28,
+    "y": 243776.14,
+    "z": -3680.12,
+    "pitch": 0,
+    "yaw": 58368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor989",
+    "mesh": "H_Door_OP_01",
+    "x": -85340.53,
+    "y": 241350.94,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1518",
+    "mesh": "Deco_stone002",
+    "x": -85397.85,
+    "y": 240502.12,
+    "z": -3761.44,
+    "pitch": 0,
+    "yaw": -81192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor416",
+    "mesh": "interior_B_126",
+    "x": -86502.11,
+    "y": 242700.53,
+    "z": -3650.09,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor232",
+    "mesh": "O_LoadLamp01",
+    "x": -85906.52,
+    "y": 241746.41,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 122880,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor197",
+    "mesh": "O_LoadLamp02",
+    "x": -84885.58,
+    "y": 243723.2,
+    "z": -3699.0,
+    "pitch": 0,
+    "yaw": -55296,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor789",
+    "mesh": "Deco_stone013",
+    "x": -94056.05,
+    "y": 246124.88,
+    "z": -3688.81,
+    "pitch": 0,
+    "yaw": -41536,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor787",
+    "mesh": "Deco_stone011",
+    "x": -94099.48,
+    "y": 246236.56,
+    "z": -3675.12,
+    "pitch": 980,
+    "yaw": -68472,
+    "roll": 2536
+  },
+  {
+    "actor": "StaticMeshActor431",
+    "mesh": "interior_B_220",
+    "x": -82139.75,
+    "y": 243862.17,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 41984,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor764",
+    "mesh": "H_Door_OP_01",
+    "x": -85745.68,
+    "y": 243919.72,
+    "z": -3717.0,
+    "pitch": 0,
+    "yaw": 25600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor748",
+    "mesh": "talking_island_rock04",
+    "x": -91602.76,
+    "y": 250031.73,
+    "z": -3670.7,
+    "pitch": 552,
+    "yaw": -5328,
+    "roll": -96
+  },
+  {
+    "actor": "StaticMeshActor1739",
+    "mesh": "Deco_stone009",
+    "x": -88020.12,
+    "y": 249716.11,
+    "z": -3618.75,
+    "pitch": 0,
+    "yaw": 13368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1748",
+    "mesh": "O_Fence02-1",
+    "x": -94937.23,
+    "y": 258371.23,
+    "z": -3276.0,
+    "pitch": 0,
+    "yaw": 21464,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor424",
+    "mesh": "interior_B_125",
+    "x": -86155.0,
+    "y": 243202.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 27648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor423",
+    "mesh": "interior_B_125",
+    "x": -86290.0,
+    "y": 242833.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor411",
+    "mesh": "interior_B_220",
+    "x": -81766.57,
+    "y": 243260.7,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor396",
+    "mesh": "interior_B_127",
+    "x": -86520.05,
+    "y": 243132.64,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -37888,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor439",
+    "mesh": "splandtree3",
+    "x": -88992.0,
+    "y": 243007.16,
+    "z": -3621.31,
+    "pitch": 0,
+    "yaw": 27648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor437",
+    "mesh": "interior_B_220",
+    "x": -81777.68,
+    "y": 243886.73,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 25600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor417",
+    "mesh": "interior_B_126",
+    "x": -86225.88,
+    "y": 242929.53,
+    "z": -3650.09,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor408",
+    "mesh": "talking_island_rock04",
+    "x": -87688.22,
+    "y": 248365.44,
+    "z": -3780.7,
+    "pitch": 456,
+    "yaw": -65920,
+    "roll": -504
+  },
+  {
+    "actor": "StaticMeshActor407",
+    "mesh": "O_LoadLamp02",
+    "x": -84762.92,
+    "y": 244527.14,
+    "z": -3700.0,
+    "pitch": 0,
+    "yaw": -40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor404",
+    "mesh": "O_LoadLamp02",
+    "x": -85572.55,
+    "y": 244745.39,
+    "z": -3699.0,
+    "pitch": 0,
+    "yaw": -56320,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor403",
+    "mesh": "interior_B_127",
+    "x": -86451.25,
+    "y": 242736.23,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -75776,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor414",
+    "mesh": "interior_B_125",
+    "x": -86394.0,
+    "y": 242769.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor402",
+    "mesh": "O_Tank05",
+    "x": -83971.3,
+    "y": 244781.8,
+    "z": -3749.0,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor399",
+    "mesh": "interior_B_220",
+    "x": -81442.04,
+    "y": 243409.53,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 21504,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor397",
+    "mesh": "interior_B_127",
+    "x": -86210.82,
+    "y": 243227.42,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor398",
+    "mesh": "interior_B_127",
+    "x": -86151.47,
+    "y": 243077.73,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -70656,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor395",
+    "mesh": "interior_B_127",
+    "x": -86609.49,
+    "y": 243054.88,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -43008,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor394",
+    "mesh": "interior_B_127",
+    "x": -86676.52,
+    "y": 242723.94,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -26624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor392",
+    "mesh": "interior_B_fsign04",
+    "x": -83965.09,
+    "y": 240915.11,
+    "z": -3408.53,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor390",
+    "mesh": "talking_island_rock04",
+    "x": -87599.27,
+    "y": 249370.48,
+    "z": -3806.7,
+    "pitch": 24,
+    "yaw": -67376,
+    "roll": -208
+  },
+  {
+    "actor": "StaticMeshActor230",
+    "mesh": "O_LoadLamp01",
+    "x": -84895.0,
+    "y": 241661.0,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 89568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor225",
+    "mesh": "O_LoadLamp01",
+    "x": -82473.9,
+    "y": 242301.06,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 108544,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor368",
+    "mesh": "splandtree1",
+    "x": -94552.65,
+    "y": 256097.16,
+    "z": -3320.38,
+    "pitch": 0,
+    "yaw": 36864,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor361",
+    "mesh": "interior_B_sign02",
+    "x": -84611.64,
+    "y": 240740.77,
+    "z": -3634.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor350",
+    "mesh": "splandddztree1",
+    "x": -93640.17,
+    "y": 250960.52,
+    "z": -3579.44,
+    "pitch": 0,
+    "yaw": 13312,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor378",
+    "mesh": "splandforest1",
+    "x": -92312.76,
+    "y": 255002.28,
+    "z": -3260.81,
+    "pitch": 0,
+    "yaw": 11320,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor377",
+    "mesh": "splandtree1",
+    "x": -91523.5,
+    "y": 255691.83,
+    "z": -3520.25,
+    "pitch": 0,
+    "yaw": 5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor376",
+    "mesh": "splandforest1",
+    "x": -92045.79,
+    "y": 255378.3,
+    "z": -3332.94,
+    "pitch": 0,
+    "yaw": -6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor375",
+    "mesh": "splandtree1",
+    "x": -91526.62,
+    "y": 255055.12,
+    "z": -3403.19,
+    "pitch": 0,
+    "yaw": -19456,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor374",
+    "mesh": "splandforest1",
+    "x": -92980.12,
+    "y": 255931.27,
+    "z": -3227.81,
+    "pitch": 10,
+    "yaw": -262144,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor370",
+    "mesh": "interior_B_124",
+    "x": -86611.38,
+    "y": 243057.94,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 38912,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor381",
+    "mesh": "interior_B_sign02",
+    "x": -83824.68,
+    "y": 241098.8,
+    "z": -3647.72,
+    "pitch": 0,
+    "yaw": 16384,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor278",
+    "mesh": "O_Box01",
+    "x": -85100.27,
+    "y": 241436.88,
+    "z": -3721.0,
+    "pitch": 0,
+    "yaw": 8672,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor289",
+    "mesh": "O_Tank01",
+    "x": -86680.03,
+    "y": 242689.67,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -4496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor288",
+    "mesh": "O_LoadLamp02",
+    "x": -82184.84,
+    "y": 242449.95,
+    "z": -3698.0,
+    "pitch": 0,
+    "yaw": 43008,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor258",
+    "mesh": "interior_B_109",
+    "x": -83092.77,
+    "y": 242968.56,
+    "z": -3713.67,
+    "pitch": 0,
+    "yaw": -102968,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor287",
+    "mesh": "O_LoadLamp02",
+    "x": -83927.17,
+    "y": 243913.44,
+    "z": -3701.0,
+    "pitch": 0,
+    "yaw": -39936,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor380",
+    "mesh": "interior_B_125",
+    "x": -86657.0,
+    "y": 243029.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 38912,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor379",
+    "mesh": "splandtree1",
+    "x": -88042.33,
+    "y": 248525.03,
+    "z": -3599.06,
+    "pitch": 0,
+    "yaw": -3248,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor367",
+    "mesh": "splandtree1",
+    "x": -92303.1,
+    "y": 255815.59,
+    "z": -3405.56,
+    "pitch": 10,
+    "yaw": -262144,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor354",
+    "mesh": "talking_island_rock04",
+    "x": -88792.13,
+    "y": 250597.23,
+    "z": -3688.7,
+    "pitch": -672,
+    "yaw": -26328,
+    "roll": 424
+  },
+  {
+    "actor": "StaticMeshActor366",
+    "mesh": "splandforest1",
+    "x": -91553.66,
+    "y": 240730.83,
+    "z": -3462.69,
+    "pitch": 0,
+    "yaw": 7928,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor346",
+    "mesh": "splandforest1",
+    "x": -93761.34,
+    "y": 251841.75,
+    "z": -3485.81,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor311",
+    "mesh": "O_Cart02",
+    "x": -84415.56,
+    "y": 241638.25,
+    "z": -3740.0,
+    "pitch": 2048,
+    "yaw": -8288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor310",
+    "mesh": "O_Ladder01",
+    "x": -84917.0,
+    "y": 243913.0,
+    "z": -3708.0,
+    "pitch": 0,
+    "yaw": -23552,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor309",
+    "mesh": "O_Package01",
+    "x": -86101.72,
+    "y": 242084.77,
+    "z": -3752.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor303",
+    "mesh": "O_Box01",
+    "x": -85164.34,
+    "y": 242639.83,
+    "z": -3745.0,
+    "pitch": 0,
+    "yaw": 6712,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor313",
+    "mesh": "O_Tank03",
+    "x": -81955.34,
+    "y": 242625.23,
+    "z": -3746.0,
+    "pitch": 10,
+    "yaw": -456704,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor316",
+    "mesh": "O_Box02",
+    "x": -85832.92,
+    "y": 242375.39,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 24856,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor308",
+    "mesh": "O_Tank02",
+    "x": -87285.99,
+    "y": 242259.45,
+    "z": -3747.0,
+    "pitch": 10,
+    "yaw": -90112,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor315",
+    "mesh": "interior_B_207",
+    "x": -81875.71,
+    "y": 243918.33,
+    "z": -3705.22,
+    "pitch": 0,
+    "yaw": -6832,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor305",
+    "mesh": "O_Tank01",
+    "x": -84402.48,
+    "y": 241637.27,
+    "z": -3728.01,
+    "pitch": 1024,
+    "yaw": -19552,
+    "roll": -2048
+  },
+  {
+    "actor": "StaticMeshActor323",
+    "mesh": "O_LoadLamp01",
+    "x": -84628.91,
+    "y": 240744.97,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor322",
+    "mesh": "O_Box02",
+    "x": -84237.08,
+    "y": 240859.31,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor317",
+    "mesh": "O_Box01",
+    "x": -84347.41,
+    "y": 240953.06,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor327",
+    "mesh": "O_Box01",
+    "x": -84430.38,
+    "y": 241648.75,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 20544,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor324",
+    "mesh": "O_Box02",
+    "x": -86301.12,
+    "y": 242782.59,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": 50768,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor314",
+    "mesh": "O_Chair03",
+    "x": -84530.67,
+    "y": 241912.48,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": -23552,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor334",
+    "mesh": "splandforest1",
+    "x": -94160.0,
+    "y": 237151.16,
+    "z": -3532.81,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor344",
+    "mesh": "splandforest1",
+    "x": -93832.63,
+    "y": 250326.97,
+    "z": -3600.75,
+    "pitch": 0,
+    "yaw": -18432,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor343",
+    "mesh": "splandddztree1",
+    "x": -94564.82,
+    "y": 250469.06,
+    "z": -3585.13,
+    "pitch": 0,
+    "yaw": -18432,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor342",
+    "mesh": "splandddztree1",
+    "x": -94290.95,
+    "y": 252069.5,
+    "z": -3495.56,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor341",
+    "mesh": "splandddztree1",
+    "x": -92962.26,
+    "y": 252204.31,
+    "z": -3469.06,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor277",
+    "mesh": "O_Box02",
+    "x": -85800.96,
+    "y": 242397.72,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 24752,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor281",
+    "mesh": "O_Box01",
+    "x": -85070.23,
+    "y": 241458.48,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": 7992,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor279",
+    "mesh": "interior_B_205",
+    "x": -81568.47,
+    "y": 243617.78,
+    "z": -3729.1,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor261",
+    "mesh": "O_Box01",
+    "x": -85576.08,
+    "y": 243633.23,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": -7864,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor250",
+    "mesh": "O_Box01",
+    "x": -84165.8,
+    "y": 240922.58,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor248",
+    "mesh": "O_Box01",
+    "x": -84171.5,
+    "y": 240915.31,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor213",
+    "mesh": "O_Package01",
+    "x": -87307.59,
+    "y": 242276.94,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 5792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor166",
+    "mesh": "O_Tank01",
+    "x": -83880.0,
+    "y": 244071.0,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1306",
+    "mesh": "O_Wood-Log-S",
+    "x": -86185.0,
+    "y": 243315.0,
+    "z": -3750.0,
+    "pitch": 0,
+    "yaw": -38912,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1678",
+    "mesh": "Deco_stone010",
+    "x": -85359.21,
+    "y": 252296.89,
+    "z": -3670.81,
+    "pitch": 0,
+    "yaw": 26144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1606",
+    "mesh": "Deco_stone001",
+    "x": -94050.23,
+    "y": 245475.45,
+    "z": -3605.5,
+    "pitch": 0,
+    "yaw": -33960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1388",
+    "mesh": "Deco_stone010",
+    "x": -93362.54,
+    "y": 238041.81,
+    "z": -3538.12,
+    "pitch": 0,
+    "yaw": 5128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor216",
+    "mesh": "O_Package01",
+    "x": -87320.3,
+    "y": 242297.41,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 5792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1527",
+    "mesh": "Deco_stone006",
+    "x": -88094.31,
+    "y": 247849.41,
+    "z": -3615.12,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1372",
+    "mesh": "interior_B_sign04",
+    "x": -86575.12,
+    "y": 242600.42,
+    "z": -3667.25,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1371",
+    "mesh": "interior_B_sign04",
+    "x": -86127.72,
+    "y": 242949.0,
+    "z": -3659.47,
+    "pitch": 0,
+    "yaw": -5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1333",
+    "mesh": "interior_B_108",
+    "x": -86160.46,
+    "y": 243078.75,
+    "z": -3716.92,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1334",
+    "mesh": "interior_B_110",
+    "x": -86613.23,
+    "y": 242689.86,
+    "z": -3708.13,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1387",
+    "mesh": "Deco_stone009",
+    "x": -83297.77,
+    "y": 246179.61,
+    "z": -3691.69,
+    "pitch": 0,
+    "yaw": 19840,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor234",
+    "mesh": "O_Box02",
+    "x": -84184.05,
+    "y": 240854.28,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1552",
+    "mesh": "Deco_stone010",
+    "x": -87612.09,
+    "y": 238951.28,
+    "z": -3649.75,
+    "pitch": 0,
+    "yaw": -5528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor215",
+    "mesh": "O_Package01",
+    "x": -87332.65,
+    "y": 242319.14,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 5792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor331",
+    "mesh": "interior_B_sign03",
+    "x": -81742.35,
+    "y": 243117.84,
+    "z": -3650.66,
+    "pitch": 0,
+    "yaw": 37888,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor794",
+    "mesh": "splandtree1",
+    "x": -81246.55,
+    "y": 242377.17,
+    "z": -3767.44,
+    "pitch": 0,
+    "yaw": 25856,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor236",
+    "mesh": "O_Box02",
+    "x": -84197.3,
+    "y": 240839.23,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 23552,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor190",
+    "mesh": "interior_B_028",
+    "x": -84536.71,
+    "y": 240659.16,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor750",
+    "mesh": "H_Door_OP_02",
+    "x": -83404.7,
+    "y": 242843.44,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": -3072,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor747",
+    "mesh": "talking_island_rock04",
+    "x": -91857.93,
+    "y": 249689.12,
+    "z": -3645.7,
+    "pitch": 552,
+    "yaw": -14360,
+    "roll": -96
+  },
+  {
+    "actor": "StaticMeshActor732",
+    "mesh": "talking_island_rock04",
+    "x": -92126.46,
+    "y": 248734.45,
+    "z": -3655.7,
+    "pitch": 40970,
+    "yaw": -61440,
+    "roll": -112385
+  },
+  {
+    "actor": "StaticMeshActor730",
+    "mesh": "talking_island_rock03",
+    "x": -92411.27,
+    "y": 248727.66,
+    "z": -3865.85,
+    "pitch": -80,
+    "yaw": -14648,
+    "roll": -72
+  },
+  {
+    "actor": "StaticMeshActor720",
+    "mesh": "talking_island_rock04",
+    "x": -90546.09,
+    "y": 246833.09,
+    "z": -3695.44,
+    "pitch": 496,
+    "yaw": 76640,
+    "roll": -432
+  },
+  {
+    "actor": "StaticMeshActor719",
+    "mesh": "talking_island_rock04",
+    "x": -91605.13,
+    "y": 247108.2,
+    "z": -3801.44,
+    "pitch": 400,
+    "yaw": 71168,
+    "roll": -544
+  },
+  {
+    "actor": "StaticMeshActor718",
+    "mesh": "talking_island_rock03",
+    "x": -91284.3,
+    "y": 246847.28,
+    "z": -3820.85,
+    "pitch": -184,
+    "yaw": -4968,
+    "roll": 656
+  },
+  {
+    "actor": "StaticMeshActor711",
+    "mesh": "talking_island_rock04",
+    "x": -92083.91,
+    "y": 247589.17,
+    "z": -3822.21,
+    "pitch": 424,
+    "yaw": 36520,
+    "roll": -360
+  },
+  {
+    "actor": "StaticMeshActor237",
+    "mesh": "O_Box02",
+    "x": -84169.7,
+    "y": 240869.36,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor683",
+    "mesh": "talking_island_rock04",
+    "x": -90271.71,
+    "y": 246784.03,
+    "z": -3757.44,
+    "pitch": 496,
+    "yaw": 118232,
+    "roll": -432
+  },
+  {
+    "actor": "StaticMeshActor231",
+    "mesh": "O_LoadLamp01",
+    "x": -85187.34,
+    "y": 242462.03,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 123856,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor657",
+    "mesh": "Deco_stone001",
+    "x": -90048.52,
+    "y": 241962.25,
+    "z": -3610.12,
+    "pitch": 0,
+    "yaw": -28320,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor655",
+    "mesh": "talking_island_rock04",
+    "x": -92189.34,
+    "y": 249095.2,
+    "z": -3669.7,
+    "pitch": 120,
+    "yaw": -5368,
+    "roll": -304
+  },
+  {
+    "actor": "StaticMeshActor385",
+    "mesh": "talking_island_rock03",
+    "x": -88968.05,
+    "y": 250994.53,
+    "z": -3916.85,
+    "pitch": -1112,
+    "yaw": -37408,
+    "roll": 1360
+  },
+  {
+    "actor": "StaticMeshActor384",
+    "mesh": "talking_island_rock03",
+    "x": -87511.32,
+    "y": 249004.05,
+    "z": -3891.85,
+    "pitch": -608,
+    "yaw": -48616,
+    "roll": -240
+  },
+  {
+    "actor": "StaticMeshActor224",
+    "mesh": "interior_B_028",
+    "x": -84118.83,
+    "y": 240839.88,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor223",
+    "mesh": "O_LoadLamp01",
+    "x": -84068.9,
+    "y": 241074.98,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor222",
+    "mesh": "O_Box01",
+    "x": -84412.73,
+    "y": 243820.92,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 9216,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor220",
+    "mesh": "O_Box01",
+    "x": -87401.95,
+    "y": 242400.88,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor219",
+    "mesh": "O_Box01",
+    "x": -87394.15,
+    "y": 242391.97,
+    "z": -3722.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor218",
+    "mesh": "O_Box01",
+    "x": -84419.73,
+    "y": 243814.17,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": 15360,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor389",
+    "mesh": "talking_island_rock03",
+    "x": -90941.77,
+    "y": 246787.44,
+    "z": -3833.85,
+    "pitch": -704,
+    "yaw": -2280,
+    "roll": 656
+  },
+  {
+    "actor": "StaticMeshActor217",
+    "mesh": "O_Package01",
+    "x": -87321.45,
+    "y": 242295.53,
+    "z": -3737.0,
+    "pitch": 0,
+    "yaw": 7840,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor221",
+    "mesh": "O_Box01",
+    "x": -84428.82,
+    "y": 243807.47,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 9216,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor214",
+    "mesh": "O_Package01",
+    "x": -87339.67,
+    "y": 242332.41,
+    "z": -3740.0,
+    "pitch": 3072,
+    "yaw": -11616,
+    "roll": -1024
+  },
+  {
+    "actor": "StaticMeshActor1116",
+    "mesh": "SI_Magic_carpet03",
+    "x": -90283.53,
+    "y": 247705.53,
+    "z": -3598.0,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor386",
+    "mesh": "talking_island_rock04",
+    "x": -92363.27,
+    "y": 249152.84,
+    "z": -3779.7,
+    "pitch": 400,
+    "yaw": 25712,
+    "roll": -184
+  },
+  {
+    "actor": "StaticMeshActor1097",
+    "mesh": "SI_Magic_carpet03",
+    "x": -90923.45,
+    "y": 249308.84,
+    "z": -3598.02,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor203",
+    "mesh": "O_Box01",
+    "x": -87086.23,
+    "y": 242109.73,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor202",
+    "mesh": "splandtree3",
+    "x": -89622.91,
+    "y": 242732.91,
+    "z": -3566.69,
+    "pitch": 0,
+    "yaw": 75776,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor964",
+    "mesh": "Deco_stone010",
+    "x": -91347.13,
+    "y": 245992.7,
+    "z": -3716.06,
+    "pitch": 0,
+    "yaw": 21792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor698",
+    "mesh": "talking_island_rock04",
+    "x": -92324.46,
+    "y": 248009.66,
+    "z": -3818.7,
+    "pitch": 160,
+    "yaw": -5184,
+    "roll": -440
+  },
+  {
+    "actor": "StaticMeshActor965",
+    "mesh": "Deco_stone002",
+    "x": -88093.09,
+    "y": 247920.89,
+    "z": -3615.12,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor201",
+    "mesh": "O_Box01",
+    "x": -86161.91,
+    "y": 243000.97,
+    "z": -3745.0,
+    "pitch": 0,
+    "yaw": -23632,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor987",
+    "mesh": "H_Door_OP_02",
+    "x": -86527.62,
+    "y": 242674.58,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor986",
+    "mesh": "H_Door_OP_02",
+    "x": -86464.12,
+    "y": 242714.58,
+    "z": -3715.0,
+    "pitch": 10,
+    "yaw": -262144,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor200",
+    "mesh": "splandtree3",
+    "x": -89860.3,
+    "y": 243270.16,
+    "z": -3610.69,
+    "pitch": 0,
+    "yaw": 81256,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor954",
+    "mesh": "H_Door_OP_02",
+    "x": -83871.91,
+    "y": 241060.14,
+    "z": -3712.0,
+    "pitch": 0,
+    "yaw": -28672,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor199",
+    "mesh": "O_LoadLamp02",
+    "x": -84904.8,
+    "y": 242760.97,
+    "z": -3695.0,
+    "pitch": 0,
+    "yaw": -42856,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor990",
+    "mesh": "H_Door_OP_01",
+    "x": -85393.16,
+    "y": 241298.12,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": 40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor939",
+    "mesh": "H_Door_OP_02",
+    "x": -83361.25,
+    "y": 242782.41,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": -16384,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor198",
+    "mesh": "O_LoadLamp02",
+    "x": -83122.08,
+    "y": 245027.47,
+    "z": -3701.0,
+    "pitch": 0,
+    "yaw": -41984,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor195",
+    "mesh": "splandforest1",
+    "x": -88176.0,
+    "y": 243087.16,
+    "z": -3661.44,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor907",
+    "mesh": "H_Door_OP_01",
+    "x": -84921.02,
+    "y": 241569.0,
+    "z": -3716.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor212",
+    "mesh": "O_Package01",
+    "x": -87341.54,
+    "y": 242333.55,
+    "z": -3750.0,
+    "pitch": 0,
+    "yaw": 22176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor211",
+    "mesh": "O_Package01",
+    "x": -87324.71,
+    "y": 242306.45,
+    "z": -3750.0,
+    "pitch": 0,
+    "yaw": 22176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor210",
+    "mesh": "O_Package03",
+    "x": -87291.3,
+    "y": 242309.42,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 22176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor208",
+    "mesh": "O_Package01",
+    "x": -87307.79,
+    "y": 242279.12,
+    "z": -3750.0,
+    "pitch": 0,
+    "yaw": 22176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor207",
+    "mesh": "O_Box01",
+    "x": -87079.79,
+    "y": 242103.17,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor841",
+    "mesh": "Deco_stone011",
+    "x": -94779.15,
+    "y": 247055.94,
+    "z": -3706.31,
+    "pitch": 10,
+    "yaw": 362496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor840",
+    "mesh": "Deco_stone007",
+    "x": -94738.45,
+    "y": 247013.28,
+    "z": -3708.38,
+    "pitch": 5232,
+    "yaw": -8888,
+    "roll": -9948
+  },
+  {
+    "actor": "StaticMeshActor839",
+    "mesh": "Deco_stone006",
+    "x": -94858.69,
+    "y": 246959.27,
+    "z": -3701.38,
+    "pitch": 0,
+    "yaw": 30888,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor838",
+    "mesh": "Deco_stone005",
+    "x": -94652.35,
+    "y": 246857.03,
+    "z": -3689.25,
+    "pitch": 0,
+    "yaw": -9304,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor206",
+    "mesh": "O_Box01",
+    "x": -87090.91,
+    "y": 242119.14,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor205",
+    "mesh": "O_Box01",
+    "x": -87112.54,
+    "y": 242110.28,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor204",
+    "mesh": "O_Box01",
+    "x": -87105.7,
+    "y": 242101.66,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor264",
+    "mesh": "interior_B_123",
+    "x": -86620.04,
+    "y": 242632.17,
+    "z": -3671.32,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor816",
+    "mesh": "Deco_stone009",
+    "x": -85776.41,
+    "y": 240790.19,
+    "z": -3751.56,
+    "pitch": 0,
+    "yaw": -20144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor263",
+    "mesh": "O_Box01",
+    "x": -85105.84,
+    "y": 241426.41,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": 9656,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor262",
+    "mesh": "O_Box01",
+    "x": -85584.74,
+    "y": 243639.72,
+    "z": -3721.0,
+    "pitch": 0,
+    "yaw": -6008,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor256",
+    "mesh": "interior_B_109",
+    "x": -85617.77,
+    "y": 243327.61,
+    "z": -3716.67,
+    "pitch": 0,
+    "yaw": -67240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor810",
+    "mesh": "SI_Fight_Bridge_01_3",
+    "x": -78773.36,
+    "y": 249599.95,
+    "z": -3908.0,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor180",
+    "mesh": "O_Package01",
+    "x": -84532.11,
+    "y": 241759.72,
+    "z": -3753.0,
+    "pitch": 0,
+    "yaw": 57408,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor807",
+    "mesh": "Deco_stone005",
+    "x": -88801.09,
+    "y": 240370.27,
+    "z": -3639.0,
+    "pitch": 10,
+    "yaw": -468992,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor558",
+    "mesh": "SI_G01",
+    "x": -82539.27,
+    "y": 244787.89,
+    "z": -3586.8,
+    "pitch": 0,
+    "yaw": 9240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor714",
+    "mesh": "talking_island_rock04",
+    "x": -91472.6,
+    "y": 247190.92,
+    "z": -3686.21,
+    "pitch": 280,
+    "yaw": 42968,
+    "roll": -40
+  },
+  {
+    "actor": "StaticMeshActor691",
+    "mesh": "talking_island_rock04",
+    "x": -91557.19,
+    "y": 250243.34,
+    "z": -3752.7,
+    "pitch": 552,
+    "yaw": 27616,
+    "roll": -96
+  },
+  {
+    "actor": "StaticMeshActor292",
+    "mesh": "O_LoadLamp02",
+    "x": -82680.78,
+    "y": 244332.59,
+    "z": -3701.0,
+    "pitch": 0,
+    "yaw": -6808,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor801",
+    "mesh": "splandtree1",
+    "x": -81467.85,
+    "y": 244213.94,
+    "z": -3748.38,
+    "pitch": 0,
+    "yaw": 40712,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1009",
+    "mesh": "H_Door_MV_01",
+    "x": -81878.0,
+    "y": 243313.0,
+    "z": -3702.0,
+    "pitch": 0,
+    "yaw": 10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor290",
+    "mesh": "interior_B_124",
+    "x": -86740.88,
+    "y": 242819.05,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor293",
+    "mesh": "O_LoadLamp02",
+    "x": -81955.16,
+    "y": 243503.69,
+    "z": -3700.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor982",
+    "mesh": "H_Door_OP_02",
+    "x": -86234.05,
+    "y": 242893.14,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 17408,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor249",
+    "mesh": "O_Box01",
+    "x": -84174.37,
+    "y": 240904.5,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor981",
+    "mesh": "H_Door_OP_02",
+    "x": -86199.62,
+    "y": 242959.19,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 4096,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor798",
+    "mesh": "Deco_stone008",
+    "x": -94176.14,
+    "y": 246280.52,
+    "z": -3682.5,
+    "pitch": 2888,
+    "yaw": -80196,
+    "roll": -824
+  },
+  {
+    "actor": "StaticMeshActor975",
+    "mesh": "H_Door_OP_02",
+    "x": -83171.0,
+    "y": 242561.97,
+    "z": -3715.0,
+    "pitch": 10,
+    "yaw": 262144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor892",
+    "mesh": "splandforest1",
+    "x": -83132.45,
+    "y": 248000.86,
+    "z": -3586.34,
+    "pitch": 0,
+    "yaw": 17656,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor940",
+    "mesh": "H_Door_OP_02",
+    "x": -84517.0,
+    "y": 240806.0,
+    "z": -3712.0,
+    "pitch": 0,
+    "yaw": -27648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor891",
+    "mesh": "Deco_stone003",
+    "x": -85617.51,
+    "y": 250295.52,
+    "z": -3449.69,
+    "pitch": 0,
+    "yaw": 15672,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor969",
+    "mesh": "H_Door_OP_02",
+    "x": -82061.57,
+    "y": 243639.83,
+    "z": -3709.0,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor283",
+    "mesh": "O_Tank01",
+    "x": -87184.94,
+    "y": 242167.91,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 5792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor55",
+    "mesh": "CH_In_Pir",
+    "x": -84816.03,
+    "y": 245149.81,
+    "z": -3534.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor540",
+    "mesh": "splandtree1",
+    "x": -90819.83,
+    "y": 250332.28,
+    "z": -3605.81,
+    "pitch": 0,
+    "yaw": -15128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor165",
+    "mesh": "O_Tank01",
+    "x": -84404.13,
+    "y": 241616.67,
+    "z": -3725.95,
+    "pitch": 1024,
+    "yaw": -17504,
+    "roll": -2048
+  },
+  {
+    "actor": "StaticMeshActor238",
+    "mesh": "O_Box01",
+    "x": -84204.81,
+    "y": 240876.67,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor239",
+    "mesh": "O_Box01",
+    "x": -84190.3,
+    "y": 240890.78,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor481",
+    "mesh": "O_Well",
+    "x": -81920.34,
+    "y": 242706.55,
+    "z": -3753.0,
+    "pitch": 0,
+    "yaw": -6904,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor497",
+    "mesh": "splandtree1",
+    "x": -89275.74,
+    "y": 252833.36,
+    "z": -3602.31,
+    "pitch": 0,
+    "yaw": -12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor67",
+    "mesh": "splandforest1",
+    "x": -88576.0,
+    "y": 238703.16,
+    "z": -3639.38,
+    "pitch": 0,
+    "yaw": -6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor173",
+    "mesh": "O_Package01",
+    "x": -84537.85,
+    "y": 241769.56,
+    "z": -3740.0,
+    "pitch": 0,
+    "yaw": 43072,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor227",
+    "mesh": "O_Box01",
+    "x": -85595.97,
+    "y": 243643.52,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": -5024,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor299",
+    "mesh": "O_LoadLamp01",
+    "x": -83252.62,
+    "y": 242562.47,
+    "z": -3695.0,
+    "pitch": 0,
+    "yaw": -24680,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor512",
+    "mesh": "splandtree1",
+    "x": -93725.49,
+    "y": 235913.78,
+    "z": -3696.88,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor953",
+    "mesh": "H_Door_OP_02",
+    "x": -83948.89,
+    "y": 241060.11,
+    "z": -3712.0,
+    "pitch": 0,
+    "yaw": -35840,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor696",
+    "mesh": "talking_island_rock04",
+    "x": -92300.04,
+    "y": 248038.2,
+    "z": -3714.7,
+    "pitch": 880,
+    "yaw": 31840,
+    "roll": 16
+  },
+  {
+    "actor": "StaticMeshActor889",
+    "mesh": "Deco_stone001",
+    "x": -85635.86,
+    "y": 250329.75,
+    "z": -3455.5,
+    "pitch": 10,
+    "yaw": -321536,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor895",
+    "mesh": "splandforest1",
+    "x": -82981.41,
+    "y": 248659.94,
+    "z": -3604.34,
+    "pitch": 0,
+    "yaw": 33664,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor167",
+    "mesh": "O_Tank01",
+    "x": -83861.0,
+    "y": 244074.0,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor297",
+    "mesh": "interior_B_124",
+    "x": -86679.88,
+    "y": 242722.05,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor43",
+    "mesh": "Cylinder01",
+    "x": -84791.45,
+    "y": 245419.06,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -122880,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor298",
+    "mesh": "interior_B_124",
+    "x": -86550.09,
+    "y": 242670.12,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor60",
+    "mesh": "interior_B_fsign04",
+    "x": -84489.52,
+    "y": 240833.5,
+    "z": -3618.53,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor137",
+    "mesh": "O_Box02",
+    "x": -83701.97,
+    "y": 240989.05,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 14336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor138",
+    "mesh": "O_Box02",
+    "x": -83671.02,
+    "y": 240956.47,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor157",
+    "mesh": "O_Box02",
+    "x": -86288.52,
+    "y": 242798.0,
+    "z": -3749.0,
+    "pitch": 0,
+    "yaw": 55536,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor136",
+    "mesh": "O_Box02",
+    "x": -83712.16,
+    "y": 240999.25,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor194",
+    "mesh": "interior_B_028",
+    "x": -84262.19,
+    "y": 240790.73,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor110",
+    "mesh": "splandforest1",
+    "x": -92080.0,
+    "y": 242159.16,
+    "z": -3573.5,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor193",
+    "mesh": "interior_B_028",
+    "x": -84336.39,
+    "y": 240864.92,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor124",
+    "mesh": "splandtree3",
+    "x": -91804.96,
+    "y": 241329.64,
+    "z": -3503.69,
+    "pitch": 0,
+    "yaw": 116464,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor123",
+    "mesh": "O_Package01",
+    "x": -86103.84,
+    "y": 242084.05,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor41",
+    "mesh": "Default_Flame01",
+    "x": -84937.49,
+    "y": 245269.12,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor109",
+    "mesh": "interior_B_111",
+    "x": -85242.2,
+    "y": 240939.64,
+    "z": -3680.2,
+    "pitch": 0,
+    "yaw": -52080,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor530",
+    "mesh": "splandtree1",
+    "x": -82428.4,
+    "y": 248088.66,
+    "z": -3646.94,
+    "pitch": 0,
+    "yaw": 27528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor529",
+    "mesh": "splandtree1",
+    "x": -82604.79,
+    "y": 247678.73,
+    "z": -3625.0,
+    "pitch": 0,
+    "yaw": 14056,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor76",
+    "mesh": "interior_B_009",
+    "x": -83885.63,
+    "y": 240614.39,
+    "z": -3704.45,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor59",
+    "mesh": "CH_In_Pir",
+    "x": -85113.73,
+    "y": 244852.09,
+    "z": -3534.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor11",
+    "mesh": "Cylinder01",
+    "x": -84545.79,
+    "y": 245173.42,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor81",
+    "mesh": "splandddztree1",
+    "x": -86181.27,
+    "y": 249995.97,
+    "z": -3391.18,
+    "pitch": 10,
+    "yaw": -524288,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor69",
+    "mesh": "interior_B_fsign03",
+    "x": -86475.3,
+    "y": 242661.66,
+    "z": -3592.67,
+    "pitch": 0,
+    "yaw": -59944,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor61",
+    "mesh": "interior_B_fsign04",
+    "x": -83911.96,
+    "y": 241061.14,
+    "z": -3635.53,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor82",
+    "mesh": "splandddztree1",
+    "x": -85585.14,
+    "y": 249774.88,
+    "z": -3404.88,
+    "pitch": 0,
+    "yaw": 20480,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor593",
+    "mesh": "StoneH_03",
+    "x": -92863.21,
+    "y": 253854.17,
+    "z": -3125.75,
+    "pitch": 0,
+    "yaw": -18432,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor598",
+    "mesh": "StoneH_09",
+    "x": -91706.7,
+    "y": 253357.53,
+    "z": -3308.38,
+    "pitch": 0,
+    "yaw": 10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor233",
+    "mesh": "O_Box02",
+    "x": -84155.57,
+    "y": 240880.31,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1246",
+    "mesh": "Deco_stone009",
+    "x": -92798.53,
+    "y": 238650.5,
+    "z": -3672.38,
+    "pitch": 412,
+    "yaw": 27572,
+    "roll": 1164
+  },
+  {
+    "actor": "StaticMeshActor640",
+    "mesh": "O_LoadLamp01",
+    "x": -86049.09,
+    "y": 243107.64,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": -4512,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor483",
+    "mesh": "interior_B_124",
+    "x": -86255.14,
+    "y": 242875.05,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor352",
+    "mesh": "interior_B_124",
+    "x": -86343.09,
+    "y": 242799.12,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor430",
+    "mesh": "interior_B_221",
+    "x": -81980.44,
+    "y": 244049.45,
+    "z": -3680.12,
+    "pitch": 0,
+    "yaw": 41984,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor72",
+    "mesh": "splandforest1",
+    "x": -91639.67,
+    "y": 237854.73,
+    "z": -3699.94,
+    "pitch": 0,
+    "yaw": 10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor75",
+    "mesh": "talking_island_rock04",
+    "x": -88743.41,
+    "y": 250649.94,
+    "z": -3802.99,
+    "pitch": 736,
+    "yaw": 4920,
+    "roll": -640
+  },
+  {
+    "actor": "StaticMeshActor97",
+    "mesh": "splandforest1",
+    "x": -87342.73,
+    "y": 244247.56,
+    "z": -3736.63,
+    "pitch": 0,
+    "yaw": -11448,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1055",
+    "mesh": "splandddztree1",
+    "x": -76962.52,
+    "y": 252849.86,
+    "z": -3343.13,
+    "pitch": 0,
+    "yaw": -37888,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor589",
+    "mesh": "StoneH_01",
+    "x": -92328.06,
+    "y": 253086.58,
+    "z": -3190.38,
+    "pitch": 10,
+    "yaw": -262144,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor594",
+    "mesh": "StoneH_05",
+    "x": -92720.88,
+    "y": 253243.23,
+    "z": -3249.38,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor595",
+    "mesh": "StoneH_06",
+    "x": -91864.89,
+    "y": 253193.38,
+    "z": -3174.38,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor96",
+    "mesh": "splandddztree1",
+    "x": -90516.24,
+    "y": 245681.38,
+    "z": -3541.88,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor107",
+    "mesh": "SI_Centertop",
+    "x": -84263.0,
+    "y": 243000.0,
+    "z": -3376.0,
+    "pitch": 0,
+    "yaw": -7144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor436",
+    "mesh": "interior_B_220",
+    "x": -81682.82,
+    "y": 243808.61,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 25600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor549",
+    "mesh": "interior_B_203",
+    "x": -81440.84,
+    "y": 243288.11,
+    "z": -3712.98,
+    "pitch": 0,
+    "yaw": -7168,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor548",
+    "mesh": "O_Box01",
+    "x": -84338.54,
+    "y": 240945.33,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor547",
+    "mesh": "O_Box01",
+    "x": -84324.42,
+    "y": 240930.8,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor546",
+    "mesh": "interior_B_109",
+    "x": -85916.41,
+    "y": 243879.7,
+    "z": -3710.67,
+    "pitch": 0,
+    "yaw": -83776,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor527",
+    "mesh": "splandtree1",
+    "x": -82977.07,
+    "y": 249412.14,
+    "z": -3657.0,
+    "pitch": 0,
+    "yaw": 29688,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor66",
+    "mesh": "Deco_stone001",
+    "x": -86399.99,
+    "y": 241189.2,
+    "z": -3769.19,
+    "pitch": 0,
+    "yaw": -16176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor524",
+    "mesh": "splandtree1",
+    "x": -85273.96,
+    "y": 240079.48,
+    "z": -3753.12,
+    "pitch": 0,
+    "yaw": -31136,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor994",
+    "mesh": "O_Box01",
+    "x": -87382.1,
+    "y": 242375.73,
+    "z": -3722.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1006",
+    "mesh": "H_Door_MV_01",
+    "x": -81842.0,
+    "y": 243248.0,
+    "z": -3702.0,
+    "pitch": 0,
+    "yaw": 32768,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1005",
+    "mesh": "O_Box01",
+    "x": -87387.71,
+    "y": 242385.42,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor522",
+    "mesh": "splandtree1",
+    "x": -82555.16,
+    "y": 240785.23,
+    "z": -3746.88,
+    "pitch": 0,
+    "yaw": -12288,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1008",
+    "mesh": "O_Box01",
+    "x": -87375.61,
+    "y": 242369.09,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor856",
+    "mesh": "splandforest1",
+    "x": -83474.87,
+    "y": 249172.59,
+    "z": -3584.34,
+    "pitch": 0,
+    "yaw": 7312,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor870",
+    "mesh": "Deco_stone009",
+    "x": -87568.41,
+    "y": 238964.47,
+    "z": -3631.56,
+    "pitch": 0,
+    "yaw": 18800,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor521",
+    "mesh": "splandtree1",
+    "x": -82929.96,
+    "y": 240228.03,
+    "z": -3756.94,
+    "pitch": 0,
+    "yaw": -41456,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor950",
+    "mesh": "H_Door_OP_02",
+    "x": -84461.0,
+    "y": 240860.0,
+    "z": -3712.0,
+    "pitch": 0,
+    "yaw": -20480,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor54",
+    "mesh": "O_Box01",
+    "x": -87093.66,
+    "y": 242085.34,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -9568,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1073",
+    "mesh": "SI_Magic_carpet01",
+    "x": -90648.48,
+    "y": 248267.38,
+    "z": -3598.03,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1094",
+    "mesh": "SI_Magic_carpet03",
+    "x": -91022.31,
+    "y": 248811.34,
+    "z": -3598.0,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor472",
+    "mesh": "talking_island_rock04",
+    "x": -87705.82,
+    "y": 249471.05,
+    "z": -3689.7,
+    "pitch": 24,
+    "yaw": -41544,
+    "roll": -1008
+  },
+  {
+    "actor": "StaticMeshActor999",
+    "mesh": "Deco_stone009",
+    "x": -88982.14,
+    "y": 240278.86,
+    "z": -3633.19,
+    "pitch": 0,
+    "yaw": 24904,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor757",
+    "mesh": "splandtree1",
+    "x": -91668.33,
+    "y": 247760.83,
+    "z": -3602.0,
+    "pitch": 0,
+    "yaw": -34256,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor285",
+    "mesh": "O_LoadLamp02",
+    "x": -83516.08,
+    "y": 244376.47,
+    "z": -3701.0,
+    "pitch": 0,
+    "yaw": -41984,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor65",
+    "mesh": "O_Box02",
+    "x": -86131.17,
+    "y": 242051.19,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 24104,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor506",
+    "mesh": "talking_island_rock03",
+    "x": -89308.45,
+    "y": 251038.02,
+    "z": -3893.85,
+    "pitch": 0,
+    "yaw": -35032,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor507",
+    "mesh": "splandddztree1",
+    "x": -94752.0,
+    "y": 245715.0,
+    "z": -3610.12,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor133",
+    "mesh": "O_Box01",
+    "x": -83783.02,
+    "y": 241037.66,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor284",
+    "mesh": "O_Tank01",
+    "x": -87187.94,
+    "y": 242186.02,
+    "z": -3744.0,
+    "pitch": 0,
+    "yaw": 5792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor135",
+    "mesh": "O_Box01",
+    "x": -83803.77,
+    "y": 241060.03,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor541",
+    "mesh": "splandtree3",
+    "x": -93361.67,
+    "y": 255501.25,
+    "z": -3190.0,
+    "pitch": 0,
+    "yaw": 24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor191",
+    "mesh": "O_LoadLamp02",
+    "x": -85792.0,
+    "y": 243990.0,
+    "z": -3703.0,
+    "pitch": 0,
+    "yaw": -23552,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor467",
+    "mesh": "interior_B_220",
+    "x": -81880.79,
+    "y": 243472.56,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor291",
+    "mesh": "O_LoadLamp02",
+    "x": -83506.75,
+    "y": 242962.55,
+    "z": -3701.0,
+    "pitch": 0,
+    "yaw": -6808,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor13",
+    "mesh": "Cylinder01",
+    "x": -84693.88,
+    "y": 245025.53,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor134",
+    "mesh": "O_Box01",
+    "x": -83797.12,
+    "y": 241052.17,
+    "z": -3725.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor272",
+    "mesh": "O_LoadLamp01",
+    "x": -83880.34,
+    "y": 242109.58,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 74320,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor226",
+    "mesh": "O_LoadLamp01",
+    "x": -83499.0,
+    "y": 241008.0,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 73912,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor186",
+    "mesh": "interior_B_028",
+    "x": -83961.3,
+    "y": 240518.78,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor336",
+    "mesh": "splandddztree1",
+    "x": -94592.0,
+    "y": 237747.0,
+    "z": -3474.63,
+    "pitch": 0,
+    "yaw": 5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor192",
+    "mesh": "O_Box01",
+    "x": -85559.54,
+    "y": 243613.62,
+    "z": -3743.0,
+    "pitch": 0,
+    "yaw": -6688,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor14",
+    "mesh": "Default_Flame01",
+    "x": -84696.0,
+    "y": 245027.72,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -57344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor329",
+    "mesh": "O_Box02",
+    "x": -83660.05,
+    "y": 240942.34,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor68",
+    "mesh": "interior_B_fsign03",
+    "x": -86164.81,
+    "y": 242892.19,
+    "z": -3585.67,
+    "pitch": 0,
+    "yaw": -54240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor271",
+    "mesh": "O_LoadLamp01",
+    "x": -83155.13,
+    "y": 241688.59,
+    "z": -3693.0,
+    "pitch": 0,
+    "yaw": 77432,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor328",
+    "mesh": "O_Box01",
+    "x": -84437.03,
+    "y": 241670.66,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": 23616,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor268",
+    "mesh": "O_Feeder",
+    "x": -84464.27,
+    "y": 242003.45,
+    "z": -3756.0,
+    "pitch": 0,
+    "yaw": -23552,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor464",
+    "mesh": "SI_G01",
+    "x": -82438.2,
+    "y": 241449.19,
+    "z": -3586.8,
+    "pitch": 0,
+    "yaw": -6952,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor27",
+    "mesh": "Cylinder01",
+    "x": -84991.56,
+    "y": 244727.97,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor330",
+    "mesh": "O_Box02",
+    "x": -83686.1,
+    "y": 240970.8,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor185",
+    "mesh": "interior_B_028",
+    "x": -83819.55,
+    "y": 240974.05,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor128",
+    "mesh": "splandforest1",
+    "x": -92128.0,
+    "y": 244447.16,
+    "z": -3513.25,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor53",
+    "mesh": "CH_In_Pir",
+    "x": -84668.31,
+    "y": 245297.61,
+    "z": -3534.0,
+    "pitch": 0,
+    "yaw": -73728,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor382",
+    "mesh": "O_Wood-Log-S",
+    "x": -82518.52,
+    "y": 242077.81,
+    "z": -3742.0,
+    "pitch": 0,
+    "yaw": -6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor84",
+    "mesh": "O_Box02",
+    "x": -86155.81,
+    "y": 242019.42,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 25600,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor526",
+    "mesh": "splandtree3",
+    "x": -86404.88,
+    "y": 243944.31,
+    "z": -3744.31,
+    "pitch": 0,
+    "yaw": 37768,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor304",
+    "mesh": "O_Chair01",
+    "x": -84476.0,
+    "y": 241951.0,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor29",
+    "mesh": "Cylinder01",
+    "x": -85237.2,
+    "y": 244973.53,
+    "z": -3687.9,
+    "pitch": 0,
+    "yaw": -122880,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor31",
+    "mesh": "Default_Flame01",
+    "x": -85235.1,
+    "y": 244971.39,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor32",
+    "mesh": "interior_B_127",
+    "x": -86737.84,
+    "y": 242821.03,
+    "z": -3691.63,
+    "pitch": 0,
+    "yaw": -26624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor126",
+    "mesh": "interior_B_203",
+    "x": -81746.87,
+    "y": 243853.2,
+    "z": -3712.98,
+    "pitch": 0,
+    "yaw": 13112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor28",
+    "mesh": "Default_Flame01",
+    "x": -84993.7,
+    "y": 244730.14,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -57344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor477",
+    "mesh": "SI_G01",
+    "x": -86180.51,
+    "y": 244524.12,
+    "z": -3586.8,
+    "pitch": 0,
+    "yaw": 90512,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor475",
+    "mesh": "SI_G01",
+    "x": -86085.83,
+    "y": 241160.25,
+    "z": -3586.8,
+    "pitch": 0,
+    "yaw": -23088,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor459",
+    "mesh": "interior_B_123",
+    "x": -86411.55,
+    "y": 243334.48,
+    "z": -3671.32,
+    "pitch": 0,
+    "yaw": 27648,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor88",
+    "mesh": "interior_B_010",
+    "x": -83755.9,
+    "y": 240790.89,
+    "z": -3649.93,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor307",
+    "mesh": "O_Tank05",
+    "x": -81836.83,
+    "y": 242740.06,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": -13048,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor164",
+    "mesh": "O_Wine",
+    "x": -85123.64,
+    "y": 242657.81,
+    "z": -3727.0,
+    "pitch": 0,
+    "yaw": -26024,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor64",
+    "mesh": "splandddztree1",
+    "x": -75886.7,
+    "y": 251988.56,
+    "z": -3361.13,
+    "pitch": 0,
+    "yaw": -13720,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor8",
+    "mesh": "SI_CH_Inner",
+    "x": -84881.06,
+    "y": 245083.34,
+    "z": -3568.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor16",
+    "mesh": "Default_Flame01",
+    "x": -84844.11,
+    "y": 244879.3,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -57344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor92",
+    "mesh": "O_Package01",
+    "x": -86079.1,
+    "y": 242107.39,
+    "z": -3752.0,
+    "pitch": 0,
+    "yaw": 8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor91",
+    "mesh": "interior_B_011",
+    "x": -83704.01,
+    "y": 240770.16,
+    "z": -3691.94,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor95",
+    "mesh": "O_Package01",
+    "x": -86103.85,
+    "y": 242084.03,
+    "z": -3740.0,
+    "pitch": 0,
+    "yaw": -9216,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor104",
+    "mesh": "splandtree1",
+    "x": -94871.16,
+    "y": 256666.98,
+    "z": -3328.48,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor90",
+    "mesh": "talking_island_rock04",
+    "x": -87802.2,
+    "y": 249046.41,
+    "z": -3667.7,
+    "pitch": 96,
+    "yaw": -35856,
+    "roll": -504
+  },
+  {
+    "actor": "StaticMeshActor93",
+    "mesh": "splandtree1",
+    "x": -88478.47,
+    "y": 247661.89,
+    "z": -3578.34,
+    "pitch": 0,
+    "yaw": -29696,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor94",
+    "mesh": "O_Box01",
+    "x": -85148.02,
+    "y": 242651.64,
+    "z": -3745.0,
+    "pitch": 0,
+    "yaw": 6712,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor9",
+    "mesh": "statue_wingGirl_A",
+    "x": -84430.66,
+    "y": 245530.94,
+    "z": -3578.0,
+    "pitch": 0,
+    "yaw": -72704,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor653",
+    "mesh": "talking_island_rock04",
+    "x": -88140.56,
+    "y": 250702.98,
+    "z": -3802.7,
+    "pitch": -176,
+    "yaw": -6592,
+    "roll": 576
+  },
+  {
+    "actor": "StaticMeshActor543",
+    "mesh": "splandtree3",
+    "x": -91884.71,
+    "y": 249159.5,
+    "z": -3600.12,
+    "pitch": 0,
+    "yaw": 14856,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor450",
+    "mesh": "interior_B_220",
+    "x": -81598.41,
+    "y": 243719.75,
+    "z": -3687.51,
+    "pitch": 0,
+    "yaw": 21504,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor635",
+    "mesh": "Deco_stone008",
+    "x": -94142.38,
+    "y": 249861.0,
+    "z": -3624.75,
+    "pitch": 2888,
+    "yaw": -37076,
+    "roll": -824
+  },
+  {
+    "actor": "StaticMeshActor632",
+    "mesh": "Deco_stone006",
+    "x": -88731.33,
+    "y": 256002.28,
+    "z": -3775.5,
+    "pitch": 0,
+    "yaw": 18944,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor631",
+    "mesh": "talking_island_rock04",
+    "x": -88069.79,
+    "y": 250538.75,
+    "z": -3710.7,
+    "pitch": -176,
+    "yaw": -11688,
+    "roll": 576
+  },
+  {
+    "actor": "StaticMeshActor630",
+    "mesh": "talking_island_rock04",
+    "x": -92055.34,
+    "y": 247683.25,
+    "z": -3713.24,
+    "pitch": 288,
+    "yaw": 66472,
+    "roll": 168
+  },
+  {
+    "actor": "StaticMeshActor624",
+    "mesh": "talking_island_rock03",
+    "x": -87592.71,
+    "y": 248727.7,
+    "z": -3793.85,
+    "pitch": 0,
+    "yaw": -50288,
+    "roll": 568
+  },
+  {
+    "actor": "StaticMeshActor622",
+    "mesh": "Deco_stone013",
+    "x": -90612.23,
+    "y": 250291.67,
+    "z": -3623.0,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor621",
+    "mesh": "Deco_stone012",
+    "x": -90618.67,
+    "y": 250224.81,
+    "z": -3612.81,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor620",
+    "mesh": "talking_island_rock04",
+    "x": -87811.71,
+    "y": 248411.27,
+    "z": -3672.7,
+    "pitch": 456,
+    "yaw": -40728,
+    "roll": -504
+  },
+  {
+    "actor": "StaticMeshActor617",
+    "mesh": "StoneH_09",
+    "x": -92995.01,
+    "y": 242553.12,
+    "z": -3411.38,
+    "pitch": 0,
+    "yaw": 10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor616",
+    "mesh": "StoneH_08",
+    "x": -93531.21,
+    "y": 243466.22,
+    "z": -3464.34,
+    "pitch": 0,
+    "yaw": 31744,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor615",
+    "mesh": "StoneH_07",
+    "x": -93845.23,
+    "y": 243430.5,
+    "z": -3451.34,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor74",
+    "mesh": "interior_B_008",
+    "x": -84066.52,
+    "y": 240470.38,
+    "z": -3703.57,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor612",
+    "mesh": "StoneH_05",
+    "x": -94000.91,
+    "y": 242422.41,
+    "z": -3403.34,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor610",
+    "mesh": "StoneH_03",
+    "x": -94171.98,
+    "y": 243066.95,
+    "z": -3342.34,
+    "pitch": 0,
+    "yaw": -18432,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor609",
+    "mesh": "StoneH_02",
+    "x": -93055.47,
+    "y": 243164.08,
+    "z": -3355.38,
+    "pitch": 0,
+    "yaw": 22528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor601",
+    "mesh": "StoneH_07",
+    "x": -92613.77,
+    "y": 254240.33,
+    "z": -3236.38,
+    "pitch": 0,
+    "yaw": 6144,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor156",
+    "mesh": "O_Box01",
+    "x": -84317.14,
+    "y": 240925.06,
+    "z": -3746.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor103",
+    "mesh": "splandforest1",
+    "x": -89487.0,
+    "y": 239529.16,
+    "z": -3654.75,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor112",
+    "mesh": "O_Box01",
+    "x": -86149.55,
+    "y": 243021.19,
+    "z": -3745.0,
+    "pitch": 0,
+    "yaw": -20792,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor80",
+    "mesh": "talking_island_rock03",
+    "x": -89578.3,
+    "y": 251024.14,
+    "z": -3814.85,
+    "pitch": -424,
+    "yaw": -32720,
+    "roll": 1544
+  },
+  {
+    "actor": "StaticMeshActor101",
+    "mesh": "O_Box02",
+    "x": -86145.85,
+    "y": 242033.97,
+    "z": -3714.0,
+    "pitch": 0,
+    "yaw": 23536,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor89",
+    "mesh": "O_Box01",
+    "x": -85567.62,
+    "y": 243623.83,
+    "z": -3721.0,
+    "pitch": 0,
+    "yaw": -9392,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor100",
+    "mesh": "talking_island_rock04",
+    "x": -89191.66,
+    "y": 250814.56,
+    "z": -3693.7,
+    "pitch": 1264,
+    "yaw": 9608,
+    "roll": 304
+  },
+  {
+    "actor": "StaticMeshActor99",
+    "mesh": "interior_B_107",
+    "x": -82816.95,
+    "y": 242709.22,
+    "z": -3711.6,
+    "pitch": 0,
+    "yaw": -70128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor108",
+    "mesh": "Deco_stone002",
+    "x": -89203.78,
+    "y": 239706.98,
+    "z": -3661.12,
+    "pitch": 0,
+    "yaw": -62592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor78",
+    "mesh": "SI_Magic_carpet03",
+    "x": -89786.34,
+    "y": 247613.56,
+    "z": -3598.02,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor70",
+    "mesh": "interior_B_fsign05",
+    "x": -81863.12,
+    "y": 243279.2,
+    "z": -3614.91,
+    "pitch": 0,
+    "yaw": -10976,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor182",
+    "mesh": "O_Package01",
+    "x": -84538.55,
+    "y": 241767.42,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 41024,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor181",
+    "mesh": "O_Package01",
+    "x": -84555.54,
+    "y": 241784.3,
+    "z": -3747.0,
+    "pitch": 0,
+    "yaw": 41024,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor179",
+    "mesh": "O_Package01",
+    "x": -84554.91,
+    "y": 241782.25,
+    "z": -3753.0,
+    "pitch": 0,
+    "yaw": 57408,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor176",
+    "mesh": "O_Package01",
+    "x": -84511.52,
+    "y": 241737.94,
+    "z": -3743.0,
+    "pitch": 3072,
+    "yaw": 23616,
+    "roll": -1024
+  },
+  {
+    "actor": "StaticMeshActor177",
+    "mesh": "O_Package01",
+    "x": -84509.41,
+    "y": 241737.23,
+    "z": -3753.0,
+    "pitch": 0,
+    "yaw": 57408,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor174",
+    "mesh": "O_Package01",
+    "x": -85806.85,
+    "y": 242386.03,
+    "z": -3717.0,
+    "pitch": 0,
+    "yaw": -42112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor175",
+    "mesh": "O_Package01",
+    "x": -85820.7,
+    "y": 242376.47,
+    "z": -3713.0,
+    "pitch": 3072,
+    "yaw": -57472,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor73",
+    "mesh": "interior_B_006",
+    "x": -84204.89,
+    "y": 240395.36,
+    "z": -3649.9,
+    "pitch": 0,
+    "yaw": 40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor71",
+    "mesh": "splandforest1",
+    "x": -92400.0,
+    "y": 237231.16,
+    "z": -3700.31,
+    "pitch": 0,
+    "yaw": 3072,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor613",
+    "mesh": "StoneH_06",
+    "x": -93150.9,
+    "y": 242383.41,
+    "z": -3317.34,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor636",
+    "mesh": "talking_island_rock03",
+    "x": -88449.29,
+    "y": 250477.58,
+    "z": -3804.85,
+    "pitch": 0,
+    "yaw": -29968,
+    "roll": 408
+  },
+  {
+    "actor": "StaticMeshActor420",
+    "mesh": "O_LoadLamp02",
+    "x": -84441.92,
+    "y": 244842.14,
+    "z": -3699.0,
+    "pitch": 0,
+    "yaw": -40960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor163",
+    "mesh": "O_Ladder03",
+    "x": -87156.3,
+    "y": 242158.97,
+    "z": -3721.0,
+    "pitch": 0,
+    "yaw": 8864,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor568",
+    "mesh": "splandtree1",
+    "x": -92910.6,
+    "y": 255210.64,
+    "z": -3184.12,
+    "pitch": 0,
+    "yaw": 32496,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor4",
+    "mesh": "interior_B_004",
+    "x": -84446.17,
+    "y": 240617.78,
+    "z": -3708.82,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1718",
+    "mesh": "Deco_stone006",
+    "x": -87861.69,
+    "y": 249603.22,
+    "z": -3623.38,
+    "pitch": 10,
+    "yaw": -202752,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor1841",
+    "mesh": "Deco_stone002",
+    "x": -86783.41,
+    "y": 250341.39,
+    "z": -3607.81,
+    "pitch": 2264,
+    "yaw": -62592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1620",
+    "mesh": "O_Fence02",
+    "x": -94909.37,
+    "y": 258222.98,
+    "z": -3297.0,
+    "pitch": 0,
+    "yaw": 48864,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1717",
+    "mesh": "Deco_stone001",
+    "x": -83671.11,
+    "y": 239782.25,
+    "z": -3762.19,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor17",
+    "mesh": "SI_Fight_Bridge_01_3",
+    "x": -78550.57,
+    "y": 249862.2,
+    "z": -3908.02,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1482",
+    "mesh": "interior_B_124",
+    "x": -86198.48,
+    "y": 242981.53,
+    "z": -3671.91,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1639",
+    "mesh": "O_Well",
+    "x": -84002.0,
+    "y": 244741.0,
+    "z": -3753.0,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1480",
+    "mesh": "Deco_stone009",
+    "x": -86878.91,
+    "y": 242073.34,
+    "z": -3752.19,
+    "pitch": 0,
+    "yaw": 9816,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor504",
+    "mesh": "splandtree1",
+    "x": -94436.77,
+    "y": 236555.69,
+    "z": -3564.88,
+    "pitch": 10,
+    "yaw": 497664,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor542",
+    "mesh": "splandtree3",
+    "x": -90099.91,
+    "y": 246872.19,
+    "z": -3623.62,
+    "pitch": 0,
+    "yaw": 31952,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor538",
+    "mesh": "splandtree1",
+    "x": -87608.34,
+    "y": 251096.09,
+    "z": -3639.44,
+    "pitch": 0,
+    "yaw": -3248,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor486",
+    "mesh": "interior_B_028",
+    "x": -84007.38,
+    "y": 240951.39,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -24576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor482",
+    "mesh": "interior_B_123",
+    "x": -86102.93,
+    "y": 243168.62,
+    "z": -3671.32,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor447",
+    "mesh": "interior_B_220",
+    "x": -82036.63,
+    "y": 243632.33,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 58368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor460",
+    "mesh": "interior_B_123",
+    "x": -86805.59,
+    "y": 242932.05,
+    "z": -3671.32,
+    "pitch": 0,
+    "yaw": -26624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor514",
+    "mesh": "splandtree1",
+    "x": -89643.76,
+    "y": 238558.56,
+    "z": -3722.0,
+    "pitch": 0,
+    "yaw": -20576,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor434",
+    "mesh": "talking_island_rock03",
+    "x": -87394.3,
+    "y": 249731.22,
+    "z": -3834.85,
+    "pitch": 0,
+    "yaw": -57376,
+    "roll": 568
+  },
+  {
+    "actor": "StaticMeshActor413",
+    "mesh": "interior_B_125",
+    "x": -86654.0,
+    "y": 242679.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor441",
+    "mesh": "SI_SH02_Rf",
+    "x": -83096.27,
+    "y": 242816.45,
+    "z": -3473.0,
+    "pitch": 0,
+    "yaw": -4592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor421",
+    "mesh": "interior_B_125",
+    "x": -86172.0,
+    "y": 243031.0,
+    "z": -3617.0,
+    "pitch": 0,
+    "yaw": 11264,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor426",
+    "mesh": "interior_B_221",
+    "x": -81698.77,
+    "y": 243141.44,
+    "z": -3680.12,
+    "pitch": 0,
+    "yaw": 5120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1312",
+    "mesh": "Deco_stone001",
+    "x": -87699.16,
+    "y": 241577.98,
+    "z": -3659.31,
+    "pitch": 10,
+    "yaw": 116736,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1322",
+    "mesh": "interior_B_103",
+    "x": -86733.95,
+    "y": 242912.64,
+    "z": -3653.37,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1287",
+    "mesh": "Deco_stone001",
+    "x": -93965.49,
+    "y": 242535.64,
+    "z": -3600.38,
+    "pitch": 0,
+    "yaw": 10416,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1937",
+    "mesh": "Deco_stone009",
+    "x": -93550.27,
+    "y": 243089.73,
+    "z": -3587.38,
+    "pitch": 0,
+    "yaw": 18800,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1938",
+    "mesh": "Deco_stone010",
+    "x": -93593.96,
+    "y": 243077.55,
+    "z": -3594.38,
+    "pitch": 0,
+    "yaw": -5528,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1311",
+    "mesh": "Deco_stone006",
+    "x": -93310.92,
+    "y": 237988.89,
+    "z": -3539.0,
+    "pitch": 0,
+    "yaw": 9960,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1365",
+    "mesh": "interior_B_109",
+    "x": -85371.65,
+    "y": 241126.66,
+    "z": -3710.67,
+    "pitch": 0,
+    "yaw": -68440,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1364",
+    "mesh": "interior_B_113",
+    "x": -86509.81,
+    "y": 243150.27,
+    "z": -3709.59,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1607",
+    "mesh": "O_Fence02-1",
+    "x": -94913.51,
+    "y": 258179.11,
+    "z": -3284.0,
+    "pitch": 0,
+    "yaw": 14056,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1346",
+    "mesh": "interior_B_111",
+    "x": -86709.06,
+    "y": 242770.56,
+    "z": -3678.2,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1584",
+    "mesh": "Deco_stone001",
+    "x": -92698.06,
+    "y": 253583.72,
+    "z": -3374.38,
+    "pitch": 0,
+    "yaw": -20392,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1317",
+    "mesh": "Deco_stone011",
+    "x": -90306.84,
+    "y": 239213.47,
+    "z": -3670.38,
+    "pitch": 10,
+    "yaw": 415744,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1325",
+    "mesh": "interior_B_104",
+    "x": -86392.72,
+    "y": 243260.59,
+    "z": -3650.64,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1352",
+    "mesh": "Deco_stone011",
+    "x": -83715.5,
+    "y": 239812.61,
+    "z": -3763.44,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1351",
+    "mesh": "Deco_stone007",
+    "x": -93270.56,
+    "y": 237936.36,
+    "z": -3550.56,
+    "pitch": 0,
+    "yaw": -22472,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor306",
+    "mesh": "O_Tank04",
+    "x": -81915.15,
+    "y": 242611.2,
+    "z": -3747.0,
+    "pitch": 10,
+    "yaw": -456704,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor1357",
+    "mesh": "interior_B_112",
+    "x": -86604.99,
+    "y": 243002.59,
+    "z": -3713.03,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1350",
+    "mesh": "Deco_stone009",
+    "x": -91392.09,
+    "y": 246003.98,
+    "z": -3704.06,
+    "pitch": 0,
+    "yaw": 46120,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1331",
+    "mesh": "interior_B_107",
+    "x": -86255.11,
+    "y": 243192.56,
+    "z": -3711.6,
+    "pitch": 0,
+    "yaw": -54272,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1327",
+    "mesh": "Deco_stone007",
+    "x": -90389.05,
+    "y": 239229.09,
+    "z": -3682.75,
+    "pitch": 10,
+    "yaw": -329728,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor445",
+    "mesh": "interior_B_220",
+    "x": -82130.45,
+    "y": 243709.25,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 58368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor1319",
+    "mesh": "O_Sign04",
+    "x": -84577.94,
+    "y": 243525.11,
+    "z": -3742.8,
+    "pitch": 0,
+    "yaw": 32912,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor461",
+    "mesh": "interior_B_220",
+    "x": -81946.51,
+    "y": 243558.23,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 58368,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor837",
+    "mesh": "Deco_stone004",
+    "x": -94591.6,
+    "y": 246874.77,
+    "z": -3700.25,
+    "pitch": 0,
+    "yaw": -9304,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor229",
+    "mesh": "interior_B_206",
+    "x": -86111.08,
+    "y": 243584.09,
+    "z": -3720.78,
+    "pitch": 0,
+    "yaw": -39848,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor971",
+    "mesh": "H_Door_OP_02",
+    "x": -83102.92,
+    "y": 242531.17,
+    "z": -3715.0,
+    "pitch": 0,
+    "yaw": -10240,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor741",
+    "mesh": "talking_island_rock03",
+    "x": -92055.73,
+    "y": 249780.86,
+    "z": -3874.85,
+    "pitch": -80,
+    "yaw": -26440,
+    "roll": -72
+  },
+  {
+    "actor": "StaticMeshActor209",
+    "mesh": "O_Package02",
+    "x": -87282.23,
+    "y": 242279.69,
+    "z": -3748.0,
+    "pitch": 0,
+    "yaw": 22176,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor985",
+    "mesh": "SI_Fight_Bridge_01_3",
+    "x": -78994.59,
+    "y": 249337.11,
+    "z": -3908.0,
+    "pitch": 0,
+    "yaw": -7336,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor835",
+    "mesh": "H_Door_OP_01",
+    "x": -85688.28,
+    "y": 243872.42,
+    "z": -3717.0,
+    "pitch": 0,
+    "yaw": -39936,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor736",
+    "mesh": "talking_island_rock03",
+    "x": -92219.39,
+    "y": 249515.97,
+    "z": -3802.85,
+    "pitch": -80,
+    "yaw": -22256,
+    "roll": -72
+  },
+  {
+    "actor": "StaticMeshActor699",
+    "mesh": "talking_island_rock03",
+    "x": -92341.52,
+    "y": 248431.47,
+    "z": -3842.85,
+    "pitch": -80,
+    "yaw": -20912,
+    "roll": -72
+  },
+  {
+    "actor": "StaticMeshActor970",
+    "mesh": "H_Door_OP_02",
+    "x": -82119.53,
+    "y": 243687.38,
+    "z": -3709.0,
+    "pitch": 0,
+    "yaw": -3072,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor48",
+    "mesh": "Default_Flame01",
+    "x": -84789.28,
+    "y": 245416.81,
+    "z": -3681.9,
+    "pitch": 0,
+    "yaw": -90112,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor444",
+    "mesh": "interior_B_220",
+    "x": -81491.58,
+    "y": 243510.69,
+    "z": -3680.51,
+    "pitch": 0,
+    "yaw": 21504,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2894",
+    "mesh": "Deco_stone001",
+    "x": -89275.05,
+    "y": 241440.84,
+    "z": -3601.31,
+    "pitch": 0,
+    "yaw": -37048,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2906",
+    "mesh": "Deco_stone001",
+    "x": -94881.46,
+    "y": 244222.92,
+    "z": -3621.25,
+    "pitch": 0,
+    "yaw": -37048,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2429",
+    "mesh": "Deco_stone001",
+    "x": -90101.17,
+    "y": 241066.73,
+    "z": -3590.25,
+    "pitch": 0,
+    "yaw": -49344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2615",
+    "mesh": "Deco_stone004",
+    "x": -88945.99,
+    "y": 242033.16,
+    "z": -3605.38,
+    "pitch": 0,
+    "yaw": -3848,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2619",
+    "mesh": "Deco_stone011",
+    "x": -89188.84,
+    "y": 242124.86,
+    "z": -3596.12,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2616",
+    "mesh": "Deco_stone005",
+    "x": -88989.75,
+    "y": 241988.47,
+    "z": -3605.88,
+    "pitch": 0,
+    "yaw": -3848,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2560",
+    "mesh": "Deco_stone001",
+    "x": -92428.91,
+    "y": 243642.7,
+    "z": -3524.69,
+    "pitch": 0,
+    "yaw": -20392,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2476",
+    "mesh": "Deco_stone001",
+    "x": -91776.84,
+    "y": 248709.08,
+    "z": -3613.44,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2479",
+    "mesh": "Deco_stone006",
+    "x": -91781.96,
+    "y": 248765.25,
+    "z": -3611.69,
+    "pitch": 0,
+    "yaw": 36344,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2431",
+    "mesh": "Deco_stone005",
+    "x": -89977.69,
+    "y": 241302.66,
+    "z": -3586.81,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3008",
+    "mesh": "Deco_stone002",
+    "x": -87309.75,
+    "y": 240530.39,
+    "z": -3647.5,
+    "pitch": 0,
+    "yaw": -62592,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3239",
+    "mesh": "sp_p_island05",
+    "x": -94815.23,
+    "y": 259738.89,
+    "z": -4102.0,
+    "pitch": 0,
+    "yaw": -48128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3237",
+    "mesh": "sp_p_island04",
+    "x": -94733.55,
+    "y": 259515.09,
+    "z": -4355.0,
+    "pitch": 0,
+    "yaw": -71680,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3236",
+    "mesh": "sp_p_island03",
+    "x": -94804.48,
+    "y": 259243.78,
+    "z": -4481.0,
+    "pitch": 0,
+    "yaw": -48128,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3149",
+    "mesh": "Deco_stone002",
+    "x": -85696.41,
+    "y": 239481.97,
+    "z": -3756.38,
+    "pitch": 0,
+    "yaw": 25520,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3200",
+    "mesh": "Deco_stone005",
+    "x": -86277.3,
+    "y": 239128.11,
+    "z": -3709.19,
+    "pitch": 0,
+    "yaw": 2408,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2981",
+    "mesh": "Deco_stone001",
+    "x": -88514.43,
+    "y": 238735.27,
+    "z": -3656.12,
+    "pitch": 0,
+    "yaw": -22040,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3174",
+    "mesh": "Deco_stone010",
+    "x": -86667.88,
+    "y": 239842.81,
+    "z": -3716.94,
+    "pitch": 0,
+    "yaw": 11608,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2433",
+    "mesh": "Deco_stone003",
+    "x": -89987.59,
+    "y": 241372.14,
+    "z": -3592.69,
+    "pitch": 0,
+    "yaw": 9944,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2481",
+    "mesh": "Deco_stone011",
+    "x": -91735.54,
+    "y": 248961.03,
+    "z": -3600.06,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2596",
+    "mesh": "Deco_stone001",
+    "x": -87852.48,
+    "y": 243068.36,
+    "z": -3663.25,
+    "pitch": 0,
+    "yaw": -20392,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2582",
+    "mesh": "Deco_stone001",
+    "x": -92640.66,
+    "y": 243876.8,
+    "z": -3523.69,
+    "pitch": 0,
+    "yaw": -37056,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3003",
+    "mesh": "Deco_stone001",
+    "x": -87347.23,
+    "y": 240278.62,
+    "z": -3662.5,
+    "pitch": 0,
+    "yaw": 55560,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2373",
+    "mesh": "Deco_stone001",
+    "x": -89748.64,
+    "y": 240878.77,
+    "z": -3601.81,
+    "pitch": 10,
+    "yaw": -321536,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor2234",
+    "mesh": "Deco_stone009",
+    "x": -84390.67,
+    "y": 250612.62,
+    "z": -3502.0,
+    "pitch": 0,
+    "yaw": 18712,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2235",
+    "mesh": "Deco_stone010",
+    "x": -84434.45,
+    "y": 250599.78,
+    "z": -3519.0,
+    "pitch": 0,
+    "yaw": -5616,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2458",
+    "mesh": "Deco_stone002",
+    "x": -91001.91,
+    "y": 251972.53,
+    "z": -3457.81,
+    "pitch": 0,
+    "yaw": -74704,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3199",
+    "mesh": "Deco_stone004",
+    "x": -86266.98,
+    "y": 239184.77,
+    "z": -3714.38,
+    "pitch": 0,
+    "yaw": 2408,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2996",
+    "mesh": "Deco_stone008",
+    "x": -86985.13,
+    "y": 240783.75,
+    "z": -3677.34,
+    "pitch": 2888,
+    "yaw": -37076,
+    "roll": -824
+  },
+  {
+    "actor": "StaticMeshActor3172",
+    "mesh": "Deco_stone009",
+    "x": -86633.31,
+    "y": 239916.38,
+    "z": -3710.12,
+    "pitch": 0,
+    "yaw": 6872,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor3175",
+    "mesh": "Deco_stone007",
+    "x": -86597.6,
+    "y": 239810.66,
+    "z": -3712.0,
+    "pitch": 0,
+    "yaw": -15992,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor2982",
+    "mesh": "Deco_stone011",
+    "x": -86970.94,
+    "y": 240885.94,
+    "z": -3683.44,
+    "pitch": 980,
+    "yaw": -25352,
+    "roll": 2536
+  },
+  {
+    "actor": "StaticMeshActor2983",
+    "mesh": "Deco_stone012",
+    "x": -87098.33,
+    "y": 240835.41,
+    "z": -3657.64,
+    "pitch": -1004,
+    "yaw": -3424,
+    "roll": -36
+  },
+  {
+    "actor": "StaticMeshActor2993",
+    "mesh": "Deco_stone006",
+    "x": -87362.32,
+    "y": 240211.77,
+    "z": -3664.5,
+    "pitch": 0,
+    "yaw": 46624,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor189",
+    "mesh": "interior_B_028",
+    "x": -84415.58,
+    "y": 240538.2,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor592",
+    "mesh": "StoneH_02",
+    "x": -91687.56,
+    "y": 253961.25,
+    "z": -3221.38,
+    "pitch": 0,
+    "yaw": 23880,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor597",
+    "mesh": "StoneH_08",
+    "x": -92242.91,
+    "y": 254270.62,
+    "z": -3274.38,
+    "pitch": 0,
+    "yaw": 31744,
+    "roll": 0
+  },
+  {
+    "actor": "StaticMeshActor806",
+    "mesh": "Deco_stone004",
+    "x": -88767.24,
+    "y": 240423.88,
+    "z": -3644.81,
+    "pitch": 10,
+    "yaw": -468992,
+    "roll": 255
+  },
+  {
+    "actor": "StaticMeshActor187",
+    "mesh": "interior_B_028",
+    "x": -84293.71,
+    "y": 240416.42,
+    "z": -3692.75,
+    "pitch": 0,
+    "yaw": -8192,
+    "roll": 0
+  }
+]

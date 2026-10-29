@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS BLADE - Laboratório dos 3 Motores de VFX (Three.js + Quarks + Effekseer)</title>
+<style>
+  :root { --bg: #05060d; --sys: #5aa9ff; --gold: #f5c451; --purp: #b79cff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: #e8f0ff; font-family: system-ui, sans-serif; overflow: hidden; }
+  #canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #ui { position: fixed; top: 16px; left: 16px; z-index: 10; background: rgba(8,14,30,.88); border: 1px solid var(--sys); border-radius: 8px; padding: 14px 18px; max-width: 420px; box-shadow: 0 0 20px rgba(0,0,0,.8); }
+  h2 { font-size: 15px; letter-spacing: .12em; color: var(--gold); margin-bottom: 6px; }
+  p { font-size: 11px; color: #9bb0dc; line-height: 1.4; margin-bottom: 12px; }
+  .status-box { font-size: 11px; margin-bottom: 10px; padding: 8px; border-radius: 4px; background: rgba(5,10,24,.7); border: 1px solid rgba(90,169,255,.25); }
+  .status-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .status-row b { color: #58e08e; }
+  .btn-group { display: flex; flex-direction: column; gap: 6px; }
+  button { cursor: pointer; padding: 8px 12px; border-radius: 5px; border: 1px solid var(--sys); background: rgba(90,169,255,.15); color: #fff; font-size: 12px; font-weight: 700; transition: all .15s; text-align: left; }
+  button:hover { background: rgba(90,169,255,.35); border-color: var(--gold); }
+  button span { display: block; font-size: 10px; font-weight: 400; color: #a0b4de; margin-top: 2px; }
+</style>
+<!-- 1. Three.js base -->
+<script src="lib/three.min.js"></script>
+<!-- 2. three.quarks UMD bundle -->
+<script src="lib/three.quarks.min.js"></script>
+<!-- 3. Effekseer WebAssembly bundle -->
+<script src="lib/effekseer.min.js"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div id="ui">
+  <h2>IS BLADE &bull; Suíte de VFX 3-em-1</h2>
+  <p>Os 3 sistemas gráficos de elite trabalhando juntos sobre o Three.js para o combate de IS BLADE.</p>
+
+  <div class="status-box">
+    <div class="status-row"><span>Engine 3D:</span> <b>Three.js r128 (Ativo)</b></div>
+    <div class="status-row"><span>1. three.quarks:</span> <b id="st-quarks">Iniciando...</b></div>
+    <div class="status-row"><span>2. Effekseer WASM:</span> <b id="st-effekseer">Iniciando...</b></div>
+    <div class="status-row"><span>3. Procedural Three.js:</span> <b>Ribbons & Fissuras (Ativo)</b></div>
+  </div>
+
+  <div class="btn-group">
+    <button onclick="triggerQuarksAura()">
+      &#10024; [Quarks] Aura de Set Completo +15 (Estilo MU)
+      <span>Emite partículas ao redor do corpo e armadura</span>
+    </button>
+    <button onclick="triggerQuarksBurst()">
+      &#128165; [Quarks] Explosão de Partículas na Arma
+      <span>Disparo de faíscas turbulentas com física</span>
+    </button>
+    <button onclick="triggerProceduralLightning()">
+      &#9889; [Procedural] Raio Zigzag + Círculo Rúnico
+      <span>Fita 3D contínua, runas arcanas e cratera magmática</span>
+    </button>
+    <button onclick="triggerProceduralSmash()">
+      &#128296; [Procedural] Espigões de Rocha Sísmicos
+      <span>Pilares de pedra eruptivos e física de detritos</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ==================== CENA THREE.JS BASE ====================
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x05060d, 0.02);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 3.5, 9);
+camera.lookAt(0, 1.2, 0);
+
+// Luzes
+scene.add(new THREE.AmbientLight(0x223355, 1.2));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(5, 12, 7);
+scene.add(dirLight);
+
+// Piso de pedra com grid
+const grid = new THREE.GridHelper(24, 24, 0x5aa9ff, 0x1b2848);
+grid.position.y = 0.01;
+scene.add(grid);
+
+const floorGeo = new THREE.PlaneGeometry(30, 30);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x080e1e, roughness: 0.85, metalness: 0.1 });
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
+
+// Manequim 3D para simular o jogador (Set / Arma)
+const mannequinGroup = new THREE.Group();
+const bodyGeo = new THREE.CylinderGeometry(0.3, 0.25, 1.6, 12);
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334466, roughness: 0.4, metalness: 0.7 });
+const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+bodyMesh.position.y = 1.0;
+mannequinGroup.add(bodyMesh);
+
+const headGeo = new THREE.SphereGeometry(0.22, 16, 16);
+const headMat = new THREE.MeshStandardMaterial({ color: 0x556688, roughness: 0.5 });
+const headMesh = new THREE.Mesh(headGeo, headMat);
+headMesh.position.y = 2.0;
+mannequinGroup.add(headMesh);
+
+// Espada
+const swordGeo = new THREE.BoxGeometry(0.08, 1.8, 0.02);
+const swordMat = new THREE.MeshStandardMaterial({ color: 0xaaccff, roughness: 0.2, metalness: 0.9 });
+const swordMesh = new THREE.Mesh(swordGeo, swordMat);
+swordMesh.position.set(0.6, 1.3, 0.3);
+swordMesh.rotation.z = -0.3;
+mannequinGroup.add(swordMesh);
+
+scene.add(mannequinGroup);
+
+// ==================== 1. MOTOR THREE.QUARKS ====================
+let quarksBatch = null;
+let setAuraSystem = null;
+let isQuarksReady = false;
+
+try {
+  if (window.THREE && window.THREE.QUARKS) {
+    const Q = window.THREE.QUARKS;
+    quarksBatch = new Q.BatchedParticleRenderer();
+    scene.add(quarksBatch);
+
+    // Sistema de Aura contínua estilo MU Online (+11 / +15)
+    setAuraSystem = new Q.ParticleSystem({
+      duration: 1,
+      looping: true,
+      startLife: new Q.IntervalValue(0.6, 1.2),
+      startSpeed: new Q.IntervalValue(0.4, 0.8),
+      startSize: new Q.IntervalValue(0.08, 0.2),
+      startColor: new Q.ColorRange(new THREE.Vector4(0.3, 0.6, 1.0, 0.9), new THREE.Vector4(0.9, 0.8, 0.3, 0.3)),
+      worldSpace: true,
+      maxParticles: 300,
+      emissionOverTime: new Q.ConstantValue(60),
+      shape: new Q.SphereEmitter({ radius: 0.75, arc: Math.PI * 2, thickness: 0.5 }),
+      material: new THREE.MeshBasicMaterial({
+        color: 0x5aa9ff,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.7
+      })
+    });
+    setAuraSystem.emitter.position.set(0, 1.2, 0);
+    quarksBatch.addSystem(setAuraSystem);
+
+    isQuarksReady = true;
+    document.getElementById('st-quarks').textContent = 'Carregado (Pronto)';
+    document.getElementById('st-quarks').style.color = '#58e08e';
+  } else {
+    document.getElementById('st-quarks').textContent = 'Erro ao vincular';
+  }
+} catch(e) {
+  console.warn('Quarks init error:', e);
+  document.getElementById('st-quarks').textContent = 'Fallback ativo';
+}
+
+function triggerQuarksAura() {
+  if (!isQuarksReady) return;
+  const colors = [
+    [0.3, 0.7, 1.0, 1.0], // Azul Soulshot
+    [1.0, 0.8, 0.2, 1.0], // Dourado MU +15
+    [0.8, 0.3, 1.0, 1.0], // Violeta Arcano
+    [0.2, 1.0, 0.5, 1.0]  // Verde Esmeralda
+  ];
+  const c = colors[Math.floor(Math.random() * colors.length)];
+  setAuraSystem.startColor = new window.THREE.QUARKS.ColorRange(
+    new THREE.Vector4(c[0], c[1], c[2], 0.95),
+    new THREE.Vector4(c[0]*0.5, c[1]*0.5, c[2]*0.5, 0.2)
+  );
+  setAuraSystem.emissionOverTime = new window.THREE.QUARKS.ConstantValue(120);
+  setTimeout(() => {
+    if (setAuraSystem) setAuraSystem.emissionOverTime = new window.THREE.QUARKS.ConstantValue(60);
+  }, 2000);
+}
+
+function triggerQuarksBurst() {
+  if (!isQuarksReady) return;
+  const Q = window.THREE.QUARKS;
+  const burstSys = new Q.ParticleSystem({
+    duration: 0.4,
+    looping: false,
+    startLife: new Q.IntervalValue(0.3, 0.7),
+    startSpeed: new Q.IntervalValue(3.0, 6.0),
+    startSize: new Q.IntervalValue(0.06, 0.16),
+    startColor: new Q.ColorRange(new THREE.Vector4(1.0, 0.8, 0.3, 1.0), new THREE.Vector4(1.0, 0.2, 0.1, 0.0)),
+    worldSpace: true,
+    maxParticles: 100,
+    emissionOverTime: new Q.ConstantValue(0),
+    emissionBursts: [{ time: 0, count: 50, cycle: 1, interval: 0, probability: 1 }],
+    shape: new Q.SphereEmitter({ radius: 0.1, arc: Math.PI * 2 }),
+    material: new THREE.MeshBasicMaterial({ color: 0xffcc33, blending: THREE.AdditiveBlending, transparent: true })
+  });
+  burstSys.emitter.position.set(0.6, 1.4, 0.3);
+  quarksBatch.addSystem(burstSys);
+}
+
+// ==================== 2. MOTOR EFFEKSEER (WASM) ====================
+let effekseerContext = null;
+let isEffekseerReady = false;
+
+if (window.effekseer) {
+  window.effekseer.initRuntime('lib/effekseer.wasm', () => {
+    try {
+      effekseerContext = window.effekseer.createContext();
+      effekseerContext.init(renderer.getContext());
+      isEffekseerReady = true;
+      document.getElementById('st-effekseer').textContent = 'WASM Ativo (Pronto)';
+      document.getElementById('st-effekseer').style.color = '#58e08e';
+      console.log('Effekseer WASM initialized successfully!');
+    } catch(err) {
+      console.warn('Effekseer WebGL init warning:', err);
+      document.getElementById('st-effekseer').textContent = 'WASM Carregado';
+    }
+  }, () => {
+    document.getElementById('st-effekseer').textContent = 'Erro ao carregar wasm';
+  });
+}
+
+// ==================== 3. MOTOR PROCEDURAL NATIVO ====================
+// Texturas procedurais canvas para o raio contínuo e círculos rúnicos
+function mkTex(w, h, fn) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  fn(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  return t;
+}
+
+const TX_BOLT = mkTex(128, 64, (ctx, w, h) => {
+  const g = ctx.createLinearGradient(0, 0, w, 0);
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.35, 'rgba(255,140,50,0.6)');
+  g.addColorStop(0.5, 'rgba(255,255,255,1)');
+  g.addColorStop(0.65, 'rgba(255,140,50,0.6)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+});
+
+const TX_RUNE = mkTex(256, 256, (ctx, w, h) => {
+  const cx = w/2, cy = h/2;
+  ctx.strokeStyle = '#ff9933'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(cx, cy, 110, 0, Math.PI*2); ctx.stroke();
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, 95, 0, Math.PI*2); ctx.stroke();
+  for (let k = 0; k < 8; k++) {
+    const a1 = (k * Math.PI) / 4, a2 = ((k + 3) * Math.PI) / 4;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a1)*95, cy + Math.sin(a1)*95);
+    ctx.lineTo(cx + Math.cos(a2)*95, cy + Math.sin(a2)*95);
+    ctx.stroke();
+  }
+});
+
+const vfxList = [];
+function addVfx(obj, life, onUp) {
+  scene.add(obj);
+  vfxList.push({ obj, life, maxLife: life, onUp });
+}
+
+function triggerProceduralLightning() {
+  const x = (Math.random() - 0.5) * 5;
+  const z = (Math.random() - 0.5) * 4;
+
+  // Círculo rúnico prévio
+  const runeMat = new THREE.MeshBasicMaterial({ map: TX_RUNE, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.9 });
+  const runeMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 3.6), runeMat);
+  runeMesh.rotation.x = -Math.PI / 2;
+  runeMesh.position.set(x, 0.04, z);
+  addVfx(runeMesh, 0.5, (o, u) => {
+    o.rotation.z += 0.05;
+    o.material.opacity = Math.sin(u * Math.PI);
+  });
+
+  setTimeout(() => {
+    // Raio 3D zigue-zague
+    const nodes = 18;
+    const pts = [];
+    let curX = x, curZ = z;
+    for (let i = 0; i < nodes; i++) {
+      const y = (i / (nodes - 1)) * 14;
+      pts.push(new THREE.Vector3(curX + (Math.random() - 0.5) * 0.45, y, curZ + (Math.random() - 0.5) * 0.45));
+      curX += (Math.random() - 0.5) * 0.3;
+      curZ += (Math.random() - 0.5) * 0.3;
+    }
+
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const tubeGeo = new THREE.TubeGeometry(curve, 32, 0.09, 6, false);
+    const tubeMat = new THREE.MeshBasicMaterial({ map: TX_BOLT, transparent: true, blending: THREE.AdditiveBlending, color: 0xffaa44 });
+    const boltMesh = new THREE.Mesh(tubeGeo, tubeMat);
+    addVfx(boltMesh, 0.28, (o, u) => {
+      o.material.opacity = (1 - u) * (Math.random() > 0.3 ? 1.0 : 0.3);
+    });
+
+    // Luz dinâmica
+    const pLight = new THREE.PointLight(0xff7700, 6, 12);
+    pLight.position.set(x, 2, z);
+    addVfx(pLight, 0.2, (l, u) => { l.intensity = 6 * (1 - u); });
+  }, 220);
+}
+
+function triggerProceduralSmash() {
+  const cx = 0, cz = -1;
+  const count = 12;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+    const r = 1.4 + Math.random() * 1.8;
+    const h = 1.2 + Math.random() * 1.6;
+    const spikeGeo = new THREE.ConeGeometry(0.24, h, 6);
+    const spikeMat = new THREE.MeshStandardMaterial({ color: 0x443322, roughness: 0.9 });
+    const spike = new THREE.Mesh(spikeGeo, spikeMat);
+    const sx = cx + Math.cos(angle) * r;
+    const sz = cz + Math.sin(angle) * r;
+    spike.position.set(sx, -h, sz);
+    spike.rotation.y = Math.random() * Math.PI;
+    spike.rotation.z = (Math.random() - 0.5) * 0.3;
+    addVfx(spike, 1.2, (o, u) => {
+      if (u < 0.2) o.position.y = -h + (h * 0.5 * (u / 0.2));
+      else if (u > 0.7) o.position.y = (h * 0.5) - ((u - 0.7) / 0.3) * h;
+    });
+  }
+}
+
+// ==================== LOOP PRINCIPAL DE RENDER ====================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+
+  // Rotação suave do manequim
+  mannequinGroup.rotation.y += dt * 0.5;
+
+  // 1. Update three.quarks
+  if (quarksBatch) {
+    quarksBatch.update(dt);
+  }
+
+  // 2. Update Effekseer
+  if (effekseerContext && isEffekseerReady) {
+    effekseerContext.update(dt * 60.0);
+  }
+
+  // 3. Update Procedural VFX
+  for (let i = vfxList.length - 1; i >= 0; i--) {
+    const v = vfxList[i];
+    v.life -= dt;
+    const u = 1 - (v.life / v.maxLife);
+    if (v.onUp) v.onUp(v.obj, u);
+    if (v.life <= 0) {
+      scene.remove(v.obj);
+      if (v.obj.geometry) v.obj.geometry.dispose();
+      vfxList.splice(i, 1);
+    }
+  }
+
+  renderer.render(scene, camera);
+
+  // Render Effekseer sobre o Three.js
+  if (effekseerContext && isEffekseerReady) {
+    effekseerContext.setProjectionMatrix(camera.projectionMatrix.elements);
+    effekseerContext.setCameraMatrix(camera.matrixWorldInverse.elements);
+    effekseerContext.draw();
+  }
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

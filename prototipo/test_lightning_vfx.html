@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Teste VFX Baium Lineage 2</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #05060d; font-family: sans-serif; }
+  #canvas-container { width: 100vw; height: 100vh; }
+  #controls {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 10;
+  }
+  button {
+    background: #11162b; border: 1px solid #f5c451; color: #f5c451;
+    padding: 8px 16px; font-size: 13px; font-weight: bold; border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover { background: #f5c451; color: #000; }
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div id="controls">
+  <button id="btn-bolt">⚡ Raio de Baium (Novo)</button>
+  <button id="btn-stomp">🦶 Pisão Sísmico + Detritos</button>
+  <button id="btn-smash">🔨 Martelo Duplo + Espigões de Rocha</button>
+  <button id="btn-sweep">🌀 Varredura 360°</button>
+</div>
+
+<script src="./lib/three.min.js"></script>
+<script>
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0c16);
+scene.fog = new THREE.FogExp2(0x0a0c16, 0.025);
+
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 7, 16);
+camera.lookAt(0, 1.2, 0);
+
+var renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+var amb = new THREE.AmbientLight(0x2a3352, 1.2);
+scene.add(amb);
+var dir = new THREE.DirectionalLight(0xfff0d0, 2.0);
+dir.position.set(5, 15, 8);
+scene.add(dir);
+
+// Chão da arena
+var floor = new THREE.Mesh(
+  new THREE.CylinderGeometry(14, 14.5, 0.4, 48),
+  new THREE.MeshStandardMaterial({ color: 0x181c2b, roughness: 0.8, metalness: 0.1 })
+);
+floor.position.y = -0.2;
+scene.add(floor);
+
+// Canvas texture utility
+function mkTex(w, h, draw) {
+  var c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  var g = c.getContext('2d');
+  draw(g, w, h);
+  var tx = new THREE.CanvasTexture(c);
+  tx.colorSpace = THREE.SRGBColorSpace;
+  tx.anisotropy = 4;
+  return tx;
+}
+
+function softMat(tx, color, op) {
+  return new THREE.MeshBasicMaterial({
+    map: tx, color: color, transparent: true, opacity: op,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+  });
+}
+
+// 1. CÍRCULO RÚNICO DE AVISO (LINEAGE 2 OFICIAL)
+var TX_RUNE_CIRCLE = mkTex(256, 256, function(g, w, h) {
+  var cx = w / 2, cy = h / 2, r = w * 0.45;
+  g.clearRect(0, 0, w, h);
+  g.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+  g.lineWidth = 3;
+  g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 1.5;
+  g.beginPath(); g.arc(cx, cy, r * 0.86, 0, Math.PI * 2); g.stroke();
+  
+  for (var i = 0; i < 32; i++) {
+    var a = (i / 32) * Math.PI * 2;
+    var r1 = r * 0.86, r2 = (i % 4 === 0) ? r : r * 0.94;
+    g.lineWidth = (i % 4 === 0) ? 2 : 1;
+    g.beginPath();
+    g.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    g.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+    g.stroke();
+  }
+  
+  g.lineWidth = 1.5;
+  g.beginPath();
+  for (var k = 0; k < 8; k++) {
+    var a2 = ((k * 3) / 8) * Math.PI * 2 - Math.PI / 2;
+    if (k === 0) g.moveTo(cx + Math.cos(a2) * r * 0.72, cy + Math.sin(a2) * r * 0.72);
+    else g.lineTo(cx + Math.cos(a2) * r * 0.72, cy + Math.sin(a2) * r * 0.72);
+  }
+  g.closePath(); g.stroke();
+  
+  g.beginPath(); g.arc(cx, cy, r * 0.42, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  g.beginPath(); g.arc(cx, cy, r * 0.14, 0, Math.PI * 2); g.fill();
+  
+  g.globalCompositeOperation = 'destination-over';
+  var gr = g.createRadialGradient(cx, cy, r * 0.1, cx, cy, w * 0.5);
+  gr.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+  gr.addColorStop(0.65, 'rgba(255, 255, 255, 0.15)');
+  gr.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, w, h);
+});
+
+// 2. FISSURA / RACHADURA DO CHÃO
+var TX_CRACK = mkTex(256, 256, function(g, w, h) {
+  var cx = w / 2, cy = h / 2;
+  g.clearRect(0, 0, w, h);
+  
+  function branch(x0, y0, angle, len, width, depth) {
+    if (depth <= 0 || len < 4) return;
+    var curX = x0, curY = y0;
+    var steps = Math.floor(len / 6);
+    g.beginPath();
+    g.moveTo(curX, curY);
+    for (var s = 0; s < steps; s++) {
+      angle += (Math.random() - 0.5) * 0.65;
+      var stepLen = (len / steps) * (0.8 + Math.random() * 0.4);
+      curX += Math.cos(angle) * stepLen;
+      curY += Math.sin(angle) * stepLen;
+      g.lineTo(curX, curY);
+      if (Math.random() < 0.35 && depth > 1) {
+        var subAngle = angle + (Math.random() < 0.5 ? 0.6 : -0.6);
+        branch(curX, curY, subAngle, len * 0.55, width * 0.65, depth - 1);
+        g.moveTo(curX, curY);
+      }
+    }
+    g.lineWidth = width;
+    g.stroke();
+  }
+  
+  g.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  for (var b = 0; b < 10; b++) {
+    var ang = (b / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+    branch(cx, cy, ang, w * 0.42, 6.0, 3);
+  }
+  g.strokeStyle = 'rgba(255, 255, 255, 1.0)';
+  for (var b = 0; b < 10; b++) {
+    var ang = (b / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+    branch(cx, cy, ang, w * 0.42, 2.0, 3);
+  }
+  var gr = g.createRadialGradient(cx, cy, 0, cx, cy, w * 0.25);
+  gr.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+  gr.addColorStop(0.3, 'rgba(255, 255, 255, 0.7)');
+  gr.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, w, h);
+});
+
+// 3. ANEL DE CHOQUE
+var TX_RING = mkTex(256, 256, function(g, w, h) {
+  var gr = g.createRadialGradient(w/2, h/2, 0, w/2, h/2, w/2);
+  gr.addColorStop(0, 'rgba(255,255,255,0)');
+  gr.addColorStop(.55, 'rgba(255,255,255,0)');
+  gr.addColorStop(.74, 'rgba(255,255,255,.28)');
+  gr.addColorStop(.86, 'rgba(255,255,255,1)');
+  gr.addColorStop(.92, 'rgba(255,255,255,.45)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+});
+
+// Glow Sprite Texture
+function glowTex() {
+  var c = document.createElement('canvas'); c.width = c.height = 64;
+  var g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)');
+  gr.addColorStop(.3, 'rgba(255,180,60,.85)');
+  gr.addColorStop(1, 'rgba(255,100,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+var GT = glowTex();
+
+// VFX List & Manager
+var VFX = [];
+function addVfx(m, life, fn) {
+  scene.add(m);
+  VFX.push({ m: m, t: 0, life: life, fn: fn });
+}
+function updateVfx(dt) {
+  for (var i = VFX.length - 1; i >= 0; i--) {
+    var v = VFX[i]; v.t += dt; var u = v.t / v.life;
+    if (u >= 1) {
+      scene.remove(v.m);
+      if (v.m.geometry) v.m.geometry.dispose();
+      if (v.m.material) {
+        if (Array.isArray(v.m.material)) v.m.material.forEach(m => m.dispose());
+        else v.m.material.dispose();
+      }
+      VFX.splice(i, 1);
+      continue;
+    }
+    v.fn(v.m, u);
+  }
+}
+
+function groundRing(x, z, color, r0, r1, life, op) {
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), softMat(TX_RING, color, op || .9));
+  m.rotation.x = -Math.PI / 2; m.position.set(x, .12, z); m.scale.set(r0, r0, 1);
+  addVfx(m, life, function(o, u) {
+    var e = 1 - (1 - u) * (1 - u), r = r0 + (r1 - r0) * e;
+    o.scale.set(r, r, 1);
+    o.material.opacity = (op || .9) * (1 - u);
+  });
+}
+
+function spawnGroundCrack(x, z, radius, color, life) {
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(radius * 2, radius * 2), softMat(TX_CRACK, color || 0xff6600, 1.0));
+  m.rotation.x = -Math.PI / 2;
+  m.rotation.z = Math.random() * Math.PI * 2;
+  m.position.set(x, 0.08, z);
+  addVfx(m, life || 1.8, function(o, u) {
+    if (u < 0.1) {
+      o.scale.setScalar(u / 0.1);
+      o.material.opacity = 1.0;
+    } else {
+      o.scale.setScalar(1.0 + u * 0.04);
+      o.material.opacity = Math.pow(1 - u, 1.8);
+    }
+  });
+}
+
+function burstSparks(x, y, z, n, color, spd) {
+  for (var k = 0; k < n; k++) {
+    var s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GT, color: color, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    s.position.set(x, y, z);
+    s.scale.set(.18, .18, 1);
+    scene.add(s);
+    var a1 = Math.random() * Math.PI * 2, a2 = Math.random() * Math.PI * 0.45, sp2 = (0.6 + Math.random()) * spd;
+    var vx = Math.cos(a1) * Math.cos(a2) * sp2;
+    var vy = Math.sin(a2) * sp2 + 2;
+    var vz = Math.sin(a1) * Math.cos(a2) * sp2;
+    addVfx(s, 0.4 + Math.random() * 0.35, (function(vx, vy, vz) {
+      var px = x, py = y, pz = z;
+      return function(spr, u) {
+        px += vx * 0.016; py += vy * 0.016; pz += vz * 0.016;
+        vy -= 14 * 0.016;
+        spr.position.set(px, py, pz);
+        spr.material.opacity = (1 - u);
+      };
+    })(vx, vy, vz));
+  }
+}
+
+function spawnDebrisChunks(x, z, count, color, speed) {
+  var geo = new THREE.DodecahedronGeometry(0.2, 0);
+  var mat = new THREE.MeshStandardMaterial({ color: color || 0x3b4363, roughness: 0.9, metalness: 0.1 });
+  for (var i = 0; i < count; i++) {
+    var m = new THREE.Mesh(geo, mat);
+    var scale = 0.6 + Math.random() * 0.9;
+    m.scale.setScalar(scale);
+    m.position.set(x + (Math.random() - 0.5) * 0.5, 0.1, z + (Math.random() - 0.5) * 0.5);
+    var ang = Math.random() * Math.PI * 2;
+    var spd = (0.5 + Math.random() * 0.8) * (speed || 4);
+    var vx = Math.cos(ang) * spd, vy = 3.5 + Math.random() * 4.5, vz = Math.sin(ang) * spd;
+    var rx = (Math.random() - 0.5) * 10, ry = (Math.random() - 0.5) * 10, rz = (Math.random() - 0.5) * 10;
+    scene.add(m);
+    addVfx(m, 0.8 + Math.random() * 0.4, (function(vx, vy, vz, rx, ry, rz, scale) {
+      var px = m.position.x, py = m.position.y, pz = m.position.z;
+      return function(mesh, u) {
+        py += vy * 0.016; vy -= 18 * 0.016;
+        px += vx * 0.016; pz += vz * 0.016;
+        if (py < 0.1) { py = 0.1; vy = -vy * 0.35; vx *= 0.7; vz *= 0.7; }
+        mesh.position.set(px, py, pz);
+        mesh.rotation.x += rx * 0.016; mesh.rotation.y += ry * 0.016; mesh.rotation.z += rz * 0.016;
+        if (u > 0.6) mesh.scale.setScalar(scale * (1 - u) / 0.4);
+      };
+    })(vx, vy, vz, rx, ry, rz, scale));
+  }
+}
+
+// 4. TEXTURA DE SEGMENTO DE RAIO ELÉTRICO
+var TX_BOLT_SEG = mkTex(128, 64, function(g, w, h) {
+  var gr = g.createLinearGradient(0, 0, 0, h);
+  gr.addColorStop(0, 'rgba(255,255,255,0)');
+  gr.addColorStop(0.25, 'rgba(255,255,255,0.45)');
+  gr.addColorStop(0.5, 'rgba(255,255,255,1.0)');
+  gr.addColorStop(0.75, 'rgba(255,255,255,0.45)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, w, h);
+});
+
+// CONSTRUÇÃO DO RAIO ZIG-ZAG PROCEDURAL REAL DE BAIUM
+function createProceduralLightning(x, z, topY) {
+  var grp = new THREE.Group();
+  topY = topY || 28;
+  
+  function genNodes(pStart, pEnd, segments, jitter) {
+    var pts = [pStart.clone()];
+    for (var i = 1; i < segments; i++) {
+      var t = i / segments;
+      var cur = pStart.clone().lerp(pEnd, t);
+      var envelope = Math.sin(t * Math.PI);
+      cur.x += (Math.random() - 0.5) * jitter * envelope;
+      cur.z += (Math.random() - 0.5) * jitter * envelope;
+      pts.push(cur);
+    }
+    pts.push(pEnd.clone());
+    return pts;
+  }
+  
+  var mainStart = new THREE.Vector3(x + (Math.random() - 0.5) * 1.5, topY, z + (Math.random() - 0.5) * 1.5);
+  var mainEnd = new THREE.Vector3(x, 0.05, z);
+  var mainNodes = genNodes(mainStart, mainEnd, 22, 3.2);
+  
+  // Constrói fita contínua conectada (seamless ribbon strip)
+  function buildContinuousRibbon(nodes, width) {
+    var pos = [], uvs = [];
+    var n = nodes.length;
+    var tangents = [];
+    for (var i = 0; i < n; i++) {
+      var pPrev = i > 0 ? nodes[i - 1] : nodes[i];
+      var pNext = i < n - 1 ? nodes[i + 1] : nodes[i];
+      tangents.push(new THREE.Vector3().subVectors(pNext, pPrev).normalize());
+    }
+    
+    // Pass 1: plano XZ normalizado
+    for (var i = 0; i < n - 1; i++) {
+      var A = nodes[i], B = nodes[i+1];
+      var tA = tangents[i], tB = tangents[i+1];
+      var rA = new THREE.Vector3(tA.z, 0, -tA.x).normalize().multiplyScalar(width * 0.5);
+      var rB = new THREE.Vector3(tB.z, 0, -tB.x).normalize().multiplyScalar(width * 0.5);
+      if (rA.lengthSq() < 0.001) rA.set(width * 0.5, 0, 0);
+      if (rB.lengthSq() < 0.001) rB.set(width * 0.5, 0, 0);
+      
+      var A1 = new THREE.Vector3().addVectors(A, rA);
+      var A2 = new THREE.Vector3().subVectors(A, rA);
+      var B1 = new THREE.Vector3().addVectors(B, rB);
+      var B2 = new THREE.Vector3().subVectors(B, rB);
+      
+      pos.push(A1.x, A1.y, A1.z,  A2.x, A2.y, A2.z,  B1.x, B1.y, B1.z);
+      uvs.push(0, 0,  1, 0,  0, 1);
+      pos.push(B1.x, B1.y, B1.z,  A2.x, A2.y, A2.z,  B2.x, B2.y, B2.z);
+      uvs.push(0, 1,  1, 0,  1, 1);
+      
+      // Pass 2: plano ortogonal (Y cruzado)
+      var oA = new THREE.Vector3().crossVectors(tA, rA).normalize().multiplyScalar(width * 0.5);
+      var oB = new THREE.Vector3().crossVectors(tB, rB).normalize().multiplyScalar(width * 0.5);
+      var A3 = new THREE.Vector3().addVectors(A, oA);
+      var A4 = new THREE.Vector3().subVectors(A, oA);
+      var B3 = new THREE.Vector3().addVectors(B, oB);
+      var B4 = new THREE.Vector3().subVectors(B, oB);
+      
+      pos.push(A3.x, A3.y, A3.z,  A4.x, A4.y, A4.z,  B3.x, B3.y, B3.z);
+      uvs.push(0, 0,  1, 0,  0, 1);
+      pos.push(B3.x, B3.y, B3.z,  A4.x, A4.y, A4.z,  B4.x, B4.y, B4.z);
+      uvs.push(0, 1,  1, 0,  1, 1);
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    return geo;
+  }
+  
+  // Casca incandescente exterior (laranja elétrico)
+  var coronaGeo = buildContinuousRibbon(mainNodes, 0.95);
+  var coronaMat = softMat(TX_BOLT_SEG, 0xff7700, 0.95);
+  var coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
+  grp.add(coronaMesh);
+  
+  // Núcleo elétrico interior (branco puro brilhante)
+  var coreGeo = buildContinuousRibbon(mainNodes, 0.28);
+  var coreMat = softMat(TX_BOLT_SEG, 0xffffff, 1.0);
+  var coreMesh = new THREE.Mesh(coreGeo, coreMat);
+  grp.add(coreMesh);
+  
+  // 3 Ramificações secundárias
+  [4, 9, 14].forEach(function(idx) {
+    if (idx < mainNodes.length - 2) {
+      var bStart = mainNodes[idx];
+      var bEnd = new THREE.Vector3(
+        bStart.x + (Math.random() - 0.5) * 8,
+        Math.max(0.1, bStart.y - 7 - Math.random() * 5),
+        bStart.z + (Math.random() - 0.5) * 8
+      );
+      var branchNodes = genNodes(bStart, bEnd, 10, 1.6);
+      var bGeo = buildContinuousRibbon(branchNodes, 0.45);
+      var bMat = softMat(TX_BOLT_SEG, 0xffaa00, 0.88);
+      grp.add(new THREE.Mesh(bGeo, bMat));
+    }
+  });
+  
+  var flashLight = new THREE.PointLight(0xffaa44, 9.0, 18);
+  flashLight.position.set(x, 1.5, z);
+  grp.add(flashLight);
+  
+  return { group: grp, coronaMat: coronaMat, coreMat: coreMat, flashLight: flashLight };
+}
+
+// INVOCADOR DO RAIO DE BAIUM (AUTÊNTICO LINEAGE 2)
+function triggerEpicBaiumLightning(x, z) {
+  // 1. Círculo Rúnico de Aviso no chão (aparece 350ms antes da queda)
+  var wGeo = new THREE.PlaneGeometry(3.6, 3.6);
+  var wMat = softMat(TX_RUNE_CIRCLE, 0xff5500, 0.9);
+  var runeCircle = new THREE.Mesh(wGeo, wMat);
+  runeCircle.rotation.x = -Math.PI / 2;
+  runeCircle.position.set(x, 0.06, z);
+  scene.add(runeCircle);
+  
+  // Partículas convergindo para o centro durante o aviso
+  burstSparks(x, 0.2, z, 12, 0xffaa00, -1.8);
+  
+  var t0 = performance.now();
+  var animWarning = function() {
+    var el = (performance.now() - t0) / 380;
+    if (el >= 1) {
+      scene.remove(runeCircle);
+      wGeo.dispose(); wMat.dispose();
+      
+      // 2. O IMPACTO DO RAIO (DESCARGA ELÉTRICA REAL)
+      var bolt = createProceduralLightning(x, z, 26);
+      scene.add(bolt.group);
+      
+      // Fissura incandescente no solo
+      spawnGroundCrack(x, z, 2.8, 0xff6600, 1.6);
+      
+      // Onda de choque circular
+      groundRing(x, z, 0xff7700, 0.3, 3.6, 0.42, 1.0);
+      
+      // Chuva violenta de fagulhas elétricas
+      burstSparks(x, 0.2, z, 45, 0xffcc33, 6.2);
+      
+      // Fragmentos físicos de pedra voando pelo chão
+      spawnDebrisChunks(x, z, 7, 0x444d66, 4.0);
+      
+      // Efeito de oscilação e tremor do raio por 220ms (simula plasma de alta voltagem)
+      var bT0 = performance.now();
+      var animBolt = function() {
+        var bEl = (performance.now() - bT0) / 220;
+        if (bEl >= 1) {
+          scene.remove(bolt.group);
+        } else {
+          // Tremor / flicker rápido
+          bolt.coronaMat.opacity = (0.95 + Math.random() * 0.05) * (1 - bEl);
+          bolt.coreMat.opacity = (1.0) * (1 - bEl);
+          bolt.flashLight.intensity = 8.0 * (1 - bEl);
+          requestAnimationFrame(animBolt);
+        }
+      };
+      animBolt();
+    } else {
+      runeCircle.rotation.z += 0.03;
+      var pulse = 0.75 + Math.sin(el * Math.PI * 4) * 0.25;
+      runeCircle.scale.set(1 + pulse * 0.2, 1 + pulse * 0.2, 1);
+      wMat.opacity = 0.6 + pulse * 0.4;
+      requestAnimationFrame(animWarning);
+    }
+  };
+  animWarning();
+}
+
+// 5. ESPIGÕES DE ROCHA ERUPTIVOS PARA O MARTELO SÍSMICO DUPLO
+function spawnEarthSpikes(cx, cz, radius, count) {
+  var spikeGeo = new THREE.ConeGeometry(0.35, 2.2, 5);
+  var spikeMat = new THREE.MeshStandardMaterial({ color: 0x2b334a, roughness: 0.85, metalness: 0.15 });
+  for (var i = 0; i < count; i++) {
+    var ang = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    var dist = radius * (0.5 + Math.random() * 0.5);
+    var sx = cx + Math.cos(ang) * dist;
+    var sz = cz + Math.sin(ang) * dist;
+    var mesh = new THREE.Mesh(spikeGeo, spikeMat);
+    mesh.position.set(sx, -1.2, sz);
+    mesh.rotation.x = (Math.random() - 0.5) * 0.4;
+    mesh.rotation.z = (Math.random() - 0.5) * 0.4;
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    var targetY = 0.8 + Math.random() * 0.5;
+    scene.add(mesh);
+    addVfx(mesh, 1.4, (function(targetY) {
+      return function(m, u) {
+        if (u < 0.18) {
+          var p = u / 0.18;
+          m.position.y = -1.2 + (targetY + 1.2) * (1 - Math.pow(1 - p, 3));
+        } else if (u > 0.65) {
+          var p2 = (u - 0.65) / 0.35;
+          m.position.y = targetY - (targetY + 1.4) * (p2 * p2);
+        }
+      };
+    })(targetY));
+  }
+}
+
+// BINDINGS DOS BOTÕES DE TESTE
+document.getElementById('btn-bolt').addEventListener('click', function() {
+  triggerEpicBaiumLightning(0, 0);
+  setTimeout(() => triggerEpicBaiumLightning(3.5, -2), 150);
+  setTimeout(() => triggerEpicBaiumLightning(-3.2, 2.5), 300);
+});
+
+document.getElementById('btn-stomp').addEventListener('click', function() {
+  spawnGroundCrack(0, 0, 5.0, 0xff6600, 2.0);
+  groundRing(0, 0, 0xff8800, 0.8, 6.2, 0.55, 1.0);
+  burstSparks(0, 0.2, 0, 35, 0xffaa00, 5.5);
+  spawnDebrisChunks(0, 0, 12, 0x444d66, 5.5);
+});
+
+document.getElementById('btn-smash').addEventListener('click', function() {
+  spawnGroundCrack(0, 0, 7.5, 0xff3300, 2.5);
+  groundRing(0, 0, 0xff3300, 1.2, 8.5, 0.65, 1.0);
+  spawnEarthSpikes(0, 0, 5.5, 9);
+  burstSparks(0, 0.3, 0, 50, 0xff5500, 6.5);
+  spawnDebrisChunks(0, 0, 18, 0x333b52, 6.0);
+});
+
+document.getElementById('btn-sweep').addEventListener('click', function() {
+  groundRing(0, 0, 0xf5c451, 1.0, 5.8, 0.45, 0.9);
+  groundRing(0, 0, 0xff8800, 1.5, 6.2, 0.55, 0.7);
+  burstSparks(0, 1.8, 0, 30, 0xf5c451, 4.5);
+});
+
+var clock = new THREE.Clock();
+function loop() {
+  requestAnimationFrame(loop);
+  var dt = clock.getDelta();
+  updateVfx(dt);
+  renderer.render(scene, camera);
+}
+loop();
+</script>
+</body>
+</html>

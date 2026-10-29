@@ -1,0 +1,311 @@
+{
+  "_nota": "Dungeon do IS BLADE: sequencia de salas na mesma arena. Cada sala tem obstaculos (colisao, bloqueiam projeteis), mobs e, na ultima, o chefe. Distancias em unidades (1 = ~1 m); a arena tem raio 13,5 e o jogador comeca em z=+10 (entrada). mobs: [tipo, quantidade]. Tipos de obstaculo: pillar (pilar), rock (pedra), wall (muro: x1,z1,x2,z2).",
+  "healOnEnter": 0.3,
+  "dropChance": {
+    "shade": 0.08,
+    "caster": 0.15,
+    "brute": 0.4
+  },
+  "mobs": {
+    "shade": {
+      "name": "Sombra",
+      "hp": 110,
+      "dmg": 8,
+      "speed": 3.8,
+      "range": 1.9,
+      "wind": 0.45,
+      "rec": 1.1,
+      "size": 1.0,
+      "css": "#7a5cff",
+      "armor": false
+    },
+    "brute": {
+      "name": "Brutamontes",
+      "hp": 420,
+      "dmg": 22,
+      "speed": 2.2,
+      "range": 2.8,
+      "wind": 0.95,
+      "rec": 1.5,
+      "size": 1.55,
+      "css": "#ff6a4a",
+      "armor": true,
+      "aoe": true
+    },
+    "caster": {
+      "name": "Conjurador",
+      "hp": 90,
+      "dmg": 10,
+      "speed": 2.6,
+      "range": 14,
+      "wind": 0.75,
+      "rec": 1.7,
+      "size": 1.0,
+      "css": "#43d9ff",
+      "armor": false,
+      "ranged": true,
+      "keep": 8,
+      "projSpeed": 11
+    },
+    "mini_boss": {
+      "name": "Comandante das Sombras",
+      "hp": 750,
+      "dmg": 28,
+      "speed": 2.8,
+      "range": 3.2,
+      "wind": 1.1,
+      "rec": 1.6,
+      "size": 1.75,
+      "css": "#ff2a55",
+      "armor": true,
+      "aoe": true,
+      "isMiniBoss": true
+    }
+  },
+  "rooms": [
+    {
+      "name": "Corredor das Sombras",
+      "chest": "silver",
+      "obstacles": [
+        {
+          "kind": "pillar",
+          "x": -5,
+          "z": 2,
+          "r": 0.9,
+          "h": 4.2
+        },
+        {
+          "kind": "pillar",
+          "x": 5,
+          "z": 2,
+          "r": 0.9,
+          "h": 4.2
+        },
+        {
+          "kind": "pillar",
+          "x": -3,
+          "z": -5,
+          "r": 0.9,
+          "h": 4.2
+        },
+        {
+          "kind": "pillar",
+          "x": 3,
+          "z": -5,
+          "r": 0.9,
+          "h": 4.2
+        },
+        {
+          "kind": "rock",
+          "x": 0,
+          "z": -1,
+          "r": 1.2,
+          "h": 1.4
+        }
+      ],
+      "mobs": [
+        [
+          "shade",
+          4
+        ],
+        [
+          "caster",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "Cripta do Comandante (Mini-Boss)",
+      "chest": "gold",
+      "obstacles": [
+        {
+          "kind": "pillar",
+          "x": -6,
+          "z": 0,
+          "r": 1.0,
+          "h": 4.5
+        },
+        {
+          "kind": "pillar",
+          "x": 6,
+          "z": 0,
+          "r": 1.0,
+          "h": 4.5
+        },
+        {
+          "kind": "rock",
+          "x": 0,
+          "z": -5,
+          "r": 1.2,
+          "h": 1.5
+        }
+      ],
+      "mobs": [
+        [
+          "mini_boss",
+          1
+        ],
+        [
+          "shade",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "Salao dos Brutos Ancestrais",
+      "chest": "silver",
+      "obstacles": [
+        {
+          "kind": "wall",
+          "x1": -8,
+          "z1": 0,
+          "x2": -3,
+          "z2": 0,
+          "r": 0.5,
+          "h": 2.2
+        },
+        {
+          "kind": "wall",
+          "x1": 3,
+          "z1": 0,
+          "x2": 8,
+          "z2": 0,
+          "r": 0.5,
+          "h": 2.2
+        },
+        {
+          "kind": "pillar",
+          "x": 0,
+          "z": -6,
+          "r": 1.0,
+          "h": 4.6
+        },
+        {
+          "kind": "pillar",
+          "x": -8,
+          "z": -6,
+          "r": 0.9,
+          "h": 4.2
+        },
+        {
+          "kind": "pillar",
+          "x": 8,
+          "z": -6,
+          "r": 0.9,
+          "h": 4.2
+        },
+        {
+          "kind": "rock",
+          "x": 4.5,
+          "z": 5,
+          "r": 1.1,
+          "h": 1.3
+        },
+        {
+          "kind": "rock",
+          "x": -6,
+          "z": 7,
+          "r": 1.0,
+          "h": 1.2
+        }
+      ],
+      "mobs": [
+        [
+          "shade",
+          3
+        ],
+        [
+          "caster",
+          2
+        ],
+        [
+          "brute",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "Trono do Imperador Baium (Raid Boss)",
+      "boss": true,
+      "chest": "legendary",
+      "obstacles": [
+        {
+          "kind": "pillar",
+          "x": -7,
+          "z": 3,
+          "r": 1.0,
+          "h": 4.6
+        },
+        {
+          "kind": "pillar",
+          "x": 7,
+          "z": 3,
+          "r": 1.0,
+          "h": 4.6
+        },
+        {
+          "kind": "pillar",
+          "x": -7,
+          "z": -5,
+          "r": 1.0,
+          "h": 4.6
+        },
+        {
+          "kind": "pillar",
+          "x": 7,
+          "z": -5,
+          "r": 1.0,
+          "h": 4.6
+        },
+        {
+          "kind": "rock",
+          "x": -4.5,
+          "z": 6,
+          "r": 1.1,
+          "h": 1.3
+        }
+      ],
+      "mobs": [
+        [
+          "caster",
+          2
+        ]
+      ]
+    }
+  ],
+  "difficulties": {
+    "normal": {
+      "name": "Normal",
+      "css": "#58e08e",
+      "hp": 1,
+      "dmg": 1,
+      "speed": 1,
+      "count": 1,
+      "bossHp": 1,
+      "rarityBoost": 1,
+      "desc": "Inimigos padrao. Itens com as chances normais de raridade."
+    },
+    "medio": {
+      "name": "Medio",
+      "css": "#f5c451",
+      "hp": 1.6,
+      "dmg": 1.3,
+      "speed": 1.08,
+      "count": 1.4,
+      "bossHp": 1.6,
+      "rarityBoost": 1.6,
+      "desc": "Mais inimigos, com mais vida e dano. Itens raros caem mais."
+    },
+    "hard": {
+      "name": "Hard",
+      "css": "#ff4d6d",
+      "hp": 2.4,
+      "dmg": 1.7,
+      "speed": 1.18,
+      "count": 1.8,
+      "bossHp": 2.4,
+      "rarityBoost": 2.8,
+      "desc": "Hordas grandes, rapidas e muito fortes. Melhor chance de itens epicos e lendarios."
+    }
+  }
+}

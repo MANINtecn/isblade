@@ -1,0 +1,5 @@
+# HTTPS/WSS automatico para o servidor do jogo (Caddy para Windows). Troque o dominio se for outro.
+# Pre-requisitos: registro DNS A  play.isblade.tecx.pro -> IP da VPS; portas 80 e 443 livres e abertas no firewall.
+play.isblade.tecx.pro {
+    reverse_proxy localhost:3000
+}

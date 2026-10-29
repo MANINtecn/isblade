@@ -1,0 +1,197 @@
+{
+  "id": "staff",
+  "name": "Cajado (2 maos)",
+  "_nota": "Arma de longo alcance: duas skills de projetil (Estaca e Orbe Arcano), menos dano corpo a corpo. Usa as animacoes da espada ate haver as do cajado.",
+  "mastery": {
+    "xpHit": 1,
+    "xpSkill": 2,
+    "levels": [
+      0,
+      30,
+      90,
+      180,
+      320,
+      520
+    ]
+  },
+  "skills": [
+    {
+      "name": "Passo Arcano",
+      "pose": "dash",
+      "cd": 5,
+      "dmg": 40,
+      "dur": 0.3,
+      "range": 3.4,
+      "half": 1.6,
+      "ifr": 0.36,
+      "intr": 0,
+      "hitk": 0.9,
+      "css": "#7fd1ff",
+      "unlock": 0,
+      "desc": "Passo arcano curto."
+    },
+    {
+      "name": "Estaca Arcana",
+      "pose": "blade",
+      "cd": 1.4,
+      "dmg": 30,
+      "dur": 0.26,
+      "range": 10,
+      "half": 0.3,
+      "ifr": 0,
+      "intr": 0,
+      "hitk": 0.5,
+      "css": "#a0e0ff",
+      "proj": {
+        "speed": 30,
+        "width": 1.0,
+        "pierce": false
+      },
+      "unlock": 0,
+      "desc": "Estaca arcana rapida a distancia."
+    },
+    {
+      "name": "Pulso Arcano",
+      "pose": "wave",
+      "cd": 8,
+      "dmg": 110,
+      "dur": 0.45,
+      "range": 5.0,
+      "half": 3.6,
+      "ifr": 0,
+      "intr": 1,
+      "hitk": 0.55,
+      "css": "#8b7bff",
+      "launch": true,
+      "unlock": 1,
+      "desc": "Pulso arcano em cone: lanca o alvo."
+    },
+    {
+      "name": "Chuva de Estrelas",
+      "pose": "ult",
+      "cd": 20,
+      "dmg": 80,
+      "dur": 0.7,
+      "range": 5.0,
+      "half": 1.8,
+      "ifr": 0,
+      "intr": 2,
+      "hitk": 0.55,
+      "css": "#f5c451",
+      "hits": [
+        0.25,
+        0.35,
+        0.45,
+        0.55
+      ],
+      "armor": true,
+      "launch": true,
+      "unlock": 3,
+      "desc": "Chuva de golpes com armadura."
+    },
+    {
+      "name": "Tormenta",
+      "pose": "storm",
+      "cd": 10,
+      "dmg": 50,
+      "dur": 0.7,
+      "range": 4.2,
+      "half": 1.6,
+      "ifr": 0,
+      "intr": 1,
+      "hitk": 0.55,
+      "css": "#b79cff",
+      "hits": [
+        0.18,
+        0.32,
+        0.48,
+        0.64
+      ],
+      "armor": true,
+      "launch": true,
+      "unlock": 2,
+      "desc": "Tormenta de varios golpes."
+    },
+    {
+      "name": "Orbe Arcano",
+      "pose": "blade",
+      "cd": 7,
+      "dmg": 95,
+      "dur": 0.34,
+      "range": 20,
+      "half": 0.3,
+      "ifr": 0,
+      "intr": 1,
+      "hitk": 0.5,
+      "css": "#8bc1ff",
+      "proj": {
+        "speed": 22,
+        "width": 2.4,
+        "pierce": true
+      },
+      "unlock": 1,
+      "desc": "Orbe largo que atravessa o alvo."
+    }
+  ],
+  "variants": [
+    {
+      "name": "Estaca Dupla Pierce",
+      "pose": "blade",
+      "cd": 1.8,
+      "dmg": 24,
+      "dur": 0.26,
+      "range": 10,
+      "half": 0.3,
+      "ifr": 0,
+      "intr": 0,
+      "hitk": 0.5,
+      "css": "#a0e0ff",
+      "proj": {
+        "speed": 30,
+        "width": 1.0,
+        "pierce": true
+      },
+      "desc": "Perfura o alvo, dano menor.",
+      "slot": 1,
+      "unlock": 1
+    },
+    {
+      "name": "Pulso Explosivo",
+      "pose": "wave",
+      "cd": 12,
+      "dmg": 135,
+      "dur": 0.45,
+      "range": 5.6,
+      "half": 3.14,
+      "ifr": 0,
+      "intr": 1,
+      "hitk": 0.55,
+      "css": "#8b7bff",
+      "launch": true,
+      "desc": "Cone largo e dano maior, recarga maior.",
+      "slot": 2,
+      "unlock": 3
+    },
+    {
+      "name": "Orbe Veloz",
+      "pose": "blade",
+      "cd": 4,
+      "dmg": 60,
+      "dur": 0.34,
+      "range": 18,
+      "half": 0.3,
+      "ifr": 0,
+      "intr": 1,
+      "hitk": 0.5,
+      "css": "#8bc1ff",
+      "proj": {
+        "speed": 34,
+        "width": 1.4,
+        "pierce": true
+      },
+      "desc": "Orbe rapido e fino.",
+      "slot": 5,
+      "unlock": 2
+    }
+  ]
+}

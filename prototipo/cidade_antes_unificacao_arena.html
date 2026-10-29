@@ -1,0 +1,1580 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>IS BLADE - Talking Island Village (Lineage 2 Oficial 1:1)</title>
+<style>
+:root {
+  --bg: #05060d;
+  --sys: #5aa9ff;
+  --sys2: #8b7bff;
+  --gold: #f5c451;
+  --red: #ff4d6d;
+  --green: #58e08e;
+  --ink: #e8f0ff;
+  --dim: #8b9cc2;
+  --panel: rgba(8, 14, 30, 0.88);
+  --line: rgba(90, 169, 255, 0.35);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, sans-serif; overflow: hidden; user-select: none; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+.ui { position: fixed; z-index: 10; pointer-events: none; }
+
+/* Top Left */
+#brand-box { top: 16px; left: 18px; }
+#brand-title { font-size: 19px; font-weight: 800; letter-spacing: .16em; color: var(--gold); text-shadow: 0 0 14px rgba(245, 196, 81, .55); }
+#location-tag { font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--sys); text-transform: uppercase; margin-top: 2px; }
+#town-status { font-size: 10px; color: var(--dim); margin-top: 4px; }
+#wpn-status { font-size: 11px; font-weight: 700; color: var(--gold); margin-top: 6px; background: rgba(5,10,24,.65); padding: 4px 10px; border-radius: 4px; border: 1px solid var(--line); display: inline-block; }
+
+/* Top Right: Minimap & Quick Travel */
+#map-panel { top: 16px; right: 18px; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+#minimap-wrap { width: 175px; height: 175px; background: rgba(5, 10, 24, 0.92); border: 2px solid var(--sys); border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 0 24px rgba(0,0,0,.85); }
+#minimap { width: 100%; height: 100%; display: block; }
+#teleport-bar { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 360px; }
+.tp-btn { pointer-events: auto; cursor: pointer; padding: 5px 9px; font-size: 10.5px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; transition: all .15s; }
+.tp-btn:hover { background: rgba(90, 169, 255, 0.25); border-color: var(--gold); color: var(--gold); }
+
+/* Atmosphere Switcher */
+#atmo-bar { display: flex; gap: 4px; margin-top: 4px; }
+.atmo-btn { pointer-events: auto; cursor: pointer; padding: 4px 8px; font-size: 10px; font-weight: 600; color: var(--dim); background: rgba(8,14,30,.7); border: 1px solid var(--line); border-radius: 3px; }
+.atmo-btn.active { color: var(--gold); border-color: var(--gold); background: rgba(245,196,81,.18); }
+
+/* Center Crosshair */
+#xhair { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; pointer-events: none; }
+#xhair .circle { position: absolute; inset: 0; border: 2px solid rgba(232, 240, 255, 0.7); border-radius: 50%; }
+#xhair .dot { position: absolute; left: 10px; top: 10px; width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+
+/* Bottom Left: Vitals & Combo */
+#vitals { left: 18px; bottom: 20px; width: 250px; }
+.bar-wrap { position: relative; height: 13px; background: rgba(5, 10, 24, 0.7); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.bar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transition: width .1s; }
+#hp-fill { background: linear-gradient(90deg, #b3123a, var(--red)); }
+#st-fill { background: linear-gradient(90deg, #b8860b, var(--gold)); }
+.bar-label { position: absolute; inset: 0; font-size: 9.5px; font-weight: 700; text-align: center; line-height: 13px; text-shadow: 0 1px 2px #000; }
+
+#combo-box { left: 18px; top: 140px; font-size: 14px; font-weight: 800; letter-spacing: .12em; color: var(--gold); text-shadow: 0 0 14px rgba(245,196,81,.6); opacity: 0; transition: opacity .25s; }
+#combo-box b { font-size: 36px; margin-right: 4px; color: #fff; }
+
+/* Skills Bar (Bottom Right) */
+#skills-bar { right: 18px; bottom: 20px; display: flex; gap: 6px; pointer-events: auto; }
+.sk-btn { pointer-events: auto; cursor: pointer; width: 58px; height: 58px; border-radius: 8px; border: 1px solid var(--sys); background: var(--panel); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all .15s; }
+.sk-btn:hover { border-color: var(--gold); box-shadow: 0 0 12px rgba(245,196,81,.3); }
+.sk-key { font-size: 11px; font-weight: 800; color: var(--gold); }
+.sk-name { font-size: 8px; font-weight: 600; text-align: center; color: var(--ink); line-height: 1.1; margin-top: 2px; padding: 0 2px; }
+.sk-cd { position: absolute; inset: 0; background: rgba(5,10,24,.82); border-radius: 7px; display: none; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--gold); }
+
+/* Portal Interaction Prompt */
+#portal-prompt { position: fixed; left: 50%; top: 68%; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--sys); border-radius: 8px; padding: 10px 24px; text-align: center; color: #fff; font-size: 13px; font-weight: 700; box-shadow: 0 0 20px rgba(90,169,255,.6); display: none; z-index: 50; }
+#portal-prompt b { color: var(--gold); }
+
+/* Bottom Center: Controls Hint */
+#controls-hint { left: 50%; bottom: 18px; transform: translateX(-50%); font-size: 11px; color: var(--dim); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 6px 18px; text-align: center; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
+#controls-hint b { color: var(--gold); }
+
+/* Pointer Lock Overlay */
+#lock-prompt { position: fixed; inset: 0; z-index: 100; background: rgba(4, 7, 16, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; }
+#lock-box { background: var(--panel); border: 2px solid var(--sys); border-radius: 10px; padding: 24px 36px; text-align: center; max-width: 560px; box-shadow: 0 0 35px rgba(0,0,0,.85); }
+#lock-box h2 { font-size: 22px; color: var(--gold); letter-spacing: .12em; margin-bottom: 8px; }
+#lock-box p { font-size: 13px; color: var(--dim); line-height: 1.5; margin-bottom: 16px; }
+#lock-box .click-act { font-size: 13px; font-weight: 700; color: #58e08e; background: rgba(88, 224, 142, 0.15); border: 1px solid #58e08e; padding: 8px 18px; border-radius: 6px; display: inline-block; }
+
+/* Floating Damage Numbers */
+.floating-dmg { position: fixed; font-size: 22px; font-weight: 800; color: #fff; text-shadow: 0 0 8px #ff3344, 0 2px 4px #000; pointer-events: none; animation: floatUp 0.85s ease-out forwards; z-index: 50; }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -15px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -60px) scale(0.9); }
+}
+
+/* Banner de Notificação */
+#banner { left: 50%; top: 22%; transform: translate(-50%, 0); text-align: center; opacity: 0; pointer-events: none; }
+#banner .t { font-size: clamp(20px, 3.8vw, 36px); font-weight: 800; letter-spacing: .12em; text-shadow: 0 0 18px currentColor; }
+#banner .s { font-size: 12px; letter-spacing: .2em; color: var(--dim); margin-top: 4px; }
+#banner.show { animation: ban 1.4s ease-out; }
+@keyframes ban {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(1.15); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -10px); }
+}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- Top Left Brand & Character Info -->
+<div class="ui" id="brand-box">
+  <div id="brand-title">IS BLADE</div>
+  <div id="location-tag">🏛️ Vila de Talking Island (Lineage 2 Oficial 1:1)</div>
+  <div id="town-status">Muralhas Circulares Oficiais &bull; Portal Dimensional &bull; Personagem VRM</div>
+  <div id="wpn-status">⚔️ ARMA: <span id="cur-weapon-name">ESPADA LONGA (2 MÃOS)</span> &nbsp;<small style="color:var(--dim)">[Pressione X para alternar]</small></div>
+</div>
+
+<!-- Combo Counter -->
+<div class="ui" id="combo-box">
+  <b id="combo-val">0</b> COMBO
+</div>
+
+<!-- Banner de Notificação -->
+<div class="ui" id="banner">
+  <div class="t" id="banner-title">SOULSHOT ATIVADO</div>
+  <div class="s" id="banner-sub">GOLPE CRÍTICO COM IMPACTO</div>
+</div>
+
+<!-- Portal Prompt -->
+<div class="ui" id="portal-prompt">
+  🌀 <b>PORTAL DA DUNGEON</b> — Pressione <b>E</b> ou atravesse o portal para entrar na Dungeon do Baium!
+</div>
+
+<!-- Top Right Minimap & Fast Travel -->
+<div class="ui" id="map-panel">
+  <div id="minimap-wrap">
+    <canvas id="minimap" width="175" height="175"></canvas>
+  </div>
+  <div id="teleport-bar">
+    <button class="tp-btn" onclick="teleportTo('arena')">📍 Arena Central</button>
+    <button class="tp-btn" onclick="teleportTo('portal')">🌀 Portal Dungeon</button>
+    <button class="tp-btn" onclick="teleportTo('church')">⛪ Igreja Norte</button>
+    <button class="tp-btn" onclick="teleportTo('fighter')">🛡️ Guilda Guerreiros</button>
+    <button class="tp-btn" onclick="teleportTo('shops')">🏬 Lojas Leste</button>
+    <button class="tp-btn" onclick="teleportTo('agit')">🏰 Clan Hall Oeste</button>
+    <button class="tp-btn" onclick="teleportTo('port')">⚓ Porto Sul</button>
+    <button class="tp-btn" onclick="teleportTo('lighthouse')">🗼 Farol da Costa</button>
+    <a href="arena.html?mode=duel" class="tp-btn" style="text-decoration:none; color:var(--red); border-color:rgba(255,77,109,0.7);">👑 Arena do Baium</a>
+  </div>
+  <div id="atmo-bar">
+    <button class="atmo-btn active" id="btn-day" onclick="setAtmosphere('day')">☀️ Dia</button>
+    <button class="atmo-btn" id="btn-sunset" onclick="setAtmosphere('sunset')">🌅 Pôr do Sol</button>
+    <button class="atmo-btn" id="btn-night" onclick="setAtmosphere('night')">🌙 Noite</button>
+  </div>
+</div>
+
+<!-- Crosshair -->
+<div class="ui" id="xhair">
+  <div class="circle"></div>
+  <div class="dot"></div>
+</div>
+
+<!-- Vitals -->
+<div class="ui" id="vitals">
+  <div style="font-size: 10.5px; font-weight: 700; color: var(--gold); letter-spacing: .1em;">GUERREIRO TALIBRAC</div>
+  <div class="bar-wrap">
+    <div class="bar-fill" id="hp-fill"></div>
+    <div class="bar-label">HP: 1000 / 1000</div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar-fill" id="st-fill"></div>
+    <div class="bar-label" id="st-label">ESTAMINA: 100 / 100</div>
+  </div>
+</div>
+
+<!-- Skills Bar -->
+<div class="ui" id="skills-bar">
+  <div class="sk-btn" id="sk-btn-0" onclick="triggerSkill(0)"><div class="sk-key">Q</div><div class="sk-name" id="sk-n-0">Avanco</div><div class="sk-cd" id="sk-c-0"></div></div>
+  <div class="sk-btn" id="sk-btn-1" onclick="triggerSkill(1)"><div class="sk-key">E</div><div class="sk-name" id="sk-n-1">Corte Rapido</div><div class="sk-cd" id="sk-c-1"></div></div>
+  <div class="sk-btn" id="sk-btn-2" onclick="triggerSkill(2)"><div class="sk-key">R</div><div class="sk-name" id="sk-n-2">Onda</div><div class="sk-cd" id="sk-c-2"></div></div>
+  <div class="sk-btn" id="sk-btn-3" onclick="triggerSkill(3)"><div class="sk-key">F</div><div class="sk-name" id="sk-n-3">Execucao</div><div class="sk-cd" id="sk-c-3"></div></div>
+  <div class="sk-btn" id="sk-btn-4" onclick="triggerSkill(4)"><div class="sk-key">T</div><div class="sk-name" id="sk-n-4">Tempestade</div><div class="sk-cd" id="sk-c-4"></div></div>
+  <div class="sk-btn" id="sk-btn-5" onclick="triggerSkill(5)"><div class="sk-key">Z</div><div class="sk-name" id="sk-n-5">Lamina</div><div class="sk-cd" id="sk-c-5"></div></div>
+</div>
+
+<!-- Controls Hint -->
+<div class="ui" id="controls-hint">
+  <b>W A S D</b> Mover (Frente / Trás / Lados) &bull; <b>Shift</b> Correr &bull; <b>Espaço</b> Pular &bull; <b>Shift (parado)</b> Rolamento &bull; <b>Clique Esq</b> Atacar (Soulshot) &bull; <b>Q, E, R, F, T, Z</b> Skills &bull; <b>X</b> Alternar Arma &bull; <b>E</b> Portal &bull; <b>Esc</b> Soltar Mouse
+</div>
+
+<!-- Lock Prompt -->
+<div id="lock-prompt">
+  <div id="lock-box">
+    <h2>TALKING ISLAND VILLAGE</h2>
+    <p>A arquitetura oficial de <b>Talking Island (Lineage 2)</b> com suas muralhas perimetrais, portões e o Guerreiro <b>Talibrac</b> oficial!<br>
+       Explore a vila, teste as skills oficiais do Claude e use o <b>Portal Dimensional</b> para entrar na Dungeon do Baium!</p>
+    <div class="click-act">CLIQUE PARA ENTRAR NA VILA</div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from './lib/vendor.js';
+
+// ==================== CARREGAMENTO DOS DADOS OFICIAIS DE COMBATE ====================
+let DATA = null;
+try {
+  DATA = await (await fetch('data/combate.json?v=' + Date.now())).json();
+  DATA.armas = {};
+  await Promise.all(DATA.weapons.map(async (id) => {
+    DATA.armas[id] = await (await fetch('data/armas/' + id + '.json?v=' + Date.now())).json();
+  }));
+} catch (err) {
+  console.error('Erro ao carregar dados de combate:', err);
+}
+
+// ==================== CONFIGURAÇÃO THREE.JS ====================
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x78b8e0);
+scene.fog = new THREE.FogExp2(0x78b8e0, 0.0030);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1400);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+function stdMat(c, em) {
+  return new THREE.MeshStandardMaterial({
+    color: c,
+    roughness: 0.35,
+    metalness: 0.45,
+    emissive: em ? new THREE.Color(em) : new THREE.Color(0,0,0)
+  });
+}
+function mkTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const TX_ARC = mkTex(256, 128, (g, w, h) => {
+  const cx = w/2, cy = h;
+  const gr = g.createRadialGradient(cx, cy, 10, cx, cy, w*0.48);
+  gr.addColorStop(0, 'rgba(255,255,255,0.95)');
+  gr.addColorStop(0.35, 'rgba(255,255,255,0.65)');
+  gr.addColorStop(0.7, 'rgba(255,255,255,0.18)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, w*0.48, Math.PI, 0, false); g.fill();
+});
+function softMat(tex, color, op) {
+  return new THREE.MeshBasicMaterial({
+    map: tex, color: color, transparent: true, opacity: op,
+    depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending
+  });
+}
+
+// ==================== SISTEMA DE ÁUDIO OFICIAL L2 ====================
+const SFX = {
+  ctx: null,
+  buffers: {},
+  lastPlayed: {},
+  init() {
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      return;
+    }
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const files = {
+        soulshot: 'assets/audio/soul_shot_shot.wav',
+        soulshot_cast: 'assets/audio/soul_shot_cast.wav',
+        shing1: 'assets/audio/public_sword_shing_1.wav',
+        shing2: 'assets/audio/public_sword_shing_2.wav',
+        shing3: 'assets/audio/public_sword_shing_3.wav',
+        shing4: 'assets/audio/public_sword_shing_4.wav',
+        sword_great1: 'assets/audio/sword_great_1.wav',
+        power_strike: 'assets/audio/power_strike_shot.wav',
+        fatal_strike: 'assets/audio/fatal_strike_shot.wav',
+        energywave: 'assets/audio/energywave_shot.wav',
+        doublewind: 'assets/audio/doublewind_shot.wav',
+        dash: 'assets/audio/dash_shot.wav',
+        armor: 'assets/audio/public_armor_01.wav',
+        hit: 'assets/audio/heavy_swing.wav',
+        punch: 'assets/audio/punch_heavy.wav',
+        roll: 'assets/audio/cloth1.ogg',
+        click: 'assets/audio/metalClick.ogg',
+        portal: 'assets/audio/forceField_000.ogg'
+      };
+      Object.entries(files).forEach(([k, url]) => {
+        fetch(url)
+          .then(res => res.arrayBuffer())
+          .then(buf => this.ctx.decodeAudioData(buf))
+          .then(decoded => { this.buffers[k] = decoded; })
+          .catch(() => {});
+      });
+    } catch(e) {}
+  },
+  play(name, vol = 0.7, pitchVar = 0.08) {
+    if (!this.ctx || !this.buffers[name]) return;
+    const now = performance.now();
+    if (this.lastPlayed[name] && now - this.lastPlayed[name] < 35) return;
+    this.lastPlayed[name] = now;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.buffers[name];
+    src.playbackRate.value = 1.0 + (Math.random() * pitchVar * 2 - pitchVar);
+    const gain = this.ctx.createGain();
+    gain.gain.value = vol;
+    src.connect(gain);
+    gain.connect(this.ctx.destination);
+    src.start(0);
+  }
+};
+['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => SFX.init(), { passive: true }));
+
+// ==================== ILUMINAÇÃO & ATMOSFERA ====================
+const hemiLight = new THREE.HemisphereLight(0xbcd8ff, 0x332222, 1.4);
+scene.add(hemiLight);
+
+const dirLight = new THREE.DirectionalLight(0xfffaed, 1.7);
+dirLight.position.set(70, 130, 60);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+dirLight.shadow.camera.near = 10;
+dirLight.shadow.camera.far = 420;
+dirLight.shadow.camera.left = -140;
+dirLight.shadow.camera.right = 140;
+dirLight.shadow.camera.top = 140;
+dirLight.shadow.camera.bottom = -140;
+dirLight.shadow.bias = -0.0004;
+scene.add(dirLight);
+
+const charLight = new THREE.DirectionalLight(0xddeeff, 1.35);
+charLight.position.set(-30, 40, -40);
+scene.add(charLight);
+
+function setAtmosphere(mode) {
+  document.querySelectorAll('.atmo-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + mode);
+  if (btn) btn.classList.add('active');
+
+  if (mode === 'day') {
+    scene.background.setHex(0x78b8e0);
+    scene.fog.color.setHex(0x78b8e0);
+    scene.fog.density = 0.0030;
+    hemiLight.color.setHex(0xbcd8ff);
+    hemiLight.groundColor.setHex(0x332222);
+    hemiLight.intensity = 1.4;
+    dirLight.color.setHex(0xfffaed);
+    dirLight.intensity = 1.7;
+    dirLight.position.set(70, 130, 60);
+  } else if (mode === 'sunset') {
+    scene.background.setHex(0xcc603c);
+    scene.fog.color.setHex(0xcc603c);
+    scene.fog.density = 0.0045;
+    hemiLight.color.setHex(0xffaa77);
+    hemiLight.groundColor.setHex(0x221122);
+    hemiLight.intensity = 1.1;
+    dirLight.color.setHex(0xff6b35);
+    dirLight.intensity = 1.8;
+    dirLight.position.set(110, 40, 50);
+  } else if (mode === 'night') {
+    scene.background.setHex(0x060b18);
+    scene.fog.color.setHex(0x060b18);
+    scene.fog.density = 0.0055;
+    hemiLight.color.setHex(0x3a4c77);
+    hemiLight.groundColor.setHex(0x02040a);
+    hemiLight.intensity = 0.7;
+    dirLight.color.setHex(0x6a89cc);
+    dirLight.intensity = 0.8;
+    dirLight.position.set(40, 90, -70);
+  }
+}
+window.setAtmosphere = setAtmosphere;
+
+// ==================== TERRENO E ESTRADAS DA VILA ====================
+const texLoader = new THREE.TextureLoader();
+
+const stoneFloorTex = texLoader.load('assets/talking_island/real_village/si_v_t/Texture/sp_floor02.png');
+stoneFloorTex.wrapS = THREE.RepeatWrapping; stoneFloorTex.wrapT = THREE.RepeatWrapping;
+stoneFloorTex.repeat.set(14, 14);
+stoneFloorTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+const earthTex = texLoader.load('assets/talking_island/real_village/si_v_t/Texture/sp_v_floor.png');
+earthTex.wrapS = THREE.RepeatWrapping; earthTex.wrapT = THREE.RepeatWrapping;
+earthTex.repeat.set(40, 40);
+earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+const wallCobbleTex = texLoader.load('assets/talking_island/real_village/si_v_t/Texture/sp_ch_wall01.png');
+wallCobbleTex.wrapS = THREE.RepeatWrapping; wallCobbleTex.wrapT = THREE.RepeatWrapping;
+wallCobbleTex.repeat.set(4, 4);
+
+// Oceano 3D
+const waterGeo = new THREE.PlaneGeometry(1200, 1200, 48, 48);
+waterGeo.rotateX(-Math.PI / 2);
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x0f4270, roughness: 0.15, metalness: 0.8, transparent: true, opacity: 0.92
+});
+const ocean = new THREE.Mesh(waterGeo, waterMat);
+ocean.position.y = -1.5;
+scene.add(ocean);
+
+const waterPos = waterGeo.attributes.position;
+const waterOrigY = new Float32Array(waterPos.count);
+for (let i = 0; i < waterPos.count; i++) waterOrigY[i] = waterPos.getY(i);
+
+// Base de Terra da Ilha
+const islandBaseGeo = new THREE.CylinderGeometry(200, 250, 14, 64);
+const islandBaseMat = new THREE.MeshStandardMaterial({ map: earthTex, roughness: 0.85 });
+const islandBase = new THREE.Mesh(islandBaseGeo, islandBaseMat);
+islandBase.position.y = -7.0;
+islandBase.receiveShadow = true;
+scene.add(islandBase);
+
+// Piso de Pedra da Vila Central (raio ajustado para as muralhas perimetrais)
+const villageFloorGroup = new THREE.Group();
+scene.add(villageFloorGroup);
+
+const stoneMat = new THREE.MeshStandardMaterial({ map: stoneFloorTex, roughness: 0.65 });
+const plazaFloor = new THREE.Mesh(new THREE.CylinderGeometry(54, 54, 0.2, 64), stoneMat);
+plazaFloor.position.y = 0.01;
+plazaFloor.receiveShadow = true;
+villageFloorGroup.add(plazaFloor);
+
+// Estradas que conectam os 4 portões à praça central
+const cobbleMat = new THREE.MeshStandardMaterial({ map: wallCobbleTex, roughness: 0.7 });
+function createRoad(fromX, fromZ, toX, toZ, width = 12) {
+  const dx = toX - fromX;
+  const dz = toZ - fromZ;
+  const length = Math.hypot(dx, dz);
+  const angle = Math.atan2(dx, dz);
+  const roadGeo = new THREE.PlaneGeometry(width, length).rotateX(-Math.PI / 2);
+  const road = new THREE.Mesh(roadGeo, cobbleMat);
+  road.position.set((fromX + toX) / 2, 0.02, (fromZ + toZ) / 2);
+  road.rotation.y = angle;
+  road.receiveShadow = true;
+  villageFloorGroup.add(road);
+}
+createRoad(32.8, -34.1, 75.0, -78.0, 12);
+createRoad(-36.5, -29.0, -80.0, -65.0, 12);
+createRoad(34.8, 29.5, 78.0, 68.0, 12);
+createRoad(-34.7, 35.0, -75.0, 78.0, 12);
+createRoad(-12.2, -22.0, -12.2, -45.0, 15);
+createRoad(0, 35.0, 15.0, 85.0, 14);
+createRoad(15.0, 85.0, 95.0, 65.0, 10);
+
+// ==================== ARENA CENTRAL DE DUELO & LOGO IS BLADE ====================
+const logoTex = texLoader.load('assets/talking_island/textures/is_blade_duel_logo.png');
+logoTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+const logoGeo = new THREE.PlaneGeometry(17, 17).rotateX(-Math.PI / 2);
+const logoMat = new THREE.MeshStandardMaterial({
+  map: logoTex, transparent: true, roughness: 0.55, metalness: 0.25,
+  polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2
+});
+const duelLogo = new THREE.Mesh(logoGeo, logoMat);
+duelLogo.position.set(0, 0.05, 0);
+duelLogo.receiveShadow = true;
+scene.add(duelLogo);
+
+const auraMat = new THREE.MeshBasicMaterial({ color: 0x5aa9ff, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+const duelAura = new THREE.Mesh(new THREE.RingGeometry(8.2, 8.7, 64).rotateX(-Math.PI / 2), auraMat);
+duelAura.position.set(0, 0.06, 0);
+scene.add(duelAura);
+
+// ==================== EDIFÍCIOS E MURALHAS AUTÊNTICAS (1:1 EXATO) ====================
+const gltfLoader = new THREE.GLTFLoader();
+const GLB_DIR = 'assets/talking_island/assembled_glb/';
+const villageGroup = new THREE.Group();
+scene.add(villageGroup);
+
+const glbCache = {};
+function getGlb(file, callback) {
+  if (glbCache[file]) {
+    callback(glbCache[file].clone(true));
+    return;
+  }
+  gltfLoader.load(GLB_DIR + file, (gltf) => {
+    const root = gltf.scene;
+    root.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true; child.receiveShadow = true;
+        if (child.material) child.material.side = THREE.DoubleSide;
+      }
+    });
+    glbCache[file] = root;
+    callback(root.clone(true));
+  }, undefined, () => {});
+}
+
+let lighthouseBeam = null;
+fetch('assets/talking_island/village_data_threejs.json')
+  .then(res => res.json())
+  .then(entities => {
+    entities.forEach(ent => {
+      getGlb(ent.glb, (obj) => {
+        obj.position.set(ent.pos[0], ent.pos[1], ent.pos[2]);
+        obj.rotation.y = ent.rotY || 0;
+        const s = ent.scale || 1.0;
+        obj.scale.set(s, s, s);
+        villageGroup.add(obj);
+
+        if (ent.glb === 'ti_lighthouse.glb' && !lighthouseBeam) {
+          const spot = new THREE.SpotLight(0xfff5bb, 9, 280, Math.PI / 8, 0.35, 1.5);
+          spot.position.set(0, 30, 0);
+          const target = new THREE.Object3D();
+          target.position.set(ent.pos[0] + 50, 10, ent.pos[2] + 50);
+          scene.add(target);
+          spot.target = target;
+          obj.add(spot);
+          lighthouseBeam = { spot, target, angle: 0, originX: ent.pos[0], originZ: ent.pos[2] };
+        }
+      });
+    });
+  })
+  .catch(() => {});
+
+// Braseiros da Arena de Duelo
+const braziers = [];
+const BRAZIER_COUNT = 8;
+const BRAZIER_RADIUS = 20.0;
+for (let i = 0; i < BRAZIER_COUNT; i++) {
+  const angle = i * (Math.PI * 2 / BRAZIER_COUNT);
+  const bx = Math.sin(angle) * BRAZIER_RADIUS;
+  const bz = Math.cos(angle) * BRAZIER_RADIUS;
+  gltfLoader.load('assets/talking_island/models/SI_Fighter_brazier.gltf', (gltf) => {
+    const bzObj = gltf.scene;
+    bzObj.position.set(bx, 0, bz);
+    bzObj.scale.set(3.8, 3.8, 3.8);
+    bzObj.rotation.y = angle;
+    const fireLight = new THREE.PointLight(0xff7722, 1.8, 14, 2);
+    fireLight.position.set(0, 2.2, 0);
+    bzObj.add(fireLight);
+    villageGroup.add(bzObj);
+    braziers.push({ light: fireLight, baseInt: 1.8 });
+  });
+}
+
+// ==================== BONECO DE TREINO / DUELO NA ARENA ====================
+const dummyGroup = new THREE.Group();
+dummyGroup.position.set(0, 0, -5);
+scene.add(dummyGroup);
+
+const dummyMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.7 });
+const dBase = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.4, 16), dummyMat);
+dBase.position.y = 0.2;
+const dPost = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.2, 12), dummyMat);
+dPost.position.y = 1.1;
+const dTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.3, 1.1, 16), new THREE.MeshStandardMaterial({ color: 0x223355, roughness: 0.6 }));
+dTorso.position.y = 1.35;
+const dHead = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), new THREE.MeshStandardMaterial({ color: 0x992222, roughness: 0.5 }));
+dHead.position.y = 2.15;
+const dArms = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.14, 0.14), dummyMat);
+dArms.position.y = 1.5;
+
+dummyGroup.add(dBase, dPost, dTorso, dHead, dArms);
+dummyGroup.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+
+// ==================== PORTAL DA DUNGEON — MONUMENTAL, RESTILIZADO E COM PARTÍCULAS ====================
+const portalGroup = new THREE.Group();
+portalGroup.position.set(0, 0, -18);
+scene.add(portalGroup);
+
+// Pilares de pedra mágica esculpidos nas laterais
+const portalPillarMat = new THREE.MeshStandardMaterial({ color: 0x1f273b, roughness: 0.8, metalness: 0.3 });
+const pLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 7.8, 12), portalPillarMat);
+pLeft.position.set(-4.2, 3.9, 0);
+const pRight = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 7.8, 12), portalPillarMat);
+pRight.position.set(4.2, 3.9, 0);
+
+// Anéis rúnicos dourados nos pilares
+const pTrimMat = new THREE.MeshStandardMaterial({ color: 0xf5c451, roughness: 0.3, metalness: 0.8 });
+[-1.5, 0.5, 2.5].forEach(y => {
+  const tr1 = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.08, 8, 24), pTrimMat);
+  tr1.rotation.x = Math.PI / 2; tr1.position.set(-4.2, y + 3.9, 0);
+  const tr2 = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.08, 8, 24), pTrimMat);
+  tr2.rotation.x = Math.PI / 2; tr2.position.set(4.2, y + 3.9, 0);
+  portalGroup.add(tr1, tr2);
+});
+
+// Arco superior de pedra
+const archMesh = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.55, 12, 32, Math.PI), portalPillarMat);
+archMesh.position.set(0, 3.9, 0);
+portalGroup.add(pLeft, pRight, archMesh);
+
+// Base / Selo rúnico no chão
+const pFloorRune = new THREE.Mesh(new THREE.RingGeometry(3.6, 4.4, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({
+  color: 0x5aa9ff, transparent: true, opacity: 0.75, side: THREE.DoubleSide
+}));
+pFloorRune.position.y = 0.06;
+portalGroup.add(pFloorRune);
+
+// Anéis de Energia Giratórios (Azul Cyan & Roxo Mágico)
+const ringOuter = new THREE.Mesh(new THREE.TorusGeometry(3.6, 0.14, 16, 64), new THREE.MeshBasicMaterial({ color: 0x5aa9ff }));
+ringOuter.position.y = 3.9;
+const ringInner = new THREE.Mesh(new THREE.TorusGeometry(3.1, 0.08, 16, 64), new THREE.MeshBasicMaterial({ color: 0x8b7bff }));
+ringInner.position.y = 3.9;
+portalGroup.add(ringOuter, ringInner);
+
+// Vórtice Dimensional no Centro
+const vortexMesh = new THREE.Mesh(new THREE.CircleGeometry(3.4, 64), new THREE.MeshBasicMaterial({
+  color: 0x1b3577, transparent: true, opacity: 0.78, side: THREE.DoubleSide, blending: THREE.AdditiveBlending
+}));
+vortexMesh.position.y = 3.9;
+portalGroup.add(vortexMesh);
+
+// Luz Dinâmica do Portal
+const portalLight = new THREE.PointLight(0x5aa9ff, 4.5, 24, 2);
+portalLight.position.set(0, 4.0, 0);
+portalGroup.add(portalLight);
+
+// Sistema de Partículas em Vórtice
+const P_COUNT = 180;
+const pGeo = new THREE.BufferGeometry();
+const pPos = new Float32Array(P_COUNT * 3);
+const pSpeeds = [];
+for (let i = 0; i < P_COUNT; i++) {
+  const ang = Math.random() * Math.PI * 2;
+  const rad = 0.5 + Math.random() * 3.2;
+  pPos[i * 3] = Math.cos(ang) * rad;
+  pPos[i * 3 + 1] = 0.5 + Math.random() * 6.5;
+  pPos[i * 3 + 2] = (Math.random() - 0.5) * 1.2;
+  pSpeeds.push({ ang, rad, spd: 0.6 + Math.random() * 1.5, vy: 0.4 + Math.random() * 0.8 });
+}
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const pMat = new THREE.PointsMaterial({
+  color: 0x8bc1ff, size: 0.18, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending
+});
+const portalParticles = new THREE.Points(pGeo, pMat);
+portalGroup.add(portalParticles);
+
+// ==================== GUERREIRO TALIBRAC OFICIAL VRM ====================
+const playerRoot = new THREE.Group();
+playerRoot.position.set(0, 0, 7);
+scene.add(playerRoot);
+
+const playerState = {
+  pos: playerRoot.position,
+  vel: new THREE.Vector3(),
+  face: Math.PI,
+  hp: 1000,
+  maxHp: 1000,
+  stamina: 100,
+  maxStamina: 100,
+  speed: 5.6,
+  sprintMult: 1.6,
+  isGrounded: true,
+  guard: false,
+  rollT: -1,
+  anim: null,
+  comboIndex: 0,
+  comboCount: 0,
+  comboTimer: 0,
+  weapon: 'sword',
+  cd: [0, 0, 0, 0, 0, 0]
+};
+
+// Gerenciamento de Armas e Habilidades Oficiais do Claude
+let currentWeaponIndex = 0;
+let currentSkills = [];
+
+function updateWeaponAndSkills() {
+  const wId = DATA.weapons[currentWeaponIndex];
+  playerState.weapon = wId;
+  const wData = DATA.armas[wId];
+  currentSkills = wData.skills;
+
+  document.getElementById('cur-weapon-name').textContent = wData.name.toUpperCase();
+  currentSkills.forEach((sk, i) => {
+    const el = document.getElementById('sk-n-' + i);
+    if (el) el.textContent = sk.name;
+    const btn = document.getElementById('sk-btn-' + i);
+    if (btn) btn.title = sk.name + (sk.desc ? ': ' + sk.desc : '');
+  });
+
+  if (vrm) {
+    applyWeaponVis(vrm);
+    playClip(vrm, getPlayerIdleClip(), { fade: 0.15 });
+  }
+  SFX.play('click', 0.8);
+  showBanner(wData.name.toUpperCase(), 'ARMA EQUIPADA');
+}
+
+function switchWeapon() {
+  if (!DATA || !DATA.weapons) return;
+  currentWeaponIndex = (currentWeaponIndex + 1) % DATA.weapons.length;
+  updateWeaponAndSkills();
+}
+
+// Criação do Cajado Arcano
+function makeStaff(swordOpts) {
+  const g = new THREE.Group();
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 2.3, 10), stdMat(0x3a2a55));
+  shaft.position.y = 1.15; g.add(shaft);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.05, 0.18, 10), stdMat(swordOpts.guard));
+  cap.position.y = 0.05; g.add(cap);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.03, 8, 20), stdMat(swordOpts.guard));
+  ring.position.y = 2.35; ring.rotation.x = Math.PI / 2; g.add(ring);
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), new THREE.MeshBasicMaterial({ color: swordOpts.glow }));
+  orb.position.y = 2.35; g.add(orb);
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), new THREE.MeshBasicMaterial({
+    color: swordOpts.glow, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending
+  }));
+  glow.position.y = 2.35; g.add(glow);
+  return g;
+}
+
+// Mapeamento Mixamo -> VRM Humanoid
+const MX_MAP = { Hips: 'hips', Spine: 'spine', Spine1: 'chest', Spine2: 'upperChest', Neck: 'neck', Head: 'head' };
+['Left', 'Right'].forEach(sd => {
+  const lw = sd.toLowerCase();
+  [['Shoulder','Shoulder'], ['Arm','UpperArm'], ['ForeArm','LowerArm'], ['Hand','Hand']].forEach(q => { MX_MAP[sd+q[0]] = lw + q[1]; });
+  [['Thumb','Thumb',['Metacarpal','Proximal','Distal']], ['Index','Index',['Proximal','Intermediate','Distal']], ['Middle','Middle',['Proximal','Intermediate','Distal']], ['Ring','Ring',['Proximal','Intermediate','Distal']], ['Pinky','Little',['Proximal','Intermediate','Distal']]].forEach(f => {
+    for (let n = 0; n < 3; n++) MX_MAP[sd+'Hand'+f[0]+(n+1)] = lw + f[1] + f[2][n];
+  });
+  [['UpLeg','UpperLeg'], ['Leg','LowerLeg'], ['Foot','Foot'], ['ToeBase','Toes']].forEach(q => { MX_MAP[sd+q[0]] = lw + q[1]; });
+});
+
+let vrm = null;
+function loadRig(url, height, swordOpts, cb) {
+  const loader = new THREE.GLTFLoader();
+  loader.register(parser => new THREE.VRMLoaderPlugin(parser));
+  loader.load(url, (gltf) => {
+    const v = gltf.userData.vrm;
+    if (!v) { console.error('VRM inválido:', url); return; }
+    THREE.VRMUtils.removeUnnecessaryVertices(gltf.scene);
+    const root = v.scene;
+    root.traverse(o => {
+      if (!o.isMesh) return;
+      o.frustumCulled = false;
+      o.castShadow = true;
+      o.receiveShadow = true;
+    });
+    root.updateMatrixWorld(true);
+    const bb = new THREE.Box3().setFromObject(root);
+    const h = Math.max(0.5, bb.max.y - bb.min.y);
+    root.scale.setScalar(height / h);
+
+    // Espada na mão direita
+    const swd = new THREE.Group();
+    const bl = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.05, 0.012), stdMat(swordOpts.blade, swordOpts.emis));
+    bl.position.x = -0.55; swd.add(bl);
+    const gl = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.09, 0.03), new THREE.MeshBasicMaterial({ color: swordOpts.glow, transparent: true, opacity: 0.35 }));
+    gl.position.x = -0.55; swd.add(gl);
+    const gd = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 0.2), stdMat(swordOpts.guard));
+    gd.position.x = -0.08; swd.add(gd);
+    const hd = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.4, 8), stdMat(0x1a1d33));
+    hd.rotation.z = Math.PI / 2; hd.position.x = 0.13; swd.add(hd);
+    const pm = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), stdMat(swordOpts.guard));
+    pm.position.x = 0.34; swd.add(pm);
+    v.humanoid.getRawBoneNode('rightHand').add(swd);
+
+    // Cajado de Mago (2 Mãos)
+    const stfIn = makeStaff(swordOpts);
+    const stf = new THREE.Group();
+    stfIn.position.set(0, -1.15, 0);
+    stf.rotation.set(0, 0, Math.PI * 0.48);
+    stf.add(stfIn);
+    stf.visible = false;
+    v.humanoid.getRawBoneNode('rightHand').add(stf);
+
+    // Escudo redondo no antebraço esquerdo
+    const shd = new THREE.Group();
+    const sd = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.07, 28), stdMat(0x2a3557));
+    sd.rotation.x = Math.PI / 2; shd.add(sd);
+    const sr = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.035, 8, 28), stdMat(swordOpts.guard));
+    shd.add(sr);
+    const sb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), stdMat(swordOpts.blade, swordOpts.emis));
+    sb.position.z = 0.06; shd.add(sb);
+    shd.visible = false;
+
+    cb({ vrm: v, root, clips: {}, drv: null, sword: swd, stf, shd, sword_: swordOpts });
+  }, undefined, err => console.error('Erro ao carregar VRM:', err));
+}
+
+// ==================== MIXAMO: CARGA E RETARGET COMPLETO ====================
+const CLIPFILES = [
+  'idle', 'run', 'guard', 'block_hit', 'slash1', 'slash2', 'slash3', 'slash4',
+  'death', 'hit_small', 'hit_large', 'jump', 'skill_wave', 'skill_ult', 'roll', 'parry',
+  'sword2h_idle', 'staff_idle', 'staff_idle2', 'staff_block', 'staff_cast', 'staff_area',
+  'staff_attack1', 'staff_attack2'
+];
+
+function getPlayerIdleClip() {
+  if (playerState.weapon === 'sword' && MX.clips.sword2h_idle) return 'sword2h_idle';
+  if (playerState.weapon === 'staff') {
+    if (MX.clips.staff_idle) return 'staff_idle';
+    if (MX.clips.staff_idle2) return 'staff_idle2';
+  }
+  return 'idle';
+}
+
+const MX = { clips: {}, assets: {}, loaded: 0, ready: false };
+function clipDone() {
+  MX.loaded++;
+  if (MX.loaded === CLIPFILES.length) {
+    MX.ready = true;
+    tryInitMixer();
+  }
+}
+function loadClips() {
+  const ld = new THREE.FBXLoader();
+  CLIPFILES.forEach(k => {
+    ld.load('assets/mixamo/' + k + '.fbx', (g) => {
+      const clip = g.animations[0];
+      if (clip) { clip.name = k; MX.clips[k] = clip; MX.assets[k] = g; }
+      clipDone();
+    }, undefined, () => clipDone());
+  });
+}
+
+function buildClips(rig) {
+  const hum = rig.vrm.humanoid;
+  const restInv = new THREE.Quaternion(), parentRest = new THREE.Quaternion(), qa = new THREE.Quaternion();
+  const hipsN = hum.getNormalizedBoneNode('hips');
+
+  Object.keys(MX.assets).forEach(name => {
+    const asset = MX.assets[name], clip = asset.animations[0];
+    if (!clip) return;
+    asset.updateMatrixWorld(true);
+    const mh = asset.getObjectByName('mixamorigHips');
+    const scale = hipsN.position.y / (mh && mh.position.y > 0 ? mh.position.y : 100);
+    const tracks = [];
+
+    clip.tracks.forEach(track => {
+      const parts = track.name.split('.'), bn = parts[0], prop = parts[1];
+      const short = bn.replace(/^mixamorig:?/, '');
+      const vn = MX_MAP[short];
+      if (!vn) return;
+      const node = hum.getNormalizedBoneNode(vn);
+      const mn = asset.getObjectByName(bn);
+      if (!node || !mn) return;
+
+      if (prop === 'quaternion') {
+        mn.getWorldQuaternion(restInv).invert();
+        mn.parent.getWorldQuaternion(parentRest);
+        const vals = track.values.slice();
+        for (let i = 0; i < vals.length; i += 4) {
+          qa.fromArray(vals, i);
+          qa.premultiply(parentRest).multiply(restInv);
+          qa.toArray(vals, i);
+        }
+        tracks.push(new THREE.QuaternionKeyframeTrack(node.name + '.quaternion', track.times, vals));
+      } else if (prop === 'position' && short === 'Hips') {
+        const pv = Array.prototype.slice.call(track.values);
+        const hx0 = hipsN.position.x, hz0 = hipsN.position.z;
+        for (let qi = 0; qi < pv.length; qi += 3) {
+          pv[qi] = hx0;
+          pv[qi + 1] = pv[qi + 1] * scale;
+          pv[qi + 2] = hz0;
+        }
+        tracks.push(new THREE.VectorKeyframeTrack(node.name + '.position', track.times, pv));
+      }
+    });
+    rig.clips[name] = new THREE.AnimationClip(name, clip.duration, tracks);
+  });
+}
+
+function playClip(rig, name, o = {}) {
+  const d = rig && rig.drv;
+  const clip = rig && rig.clips[name];
+  if (!d || !clip) return null;
+  const act = d.actions[name] || (d.actions[name] = d.mixer.clipAction(clip));
+  const f = o.fade === undefined ? 0.15 : o.fade;
+  if (d.cur && d.cur !== act) d.cur.fadeOut(f);
+  act.reset();
+  act.setLoop(o.once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
+  act.clampWhenFinished = !!o.once;
+  act.timeScale = o.speed || 1;
+  act.setEffectiveWeight(1);
+  if (f > 0) act.fadeIn(f);
+  act.play();
+  d.cur = act;
+  d.curName = name;
+  d.hold = o.hold || 0;
+  return act;
+}
+
+function euq(x, y, z) { return new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z, 'XYZ')); }
+const IDQ = new THREE.Quaternion();
+const BODYBONES = ['hips','spine','chest','upperChest','rightUpperLeg','rightLowerLeg','rightFoot','leftUpperLeg','leftLowerLeg','leftFoot'];
+const GBONES = ['rightUpperArm','rightLowerArm','rightHand','leftUpperArm','leftLowerArm','leftHand'];
+const GPOSE = {
+  sword:       [euq(0,1.2,.75),euq(0,1.5,0),euq(0,0,-.4), euq(0,-1.25,-.7),euq(0,-1.4,0),euq(0,0,0)],
+  swordshield: [euq(0,.5,.9), euq(0,.6,0), euq(0,0,0),   euq(0,-1.1,-.5),euq(0,-1.6,0),euq(0,0,0)],
+  staff:       [euq(0,1.15,.6),euq(0,.9,0),euq(0,0,0),   euq(0,-1.15,-.6),euq(0,-.9,0),euq(0,0,0)]
+};
+const GREADY = {
+  sword: [euq(0,1.0,.95),euq(0,1.4,0),euq(0,0,-.9),  euq(0,-1.0,-.95),euq(0,-1.45,0),euq(0,0,0)],
+  staff: [euq(0,1.0,.95),euq(0,1.4,0),euq(0,0,-1.6), euq(0,-1.0,-.95),euq(0,-1.45,0),euq(0,0,0)]
+};
+
+const _p1 = new THREE.Vector3(), _p2 = new THREE.Vector3();
+function placeShield(rig) {
+  const sh = rig.shd;
+  if (!sh || !sh.visible || !sh.parent) return;
+  const hum = rig.vrm.humanoid;
+  const la = hum.getRawBoneNode('leftLowerArm'), lh = hum.getRawBoneNode('leftHand');
+  la.updateWorldMatrix(true, false); lh.updateWorldMatrix(true, false);
+  la.getWorldPosition(_p1); lh.getWorldPosition(_p2); _p1.add(_p2).multiplyScalar(0.5);
+  playerRoot.updateWorldMatrix(true, false);
+  sh.position.copy(playerRoot.worldToLocal(_p1)); sh.position.z += 0.12;
+  sh.scale.setScalar(0.42 * rig.root.scale.x); sh.quaternion.identity();
+}
+
+function applyWeaponVis(rig) {
+  rig.sword.visible = (playerState.weapon !== 'staff');
+  rig.shd.visible = (playerState.weapon === 'swordshield');
+  rig.stf.visible = (playerState.weapon === 'staff');
+}
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+function weaponPose(rig, dt) {
+  const want = playerState.guard ? 1 : 0;
+  rig.gw = clamp((rig.gw || 0) + (want ? 1 : -1) * dt / 0.14, 0, 1);
+  const hasNativeIdle = (playerState.weapon === 'sword' && MX.clips.sword2h_idle) || (playerState.weapon === 'staff' && (MX.clips.staff_idle || MX.clips.staff_idle2));
+  const isWalking = (playerState.vel.x * playerState.vel.x + playerState.vel.z * playerState.vel.z) > 0.05;
+  const wantR = (!hasNativeIdle && GREADY[playerState.weapon] && !playerState.anim && !playerState.guard && playerState.rollT < 0 && rig.gw < 0.05) ? 1 : 0;
+
+  rig.rw = clamp((rig.rw || 0) + (wantR ? 1 : -1) * dt / 0.14, 0, 1);
+  rig.bw = clamp((rig.bw || 0) + ((wantR && !isWalking) ? 1 : -1) * dt / 0.14, 0, 1);
+
+  if (rig.bw > 0) {
+    const wb = rig.bw * rig.bw * (3 - 2 * rig.bw), hb = rig.vrm.humanoid;
+    for (let bi = 0; bi < BODYBONES.length; bi++) {
+      const bn = hb.getNormalizedBoneNode(BODYBONES[bi]);
+      if (bn) bn.quaternion.slerp(IDQ, wb);
+    }
+  }
+  if (rig.rw > 0) {
+    const wr = rig.rw * rig.rw * (3 - 2 * rig.rw), hm = rig.vrm.humanoid;
+    for (let ri = 0; ri < GBONES.length; ri++) {
+      const rb = hm.getNormalizedBoneNode(GBONES[ri]);
+      if (rb) rb.quaternion.slerp(GREADY[playerState.weapon][ri], wr);
+    }
+  }
+  const w = rig.gw * rig.gw * (3 - 2 * rig.gw);
+  const pose = GPOSE[playerState.weapon], hum = rig.vrm.humanoid;
+  if (w > 0) {
+    for (let k = 0; k < BODYBONES.length; k++) {
+      const bb = hum.getNormalizedBoneNode(BODYBONES[k]);
+      if (bb) bb.quaternion.slerp(IDQ, w);
+    }
+    for (let i = 0; i < GBONES.length; i++) {
+      const b = hum.getNormalizedBoneNode(GBONES[i]);
+      if (b) b.quaternion.slerp(pose[i], w);
+    }
+  }
+}
+
+function updateRig(rig, dt) {
+  if (!rig || !rig.drv) return;
+  rig.drv.hold = Math.max(0, rig.drv.hold - dt);
+  rig.drv.mixer.update(dt);
+  weaponPose(rig, dt);
+  if (rig.vrm) rig.vrm.update(dt);
+  placeShield(rig);
+}
+
+function tryInitMixer() {
+  if (!MX.ready || !vrm) return;
+  if (!vrm.drv) {
+    vrm.drv = { mixer: new THREE.AnimationMixer(vrm.root), actions: {}, cur: null, curName: '', hold: 0 };
+    buildClips(vrm);
+    playClip(vrm, getPlayerIdleClip(), { fade: 0.1 });
+  }
+}
+
+// Carregar modelo VRM do Talibrac
+loadClips();
+loadRig('assets/Talibrac.vrm', 2.45, { blade: 0xdfe8ff, emis: 0x3a5fb0, glow: 0x5aa9ff, guard: 0x8b7bff }, (r) => {
+  playerRoot.add(r.root);
+  playerRoot.add(r.shd);
+  vrm = r;
+  applyWeaponVis(r);
+  tryInitMixer();
+  if (DATA) updateWeaponAndSkills();
+});
+
+// ==================== EFEITOS VISUAIS: ARCOS DE CORTE ====================
+const ARCS = [];
+function slashArc(x, z, face, color, size, y = 1.4) {
+  const g = new THREE.Group(), inner = new THREE.Group();
+  const a1 = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.2), softMat(TX_ARC, 0xffffff, 0.95));
+  const a2 = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 1.45), softMat(TX_ARC, color, 0.55));
+  a1.position.y = a2.position.y = 0.5;
+  a2.position.z = -0.01;
+  a1.material.color.setHex(color).lerp(new THREE.Color(0xffffff), 0.55);
+  inner.add(a1); inner.add(a2);
+  inner.rotation.z = Math.PI + (Math.random() - 0.5) * 0.9;
+  g.add(inner);
+  const fx = Math.sin(face), fz = Math.cos(face);
+  g.position.set(x + fx * size * 0.9, y, z + fz * size * 0.9);
+  g.rotation.y = face + Math.PI / 2;
+  g.scale.set(size, size, size);
+  scene.add(g);
+  ARCS.push({ g, t: 0, life: 0.26, size, m: [a1.material, a2.material], o: [0.95, 0.55] });
+}
+function updateArcs(dt) {
+  for (let i = ARCS.length - 1; i >= 0; i--) {
+    const a = ARCS[i]; a.t += dt; const u = a.t / a.life;
+    if (u >= 1) {
+      scene.remove(a.g);
+      a.g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      ARCS.splice(i, 1);
+      continue;
+    }
+    const sc = a.size * (0.7 + 0.6 * u);
+    a.g.scale.set(sc, sc, sc);
+    a.m[0].opacity = a.o[0] * (1 - u);
+    a.m[1].opacity = a.o[1] * (1 - u);
+  }
+}
+
+function spark(x, y, z, size, color, life = 0.3) {
+  const geo = new THREE.BufferGeometry();
+  const pts = new Float32Array([0,0,0]);
+  geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  const mat = new THREE.PointsMaterial({ color, size, transparent: true, opacity: 1, blending: THREE.AdditiveBlending });
+  const p = new THREE.Points(geo, mat);
+  p.position.set(x, y, z);
+  scene.add(p);
+  const t0 = performance.now();
+  const iv = setInterval(() => {
+    const u = (performance.now() - t0) / (life * 1000);
+    if (u >= 1) { clearInterval(iv); scene.remove(p); geo.dispose(); mat.dispose(); }
+    else mat.opacity = 1 - u;
+  }, 16);
+}
+
+function showBanner(title, sub) {
+  const el = document.getElementById('banner');
+  document.getElementById('banner-title').textContent = title;
+  document.getElementById('banner-sub').textContent = sub;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+// ==================== CÂMERA & MOUSE LOOK (MATEMÁTICA IDÊNTICA AO ARENA.HTML) ====================
+const cameraState = { yaw: 0, pitch: 0.22, dist: 6.5 };
+const keys = {};
+let isLocked = false;
+
+function angDiff(a, b) { return Math.atan2(Math.sin(b - a), Math.cos(b - a)); }
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  keys[e.key.toLowerCase()] = true;
+  SFX.init();
+  if (e.code === 'KeyX' || e.key.toLowerCase() === 'x') switchWeapon();
+  if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') triggerSkill(0);
+  if (e.code === 'KeyE' || e.key.toLowerCase() === 'e') {
+    // Se perto do portal da DG, entra; senão dispara skill 1
+    const distToPortal = playerState.pos.distanceTo(portalGroup.position);
+    if (distToPortal < 5.0) {
+      enterDungeon();
+      return;
+    }
+    triggerSkill(1);
+  }
+  if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') triggerSkill(2);
+  if (e.code === 'KeyF' || e.key.toLowerCase() === 'f') triggerSkill(3);
+  if (e.code === 'KeyT' || e.key.toLowerCase() === 't') triggerSkill(4);
+  if (e.code === 'KeyZ' || e.key.toLowerCase() === 'z') triggerSkill(5);
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.key === 'Shift') {
+    if (playerState.vel.lengthSq() < 0.2) performDodge();
+  }
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+  keys[e.key.toLowerCase()] = false;
+});
+window.addEventListener('blur', () => {
+  for (let k in keys) keys[k] = false;
+});
+
+function lockPointer() {
+  SFX.init();
+  try { canvas.requestPointerLock(); } catch(e) {}
+  const el = document.getElementById('lock-prompt');
+  if (el) el.style.display = 'none';
+  isLocked = true;
+}
+window.lockPointer = lockPointer;
+
+const lockPromptEl = document.getElementById('lock-prompt');
+if (lockPromptEl) {
+  lockPromptEl.addEventListener('click', lockPointer);
+  lockPromptEl.addEventListener('pointerdown', lockPointer);
+}
+
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === canvas) {
+    isLocked = true;
+    const el = document.getElementById('lock-prompt');
+    if (el) el.style.display = 'none';
+  } else {
+    isLocked = false;
+  }
+});
+
+// Mouse look: yaw e pitch idênticos a arena.html
+window.addEventListener('mousemove', (e) => {
+  if (!isLocked) return;
+  const sens = 0.0022;
+  cameraState.yaw -= e.movementX * sens;
+  cameraState.pitch = clamp(cameraState.pitch + e.movementY * sens, -0.35, 1.25);
+});
+
+window.addEventListener('mousedown', (e) => {
+  if (!isLocked) return;
+  if (e.button === 0) performAttack();
+  if (e.button === 2) {
+    playerState.guard = true;
+    SFX.play('click', 0.6);
+  }
+});
+window.addEventListener('mouseup', (e) => {
+  if (e.button === 2) playerState.guard = false;
+});
+window.addEventListener('contextmenu', e => e.preventDefault());
+
+// Movimento relativo à câmera (100% IDÊNTICO AO ARENA.HTML)
+function moveVec() {
+  const ix = (keys['KeyD'] || keys['d'] || keys['ArrowRight'] ? 1 : 0) - (keys['KeyA'] || keys['a'] || keys['ArrowLeft'] ? 1 : 0);
+  const iz = (keys['KeyW'] || keys['w'] || keys['ArrowUp'] ? 1 : 0) - (keys['KeyS'] || keys['s'] || keys['ArrowDown'] ? 1 : 0);
+  const l = Math.hypot(ix, iz);
+  if (l < 0.08) return { x: 0, z: 0, m: 0 };
+  const m = Math.min(1, l);
+  const nx = ix / l, nz = iz / l;
+  const sy = Math.sin(cameraState.yaw), cy = Math.cos(cameraState.yaw);
+  return { x: -sy * nz + cy * nx, z: -cy * nz - sy * nx, m };
+}
+
+// ==================== COMBATE, COMBOS E SKILLS ====================
+const SLASH_CLIPS = ['slash1', 'slash2', 'slash3', 'slash4'];
+const STAFF_CLIPS = ['staff_attack1', 'staff_attack2', 'staff_cast', 'staff_area'];
+
+function performAttack() {
+  if (playerState.anim || playerState.rollT >= 0) return;
+  if (playerState.stamina < 5) return;
+
+  playerState.comboIndex = (playerState.comboIndex % 4) + 1;
+  const isFinisher = (playerState.comboIndex === 4);
+  playerState.stamina = Math.max(0, playerState.stamina - 6);
+
+  // Executar clipe de animação
+  const clipsArr = (playerState.weapon === 'staff') ? STAFF_CLIPS : SLASH_CLIPS;
+  const clipName = clipsArr[playerState.comboIndex - 1] || clipsArr[0];
+  playClip(vrm, clipName, { once: true, speed: 1.5, fade: 0.08, hold: 0.35 });
+  playerState.anim = { dur: 0.35, t: 0 };
+
+  // Face de ataque segue a mira
+  playerState.face = cameraState.yaw + Math.PI;
+
+  // Som e Efeitos Visuais
+  if (isFinisher) {
+    SFX.play('soulshot', 1.0);
+    SFX.play('sword_great1', 0.85);
+    slashArc(playerState.pos.x, playerState.pos.z, playerState.face, 0x5aa9ff, 2.2);
+    spark(playerState.pos.x, 1.5, playerState.pos.z, 2.8, 0x5aa9ff, 0.4);
+    showBanner('SOULSHOT EXPLOSIVO', '4º GOLPE FINALIZADOR');
+  } else {
+    SFX.play('shing' + playerState.comboIndex, 0.8);
+    slashArc(playerState.pos.x, playerState.pos.z, playerState.face, 0xdfe8ff, 1.6);
+  }
+
+  // Checar colisão com o boneco de treino na arena
+  const distToDummy = playerState.pos.distanceTo(dummyGroup.position);
+  if (distToDummy < 4.2) {
+    const dmg = isFinisher ? Math.floor(580 + Math.random() * 120) : Math.floor(180 + Math.random() * 60);
+    spawnDamageNumber(dmg, dummyGroup.position.clone().add(new THREE.Vector3(0, 2.0, 0)), isFinisher);
+    SFX.play('punch', 0.85);
+    dummyGroup.rotation.y = (Math.random() - 0.5) * 0.45;
+    setTimeout(() => dummyGroup.rotation.y = 0, 160);
+
+    // Combo counter
+    playerState.comboCount++;
+    playerState.comboTimer = 2.5;
+    document.getElementById('combo-val').textContent = playerState.comboCount;
+    document.getElementById('combo-box').style.opacity = '1';
+  }
+}
+
+function performDodge() {
+  if (playerState.stamina < 25 || playerState.rollT >= 0) return;
+  playerState.stamina -= 25;
+  playerState.rollT = 0.42;
+  SFX.play('roll', 0.7);
+  playClip(vrm, 'roll', { once: true, speed: 2.4, fade: 0.06, hold: 0.45 });
+
+  // Esquiva segue a direção em que anda ou para frente da câmera
+  const mv = moveVec();
+  let dx = mv.x, dz = mv.z;
+  if (mv.m <= 0) {
+    dx = -Math.sin(cameraState.yaw);
+    dz = -Math.cos(cameraState.yaw);
+  }
+  playerState.vel.x = dx * 14.0;
+  playerState.vel.z = dz * 14.0;
+  playerState.face = Math.atan2(dx, dz);
+}
+
+// Disparo de Skill Oficial (carregada do JSON do Claude)
+function triggerSkill(idx) {
+  if (!currentSkills || !currentSkills[idx]) return;
+  if (playerState.cd[idx] > 0 || playerState.rollT >= 0) return;
+
+  const sk = currentSkills[idx];
+  playerState.cd[idx] = sk.cd;
+
+  // Sons oficiais
+  const soundMap = {
+    dash: 'dash',
+    quick: 'shing2',
+    wave: 'energywave',
+    ult: 'fatal_strike',
+    storm: 'doublewind',
+    blade: 'power_strike'
+  };
+  SFX.play(soundMap[sk.pose] || 'power_strike', 0.95);
+  SFX.play('soulshot', 0.9);
+
+  // Animação correta
+  const clipMap = {
+    dash: 'slash4',
+    quick: 'slash2',
+    wave: 'skill_wave',
+    ult: 'skill_ult',
+    storm: 'skill_wave',
+    blade: 'slash1'
+  };
+  const animToPlay = (playerState.weapon === 'staff') ? 'staff_area' : (clipMap[sk.pose] || 'slash1');
+  playClip(vrm, animToPlay, { once: true, speed: 1.6, fade: 0.08, hold: sk.dur || 0.45 });
+  playerState.anim = { dur: sk.dur || 0.45, t: 0 };
+  playerState.face = cameraState.yaw + Math.PI;
+
+  const colorHex = parseInt((sk.css || '#5aa9ff').replace('#', ''), 16);
+  slashArc(playerState.pos.x, playerState.pos.z, playerState.face, colorHex, sk.range ? sk.range * 0.6 : 2.5);
+  showBanner(sk.name.toUpperCase(), 'HABILIDADE OFICIAL CLAUDE');
+
+  // Dano no boneco de treino
+  const distToDummy = playerState.pos.distanceTo(dummyGroup.position);
+  if (distToDummy < (sk.range ? sk.range + 1.2 : 5.0)) {
+    spawnDamageNumber(sk.dmg * 3, dummyGroup.position.clone().add(new THREE.Vector3(0, 2.2, 0)), true);
+    SFX.play('punch', 0.9);
+    dummyGroup.rotation.y = (Math.random() - 0.5) * 0.6;
+    setTimeout(() => dummyGroup.rotation.y = 0, 200);
+    playerState.comboCount += 2;
+    playerState.comboTimer = 2.5;
+    document.getElementById('combo-val').textContent = playerState.comboCount;
+    document.getElementById('combo-box').style.opacity = '1';
+  }
+}
+window.triggerSkill = triggerSkill;
+
+function spawnDamageNumber(dmg, worldPos, isCrit = false) {
+  const screenPos = worldPos.clone().project(camera);
+  const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+  const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
+  const div = document.createElement('div');
+  div.className = 'floating-dmg';
+  div.textContent = (isCrit ? '💥 ' : '') + dmg;
+  if (isCrit) { div.style.color = '#ffd166'; div.style.fontSize = '28px'; }
+  div.style.left = x + 'px';
+  div.style.top = y + 'px';
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 850);
+}
+
+// Transição para a Dungeon do Baium
+function enterDungeon() {
+  SFX.play('portal', 1.0);
+  showBanner('ENTRANDO NA DUNGEON', 'TRANSIÇÃO PARA A ARENA DO BAIUM...');
+  setTimeout(() => {
+    window.location.href = 'arena.html?mode=dungeon';
+  }, 400);
+}
+window.enterDungeon = enterDungeon;
+
+// Teleporte Rápido pela Vila
+function teleportTo(location) {
+  if (location === 'arena') {
+    playerState.pos.set(0, 0, 8);
+    cameraState.yaw = 0;
+  } else if (location === 'portal') {
+    playerState.pos.set(0, 0, -13);
+    cameraState.yaw = Math.PI;
+  } else if (location === 'church') {
+    playerState.pos.set(-12.2, 0, -32);
+    cameraState.yaw = 0;
+  } else if (location === 'fighter') {
+    playerState.pos.set(45, 0, -48);
+    cameraState.yaw = -Math.PI / 4;
+  } else if (location === 'shops') {
+    playerState.pos.set(16, 0, 3);
+    cameraState.yaw = -Math.PI / 2;
+  } else if (location === 'agit') {
+    playerState.pos.set(-22, 0, -10);
+    cameraState.yaw = Math.PI / 2;
+  } else if (location === 'port') {
+    playerState.pos.set(15, 0, 68);
+    cameraState.yaw = Math.PI;
+  } else if (location === 'lighthouse') {
+    playerState.pos.set(94, 18, 48);
+    cameraState.yaw = Math.PI / 4;
+  }
+  playerState.vel.set(0, 0, 0);
+}
+window.teleportTo = teleportTo;
+
+// ==================== MINIMAPA DINÂMICO ====================
+const miniCanvas = document.getElementById('minimap');
+const miniCtx = miniCanvas.getContext('2d');
+
+function updateMinimap() {
+  const w = miniCanvas.width, h = miniCanvas.height;
+  miniCtx.clearRect(0, 0, w, h);
+  miniCtx.fillStyle = '#0a2544';
+  miniCtx.fillRect(0, 0, w, h);
+
+  const cx = w / 2, cy = h / 2, scale = 0.65;
+
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 80, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#2d4422';
+  miniCtx.fill();
+
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 37, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#55606d';
+  miniCtx.fill();
+  miniCtx.strokeStyle = '#3d4450';
+  miniCtx.lineWidth = 2;
+  miniCtx.stroke();
+
+  miniCtx.strokeStyle = '#55606d';
+  miniCtx.lineWidth = 5;
+  miniCtx.beginPath();
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx + 42, cy - 42);
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx - 42, cy - 38);
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx + 40, cy + 38);
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx - 40, cy + 40);
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx - 8, cy - 35);
+  miniCtx.moveTo(cx, cy); miniCtx.lineTo(cx + 10, cy + 55);
+  miniCtx.stroke();
+
+  // Praça Central
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 14, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#3a4454';
+  miniCtx.fill();
+  miniCtx.strokeStyle = '#f5c451';
+  miniCtx.lineWidth = 1.5;
+  miniCtx.stroke();
+
+  // Selo IS BLADE
+  miniCtx.fillStyle = '#5aa9ff';
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+  miniCtx.fill();
+
+  // Portal Dimensional da DG
+  miniCtx.fillStyle = '#00d4ff';
+  miniCtx.beginPath();
+  miniCtx.arc(cx, cy - 12, 3.5, 0, Math.PI * 2);
+  miniCtx.fill();
+
+  // Pontos de interesse
+  miniCtx.fillStyle = '#8899bb'; miniCtx.fillRect(cx - 15, cy - 34, 14, 12); // Igreja
+  miniCtx.fillStyle = '#996633'; miniCtx.fillRect(cx + 28, cy - 42, 12, 12); // Guilda
+  miniCtx.fillStyle = '#aa8855'; miniCtx.fillRect(cx + 12, cy - 2, 9, 8);   // Lojas
+  miniCtx.fillStyle = '#556688'; miniCtx.fillRect(cx - 24, cy - 10, 11, 9); // Clan Hall
+  miniCtx.fillStyle = '#8b5a2b'; miniCtx.fillRect(cx + 8, cy + 46, 6, 14);  // Porto
+  miniCtx.fillStyle = '#ffe066'; miniCtx.beginPath(); miniCtx.arc(cx + 58, cy + 34, 4, 0, Math.PI * 2); miniCtx.fill(); // Farol
+
+  // Marcador do Jogador com Cone de Visão
+  const px = cx + playerState.pos.x * scale;
+  const py = cy + playerState.pos.z * scale;
+  miniCtx.save();
+  miniCtx.translate(px, py);
+  miniCtx.rotate(-cameraState.yaw + Math.PI);
+  miniCtx.beginPath();
+  miniCtx.moveTo(0, -6); miniCtx.lineTo(4, 5); miniCtx.lineTo(-4, 5); miniCtx.closePath();
+  miniCtx.fillStyle = '#58e08e'; miniCtx.fill();
+  miniCtx.strokeStyle = '#ffffff'; miniCtx.lineWidth = 1; miniCtx.stroke();
+  miniCtx.restore();
+}
+
+// ==================== LOOP PRINCIPAL DE RENDERIZAÇÃO ====================
+let lastTime = performance.now();
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+
+  // Atualizar cooldowns das skills
+  for (let i = 0; i < 6; i++) {
+    if (playerState.cd[i] > 0) {
+      playerState.cd[i] = Math.max(0, playerState.cd[i] - dt);
+      const cdEl = document.getElementById('sk-c-' + i);
+      if (playerState.cd[i] > 0) {
+        cdEl.style.display = 'flex';
+        cdEl.textContent = playerState.cd[i].toFixed(1);
+      } else {
+        cdEl.style.display = 'none';
+      }
+    }
+  }
+
+  // Combo timer
+  if (playerState.comboTimer > 0) {
+    playerState.comboTimer -= dt;
+    if (playerState.comboTimer <= 0) {
+      playerState.comboCount = 0;
+      document.getElementById('combo-box').style.opacity = '0';
+    }
+  }
+
+  // Animação ativa do ataque
+  if (playerState.anim) {
+    playerState.anim.t += dt;
+    if (playerState.anim.t >= playerState.anim.dur) playerState.anim = null;
+  }
+  if (playerState.rollT >= 0) {
+    playerState.rollT -= dt;
+  }
+
+  // Movimento relativo à câmera (EXATAMENTE COMO NO ARENA.HTML)
+  const mv = moveVec();
+  const isMoving = (mv.m > 0 && playerState.rollT < 0);
+  if (isMoving) {
+    const isSprinting = (keys['ShiftLeft'] || keys['ShiftRight']) && playerState.stamina > 5;
+    if (isSprinting) playerState.stamina = Math.max(0, playerState.stamina - 10 * dt);
+    const curSpeed = playerState.speed * (isSprinting ? playerState.sprintMult : 1.0);
+
+    playerState.vel.x = mv.x * curSpeed;
+    playerState.vel.z = mv.z * curSpeed;
+    const tf = Math.atan2(mv.x, mv.z);
+    playerState.face += clamp(angDiff(playerState.face, tf), -16 * dt, 16 * dt);
+
+    if (vrm && vrm.drv && vrm.drv.hold <= 0 && !playerState.anim && playerState.rollT < 0) {
+      if (vrm.drv.curName !== 'run') {
+        playClip(vrm, 'run', { fade: 0.15, speed: isSprinting ? 1.25 : 1.0 });
+      }
+    }
+  } else {
+    playerState.vel.x *= 0.82;
+    playerState.vel.z *= 0.82;
+    if (vrm && vrm.drv && vrm.drv.hold <= 0 && !playerState.anim && playerState.rollT < 0) {
+      const idleClip = getPlayerIdleClip();
+      if (vrm.drv.curName !== idleClip) {
+        playClip(vrm, idleClip, { fade: 0.2 });
+      }
+    }
+  }
+
+  // Pulo
+  if (keys['Space'] && playerState.isGrounded && playerState.rollT < 0) {
+    playerState.vel.y = 8.2;
+    playerState.isGrounded = false;
+    if (vrm && vrm.drv) playClip(vrm, 'jump', { once: true, speed: 1.4, fade: 0.08, hold: 0.4 });
+  }
+
+  // Gravidade
+  playerState.vel.y -= 22 * dt;
+  playerState.pos.y += playerState.vel.y * dt;
+  if (playerState.pos.y <= 0) {
+    playerState.pos.y = 0;
+    playerState.vel.y = 0;
+    playerState.isGrounded = true;
+  }
+
+  playerState.pos.x += playerState.vel.x * dt;
+  playerState.pos.z += playerState.vel.z * dt;
+
+  playerRoot.position.copy(playerState.pos);
+  playerRoot.rotation.y = playerState.face;
+
+  // Regeneração de Estamina
+  playerState.stamina = Math.min(playerState.maxStamina, playerState.stamina + 18 * dt);
+  document.getElementById('st-fill').style.width = (playerState.stamina / playerState.maxStamina * 100) + '%';
+  document.getElementById('st-label').textContent = 'ESTAMINA: ' + Math.round(playerState.stamina) + ' / 100';
+
+  // Atualizar Rig de Animação do VRM
+  updateRig(vrm, dt);
+  updateArcs(dt);
+
+  // Câmera 3ª Pessoa Dragon Nest (MATEMÁTICA IDÊNTICA AO ARENA.HTML)
+  const cpD = Math.cos(cameraState.pitch);
+  const sy2 = Math.sin(cameraState.yaw);
+  const cy2 = Math.cos(cameraState.yaw);
+  const Fx = -sy2 * cpD;
+  const Fy = -Math.sin(cameraState.pitch);
+  const Fz = -cy2 * cpD;
+
+  const camDist = cameraState.dist;
+  camera.position.set(
+    playerState.pos.x + cy2 * 0.85 - Fx * camDist,
+    Math.max(0.6, playerState.pos.y + 2.0 - Fy * camDist),
+    playerState.pos.z - sy2 * 0.85 - Fz * camDist
+  );
+  camera.lookAt(camera.position.x + Fx, camera.position.y + Fy, camera.position.z + Fz);
+
+  // Animação dos Anéis e Vórtice do Portal Dimensional
+  ringOuter.rotation.z += dt * 0.45;
+  ringInner.rotation.z -= dt * 0.65;
+  vortexMesh.material.opacity = 0.68 + Math.sin(now * 0.0035) * 0.16;
+
+  // Partículas giratórias em espiral ascendente no Portal
+  const posArr = pGeo.attributes.position.array;
+  for (let i = 0; i < P_COUNT; i++) {
+    const p = pSpeeds[i];
+    p.ang += dt * p.spd;
+    posArr[i * 3] = Math.cos(p.ang) * p.rad;
+    posArr[i * 3 + 1] += p.vy * dt;
+    if (posArr[i * 3 + 1] > 7.5) {
+      posArr[i * 3 + 1] = 0.2;
+      p.rad = 0.5 + Math.random() * 3.2;
+    }
+  }
+  pGeo.attributes.position.needsUpdate = true;
+
+  // Interação de Proximidade com o Portal Dimensional
+  const distToPortal = playerState.pos.distanceTo(portalGroup.position);
+  const promptEl = document.getElementById('portal-prompt');
+  if (distToPortal < 5.0) {
+    if (promptEl) promptEl.style.display = 'block';
+    if (distToPortal < 1.8) {
+      enterDungeon();
+    }
+  } else {
+    if (promptEl) promptEl.style.display = 'none';
+  }
+
+  // Aura central
+  auraMat.opacity = 0.55 + Math.sin(now * 0.003) * 0.25;
+
+  // Farol Giratório
+  if (lighthouseBeam) {
+    lighthouseBeam.angle += dt * 0.75;
+    lighthouseBeam.target.position.x = lighthouseBeam.originX + Math.cos(lighthouseBeam.angle) * 90;
+    lighthouseBeam.target.position.z = lighthouseBeam.originZ + Math.sin(lighthouseBeam.angle) * 90;
+  }
+
+  // Braseiros tremulando
+  const flicker = Math.sin(now * 0.012) * 0.18 + Math.cos(now * 0.025) * 0.12;
+  braziers.forEach(b => { b.light.intensity = b.baseInt + flicker; });
+
+  // Ondas do Mar
+  const t = now * 0.0016;
+  for (let i = 0; i < waterPos.count; i++) {
+    const u = waterPos.getX(i);
+    const v = waterPos.getZ(i);
+    waterPos.setY(i, waterOrigY[i] + Math.sin(u * 0.04 + t) * 0.35 + Math.cos(v * 0.04 + t) * 0.25);
+  }
+  waterPos.needsUpdate = true;
+
+  updateMinimap();
+  renderer.render(scene, camera);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

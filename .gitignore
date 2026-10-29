@@ -1,0 +1,27 @@
+# --- fontes brutas de extracao (1,1 GB em prototipo/assets/personagens + talking_island): o jogo NAO carrega nada daqui ---
+prototipo/assets/personagens/raw_*/
+prototipo/assets/talking_island/raw_export/
+prototipo/assets/talking_island/extracted_l2/
+prototipo/assets/talking_island/models/
+prototipo/assets/baium_export/
+**/*.unr
+**/*.psa
+**/*.md5anim
+prototipo/assets/personagens/*backup*.glb
+prototipo/test_render*.png
+prototipo/studio_ready_full.png
+
+# --- arquivos de trabalho do Blender: backup automatico nao vai; os .blend (15 MB cada) ficam de fora ate decidirmos entre Git LFS ou pasta fora do repo ---
+*.blend1
+*.blend
+*.blend@
+
+# --- lixo local ---
+node_modules/
+__pycache__/
+*.pyc
+notify.log
+*.log
+.vscode/
+.DS_Store
+Thumbs.db

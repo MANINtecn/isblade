@@ -1,0 +1,18 @@
+{
+  "name": "IS BLADE",
+  "short_name": "IS BLADE",
+  "description": "RPG de acao no navegador (nome provisorio).",
+  "start_url": "./selecao.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#05060d",
+  "theme_color": "#05060d",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

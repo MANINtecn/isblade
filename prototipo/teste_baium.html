@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>IS BLADE - O Despertar de Baium</title>
+<style>
+  :root {
+    --bg: #030408;
+    --gold: #f5c451;
+    --gold-dim: rgba(245, 196, 81, 0.3);
+    --red: #e63946;
+    --line: rgba(245, 196, 81, 0.4);
+    --ink: #f1faee;
+    --panel: rgba(8, 12, 22, 0.88);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #canvas-container { position: absolute; inset: 0; }
+  
+  /* UI Estilo Lineage 2 Clássico */
+  .ui-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+  }
+  
+  /* Topo: Boss Target e HP */
+  .boss-header {
+    margin: 0 auto;
+    width: min(520px, 90vw);
+    text-align: center;
+    background: linear-gradient(180deg, rgba(15, 20, 35, 0.95), rgba(8, 10, 18, 0.8));
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 18px 16px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.8), 0 0 15px rgba(245, 196, 81, 0.15);
+  }
+  .boss-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .boss-name {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(245, 196, 81, 0.6);
+  }
+  .boss-lvl {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(255, 107, 107, 0.1);
+  }
+  .boss-hp-bar {
+    position: relative;
+    height: 18px;
+    background: #111420;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .boss-hp-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #9b111e, #e63946, #ff4d6d);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+    transition: width 0.3s;
+  }
+  .boss-hp-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #fff;
+    text-shadow: 0 1px 3px #000;
+  }
+
+  /* Rodapé: Controles e Status */
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .info-box {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #a0aec0;
+    backdrop-filter: blur(8px);
+  }
+  .info-box b { color: var(--gold); }
+  
+  .controls-box {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #cbd5e0;
+    pointer-events: auto;
+  }
+  .btn-action {
+    background: linear-gradient(180deg, rgba(245, 196, 81, 0.3), rgba(245, 196, 81, 0.1));
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    pointer-events: auto;
+    margin-top: 6px;
+  }
+  .btn-action:hover {
+    background: var(--gold);
+    color: #05060d;
+    box-shadow: 0 0 14px rgba(245, 196, 81, 0.6);
+  }
+  
+  #loading {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    transition: opacity 0.5s;
+  }
+  .spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid rgba(245, 196, 81, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s infinite linear;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="load-msg">INVOCANDO O IMPERADOR BAIUM...</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<div class="ui-overlay">
+  <!-- Topo: Barra do Baium -->
+  <div class="boss-header">
+    <div class="boss-title-row">
+      <span class="boss-name">&#9813; BAIUM &mdash; RAID BOSS</span>
+      <span class="boss-lvl">Lv 75</span>
+    </div>
+    <div class="boss-hp-bar">
+      <div id="hp-fill" class="boss-hp-fill"></div>
+      <div class="boss-hp-text">HP: 2,485,000 / 2,485,000 &bull; MP: 45,000</div>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <div class="footer-bar">
+    <div class="info-box">
+      <b>IS BLADE &bull; TOWER OF INSOLENCE</b><br>
+      Modelo 3D Oficial IS BLADE<br>
+      Renderizado nativamente em WebGL (Three.js) a 60 FPS
+    </div>
+    <div class="controls-box">
+      <div style="font-weight:700; color:var(--gold); margin-bottom:4px;">&#9876; ANIMAÇÕES DO BAIUM:</div>
+      <div style="display:flex; flex-wrap:wrap; gap:4px; max-width:320px; margin-bottom:8px;">
+        <button class="btn-action anim-btn" data-anim="Wait">Respirar</button>
+        <button class="btn-action anim-btn" data-anim="Walk">Andar</button>
+        <button class="btn-action anim-btn" data-anim="run">Correr</button>
+        <button class="btn-action anim-btn" data-anim="atk01">Soco Direto</button>
+        <button class="btn-action anim-btn" data-anim="spatk01">Pisão Sísmico</button>
+        <button class="btn-action anim-btn" data-anim="spatk02">Chuva de Raios</button>
+        <button class="btn-action anim-btn" data-anim="spatk03">Martelo Duplo</button>
+        <button class="btn-action anim-btn" data-anim="spatk04">Varredura 360°</button>
+        <button class="btn-action anim-btn" data-anim="Social01">Rugido</button>
+        <button class="btn-action anim-btn" data-anim="death">Morte</button>
+      </div>
+      <div>&#128065; <b>Arrastar:</b> Girar câmera &bull; &#128269; <b>Scroll:</b> Zoom</div>
+      <div style="margin-top:8px;">
+        <button id="btn-toggle-rot" class="btn-action">Pausar Rotação</button>
+        <a href="/arena.html" style="text-decoration:none; margin-left:8px;"><button class="btn-action" style="border-color:#5aa9ff; color:#5aa9ff;">Voltar à Arena</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Three.js e Loaders Locais -->
+<script src="./lib/three.min.js"></script>
+<script src="./lib/GLTFLoader.js"></script>
+
+<script>
+(function() {
+  const container = document.getElementById('canvas-container');
+  const loading = document.getElementById('loading');
+  const loadMsg = document.getElementById('load-msg');
+
+  // Cena, Câmera e Renderizador
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x04050a);
+  scene.fog = new THREE.FogExp2(0x04050a, 0.025);
+
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 3.2, 10.5);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.35;
+  container.appendChild(renderer.domElement);
+
+  // Iluminação Dramática da Tower of Insolence
+  const ambientLight = new THREE.AmbientLight(0x2a3048, 1.2);
+  scene.add(ambientLight);
+
+  // Luz do Topo (Dourada Divina)
+  const divineLight = new THREE.DirectionalLight(0xffecc4, 2.8);
+  divineLight.position.set(5, 12, 6);
+  divineLight.castShadow = true;
+  divineLight.shadow.mapSize.width = 2048;
+  divineLight.shadow.mapSize.height = 2048;
+  scene.add(divineLight);
+
+  // Luz de Borda / Rim light (Fogo Místico Carmesim)
+  const rimLight = new THREE.DirectionalLight(0xe63946, 2.2);
+  rimLight.position.set(-8, 4, -6);
+  scene.add(rimLight);
+
+  // Luz azulada de base
+  const blueLight = new THREE.PointLight(0x4361ee, 3.5, 15);
+  blueLight.position.set(0, 0.5, 3);
+  scene.add(blueLight);
+
+  // Chão Circular Rúnico de Pedra (Arena do Topo da Torre)
+  const floorGeo = new THREE.CylinderGeometry(8, 8.4, 0.4, 64);
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: 0x181c2b,
+    roughness: 0.65,
+    metalness: 0.2
+  });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.position.y = -0.2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Anel Rúnico no Chão
+  const ringGeo = new THREE.RingGeometry(4.5, 4.65, 64);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0xf5c451,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.6
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.01;
+  scene.add(ring);
+
+  // Carregar Texturas do Baium
+  const texLoader = new THREE.TextureLoader();
+  const texT00 = texLoader.load('./assets/baium/baium_t00_sp.png');
+  const texT01 = texLoader.load('./assets/baium/baium_t01_sp.png');
+  
+  texT00.flipY = false;
+  texT01.flipY = false;
+
+  let baiumModel = null, baiumContainer = null, baiumPivot = null;
+  let autoRotate = true;
+  let mixer = null;
+  let currentAction = null;
+  const animCache = {};
+  window.__baium = {
+    get model() { return baiumModel; },
+    get mixer() { return mixer; },
+    get action() { return currentAction; },
+    animCache,
+    playAnim
+  };
+
+  const allClips = {};
+
+  function playAnim(name) {
+    if (!mixer || !baiumModel) return;
+    let action = animCache[name];
+    if (!action) {
+      const clip = allClips[name];
+      if (!clip) {
+        console.warn('Clip não encontrado no GLB:', name);
+        return;
+      }
+      action = mixer.clipAction(clip);
+      if (name === 'death') {
+        action.setLoop(THREE.LoopOnce);
+        action.clampWhenFinished = true;
+      } else if (name !== 'Wait' && name !== 'Walk' && name !== 'run') {
+        action.setLoop(THREE.LoopOnce);
+        action.clampWhenFinished = true;
+      }
+      animCache[name] = action;
+    }
+    switchAction(action);
+  }
+
+  // ================= SISTEMA DE ÁUDIO REAL DE ALTA QUALIDADE =================
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+  const audioBuffers = {};
+  const audioFiles = {
+    thunder: 'assets/baium/sounds/thunder_strike.wav',
+    thunder_rumble: 'assets/baium/sounds/thunder_rumble.wav',
+    lightning: 'assets/baium/sounds/lightning_bolt.wav',
+    stomp: 'assets/baium/sounds/stomp_quake.wav',
+    smash: 'assets/audio/baium_earthquake_shot.wav',
+    smash_orig: 'assets/baium/sounds/ground_smash.wav',
+    roar: 'assets/baium/sounds/boss_roar.wav',
+    punch: 'assets/baium/sounds/punch_heavy.wav',
+    swing: 'assets/baium/sounds/heavy_swing.wav',
+    fissure: 'assets/baium/sounds/earth_fissure.wav'
+  };
+
+  function getAudio() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function loadAudioSample(key, url) {
+    const ac = getAudio();
+    fetch(url)
+      .then(res => res.arrayBuffer())
+      .then(ab => ac.decodeAudioData(ab))
+      .then(buf => { audioBuffers[key] = buf; })
+      .catch(e => console.warn('Erro ao carregar sample:', key, e));
+  }
+
+  function preloadAllSounds() {
+    Object.entries(audioFiles).forEach(([k, u]) => loadAudioSample(k, u));
+  }
+  preloadAllSounds();
+  window.addEventListener('click', () => { getAudio(); preloadAllSounds(); }, { once: true });
+  window.addEventListener('touchstart', () => { getAudio(); preloadAllSounds(); }, { once: true });
+
+  function playSample(key, vol = 1.0, pitch = 1.0) {
+    try {
+      const ac = getAudio();
+      const b = audioBuffers[key];
+      if (!b) return;
+      const s = ac.createBufferSource();
+      const g = ac.createGain();
+      s.buffer = b;
+      s.playbackRate.value = pitch * (0.96 + Math.random() * 0.08);
+      g.gain.value = vol;
+      s.connect(g);
+      g.connect(ac.destination);
+      s.start();
+    } catch(e) {}
+  }
+
+  function sfxThunder() {
+    playSample('lightning', 0.95);
+    setTimeout(() => playSample('thunder', 0.85), 60);
+  }
+  function sfxStomp() {
+    playSample('stomp', 1.0);
+    playSample('fissure', 0.7);
+  }
+  function sfxSmash() {
+    playSample('smash', 1.0);
+    playSample('smash_orig', 0.8);
+    setTimeout(() => playSample('thunder_rumble', 0.75), 100);
+  }
+  function sfxSweep() {
+    playSample('swing', 0.9);
+    setTimeout(() => playSample('punch', 0.85), 120);
+  }
+  function sfxRoar() {
+    playSample('roar', 1.0);
+  }
+  function sfxPunch() {
+    playSample('swing', 0.6);
+    setTimeout(() => playSample('punch', 1.0), 80);
+  }
+
+  // ================= SISTEMA DE EFEITOS VISUAIS (VFX) =================
+  const vfxList = [];
+  let screenShakeT = 0, screenShakeInt = 0;
+
+  function shake(intensity, duration) {
+    screenShakeInt = intensity;
+    screenShakeT = duration;
+  }
+
+  function mkTex(w, h, draw) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    draw(g, w, h);
+    const tx = new THREE.CanvasTexture(c);
+    tx.colorSpace = THREE.SRGBColorSpace;
+    tx.anisotropy = 4;
+    return tx;
+  }
+  function softMat(tx, color, op) {
+    return new THREE.MeshBasicMaterial({
+      map: tx, color: color, transparent: true, opacity: op,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+    });
+  }
+
+  // 1. CÍRCULO RÚNICO DE AVISO (LINEAGE 2 OFICIAL)
+  const TX_RUNE_CIRCLE = mkTex(256, 256, (g, w, h) => {
+    const cx = w / 2, cy = h / 2, r = w * 0.45;
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255, 255, 255, 0.95)'; g.lineWidth = 3;
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 1.5;
+    g.beginPath(); g.arc(cx, cy, r * 0.86, 0, Math.PI * 2); g.stroke();
+    for (let i = 0; i < 32; i++) {
+      const a = (i / 32) * Math.PI * 2, r1 = r * 0.86, r2 = (i % 4 === 0) ? r : r * 0.94;
+      g.lineWidth = (i % 4 === 0) ? 2 : 1;
+      g.beginPath(); g.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+      g.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2); g.stroke();
+    }
+    g.lineWidth = 1.5; g.beginPath();
+    for (let k = 0; k < 8; k++) {
+      const a2 = ((k * 3) / 8) * Math.PI * 2 - Math.PI / 2;
+      if (k === 0) g.moveTo(cx + Math.cos(a2) * r * 0.72, cy + Math.sin(a2) * r * 0.72);
+      else g.lineTo(cx + Math.cos(a2) * r * 0.72, cy + Math.sin(a2) * r * 0.72);
+    }
+    g.closePath(); g.stroke();
+    g.beginPath(); g.arc(cx, cy, r * 0.42, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    g.beginPath(); g.arc(cx, cy, r * 0.14, 0, Math.PI * 2); g.fill();
+    g.globalCompositeOperation = 'destination-over';
+    const gr = g.createRadialGradient(cx, cy, r * 0.1, cx, cy, w * 0.5);
+    gr.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+    gr.addColorStop(0.65, 'rgba(255, 255, 255, 0.15)');
+    gr.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+
+  // 2. FISSURA / RACHADURA DO SOLO
+  const TX_CRACK = mkTex(256, 256, (g, w, h) => {
+    const cx = w / 2, cy = h / 2;
+    g.clearRect(0, 0, w, h);
+    function branch(x0, y0, angle, len, width, depth) {
+      if (depth <= 0 || len < 4) return;
+      let curX = x0, curY = y0;
+      const steps = Math.floor(len / 6);
+      g.beginPath(); g.moveTo(curX, curY);
+      for (let s = 0; s < steps; s++) {
+        angle += (Math.random() - 0.5) * 0.65;
+        const stepLen = (len / steps) * (0.8 + Math.random() * 0.4);
+        curX += Math.cos(angle) * stepLen; curY += Math.sin(angle) * stepLen;
+        g.lineTo(curX, curY);
+        if (Math.random() < 0.35 && depth > 1) {
+          const subAngle = angle + (Math.random() < 0.5 ? 0.6 : -0.6);
+          branch(curX, curY, subAngle, len * 0.55, width * 0.65, depth - 1);
+          g.moveTo(curX, curY);
+        }
+      }
+      g.lineWidth = width; g.stroke();
+    }
+    g.strokeStyle = 'rgba(255, 255, 255, 0.45)'; g.lineCap = 'round'; g.lineJoin = 'round';
+    for (let b = 0; b < 10; b++) { const ang = (b / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.3; branch(cx, cy, ang, w * 0.42, 6.0, 3); }
+    g.strokeStyle = 'rgba(255, 255, 255, 1.0)';
+    for (let b = 0; b < 10; b++) { const ang = (b / 10) * Math.PI * 2 + (Math.random() - 0.5) * 0.3; branch(cx, cy, ang, w * 0.42, 2.0, 3); }
+    const gr = g.createRadialGradient(cx, cy, 0, cx, cy, w * 0.25);
+    gr.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    gr.addColorStop(0.3, 'rgba(255, 255, 255, 0.7)');
+    gr.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+
+  // 3. SEGMENTO DE RAIO ELÉTRICO
+  const TX_BOLT_SEG = mkTex(128, 64, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, 'rgba(255,255,255,0)');
+    gr.addColorStop(0.25, 'rgba(255,255,255,0.45)');
+    gr.addColorStop(0.5, 'rgba(255,255,255,1.0)');
+    gr.addColorStop(0.75, 'rgba(255,255,255,0.45)');
+    gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+
+  // Glow Sprite
+  function glowTex() {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)');
+    gr.addColorStop(.3, 'rgba(255,180,60,.85)');
+    gr.addColorStop(1, 'rgba(255,100,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+  const GT = glowTex();
+
+  function spawnGroundCrack(x, z, radius, color, life) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(radius * 2, radius * 2), softMat(TX_CRACK, color || 0xff6600, 1.0));
+    m.rotation.x = -Math.PI / 2;
+    m.rotation.z = Math.random() * Math.PI * 2;
+    m.position.set(x, 0.08, z);
+    scene.add(m);
+    vfxList.push({
+      mesh: m, t: 0, dur: life || 1.8,
+      update(u) {
+        if (u < 0.1) { m.scale.setScalar(u / 0.1); m.material.opacity = 1.0; }
+        else { m.scale.setScalar(1.0 + u * 0.04); m.material.opacity = Math.pow(1 - u, 1.8); }
+      },
+      onEnd() { scene.remove(m); m.geometry.dispose(); m.material.dispose(); }
+    });
+  }
+
+  function spawnDebrisChunks(x, z, count, color, speed) {
+    const geo = new THREE.DodecahedronGeometry(0.2, 0);
+    const mat = new THREE.MeshStandardMaterial({ color: color || 0x3b4363, roughness: 0.9, metalness: 0.1 });
+    for (let i = 0; i < count; i++) {
+      const m = new THREE.Mesh(geo, mat), scale = 0.6 + Math.random() * 0.9;
+      m.scale.setScalar(scale);
+      m.position.set(x + (Math.random() - 0.5) * 0.5, 0.1, z + (Math.random() - 0.5) * 0.5);
+      const ang = Math.random() * Math.PI * 2, spd = (0.5 + Math.random() * 0.8) * (speed || 4);
+      let vx = Math.cos(ang) * spd, vy = 3.5 + Math.random() * 4.5, vz = Math.sin(ang) * spd;
+      const rx = (Math.random() - 0.5) * 10, ry = (Math.random() - 0.5) * 10, rz = (Math.random() - 0.5) * 10;
+      scene.add(m);
+      let px = m.position.x, py = m.position.y, pz = m.position.z;
+      vfxList.push({
+        mesh: m, t: 0, dur: 0.8 + Math.random() * 0.4,
+        update(u) {
+          py += vy * 0.016; vy -= 18 * 0.016; px += vx * 0.016; pz += vz * 0.016;
+          if (py < 0.1) { py = 0.1; vy = -vy * 0.35; vx *= 0.7; vz *= 0.7; }
+          m.position.set(px, py, pz);
+          m.rotation.x += rx * 0.016; m.rotation.y += ry * 0.016; m.rotation.z += rz * 0.016;
+          if (u > 0.6) m.scale.setScalar(scale * (1 - u) / 0.4);
+        },
+        onEnd() { scene.remove(m); geo.dispose(); mat.dispose(); }
+      });
+    }
+  }
+
+  function spawnEarthSpikes(cx, cz, radius, count) {
+    const spikeGeo = new THREE.ConeGeometry(0.35, 2.2, 5);
+    const spikeMat = new THREE.MeshStandardMaterial({ color: 0x2b334a, roughness: 0.85, metalness: 0.15 });
+    for (let i = 0; i < count; i++) {
+      const ang = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const dist = radius * (0.5 + Math.random() * 0.5);
+      const sx = cx + Math.cos(ang) * dist, sz = cz + Math.sin(ang) * dist;
+      const mesh = new THREE.Mesh(spikeGeo, spikeMat);
+      mesh.position.set(sx, -1.2, sz);
+      mesh.rotation.x = (Math.random() - 0.5) * 0.4; mesh.rotation.z = (Math.random() - 0.5) * 0.4; mesh.rotation.y = Math.random() * Math.PI * 2;
+      const targetY = 0.8 + Math.random() * 0.5;
+      scene.add(mesh);
+      vfxList.push({
+        mesh, t: 0, dur: 1.4,
+        update(u) {
+          if (u < 0.18) { const p = u / 0.18; mesh.position.y = -1.2 + (targetY + 1.2) * (1 - Math.pow(1 - p, 3)); }
+          else if (u > 0.65) { const p2 = (u - 0.65) / 0.35; mesh.position.y = targetY - (targetY + 1.4) * (p2 * p2); }
+        },
+        onEnd() { scene.remove(mesh); spikeGeo.dispose(); spikeMat.dispose(); }
+      });
+    }
+  }
+
+  function burstSparks(x, y, z, n, color, spd) {
+    for (let k = 0; k < n; k++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GT, color: color, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+      s.position.set(x, y, z);
+      s.scale.set(.18, .18, 1);
+      scene.add(s);
+      const a1 = Math.random() * Math.PI * 2, a2 = Math.random() * Math.PI * 0.45, sp2 = (0.6 + Math.random()) * spd;
+      let vx = Math.cos(a1) * Math.cos(a2) * sp2, vy = Math.sin(a2) * sp2 + 2, vz = Math.sin(a1) * Math.cos(a2) * sp2;
+      let px = x, py = y, pz = z;
+      vfxList.push({
+        mesh: s, t: 0, dur: 0.4 + Math.random() * 0.35,
+        update(u) {
+          px += vx * 0.016; py += vy * 0.016; pz += vz * 0.016;
+          vy -= 14 * 0.016; s.position.set(px, py, pz);
+          s.material.opacity = (1 - u);
+        },
+        onEnd() { scene.remove(s); s.material.dispose(); }
+      });
+    }
+  }
+
+  function createProceduralLightning(x, z, topY) {
+    const grp = new THREE.Group(); topY = topY || 28;
+    function genNodes(pStart, pEnd, segments, jitter) {
+      const pts = [pStart.clone()];
+      for (let i = 1; i < segments; i++) {
+        const t = i / segments, cur = pStart.clone().lerp(pEnd, t);
+        const envelope = Math.sin(t * Math.PI);
+        cur.x += (Math.random() - 0.5) * jitter * envelope;
+        cur.z += (Math.random() - 0.5) * jitter * envelope;
+        pts.push(cur);
+      }
+      pts.push(pEnd.clone()); return pts;
+    }
+    const mainStart = new THREE.Vector3(x + (Math.random() - 0.5) * 1.5, topY, z + (Math.random() - 0.5) * 1.5);
+    const mainEnd = new THREE.Vector3(x, 0.05, z);
+    const mainNodes = genNodes(mainStart, mainEnd, 22, 3.2);
+
+    function buildContinuousRibbon(nodes, width) {
+      const pos = [], uvs = [], n = nodes.length, tangents = [];
+      for (let i = 0; i < n; i++) {
+        const pPrev = i > 0 ? nodes[i - 1] : nodes[i];
+        const pNext = i < n - 1 ? nodes[i + 1] : nodes[i];
+        tangents.push(new THREE.Vector3().subVectors(pNext, pPrev).normalize());
+      }
+      for (let i = 0; i < n - 1; i++) {
+        const A = nodes[i], B = nodes[i+1], tA = tangents[i], tB = tangents[i+1];
+        const rA = new THREE.Vector3(tA.z, 0, -tA.x).normalize().multiplyScalar(width * 0.5);
+        const rB = new THREE.Vector3(tB.z, 0, -tB.x).normalize().multiplyScalar(width * 0.5);
+        if (rA.lengthSq() < 0.001) rA.set(width * 0.5, 0, 0); if (rB.lengthSq() < 0.001) rB.set(width * 0.5, 0, 0);
+        const A1 = new THREE.Vector3().addVectors(A, rA), A2 = new THREE.Vector3().subVectors(A, rA);
+        const B1 = new THREE.Vector3().addVectors(B, rB), B2 = new THREE.Vector3().subVectors(B, rB);
+        pos.push(A1.x, A1.y, A1.z,  A2.x, A2.y, A2.z,  B1.x, B1.y, B1.z); uvs.push(0, 0,  1, 0,  0, 1);
+        pos.push(B1.x, B1.y, B1.z,  A2.x, A2.y, A2.z,  B2.x, B2.y, B2.z); uvs.push(0, 1,  1, 0,  1, 1);
+        const oA = new THREE.Vector3().crossVectors(tA, rA).normalize().multiplyScalar(width * 0.5);
+        const oB = new THREE.Vector3().crossVectors(tB, rB).normalize().multiplyScalar(width * 0.5);
+        const A3 = new THREE.Vector3().addVectors(A, oA), A4 = new THREE.Vector3().subVectors(A, oA);
+        const B3 = new THREE.Vector3().addVectors(B, oB), B4 = new THREE.Vector3().subVectors(B, oB);
+        pos.push(A3.x, A3.y, A3.z,  A4.x, A4.y, A4.z,  B3.x, B3.y, B3.z); uvs.push(0, 0,  1, 0,  0, 1);
+        pos.push(B3.x, B3.y, B3.z,  A4.x, A4.y, A4.z,  B4.x, B4.y, B4.z); uvs.push(0, 1,  1, 0,  1, 1);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      return geo;
+    }
+
+    const coronaGeo = buildContinuousRibbon(mainNodes, 0.95);
+    const coronaMat = softMat(TX_BOLT_SEG, 0xff7700, 0.95);
+    grp.add(new THREE.Mesh(coronaGeo, coronaMat));
+
+    const coreGeo = buildContinuousRibbon(mainNodes, 0.28);
+    const coreMat = softMat(TX_BOLT_SEG, 0xffffff, 1.0);
+    grp.add(new THREE.Mesh(coreGeo, coreMat));
+
+    [4, 9, 14].forEach(idx => {
+      if (idx < mainNodes.length - 2) {
+        const bStart = mainNodes[idx];
+        const bEnd = new THREE.Vector3(bStart.x + (Math.random() - 0.5) * 8, Math.max(0.1, bStart.y - 7 - Math.random() * 5), bStart.z + (Math.random() - 0.5) * 8);
+        const branchNodes = genNodes(bStart, bEnd, 10, 1.6);
+        const bGeo = buildContinuousRibbon(branchNodes, 0.45);
+        const bMat = softMat(TX_BOLT_SEG, 0xffaa00, 0.88);
+        grp.add(new THREE.Mesh(bGeo, bMat));
+      }
+    });
+
+    const flashLight = new THREE.PointLight(0xffaa44, 9.0, 18);
+    flashLight.position.set(x, 1.5, z);
+    grp.add(flashLight);
+    return { group: grp, coronaMat, coreMat, flashLight };
+  }
+
+  function spawnShockwave(x, z, color, maxR, dur) {
+    const geo = new THREE.RingGeometry(0.1, 0.5, 48);
+    const mat = new THREE.MeshBasicMaterial({
+      color: color || 0xf5c451,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(x, 0.05, z);
+    scene.add(mesh);
+    vfxList.push({
+      mesh,
+      t: 0,
+      dur: dur || 0.6,
+      update(u) {
+        const r = maxR * Math.sqrt(u);
+        mesh.scale.set(r, r, 1);
+        mat.opacity = 0.9 * (1 - u);
+      },
+      onEnd() {
+        scene.remove(mesh);
+        geo.dispose(); mat.dispose();
+      }
+    });
+  }
+
+  function spawnLightning(x, z) {
+    // 1. Círculo Rúnico Oficial de Aviso no chão
+    const wGeo = new THREE.PlaneGeometry(3.6, 3.6);
+    const wMat = softMat(TX_RUNE_CIRCLE, 0xff5500, 0.9);
+    const runeCircle = new THREE.Mesh(wGeo, wMat);
+    runeCircle.rotation.x = -Math.PI / 2;
+    runeCircle.position.set(x, 0.06, z);
+    scene.add(runeCircle);
+
+    burstSparks(x, 0.2, z, 10, 0xffaa00, -1.5);
+
+    let t0 = performance.now();
+    function animWarning() {
+      const el = (performance.now() - t0) / 380;
+      if (el >= 1) {
+        scene.remove(runeCircle); wGeo.dispose(); wMat.dispose();
+
+        // 2. Queda da Descarga Elétrica Procedural
+        sfxThunder();
+        shake(0.45, 0.4);
+
+        const bolt = createProceduralLightning(x, z, 28);
+        scene.add(bolt.group);
+
+        spawnGroundCrack(x, z, 2.8, 0xff6600, 1.8);
+        spawnShockwave(x, z, 0xff7700, 3.6, 0.45);
+        burstSparks(x, 0.2, z, 40, 0xffcc33, 5.8);
+        spawnDebrisChunks(x, z, 6, 0x444d66, 3.8);
+
+        const bT0 = performance.now();
+        function animBolt() {
+          const bEl = (performance.now() - bT0) / 220;
+          if (bEl >= 1) {
+            scene.remove(bolt.group);
+          } else {
+            bolt.coronaMat.opacity = (0.95 + Math.random() * 0.05) * (1 - bEl);
+            bolt.coreMat.opacity = (1.0) * (1 - bEl);
+            bolt.flashLight.intensity = 9.0 * (1 - bEl);
+            requestAnimationFrame(animBolt);
+          }
+        }
+        animBolt();
+      } else {
+        runeCircle.rotation.z += 0.03;
+        const pulse = 0.75 + Math.sin(el * Math.PI * 4) * 0.25;
+        runeCircle.scale.set(1 + pulse * 0.2, 1 + pulse * 0.2, 1);
+        wMat.opacity = 0.6 + pulse * 0.4;
+        requestAnimationFrame(animWarning);
+      }
+    }
+    animWarning();
+  }
+
+  function triggerSkillVfx(animName) {
+    if (animName === 'atk01') {
+      setTimeout(() => {
+        sfxPunch();
+        shake(0.2, 0.25);
+        spawnShockwave(0, 1.8, 0xf5c451, 2.8, 0.4);
+      }, 700);
+    } else if (animName === 'spatk01') {
+      setTimeout(() => {
+        sfxStomp();
+        shake(0.5, 0.5);
+        spawnGroundCrack(0, 0, 5.2, 0xff6600, 2.0);
+        spawnShockwave(0, 0, 0xffa500, 6.5, 0.8);
+        spawnDebrisChunks(0, 0, 10, 0x444d66, 5.2);
+        burstSparks(0, 0.2, 0, 35, 0xffa500, 4.8);
+      }, 1050);
+    } else if (animName === 'Social01') {
+      setTimeout(() => {
+        sfxRoar();
+        shake(0.25, 1.0);
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => spawnShockwave(0, 0, 0xf5c451, 7.5, 1.0), i * 350);
+        }
+      }, 750);
+    } else if (animName === 'spatk02') {
+      // Chuva de Raios Alaranjados de Baium!
+      const strikes = [
+        [0, 2.2, 700],
+        [-3.2, -1.0, 950],
+        [3.0, 1.5, 1150],
+        [-1.8, 3.5, 1350],
+        [2.5, -2.8, 1550],
+        [0, -1.5, 1750],
+        [-2.8, 1.2, 1950]
+      ];
+      strikes.forEach(([sx, sz, delay]) => {
+        setTimeout(() => spawnLightning(sx, sz), delay);
+      });
+    } else if (animName === 'spatk03') {
+      // Martelo Sísmico Duplo (erguendo os 2 braços e esmagando o chão)
+      setTimeout(() => {
+        sfxSmash();
+        shake(0.75, 0.8);
+        spawnGroundCrack(0, 1.2, 7.8, 0xff3300, 2.6);
+        spawnEarthSpikes(0, 1.2, 5.8, 8);
+        spawnDebrisChunks(0, 1.2, 18, 0x333b52, 6.0);
+        burstSparks(0, 0.3, 1.2, 50, 0xff4400, 6.5);
+        spawnShockwave(0, 1.2, 0xff3300, 9.5, 1.2);
+        spawnShockwave(0, 1.2, 0xffaa00, 6.0, 0.8);
+      }, 1400);
+    } else if (animName === 'spatk04') {
+      // Varredura Giratória 360° (giro circular varrendo tudo ao redor)
+      setTimeout(() => {
+        sfxSweep();
+        shake(0.4, 0.45);
+        spawnShockwave(0, 0, 0xff4d6d, 7.5, 0.6);
+        spawnShockwave(0, 0, 0xf5c451, 5.0, 0.4);
+        burstSparks(0, 1.5, 0, 30, 0xffcc00, 4.2);
+      }, 750);
+    } else if (animName === 'death') {
+      setTimeout(() => {
+        sfxSmash();
+        shake(0.55, 0.7);
+        spawnGroundCrack(0, 0, 4.5, 0xff6600, 2.5);
+        spawnDebrisChunks(0, 0, 12, 0x444d66, 4.5);
+      }, 1900);
+    }
+  }
+
+  function switchAction(newAction) {
+    if (currentAction && currentAction !== newAction) {
+      currentAction.fadeOut(0.3);
+    }
+    newAction.reset().fadeIn(0.3).play();
+    currentAction = newAction;
+  }
+
+  document.querySelectorAll('.anim-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const animName = this.getAttribute('data-anim');
+      playAnim(animName);
+      triggerSkillVfx(animName);
+      document.querySelectorAll('.anim-btn').forEach(b => b.style.background = '');
+      this.style.background = 'var(--gold)';
+      this.style.color = '#05060d';
+    });
+  });
+
+  document.getElementById('btn-toggle-rot').addEventListener('click', function() {
+    autoRotate = !autoRotate;
+    this.innerText = autoRotate ? 'Pausar Rotação' : 'Girar Modelo';
+  });
+
+  // Carregar Modelo do Baium oficial convertido pelo Blender
+  loadMsg.innerText = 'CARREGANDO BAIUM (GLB 3D + ANIMAÇÕES)...';
+  const gltfLoader = new THREE.GLTFLoader();
+
+  gltfLoader.load(
+    './assets/baium/baium_boss.glb',
+    function(gltf) {
+      baiumModel = gltf.scene;
+      mixer = new THREE.AnimationMixer(baiumModel);
+
+      mixer.addEventListener('finished', function(e) {
+        const finishedClipName = e.action.getClip().name;
+        if (finishedClipName !== 'death' && finishedClipName !== 'Wait') {
+          playAnim('Wait');
+          document.querySelectorAll('.anim-btn').forEach(b => {
+            if (b.getAttribute('data-anim') === 'Wait') {
+              b.style.background = 'var(--gold)';
+              b.style.color = '#05060d';
+            } else {
+              b.style.background = '';
+              b.style.color = '';
+            }
+          });
+        }
+      });
+
+      // Mapear todas as 14 animações embutidas no GLB
+      gltf.animations.forEach(c => {
+        allClips[c.name] = c;
+      });
+      console.log('Clips carregados do GLB:', Object.keys(allClips));
+
+      // Materiais PBR do L2
+      const mat0 = new THREE.MeshStandardMaterial({
+        map: texT00,
+        roughness: 0.65,
+        metalness: 0.25,
+        skinning: true
+      });
+      const mat1 = new THREE.MeshStandardMaterial({
+        map: texT01,
+        roughness: 0.65,
+        metalness: 0.25,
+        skinning: true
+      });
+
+      baiumModel.traverse(function(child) {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.frustumCulled = false;
+          if (child.name.toLowerCase().includes('01') || child.name.endsWith('_2')) {
+            child.material = mat1;
+          } else {
+            child.material = mat0;
+          }
+        }
+      });
+
+      baiumPivot = baiumModel;
+      // Converter de cm para metros (escala 0.012 = ~4.2m de altura, imponente)
+      baiumModel.scale.set(0.012, 0.012, 0.012);
+      baiumModel.position.set(0, 0, 0);
+      scene.add(baiumModel);
+
+      // Iniciar com Wait (Respiração oficial)
+      playAnim('Wait');
+
+      camera.lookAt(0, 2.0, 0);
+
+      // Desaparecer tela de loading
+      setTimeout(() => {
+        loading.style.opacity = '0';
+        setTimeout(() => loading.style.display = 'none', 500);
+      }, 300);
+    },
+    function(xhr) {
+      if (xhr.lengthComputable) {
+        const pct = Math.round((xhr.loaded / xhr.total) * 100);
+        loadMsg.innerText = 'CARREGANDO BAIUM: ' + pct + '%';
+      }
+    },
+    function(error) {
+      console.error('Erro ao carregar Baium:', error);
+      loadMsg.innerText = 'ERRO AO CARREGAR O MODELO.';
+    }
+  );
+
+  // Controles de Órbita por Mouse e Touch (Sem dependências extras)
+  let isDragging = false;
+  let prevMouseX = 0;
+  let prevMouseY = 0;
+  let camTheta = 0; // horizontal
+  let camPhi = 0.15; // vertical
+  let camRadius = 9.8;
+
+  function updateCamera() {
+    camPhi = Math.max(-0.2, Math.min(1.2, camPhi));
+    camRadius = Math.max(3.0, Math.min(22.0, camRadius));
+
+    const x = camRadius * Math.sin(camTheta) * Math.cos(camPhi);
+    const y = 2.0 + camRadius * Math.sin(camPhi);
+    const z = camRadius * Math.cos(camTheta) * Math.cos(camPhi);
+
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 2.0, 0);
+  }
+  updateCamera();
+
+  window.addEventListener('mousedown', function(e) {
+    if (e.target.closest('.controls-box') || e.target.closest('button')) return;
+    isDragging = true;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  });
+
+  window.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    const deltaX = e.clientX - prevMouseX;
+    const deltaY = e.clientY - prevMouseY;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+
+    camTheta -= deltaX * 0.008;
+    camPhi += deltaY * 0.008;
+    updateCamera();
+  });
+
+  window.addEventListener('mouseup', function() { isDragging = false; });
+
+  // Zoom no Scroll
+  window.addEventListener('wheel', function(e) {
+    camRadius += e.deltaY * 0.005;
+    updateCamera();
+  }, { passive: true });
+
+  // Suporte a Touch no Celular
+  window.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      prevMouseX = e.touches[0].clientX;
+      prevMouseY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', function(e) {
+    if (isDragging && e.touches.length === 1) {
+      const deltaX = e.touches[0].clientX - prevMouseX;
+      const deltaY = e.touches[0].clientY - prevMouseY;
+      prevMouseX = e.touches[0].clientX;
+      prevMouseY = e.touches[0].clientY;
+
+      camTheta -= deltaX * 0.008;
+      camPhi += deltaY * 0.008;
+      updateCamera();
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', function() { isDragging = false; });
+
+  // Botão de Rotação
+  const rotBtn = document.getElementById('btn-toggle-rot');
+  if (rotBtn) {
+    rotBtn.addEventListener('click', function() {
+      autoRotate = !autoRotate;
+      rotBtn.innerText = autoRotate ? 'Pausar Rotação' : 'Girar Modelo';
+    });
+  }
+
+  // Redimensionamento de Janela
+  window.addEventListener('resize', function() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // Loop de Renderização
+  let clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+
+    if (mixer) mixer.update(delta);
+
+    // Atualização de Efeitos Visuais (VFX)
+    for (let i = vfxList.length - 1; i >= 0; i--) {
+      const v = vfxList[i];
+      v.t += delta;
+      const u = v.t / v.dur;
+      if (u >= 1) {
+        if (v.onEnd) v.onEnd();
+        vfxList.splice(i, 1);
+      } else {
+        v.update(u);
+      }
+    }
+
+    if (baiumPivot && autoRotate && !isDragging) {
+      baiumPivot.rotation.y += delta * 0.35;
+    }
+
+    // Leve pulsação no anel rúnico
+    const t = clock.getElapsedTime();
+    ring.scale.setScalar(1 + Math.sin(t * 2) * 0.02);
+
+    // Tremor de tela (Camera Shake)
+    if (screenShakeT > 0) {
+      screenShakeT -= delta;
+      camera.position.x += (Math.random() - 0.5) * screenShakeInt;
+      camera.position.y += (Math.random() - 0.5) * screenShakeInt;
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+})();
+</script>
+</body>
+</html>

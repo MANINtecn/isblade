@@ -1,0 +1,35 @@
+{
+  "_nota": "Itens do IS BLADE. Armas e armaduras NAO dao skills: dao STATUS, que variam pela RARIDADE (normal, raro, epico, lendario). stats = status base (multiplicados por 'mult' da raridade); 'affixes' = status extras sorteados (quantidade = 'affixes' da raridade). weight = chance relativa de cair do chefe.",
+
+  "rarities": {
+    "normal":   { "name": "Normal",   "css": "#c9d1e6", "mult": 1.0, "affixes": 0, "weight": 60 },
+    "raro":     { "name": "Raro",     "css": "#5aa9ff", "mult": 1.3, "affixes": 1, "weight": 28 },
+    "epico":    { "name": "Epico",    "css": "#b45aff", "mult": 1.7, "affixes": 2, "weight": 10 },
+    "lendario": { "name": "Lendario", "css": "#ffb02e", "mult": 2.3, "affixes": 3, "weight": 2 }
+  },
+
+  "stats": {
+    "dano":     { "name": "Dano",              "unit": "%" },
+    "vida":     { "name": "Vida",              "unit": ""  },
+    "defesa":   { "name": "Defesa",            "unit": "%" },
+    "estamina": { "name": "Regen. de estamina","unit": "%" }
+  },
+
+  "affixes": { "dano": 4, "vida": 15, "defesa": 2, "estamina": 6 },
+
+  "slots": { "weapon": "Arma", "helmet": "Elmo", "chest": "Peitoral", "gloves": "Luvas", "boots": "Botas" },
+
+  "bases": [
+    { "id": "sword_long",  "name": "Espada Longa",       "slot": "weapon", "weapon": "sword",       "stats": { "dano": 10 } },
+    { "id": "shield_guardian","name": "Escudo do Guardiao",  "slot": "weapon", "weapon": "shield",      "stats": { "dano": 7, "defesa": 3 } },
+    { "id": "staff_arcane","name": "Cajado Arcano",      "slot": "weapon", "weapon": "staff",       "stats": { "dano": 12 } },
+    { "id": "helmet_iron", "name": "Elmo de Ferro",      "slot": "helmet",                           "stats": { "vida": 20, "defesa": 2 } },
+    { "id": "chest_plate", "name": "Peitoral de Placas", "slot": "chest",                            "stats": { "vida": 40, "defesa": 4 } },
+    { "id": "gloves_hide", "name": "Luvas de Couro",     "slot": "gloves",                           "stats": { "dano": 3, "estamina": 4 } },
+    { "id": "boots_swift", "name": "Botas Ligeiras",     "slot": "boots",                            "stats": { "estamina": 8, "vida": 10 } }
+  ],
+
+  "start": { "equip": { "weapon": ["sword_long", "normal"] }, "bag": [["shield_guardian", "normal"], ["staff_arcane", "normal"], ["helmet_iron", "normal"], ["chest_plate", "normal"], ["gloves_hide", "normal"], ["boots_swift", "normal"]] },
+
+  "bagMax": 40
+}

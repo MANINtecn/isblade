@@ -1,0 +1,211 @@
+{
+  "itens": {
+    "cenario/env_arena_wall_01.glb": {
+      "arquivo": "cenario/env_arena_wall_01.glb",
+      "nome": "env_arena_wall_01",
+      "categoria": "ring_wall",
+      "triangulos": 2216,
+      "kb": 272,
+      "dimensoes_m": {
+        "largura": 26.819,
+        "altura": 1.74,
+        "profundidade": 26.763
+      },
+      "base_y": 0,
+      "nos": [],
+      "materiais": [
+        "muralha_pedra"
+      ],
+      "seed": null,
+      "prompt": null,
+      "origem": "blender:ring_wall (decompor cena)",
+      "parametros": {
+        "name": "env_arena_wall_01",
+        "radius": 12.8,
+        "height": 1.2,
+        "pillars": 12
+      },
+      "atualizado_em": "2026-10-22T21:12:22.673Z"
+    },
+    "armas/weapon_sword_01.glb": {
+      "arquivo": "armas/weapon_sword_01.glb",
+      "nome": "weapon_sword_01",
+      "categoria": "weapon_sword",
+      "triangulos": 8000,
+      "kb": 651.2,
+      "dimensoes_m": {
+        "largura": 0.38,
+        "altura": 1.2,
+        "profundidade": 0.066
+      },
+      "base_y": -0.219,
+      "nos": [
+        {
+          "nome": "grip",
+          "posicao": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "nome": "base_edge",
+          "posicao": [
+            0,
+            0.2547499999999999,
+            0
+          ]
+        },
+        {
+          "nome": "tip_edge",
+          "posicao": [
+            0.003197900866248604,
+            0.98125,
+            0.0017338549525736094
+          ]
+        }
+      ],
+      "materiais": [],
+      "seed": 209328164,
+      "prompt": null,
+      "origem": "ia:foto (Colab)",
+      "parametros": {
+        "id": "weapon_sword",
+        "file_stem": "weapon_sword_01",
+        "orient": "long",
+        "end": "thin",
+        "origin": "grip_blade",
+        "fit": "height",
+        "material": "metal",
+        "target_m": 1.2,
+        "max_tris": 8000,
+        "max_kb": 1536,
+        "nodes": [
+          "tip_edge",
+          "base_edge",
+          "grip"
+        ]
+      },
+      "encaixe": null,
+      "atualizado_em": "2026-10-24T16:02:14.671Z"
+    },
+    "armaduras/armor_helmet_01.glb": {
+      "arquivo": "armaduras/armor_helmet_01.glb",
+      "nome": "armor_helmet_01",
+      "categoria": "helmet",
+      "triangulos": 2440,
+      "kb": 54.7,
+      "dimensoes_m": {
+        "largura": 0.403,
+        "altura": 0.46,
+        "profundidade": 0.445
+      },
+      "base_y": 0,
+      "nos": [],
+      "materiais": [
+        "aco",
+        "ouro"
+      ],
+      "seed": null,
+      "prompt": null,
+      "origem": "blender:helmet (painel)",
+      "parametros": {
+        "height": 0.46,
+        "width": 0.38,
+        "depth": 0.42,
+        "steel_color": "#3a4150",
+        "trim_color": "#d4a24c",
+        "name": "armor_helmet_01"
+      },
+      "encaixe": {
+        "slot": "helmet",
+        "osso": "head",
+        "posicao": [
+          0,
+          -0.04053,
+          0.00044
+        ],
+        "quaternio": [
+          -0.0054,
+          0,
+          0,
+          0.99999
+        ],
+        "escala": [
+          0.69935,
+          0.69935,
+          0.69935
+        ],
+        "espelho": null,
+        "referencia": {
+          "personagem": "Talibrac.vrm",
+          "altura_m": 2.45,
+          "escala_do_jogo": 1.3298
+        },
+        "conferencia_mm": 0.005
+      },
+      "atualizado_em": "2026-10-23T13:48:46.498Z"
+    },
+    "armaduras/armor_chest_01.glb": {
+      "arquivo": "armaduras/armor_chest_01.glb",
+      "nome": "armor_chest_01",
+      "categoria": "chest",
+      "triangulos": 1444,
+      "kb": 36.7,
+      "dimensoes_m": {
+        "largura": 0.5,
+        "altura": 0.56,
+        "profundidade": 0.312
+      },
+      "base_y": 0,
+      "nos": [],
+      "materiais": [
+        "aco",
+        "ouro"
+      ],
+      "seed": null,
+      "prompt": null,
+      "origem": "blender:chest (painel)",
+      "parametros": {
+        "width": 0.5,
+        "height": 0.56,
+        "depth": 0.3,
+        "steel_color": "#3a4150",
+        "trim_color": "#d4a24c",
+        "name": "armor_chest_01"
+      },
+      "encaixe": {
+        "slot": "chest",
+        "osso": "upperChest",
+        "posicao": [
+          0,
+          -0.2872,
+          -0.09455
+        ],
+        "quaternio": [
+          0.16829,
+          0,
+          0,
+          0.98574
+        ],
+        "escala": [
+          0.86479,
+          0.86479,
+          0.86479
+        ],
+        "espelho": null,
+        "referencia": {
+          "personagem": "Talibrac.vrm",
+          "altura_m": 2.45,
+          "escala_do_jogo": 1.3298
+        },
+        "conferencia_mm": 0.004
+      },
+      "atualizado_em": "2026-10-23T15:29:22.779Z"
+    }
+  },
+  "gerado_por": "TECX LABS 3D (aba Web GLB)",
+  "convencao": "GLB unico; metros; Y para cima; frente em +Z; cenario com base em Y=0; armas com origem no cabo",
+  "atualizado_em": "2026-10-24T16:02:14.671Z",
+  "convencao_encaixe": "Armaduras: item.encaixe e a transformacao LOCAL do osso VRM (a mesma conta do jogo: Talibrac escalada para 2,45 m, peca presa no osso real). Aplicar com: osso = humanoid.getRawBoneNode(encaixe.osso); osso.add(peca); peca.position.fromArray(encaixe.posicao); peca.quaternion.fromArray(encaixe.quaternio); peca.scale.fromArray(encaixe.escala). Se encaixe.espelho existir, clonar a peca e aplicar do mesmo jeito no osso encaixe.espelho.osso (lado oposto)."
+}

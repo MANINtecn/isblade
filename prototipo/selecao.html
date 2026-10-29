@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>IS BLADE - Seleção de Personagens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030611;
+  --panel: rgba(8, 14, 28, 0.88);
+  --panel-border: rgba(245, 196, 81, 0.35);
+  --gold: #f5c451;
+  --gold-glow: rgba(245, 196, 81, 0.45);
+  --cyan: #5aa9ff;
+  --cyan-glow: rgba(90, 169, 255, 0.4);
+  --red: #ff4d6d;
+  --text: #eaf1fb;
+  --dim: #8b9bb4;
+}
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Outfit', sans-serif; color:var(--text); }
+#canvas-wrap { position:absolute; inset:0; z-index:1; }
+#webgl { width:100%; height:100%; display:block; }
+
+/* Overlay UI */
+.ui-layer { position:absolute; inset:0; z-index:10; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; padding:14px 24px 20px; }
+
+/* Header */
+.header { display:flex; justify-content:space-between; align-items:center; }
+.logo-box { display:flex; flex-direction:column; }
+.logo-title { font-family:'Cinzel', serif; font-size:24px; font-weight:900; letter-spacing:0.12em; color:#fff; text-shadow:0 0 20px var(--cyan-glow); }
+.logo-title span { color:var(--gold); }
+.logo-sub { font-size:10.5px; font-weight:600; letter-spacing:0.2em; color:var(--dim); text-transform:uppercase; margin-top:2px; display:flex; align-items:center; gap:8px; }
+.server-badge { background:rgba(34, 197, 94, 0.15); border:1px solid rgba(34, 197, 94, 0.4); color:#4ade80; padding:1px 6px; border-radius:3px; font-size:9px; font-weight:700; letter-spacing:0.05em; }
+
+.top-actions { display:flex; gap:12px; pointer-events:auto; }
+.top-btn { background:var(--panel); border:1px solid var(--panel-border); color:var(--gold); padding:6px 14px; border-radius:6px; font-size:11.5px; font-weight:700; text-decoration:none; cursor:pointer; transition:all .2s; backdrop-filter:blur(8px); display:inline-flex; align-items:center; gap:6px; }
+.top-btn:hover { background:rgba(245, 196, 81, 0.2); border-color:var(--gold); transform:translateY(-1px); box-shadow:0 0 15px var(--gold-glow); }
+
+/* Main layout: Left Details, Right Slots */
+.main-content { display:flex; justify-content:space-between; align-items:center; flex:1; pointer-events:none; margin:8px 0; min-height:0; }
+
+/* Left Hero Card */
+.left-panel { width:310px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:18px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:10px; max-height:calc(100vh - 160px); overflow-y:auto; }
+.left-panel::-webkit-scrollbar { width:4px; }
+.left-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
+
+/* Right Slots List */
+.right-panel { width:310px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:8px; max-height:calc(100vh - 160px); overflow-y:auto; }
+.right-panel::-webkit-scrollbar { width:4px; }
+.right-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
+
+.hero-name { font-family:'Cinzel', serif; font-size:24px; font-weight:900; color:var(--gold); letter-spacing:0.06em; text-shadow:0 0 16px var(--gold-glow); }
+.hero-title { font-size:12px; font-weight:600; color:var(--cyan); letter-spacing:0.08em; text-transform:uppercase; margin-top:2px; }
+.hero-meta { display:flex; gap:12px; align-items:center; font-size:11px; color:var(--dim); margin-top:4px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px; }
+.hero-level { background:rgba(245, 196, 81, 0.15); border:1px solid var(--gold); color:var(--gold); padding:2px 8px; border-radius:4px; font-weight:800; font-size:11px; }
+
+.section-title { font-family:'Cinzel', serif; font-size:11px; font-weight:800; letter-spacing:0.15em; color:var(--gold); text-transform:uppercase; border-bottom:1px solid rgba(245, 196, 81, 0.2); padding-bottom:4px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center; }
+
+.stat-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; margin-bottom:3px; }
+.stat-label { font-weight:700; color:var(--text); }
+.stat-val { font-weight:800; color:var(--gold); }
+.stat-bar { height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05); }
+.stat-fill { height:100%; background:linear-gradient(90deg, #5aa9ff, var(--gold)); border-radius:3px; }
+
+.lore-text { font-size:11px; line-height:1.55; color:var(--dim); font-style:italic; border-left:2px solid var(--gold); padding-left:10px; }
+.gear-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#d2e5ff; background:rgba(90, 169, 255, 0.1); border:1px solid rgba(90, 169, 255, 0.25); border-radius:4px; padding:5px 8px; }
+
+/* Right Slots List */
+.right-panel { width:320px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:18px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:10px; max-height:80vh; overflow-y:auto; }
+.right-panel::-webkit-scrollbar { width:4px; }
+.right-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
+
+.slot-list { display:flex; flex-direction:column; gap:8px; }
+.slot-card { background:rgba(15, 23, 42, 0.7); border:1.5px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px 14px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; display:flex; align-items:center; gap:12px; }
+.slot-card:hover { border-color:rgba(90, 169, 255, 0.6); background:rgba(90, 169, 255, 0.12); transform:translateX(-3px); }
+.slot-card.active { border-color:var(--gold); background:rgba(245, 196, 81, 0.18); box-shadow:0 0 16px var(--gold-glow); transform:translateX(-4px); }
+.slot-card.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--gold); box-shadow:0 0 10px var(--gold); }
+
+.slot-icon { width:40px; height:40px; border-radius:6px; background:rgba(5, 10, 24, 0.85); border:1px solid var(--panel-border); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.slot-info { display:flex; flex-direction:column; flex:1; min-width:0; }
+.slot-name { font-family:'Cinzel', serif; font-size:14px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slot-card.active .slot-name { color:var(--gold); }
+.slot-class { font-size:11px; color:var(--dim); margin-top:2px; }
+.slot-tag { font-size:9.5px; font-weight:700; color:var(--cyan); }
+
+.slot-empty { background:rgba(15, 23, 42, 0.35); border:1.5px dashed rgba(255,255,255,0.15); border-radius:8px; padding:14px; text-align:center; color:var(--dim); font-size:12px; font-weight:600; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.slot-empty:hover { border-color:var(--gold); color:var(--gold); background:rgba(245, 196, 81, 0.08); transform:translateY(-1px); }
+
+/* Footer / Action Bar */
+.footer-bar { display:flex; justify-content:space-between; align-items:center; pointer-events:auto; padding-top:12px; }
+.left-actions { display:flex; gap:12px; }
+.btn-secondary { background:rgba(15, 23, 42, 0.85); border:1px solid rgba(255,255,255,0.16); border-radius:24px; padding:12px 26px; font-family:'Cinzel', serif; font-size:12px; font-weight:700; letter-spacing:0.1em; color:var(--text); cursor:pointer; transition:all .2s; backdrop-filter:blur(8px); display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
+.btn-secondary:hover { border-color:var(--cyan); color:#fff; background:rgba(90, 169, 255, 0.2); box-shadow:0 0 15px var(--cyan-glow); transform:translateY(-1px); }
+
+.btn-danger { background:rgba(239, 68, 68, 0.12); border:1px solid rgba(239, 68, 68, 0.4); color:#fca5a5; }
+.btn-danger:hover { background:rgba(239, 68, 68, 0.25); border-color:#ef4444; color:#fff; box-shadow:0 0 15px rgba(239, 68, 68, 0.4); }
+
+.enter-btn { background:linear-gradient(135deg, #f5c451, #e5a720); border:none; border-radius:30px; padding:16px 52px; font-family:'Cinzel', serif; font-size:16px; font-weight:900; letter-spacing:0.18em; color:#060a14; cursor:pointer; box-shadow:0 0 35px var(--gold-glow), 0 8px 24px rgba(0,0,0,0.6); transition:all .22s; display:inline-flex; align-items:center; gap:12px; text-transform:uppercase; text-decoration:none; }
+.enter-btn:hover { transform:scale(1.04) translateY(-2px); box-shadow:0 0 50px var(--gold-glow), 0 12px 30px rgba(0,0,0,0.8); filter:brightness(1.1); }
+.enter-btn:active { transform:scale(0.98); }
+
+/* Destination Choice */
+.dest-toggle { display:inline-flex; background:rgba(5, 10, 24, 0.7); border:1px solid var(--panel-border); border-radius:20px; padding:3px; gap:4px; }
+.dest-opt { padding:6px 14px; border-radius:16px; font-size:11px; font-weight:700; color:var(--dim); cursor:pointer; transition:all .2s; }
+.dest-opt.active { background:var(--gold); color:#030611; font-weight:800; box-shadow:0 0 10px var(--gold-glow); }
+
+/* Modal Confirmation for Delete */
+#modal-backdrop, #rename-modal-backdrop { position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.78); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; }
+.modal-box { width:min(420px, 90vw); background:var(--panel); border:1.5px solid var(--red); border-radius:12px; padding:26px; box-shadow:0 0 40px rgba(239,68,68,0.3); text-align:center; display:flex; flex-direction:column; gap:16px; }
+.modal-box.gold-border { border-color:var(--gold); box-shadow:0 0 40px rgba(245,196,81,0.35); }
+.modal-title { font-family:'Cinzel', serif; font-size:18px; font-weight:900; color:#fff; }
+.modal-desc { font-size:13px; color:var(--dim); line-height:1.5; }
+.modal-name { color:var(--gold); font-weight:800; }
+.modal-actions { display:flex; gap:12px; justify-content:center; margin-top:8px; }
+
+.slot-action-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); border-radius:6px; color:#fff; cursor:pointer; padding:3px 6px; font-size:11px; transition:all .15s ease; pointer-events:auto; }
+.slot-action-btn:hover { background:rgba(245,196,81,0.25); border-color:var(--gold); transform:scale(1.12); }
+.slot-action-btn.del:hover { background:rgba(239,68,68,0.3); border-color:#ef4444; }
+
+/* Drag hint */
+.drag-hint { position:absolute; bottom:28px; left:50%; transform:translateX(-50%); font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:6px; pointer-events:none; }
+.drag-hint span { display:inline-block; border:1px solid rgba(255,255,255,0.25); border-radius:12px; padding:2px 8px; font-size:9.5px; }
+
+/* Flash transition */
+#transition-overlay { position:fixed; inset:0; background:#fff; z-index:9999; opacity:0; pointer-events:none; transition:opacity .5s ease; }
+</style>
+  <!-- >>> CLAUDE [pwa] 2026-10-28 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#05060d">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="js/pwa.js" defer></script>
+  <!-- <<< CLAUDE [pwa] -->
+</head>
+<body>
+
+<div id="transition-overlay"></div>
+
+<!-- Modal Delete -->
+<div id="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-title">⚔️ EXCLUIR PERSONAGEM</div>
+    <div class="modal-desc">
+      Tem certeza de que deseja deletar <span class="modal-name" id="delCharName">Ícaro</span>?<br>
+      Esta ação é permanente e não poderá ser desfeita.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="btn-secondary btn-danger" onclick="confirmDelete()">Excluir Permanentemente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Rename -->
+<div id="rename-modal-backdrop">
+  <div class="modal-box gold-border">
+    <div class="modal-title" style="color:var(--gold)">✏️ RENOMEAR PERSONAGEM</div>
+    <div class="modal-desc">
+      Digite um novo nome exclusivo para <span class="modal-name" id="renameCharOldName">Nome</span>:
+    </div>
+    <input type="text" id="renameInput" maxlength="16" placeholder="Novo nome único..." style="width:100%; box-sizing:border-box; padding:10px 14px; background:rgba(6,11,25,0.85); border:1.5px solid var(--gold); border-radius:8px; color:#fff; font-family:'Cinzel',serif; font-size:14px; letter-spacing:0.05em; outline:none; text-align:center;">
+    <div id="renameFeedback" style="font-size:11px; min-height:16px; font-weight:600; color:#ef4444; transition:all .2s;"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeRenameModal()">Cancelar</button>
+      <button class="btn-secondary" style="border-color:var(--gold); color:var(--gold); font-weight:800;" onclick="confirmRename()">Salvar Novo Nome</button>
+    </div>
+  </div>
+</div>
+
+<div id="canvas-wrap">
+  <canvas id="webgl"></canvas>
+</div>
+
+<div class="ui-layer">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-box">
+      <div class="logo-title">IS BLADE <span>&middot; LOBBY</span></div>
+      <div class="logo-sub">
+        <span>IS BLADE &middot; Seleção de Personagens</span>
+        <span class="server-badge">&#9679; SERVIDOR ADEN ATIVO</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Middle -->
+  <div class="main-content">
+    <!-- Left Hero Card -->
+    <aside class="left-panel">
+      <div>
+        <div class="hero-name" id="heroName">Ícaro</div>
+        <div class="hero-title" id="heroTitle">Guerreiro de Aden</div>
+        <div class="hero-meta">
+          <span class="hero-level" id="heroLevel">Lv. 1</span>
+          <span id="heroRace">Humano Guerreiro</span>
+          <span id="heroLoc">&bull; Talking Island</span>
+        </div>
+      </div>
+
+      <div class="section-title">ATRIBUTOS CANÔNICOS <small>IS BLADE</small></div>
+      <div>
+        <div class="stat-row"><span class="stat-label">FORÇA (STR)</span><span class="stat-val" id="val-str">40</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-str" style="width:80%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">DESTREZA (DEX)</span><span class="stat-val" id="val-dex">30</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-dex" style="width:60%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">CONSTITUIÇÃO (CON)</span><span class="stat-val" id="val-con">43</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-con" style="width:86%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">INTELIGÊNCIA (INT)</span><span class="stat-val" id="val-int">21</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-int" style="width:42%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">RACIONALIDADE (WIT)</span><span class="stat-val" id="val-wit">11</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-wit" style="width:22%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">ESPÍRITO (MEN)</span><span class="stat-val" id="val-men">25</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-men" style="width:50%"></div></div>
+      </div>
+
+      <div class="section-title">EQUIPAMENTO ATUAL</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="gear-badge" id="gearWeapon">⚔️ Dragon Slayer (Espada 2M)</div>
+        <div class="gear-badge" id="gearSet">🛡️ Traje Trainee de Iniciante</div>
+      </div>
+
+      <div class="section-title">HISTÓRIA &amp; BÊNÇÃO</div>
+      <p class="lore-text" id="heroLore">"Guerreiros Humanos possuem vigor equilibrado e perícia marcial lendária nas frentes de batalha de Aden."</p>
+    </aside>
+
+    <!-- Right Slots List -->
+    <aside class="right-panel">
+      <div class="section-title">PERSONAGENS CRIADOS <small id="slotCounter">1 / 7</small></div>
+      <div class="slot-list" id="slotListContainer">
+        <!-- Preenchido via JavaScript -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- Drag hint -->
+  <div class="drag-hint">
+    <span>Arrastar Mouse</span> Girar Personagem 3D &bull; <span>Scroll</span> Zoom
+  </div>
+
+  <!-- Footer Actions -->
+  <footer class="footer-bar">
+    <div class="left-actions">
+      <a href="criacao.html" class="btn-secondary">➕ Criar Novo Personagem</a>
+      <button class="btn-secondary btn-danger" onclick="openDeleteModal()">🗑️ Excluir Personagem</button>
+    </div>
+    <div>
+      <button class="enter-btn" onclick="enterGame()">
+        <span>Entrar no Mundo</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </footer>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/GLTFLoader.js"></script>
+
+<script>
+// Sons
+var sfxHover = new Audio('assets/l2_sounds/interface/interface_click.wav');
+var sfxSelect = new Audio('assets/l2_sounds/interface/interface_window_open.wav');
+var sfxEnter = new Audio('assets/l2_sounds/interface/interface_warp.wav');
+sfxHover.volume = 0.3;
+sfxSelect.volume = 0.4;
+sfxEnter.volume = 0.7;
+
+var RACE_CONFIG = {
+  human_fighter: {
+    name: 'Humano Guerreiro',
+    title: 'Guerreiro de Aden (M)',
+    model: 'assets/personagens/human_fighter.glb?v=7',
+    icon: '⚔️',
+    stats: { str:40, dex:30, con:43, int:21, wit:11, men:25 },
+    lore: 'Lutador nobre e balanceado, mestre no manejo de montantes colossais e escudos de torre.'
+  },
+  human_fighter_imperial: {
+    name: 'Humano Imperial',
+    title: 'Cavaleiro Imperial S-Grade (M)',
+    model: 'assets/personagens/human_fighter_imperial.glb?v=7',
+    icon: '👑',
+    stats: { str:40, dex:30, con:43, int:21, wit:11, men:25 },
+    lore: 'Portador da couraça reluzente Imperial Crusader, a armadura de placas máxima do continente.'
+  },
+  human_fighter_female: {
+    name: 'Humana Guerreira',
+    title: 'Guerreira Imperial (F)',
+    model: 'assets/personagens/human_fighter_female.glb?v=7',
+    icon: '🗡️',
+    stats: { str:40, dex:30, con:43, int:21, wit:11, men:25 },
+    lore: 'Disciplinada defensora da vanguarda de Aden, unindo técnica cirúrgica a golpes demolidores.'
+  },
+  magic_m: {
+    name: 'Humano Místico',
+    title: 'Feiticeiro Elemental (M)',
+    model: 'assets/personagens/magic_m.glb?v=7',
+    icon: '🔮',
+    stats: { str:22, dex:21, con:27, int:41, wit:20, men:39 },
+    lore: 'Erudito arcano da Torre de Marfim, converte forças cósmicas em feitiços destruidores.'
+  },
+  magic_f: {
+    name: 'Humana Mística',
+    title: 'Maga Sagrada (F)',
+    model: 'assets/personagens/magic_f.glb?v=7',
+    icon: '✨',
+    stats: { str:22, dex:21, con:27, int:41, wit:20, men:39 },
+    lore: 'Canalizadora das bênçãos e do fogo primordial de Einhasad, pulveriza inimigos com luz.'
+  },
+  elf_m: {
+    name: 'Elfo Branco',
+    title: 'Cavaleiro de Eva (M)',
+    model: 'assets/personagens/elf_m.glb?v=7',
+    icon: '🍃',
+    stats: { str:36, dex:35, con:36, int:23, wit:14, men:26 },
+    lore: 'Guardião das florestas élficas, movimenta-se com leveza sobrenatural e cortes de vento.'
+  },
+  elf_f: {
+    name: 'Elfa Branca',
+    title: 'Espadachim Sagrada (F)',
+    model: 'assets/personagens/elf_f.glb?v=7',
+    icon: '🧝‍♀️',
+    stats: { str:36, dex:35, con:36, int:23, wit:14, men:26 },
+    lore: 'Dotada da velocidade mais sublime do mundo, dança sobre o campo de batalha em harmonia letal.'
+  },
+  orc_m: {
+    name: 'Orc Guerreiro',
+    title: 'Titã de Paagrio (M)',
+    model: 'assets/personagens/orc_m.glb?v=7',
+    icon: '🔥',
+    stats: { str:42, dex:26, con:47, int:18, wit:12, men:27 },
+    lore: 'Força bruta e vitalidade titânica. Nada resiste ao impacto esmagador de sua fúria vulcânica.'
+  },
+  orc_f: {
+    name: 'Orc Guerreira',
+    title: 'Destruidora Selvagem (F)',
+    model: 'assets/personagens/orc_f.glb?v=7',
+    icon: '🌋',
+    stats: { str:42, dex:26, con:47, int:18, wit:12, men:27 },
+    lore: 'Campeã dos planaltos em chamas de Elmore, desfere golpes que abalam os alicerces da terra.'
+  },
+  dwarf_m: {
+    name: 'Anão Artesão',
+    title: 'Engenheiro de Maphr (M)',
+    model: 'assets/personagens/dwarf_m.glb?v=7',
+    icon: '🔨',
+    stats: { str:39, dex:29, con:45, int:20, wit:10, men:27 },
+    lore: 'Mestre da forja e da cinemática subterrânea, sua tenacidade física resiste a qualquer cerco.'
+  },
+  dwarf_f: {
+    name: 'Anã Guerreira',
+    title: 'Guardiã de Maphr (F)',
+    model: 'assets/personagens/dwarf_f.glb?v=7',
+    icon: '⛏️',
+    stats: { str:39, dex:29, con:45, int:20, wit:10, men:27 },
+    lore: 'Pequena em estatura mas inquebrantável em combate. Quebra formações pesadas com facilidade.'
+  },
+  darkelf_m: {
+    name: 'Elfo Negro',
+    title: 'Assassino de Shilen (M)',
+    model: 'assets/personagens/darkelf_m.glb?v=5',
+    icon: '🌑',
+    stats: { str:41, dex:34, con:32, int:25, wit:12, men:26 },
+    lore: 'Mestre da furtividade e de golpes críticos fatais, combina a maior força e agilidade de todo o continente.'
+  },
+  darkelf_f: {
+    name: 'Elfa Negra',
+    title: 'Templária de Shilen (F)',
+    model: 'assets/personagens/darkelf_f.glb?v=5',
+    icon: '🗡️',
+    stats: { str:41, dex:34, con:32, int:25, wit:12, men:26 },
+    lore: 'Graça mortal e lâminas velozes como a noite. Executa seus alvos com precisão cirúrgica e postura predatória.'
+  }
+};
+
+// Gerenciador de Personagens em localStorage
+var STORAGE_KEY = 'isblade_characters';
+var ACTIVE_KEY = 'isblade_active_character_id';
+
+var characters = [];
+var activeCharId = null;
+var currentDestination = 'cidade';
+
+function loadCharactersFromStorage(){
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) {
+      characters = JSON.parse(raw);
+    }
+  } catch(e) {
+    console.error('Falha ao ler localStorage:', e);
+    characters = [];
+  }
+
+  // Se nao houver nenhum personagem salvo, cria o primeiro automaticamente (Default Ícaro)
+  if(!characters || characters.length === 0){
+    var defaultChar = {
+      id: 'char_default_1',
+      name: localStorage.getItem('isblade.player_name') || 'Ícaro',
+      race: localStorage.getItem('isblade.char_race') || 'human_fighter',
+      charType: localStorage.getItem('isblade.char_type') || 'human_fighter',
+      set: 'starter',
+      weapon: localStorage.getItem('isblade.weapon') || 'sword',
+      hairStyle: localStorage.getItem('isblade.hair_style') || 'both',
+      hairColor: localStorage.getItem('isblade.hair_color') || '#ffffff',
+      level: 1,
+      location: 'Talking Island',
+      createdAt: 'Oficial'
+    };
+    characters = [defaultChar];
+    saveCharactersToStorage();
+  }
+
+  // Deteccao e resolucao automatica de duplicados historicos (ex: duas "Lyra")
+  var seenNames = {};
+  var hadDuplicates = false;
+  for(var i=0; i<characters.length; i++){
+    var normName = (characters[i].name || '').trim();
+    if(seenNames[normName.toLowerCase()]){
+      hadDuplicates = true;
+      var suffix = 2;
+      while(seenNames[(normName + ' ' + suffix).toLowerCase()]){ suffix++; }
+      characters[i].name = normName + ' ' + suffix;
+      seenNames[characters[i].name.toLowerCase()] = true;
+    } else {
+      seenNames[normName.toLowerCase()] = true;
+    }
+  }
+  if(hadDuplicates){
+    saveCharactersToStorage();
+  }
+
+  // Seleciona o personagem ativo
+  var savedActive = localStorage.getItem(ACTIVE_KEY);
+  if(savedActive && characters.some(function(c){ return c.id === savedActive; })){
+    activeCharId = savedActive;
+  } else {
+    activeCharId = characters[0].id;
+    localStorage.setItem(ACTIVE_KEY, activeCharId);
+  }
+}
+
+function saveCharactersToStorage(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(characters));
+    localStorage.setItem(ACTIVE_KEY, activeCharId);
+  } catch(e){
+    console.error('Falha ao salvar no localStorage:', e);
+  }
+}
+
+function getActiveChar(){
+  for(var i=0; i<characters.length; i++){
+    if(characters[i].id === activeCharId) return characters[i];
+  }
+  return characters[0];
+}
+
+var renameTargetCharId = null;
+window.openRenameModal = function(e, id){
+  if(e) e.stopPropagation();
+  renameTargetCharId = id || activeCharId;
+  var c = characters.find(function(item){ return item.id === renameTargetCharId; });
+  if(!c) return;
+
+  document.getElementById('renameCharOldName').textContent = c.name;
+  var inp = document.getElementById('renameInput');
+  inp.value = c.name;
+  document.getElementById('renameFeedback').textContent = '';
+  document.getElementById('rename-modal-backdrop').style.display = 'flex';
+  setTimeout(function(){ inp.focus(); inp.select(); }, 100);
+};
+
+window.closeRenameModal = function(){
+  document.getElementById('rename-modal-backdrop').style.display = 'none';
+  renameTargetCharId = null;
+};
+
+window.confirmRename = function(){
+  if(!renameTargetCharId) return;
+  var inp = document.getElementById('renameInput');
+  var fb = document.getElementById('renameFeedback');
+  var newName = (inp && inp.value.trim()) || '';
+
+  if(!newName){
+    fb.textContent = '⚠️ Digite um nome para o herói.';
+    return;
+  }
+  if(newName.length < 2){
+    fb.textContent = '⚠️ O nome deve ter pelo menos 2 caracteres.';
+    return;
+  }
+
+  // Verifica se ja existe outro personagem com esse mesmo nome
+  var alreadyExists = characters.some(function(item){
+    return item.id !== renameTargetCharId && (item.name || '').trim().toLowerCase() === newName.toLowerCase();
+  });
+
+  if(alreadyExists){
+    fb.textContent = '❌ Já existe um guerreiro com o nome "' + newName + '"!';
+    return;
+  }
+
+  var c = characters.find(function(item){ return item.id === renameTargetCharId; });
+  if(c){
+    c.name = newName;
+    if(c.id === activeCharId){
+      localStorage.setItem('isblade.player_name', newName);
+    }
+    saveCharactersToStorage();
+    renderSlots();
+    updateHeroCard();
+    if(typeof loadBackgroundCharacters3D === 'function'){
+      loadBackgroundCharacters3D();
+    }
+  }
+  closeRenameModal();
+};
+
+window.openDeleteModalForId = function(e, id){
+  if(e) e.stopPropagation();
+  if(characters.length <= 1){
+    alert('Você deve manter pelo menos um personagem criado no jogo!');
+    return;
+  }
+  activeCharId = id;
+  localStorage.setItem(ACTIVE_KEY, activeCharId);
+  renderSlots();
+  updateHeroCard();
+  loadCharacter3D();
+  openDeleteModal();
+};
+
+// Renderiza a lista de slots
+function renderSlots(){
+  var container = document.getElementById('slotListContainer');
+  if(!container) return;
+  container.innerHTML = '';
+
+  var maxSlots = 7;
+  for(var i=0; i<characters.length; i++){
+    var c = characters[i];
+    var cfg = RACE_CONFIG[c.charType] || RACE_CONFIG[c.race] || RACE_CONFIG.human_fighter;
+    var isActive = (c.id === activeCharId);
+
+    var card = document.createElement('div');
+    card.className = 'slot-card' + (isActive ? ' active' : '');
+    card.setAttribute('data-id', c.id);
+    card.onclick = (function(id){
+      return function(){ selectCharacter(id); };
+    })(c.id);
+
+    card.innerHTML =
+      '<div class="slot-icon">' + cfg.icon + '</div>' +
+      '<div class="slot-info">' +
+        '<div class="slot-name">' + escapeHtml(c.name) + '</div>' +
+        '<div class="slot-class">Nv. ' + (c.level || 1) + ' &bull; ' + cfg.name + '</div>' +
+        '<div class="slot-tag">' + (c.location || 'Talking Island') + '</div>' +
+      '</div>' +
+      '<div class="slot-actions" style="margin-left:auto; display:flex; gap:6px; align-items:center;">' +
+        '<button class="slot-action-btn" title="Renomear Personagem" onclick="openRenameModal(event, \'' + c.id + '\')">✏️</button>' +
+        (characters.length > 1 ? '<button class="slot-action-btn del" title="Excluir Personagem" onclick="openDeleteModalForId(event, \'' + c.id + '\')">🗑️</button>' : '') +
+      '</div>';
+    container.appendChild(card);
+  }
+
+  // Se tiver espaco para mais slots, exibe botao criar
+  if(characters.length < maxSlots){
+    var emptySlot = document.createElement('div');
+    emptySlot.className = 'slot-empty';
+    emptySlot.innerHTML = '➕ Criar Novo Personagem (Slot ' + (characters.length + 1) + ')';
+    emptySlot.onclick = function(){ window.location.href = 'criacao.html'; };
+    container.appendChild(emptySlot);
+  }
+
+  var counter = document.getElementById('slotCounter');
+  if(counter) counter.textContent = characters.length + ' / ' + maxSlots;
+}
+
+function escapeHtml(str){
+  return (str || '').replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+
+function selectCharacter(id){
+  if(activeCharId === id) return;
+  activeCharId = id;
+  localStorage.setItem(ACTIVE_KEY, activeCharId);
+
+  try { sfxSelect.currentTime = 0; sfxSelect.play().catch(function(){}); } catch(_){}
+
+  renderSlots();
+  updateHeroCard();
+  loadCharacter3D();
+}
+
+function updateHeroCard(){
+  var c = getActiveChar();
+  if(!c) return;
+
+  var cfg = RACE_CONFIG[c.charType] || RACE_CONFIG[c.race] || RACE_CONFIG.human_fighter;
+
+  document.getElementById('heroName').textContent = c.name;
+  document.getElementById('heroTitle').textContent = cfg.title;
+  document.getElementById('heroLevel').textContent = 'Lv. ' + (c.level || 1);
+  document.getElementById('heroRace').textContent = cfg.name;
+  document.getElementById('heroLoc').textContent = '• ' + (c.location || 'Talking Island');
+  document.getElementById('heroLore').textContent = '"' + cfg.lore + '"';
+
+  // Stats
+  var s = cfg.stats;
+  document.getElementById('val-str').textContent = s.str;
+  document.getElementById('bar-str').style.width = (s.str / 50 * 100) + '%';
+  document.getElementById('val-dex').textContent = s.dex;
+  document.getElementById('bar-dex').style.width = (s.dex / 50 * 100) + '%';
+  document.getElementById('val-con').textContent = s.con;
+  document.getElementById('bar-con').style.width = (s.con / 50 * 100) + '%';
+  document.getElementById('val-int').textContent = s.int;
+  document.getElementById('bar-int').style.width = (s.int / 50 * 100) + '%';
+  document.getElementById('val-wit').textContent = s.wit;
+  document.getElementById('bar-wit').style.width = (s.wit / 50 * 100) + '%';
+  document.getElementById('val-men').textContent = s.men;
+  document.getElementById('bar-men').style.width = (s.men / 50 * 100) + '%';
+
+  // Weapon label
+  var wLabel = '⚔️ Dragon Slayer (Espada 2M)';
+  if(c.weapon === 'swordshield' || c.weapon === 'shield') wLabel = '🛡️ Escudo (Guardião)';/* CLAUDE [guardiao]: personagens antigos com swordshield tambem viram Guardiao */
+  else if(c.weapon === 'none') wLabel = '🥊 Desarmado (Punhos Livres)';
+  document.getElementById('gearWeapon').textContent = wLabel;
+
+  var sLabel = (c.charType === 'imperial' || c.set === 'imperial') ? '👑 Imperial Crusader S-Grade' : '🛡️ Traje Trainee de Iniciante';
+  document.getElementById('gearSet').textContent = sLabel;
+}
+
+// Destino
+window.setDestination = function(dest){
+  currentDestination = dest;
+  document.getElementById('dest-btn-cidade').classList.toggle('active', dest === 'cidade');
+  document.getElementById('dest-btn-arena').classList.toggle('active', dest === 'arena');
+};
+
+// Deletar Personagem
+window.openDeleteModal = function(){
+  var c = getActiveChar();
+  if(!c) return;
+  if(characters.length <= 1){
+    alert('Você deve manter pelo menos um personagem criado no jogo!');
+    return;
+  }
+  document.getElementById('delCharName').textContent = c.name + ' (Lv. ' + (c.level || 1) + ')';
+  document.getElementById('modal-backdrop').style.display = 'flex';
+};
+
+window.closeDeleteModal = function(){
+  document.getElementById('modal-backdrop').style.display = 'none';
+};
+
+window.confirmDelete = function(){
+  closeDeleteModal();
+  if(characters.length <= 1) return;
+
+  var idx = -1;
+  for(var i=0; i<characters.length; i++){
+    if(characters[i].id === activeCharId){ idx = i; break; }
+  }
+  if(idx !== -1){
+    characters.splice(idx, 1);
+    activeCharId = characters[Math.max(0, idx - 1)].id;
+    saveCharactersToStorage();
+    renderSlots();
+    updateHeroCard();
+    loadCharacter3D();
+  }
+};
+
+// Entrar no Mundo
+window.enterGame = function(){
+  var c = getActiveChar();
+  if(!c) return;
+
+  // Sincroniza chaves de compatibilidade legado
+  localStorage.setItem('isblade_active_character_id', c.id);
+  localStorage.setItem('isblade.player_name', c.name);
+  localStorage.setItem('isblade.char_type', c.charType || c.race);
+  localStorage.setItem('isblade.char_race', c.race);
+  localStorage.setItem('isblade.weapon', c.weapon === 'none' ? 'none' : ((c.weapon === 'swordshield' || c.weapon === 'shield') ? 'shield' : 'sword')/* CLAUDE [guardiao] */);
+  localStorage.setItem('isblade.hair_style', c.hairStyle || 'both');
+  localStorage.setItem('isblade.hair_color', c.hairColor || '#ffffff');
+
+  try { sfxEnter.currentTime = 0; sfxEnter.play().catch(function(){}); } catch(_){}
+
+  var targetUrl = 'cidade.html';
+  var overlay = document.getElementById('transition-overlay');
+  overlay.style.opacity = '1';
+  setTimeout(function(){
+    window.location.href = targetUrl;
+  }, 500);
+};
+
+/* ==========================================================================
+   CENA 3D (THREE.JS) & CATEDRAL LOBBY LINEAGE 2
+   ========================================================================== */
+var scene, camera, renderer, clock;
+var templeFloorGroup, activeHeroGroup, bgCharactersGroup;
+var currentModel = null, weaponObj = null, shieldObj = null;
+var mixer = null, clips = {}, currentAction = null;
+var bgMixers = [];
+var brazierLights = [];
+var particles, partGeo;
+var gltfLoader = new THREE.GLTFLoader();
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+
+var BG_OFFSETS = [
+  { pos: [-2.2, 0, -1.6], rotY:  0.32 },
+  { pos: [ 2.2, 0, -1.6], rotY: -0.32 },
+  { pos: [-3.7, 0, -2.8], rotY:  0.46 },
+  { pos: [ 3.7, 0, -2.8], rotY: -0.46 },
+  { pos: [-4.9, 0, -4.0], rotY:  0.60 },
+  { pos: [ 4.9, 0, -4.0], rotY: -0.60 }
+];
+
+function init3D(){
+  var canvas = document.getElementById('webgl');
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.35;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.TextureLoader().load('assets/lobby_temple_bg.jpg');
+  scene.fog = new THREE.FogExp2(0x090e1c, 0.012);
+
+  camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 1.25, 3.8);
+
+  clock = new THREE.Clock();
+
+  // Iluminação da Catedral L2
+  var ambLight = new THREE.AmbientLight(0x4a658a, 1.3);
+  scene.add(ambLight);
+
+  var dirLight = new THREE.DirectionalLight(0xfff1cf, 2.6);
+  dirLight.position.set(2.5, 5.0, 3.2);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.width = 2048;
+  dirLight.shadow.mapSize.height = 2048;
+  dirLight.shadow.camera.near = 0.5;
+  dirLight.shadow.camera.far = 14;
+  dirLight.shadow.camera.left = -3;
+  dirLight.shadow.camera.right = 3;
+  dirLight.shadow.camera.top = 3.5;
+  dirLight.shadow.camera.bottom = -1;
+  scene.add(dirLight);
+
+  var rimLight = new THREE.DirectionalLight(0x60adff, 0.75);
+  rimLight.position.set(-3.5, 3.5, -3.5);
+  scene.add(rimLight);
+
+  var fillLight = new THREE.PointLight(0xf5c451, 1.4, 7);
+  fillLight.position.set(0, 0.3, 2.0);
+  scene.add(fillLight);
+
+  buildCathedralEnvironment();
+  buildParticles();
+  setupControls();
+  window.addEventListener('resize', onResize);
+
+  loadCharacter3D();
+  animate();
+}
+
+function buildCathedralEnvironment(){
+  templeFloorGroup = new THREE.Group();
+  activeHeroGroup = new THREE.Group();
+  bgCharactersGroup = new THREE.Group();
+
+  // 1. Chão de Pedra Templo L2 (com textura real de lajes góticas)
+  var floorTex = new THREE.TextureLoader().load('assets/cathedral_stone_floor.jpg');
+  floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+  floorTex.repeat.set(16, 16);
+  var floorGeo = new THREE.PlaneGeometry(60, 60);
+  var floorMat = new THREE.MeshStandardMaterial({
+    map: floorTex,
+    color: 0x222a3a,
+    roughness: 0.85,
+    metalness: 0.15
+  });
+  var floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.22;
+  floor.receiveShadow = true;
+  templeFloorGroup.add(floor);
+
+  // Anel decorativo de lajes polidas
+  var slabRingGeo = new THREE.RingGeometry(3.6, 6.2, 48);
+  var slabRingMat = new THREE.MeshStandardMaterial({
+    color: 0x1a2336,
+    roughness: 0.7,
+    metalness: 0.4
+  });
+  var slabRing = new THREE.Mesh(slabRingGeo, slabRingMat);
+  slabRing.rotation.x = -Math.PI / 2;
+  slabRing.position.y = -0.218;
+  slabRing.receiveShadow = true;
+  templeFloorGroup.add(slabRing);
+
+  // 2. Grande Altar/Dais Inferior
+  var lowerDaisGeo = new THREE.CylinderGeometry(3.6, 3.85, 0.22, 64);
+  var lowerDaisMat = new THREE.MeshStandardMaterial({
+    color: 0x151d2c,
+    roughness: 0.7,
+    metalness: 0.35
+  });
+  var lowerDais = new THREE.Mesh(lowerDaisGeo, lowerDaisMat);
+  lowerDais.position.y = -0.11;
+  lowerDais.receiveShadow = true;
+  templeFloorGroup.add(lowerDais);
+
+  // Borda Dourada do Dais
+  var lowerRimGeo = new THREE.TorusGeometry(3.7, 0.04, 16, 64);
+  var goldMat = new THREE.MeshStandardMaterial({ color: 0xf5c451, roughness: 0.25, metalness: 0.9, emissive: 0x553800 });
+  var lowerRim = new THREE.Mesh(lowerRimGeo, goldMat);
+  lowerRim.rotation.x = Math.PI / 2;
+  lowerRim.position.y = 0.002;
+  templeFloorGroup.add(lowerRim);
+
+  // 3. Dais Central do Herói Ativo (gira suavemente no grupo ativo)
+  var midDaisGeo = new THREE.CylinderGeometry(1.65, 1.85, 0.12, 48);
+  var midDaisMat = new THREE.MeshStandardMaterial({
+    color: 0x1f2b42,
+    roughness: 0.65,
+    metalness: 0.45
+  });
+  var midDais = new THREE.Mesh(midDaisGeo, midDaisMat);
+  midDais.position.y = 0.06;
+  midDais.receiveShadow = true;
+  activeHeroGroup.add(midDais);
+
+  var midRimGeo = new THREE.TorusGeometry(1.72, 0.035, 16, 64);
+  var midRim = new THREE.Mesh(midRimGeo, goldMat);
+  midRim.rotation.x = Math.PI / 2;
+  midRim.position.y = 0.122;
+  activeHeroGroup.add(midRim);
+
+  // Glifo central emissivo azul místico
+  var runicGeo = new THREE.RingGeometry(0.35, 1.5, 48);
+  var runicMat = new THREE.MeshBasicMaterial({
+    color: 0x5aa9ff,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide
+  });
+  var runic = new THREE.Mesh(runicGeo, runicMat);
+  runic.rotation.x = Math.PI / 2;
+  runic.position.y = 0.125;
+  activeHeroGroup.add(runic);
+
+  // 4. Braseiros em Colunas de Pedra Gótica
+  var pillarCoords = [
+    { x: -3.2, z:  0.6 },
+    { x:  3.2, z:  0.6 },
+    { x: -4.4, z: -2.6 },
+    { x:  4.4, z: -2.6 }
+  ];
+
+  brazierLights = [];
+  pillarCoords.forEach(function(pt){
+    var pGroup = new THREE.Group();
+    pGroup.position.set(pt.x, -0.22, pt.z);
+
+    // Coluna de pedra gótica
+    var colGeo = new THREE.CylinderGeometry(0.24, 0.32, 1.5, 16);
+    var colMat = new THREE.MeshStandardMaterial({ color: 0x1c2538, roughness: 0.8, metalness: 0.2 });
+    var col = new THREE.Mesh(colGeo, colMat);
+    col.position.y = 0.75;
+    col.castShadow = true;
+    col.receiveShadow = true;
+    pGroup.add(col);
+
+    // Taça / Caldeirão de Bronze
+    var cupGeo = new THREE.CylinderGeometry(0.36, 0.2, 0.3, 16);
+    var bronzeMat = new THREE.MeshStandardMaterial({ color: 0xc88232, metalness: 0.85, roughness: 0.35 });
+    var cup = new THREE.Mesh(cupGeo, bronzeMat);
+    cup.position.y = 1.6;
+    cup.castShadow = true;
+    pGroup.add(cup);
+
+    // Chama / Núcleo do Fogo Emissivo
+    var flameGeo = new THREE.SphereGeometry(0.12, 12, 12);
+    var flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa33 });
+    var flame = new THREE.Mesh(flameGeo, flameMat);
+    flame.position.y = 1.78;
+    pGroup.add(flame);
+
+    // Luz dinâmica da tocha (com flicker no loop animate)
+    var torchLight = new THREE.PointLight(0xff9433, 2.5, 7.5);
+    torchLight.position.set(0, 1.82, 0);
+    pGroup.add(torchLight);
+    brazierLights.push(torchLight);
+
+    templeFloorGroup.add(pGroup);
+  });
+
+  scene.add(templeFloorGroup);
+  scene.add(activeHeroGroup);
+  scene.add(bgCharactersGroup);
+}
+
+function buildParticles(){
+  var count = 90;
+  partGeo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  var vel = [];
+  for(var i=0; i<count; i++){
+    var theta = Math.random() * Math.PI * 2;
+    var r = 0.3 + Math.random() * 1.3;
+    pos[i*3] = Math.cos(theta) * r;
+    pos[i*3+1] = Math.random() * 2.5;
+    pos[i*3+2] = Math.sin(theta) * r;
+    vel.push({ speed: 0.15 + Math.random() * 0.3, theta: theta, r: r });
+  }
+  partGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  var partMat = new THREE.PointsMaterial({ color: 0xf5c451, size: 0.035, transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending });
+  particles = new THREE.Points(partGeo, partMat);
+  particles.userData = { vel: vel };
+  scene.add(particles);
+}
+
+var L2_WPN_AXIS_FIX = Math.PI / 2;
+
+function attachL2Item(root, boneName, glbUrl, options, cb){
+  var opts = options || {};
+  var holder = new THREE.Group();
+  if(opts.visible !== undefined) holder.visible = !!opts.visible;
+
+  var targetBone = root.getObjectByName(boneName);
+  if(!targetBone && boneName === 'Weapon_R_Bone') targetBone = root.getObjectByName('Bip01_R_Hand');
+  if(!targetBone && boneName === 'Shield_L_Bone') targetBone = root.getObjectByName('Bip01_L_Forearm');
+
+  if(targetBone) targetBone.add(holder);
+
+  gltfLoader.load(glbUrl, function(gw){
+    var itemScene = gw.scene;
+    itemScene.traverse(function(c){
+      if(c.isMesh){
+        c.castShadow = true;
+        c.receiveShadow = true;
+      }
+    });
+
+    if(opts.isL2 !== false){
+      itemScene.rotation.set(L2_WPN_AXIS_FIX, 0, 0);
+    }
+    if(opts.position) itemScene.position.set(opts.position[0], opts.position[1], opts.position[2]);
+    if(opts.rotation) itemScene.rotation.set(opts.rotation[0], opts.rotation[1], opts.rotation[2]);
+    if(opts.scale !== undefined) itemScene.scale.setScalar(opts.scale);
+
+    holder.add(itemScene);
+    if(cb) cb(holder, itemScene);
+  });
+  return holder;
+}
+
+function applyHair(root, style, colorHex){
+  if(!root) return;
+  root.traverse(function(child){
+    if(child.isMesh){
+      var n = (child.name || '').toLowerCase();
+      var isFront = n.indexOf('hair_front') !== -1 || n.indexOf('_ah') !== -1;
+      var isBack = n.indexOf('hair_back') !== -1 || n.indexOf('_bh') !== -1;
+      if(isFront || isBack){
+        if(isFront && !isBack){
+          child.visible = (style === 'both' || style === 'front');
+        } else if(isBack && !isFront){
+          child.visible = (style === 'both' || style === 'back');
+        }
+        if(child.material){
+          var mList = Array.isArray(child.material) ? child.material : [child.material];
+          mList.forEach(function(m){
+            if(colorHex && colorHex !== '#ffffff'){
+              m.color.setStyle(colorHex);
+              if(m.emissive){
+                var tc = new THREE.Color(colorHex);
+                m.emissive.copy(tc).multiplyScalar(0.32);
+              }
+            } else {
+              m.color.setHex(0xffffff);
+              if(m.emissive) m.emissive.setHex(0x000000);
+            }
+            m.needsUpdate = true;
+          });
+        }
+      }
+    }
+  });
+}
+
+function createNameplateSprite(name, level, className){
+  var canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 64;
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = 'rgba(6, 11, 24, 0.78)';
+  ctx.strokeStyle = 'rgba(245, 196, 81, 0.75)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if(ctx.roundRect){
+    ctx.roundRect(8, 8, 240, 48, 8);
+  } else {
+    ctx.rect(8, 8, 240, 48);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = 'bold 15px system-ui, sans-serif';
+  ctx.fillStyle = '#f5c451';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name + ' (Lv. ' + level + ')', 128, 24);
+
+  ctx.font = '11px system-ui, sans-serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText(className, 128, 42);
+
+  var texture = new THREE.CanvasTexture(canvas);
+  var spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true });
+  var sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set(1.2, 0.3, 1);
+  return sprite;
+}
+
+function loadCharacter3D(){
+  var c = getActiveChar();
+  if(!c) return;
+
+  var cfg = RACE_CONFIG[c.charType] || RACE_CONFIG[c.race] || RACE_CONFIG.human_fighter;
+
+  if(currentModel){
+    activeHeroGroup.remove(currentModel);
+    currentModel = null;
+  }
+  weaponObj = null;
+  shieldObj = null;
+  mixer = null;
+
+  gltfLoader.load(cfg.model + '?v=' + Date.now(), function(gltf){
+    var root = gltf.scene;
+    var targetH = (c.charType === 'dwarf_f' || c.race === 'dwarf_f') ? 1.65 : ((c.charType === 'orc_m' || c.race === 'orc_m') ? 2.5 : 2.25);
+    root.scale.setScalar(targetH / 42.78);
+    root.position.set(0, 0.12, 0);
+
+    root.traverse(function(child){
+      if(child.isMesh){
+        child.castShadow = true;
+        child.receiveShadow = true;
+        child.frustumCulled = false;
+        if(child.material){
+          child.material.envMapIntensity = 1.25;
+        }
+      }
+    });
+
+    applyHair(root, c.hairStyle || 'both', c.hairColor || '#ffffff');
+
+    // Equipar Armas
+    if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* CLAUDE [guardiao]: so escudo */
+      /* >>> CLAUDE [guardiao] 2026-10-27 — sem espada: o Guardiao so usa o escudo */ /* <<< CLAUDE [guardiao] */
+      shieldObj = attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/composite_shield.glb', {
+        visible: true
+      });
+    } else if(c.weapon !== 'none'){
+      weaponObj = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/dragon_slayer.glb', {
+        visible: true
+      });
+    }
+
+    activeHeroGroup.add(root);
+    currentModel = root;
+
+    // Configurar Animacoes
+    mixer = new THREE.AnimationMixer(root);
+    clips = {};
+    gltf.animations.forEach(function(anim){
+      clips[anim.name] = anim;
+      var clean = anim.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
+      if(!clips[clean]) clips[clean] = anim;
+    });
+
+    var mainIdleClip = clips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle'; });
+    var mainHandClip = clips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand'; });
+    var clipToPlay = (c.weapon === 'none' ? (mainHandClip || mainIdleClip) : (mainIdleClip || mainHandClip)) || gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
+    if(clipToPlay){
+      currentAction = mixer.clipAction(clipToPlay);
+      currentAction.reset().play();
+    }
+  });
+
+  // Carrega os outros personagens no fundo do templo
+  loadBackgroundCharacters3D();
+}
+
+function loadBackgroundCharacters3D(){
+  if(!bgCharactersGroup) return;
+
+  // Limpa heróis anteriores do fundo
+  while(bgCharactersGroup.children.length > 0){
+    bgCharactersGroup.remove(bgCharactersGroup.children[0]);
+  }
+  bgMixers = [];
+
+  var bgChars = characters.filter(function(item){ return item.id !== activeCharId; });
+
+  bgChars.forEach(function(c, idx){
+    if(idx >= BG_OFFSETS.length) return;
+    var offset = BG_OFFSETS[idx];
+    var cfg = RACE_CONFIG[c.charType] || RACE_CONFIG[c.race] || RACE_CONFIG.human_fighter;
+
+    gltfLoader.load(cfg.model + '?v=' + Date.now(), function(gltf){
+      var root = gltf.scene;
+      var targetH = (c.charType === 'dwarf_f' || c.race === 'dwarf_f') ? 1.65 : ((c.charType === 'orc_m' || c.race === 'orc_m') ? 2.5 : 2.25);
+      root.scale.setScalar(targetH / 42.78);
+      root.position.set(offset.pos[0], offset.pos[1], offset.pos[2]);
+      root.rotation.y = offset.rotY;
+
+      root.userData = { charId: c.id, isBgHero: true };
+
+      root.traverse(function(child){
+        if(child.isMesh){
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.userData = { charId: c.id, isBgHero: true };
+          if(child.material){
+            child.material.envMapIntensity = 1.1;
+          }
+        }
+      });
+
+      applyHair(root, c.hairStyle || 'both', c.hairColor || '#ffffff');
+
+      // Equipar Armas do personagem do fundo
+      if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* CLAUDE [guardiao]: so escudo */
+        /* >>> CLAUDE [guardiao] 2026-10-27 — sem espada: o Guardiao so usa o escudo */ /* <<< CLAUDE [guardiao] */
+        attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/composite_shield.glb', {
+          visible: true
+        });
+      } else if(c.weapon !== 'none'){
+        attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/dragon_slayer.glb', {
+          visible: true
+        });
+      }
+
+      // Runa no chão sob os pés do personagem
+      var runePedGeo = new THREE.RingGeometry(0.35, 0.65, 32);
+      var runePedMat = new THREE.MeshBasicMaterial({ color: 0xf5c451, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+      var runePed = new THREE.Mesh(runePedGeo, runePedMat);
+      runePed.rotation.x = Math.PI / 2;
+      runePed.position.set(offset.pos[0], offset.pos[1] + 0.005, offset.pos[2]);
+      bgCharactersGroup.add(runePed);
+
+      // Nameplate flutuante sobre a cabeça
+      var nameplate = createNameplateSprite(c.name, c.level || 1, cfg.name);
+      nameplate.position.set(offset.pos[0], offset.pos[1] + targetH + 0.35, offset.pos[2]);
+      bgCharactersGroup.add(nameplate);
+
+      // Animacao Idle do personagem no fundo
+      var bMixer = new THREE.AnimationMixer(root);
+      var bClips = {};
+      gltf.animations.forEach(function(anim){
+        bClips[anim.name] = anim;
+        var clean = anim.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
+        if(!bClips[clean]) bClips[clean] = anim;
+      });
+      var bIdleClip = bClips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle'; });
+      var bHandClip = bClips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand'; });
+      var bClip = (c.weapon === 'none' ? (bHandClip || bIdleClip) : (bIdleClip || bHandClip)) || gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
+      if(bClip){
+        var bAct = bMixer.clipAction(bClip);
+        bAct.time = (idx * 0.75) % (bClip.duration || 2.0); // Desloca suavemente para parecerem vivos
+        bAct.play();
+        bgMixers.push(bMixer);
+      }
+
+      bgCharactersGroup.add(root);
+    });
+  });
+}
+
+// Controles de mouse / orbita e selecao de herois no fundo
+var isDragging = false, dragMoved = false, prevX = 0, prevY = 0;
+function setupControls(){
+  var canvas = document.getElementById('webgl');
+
+  window.addEventListener('mousedown', function(e){
+    if(e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('.header') || e.target.closest('.footer-bar') || e.target.closest('#modal-backdrop') || e.target.closest('#rename-modal-backdrop')) return;
+    isDragging = true;
+    dragMoved = false;
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+
+  window.addEventListener('mousemove', function(e){
+    if(!isDragging || !activeHeroGroup) return;
+    var dx = e.clientX - prevX;
+    var dy = e.clientY - prevY;
+    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+    activeHeroGroup.rotation.y += dx * 0.008;
+    // Câmera travada perfeitamente no ponto de visão cinemático (sem subir/descer com o mouse)
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+
+  window.addEventListener('mouseup', function(e){
+    if(isDragging && !dragMoved && bgCharactersGroup){
+      // Detecta clique em personagem do fundo via Raycasting
+      mouse.x = (e.clientX / innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+
+      var hits = raycaster.intersectObjects(bgCharactersGroup.children, true);
+      for(var i=0; i<hits.length; i++){
+        var hObj = hits[i].object;
+        while(hObj && !hObj.userData.charId && hObj.parent){
+          hObj = hObj.parent;
+        }
+        if(hObj && hObj.userData && hObj.userData.charId){
+          selectCharacter(hObj.userData.charId);
+          break;
+        }
+      }
+    }
+    isDragging = false;
+  });
+
+  window.addEventListener('wheel', function(e){
+    camera.position.z = Math.max(2.2, Math.min(6.0, camera.position.z + e.deltaY * 0.003));
+  }, { passive:true });
+}
+
+function onResize(){
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = clock.getDelta();
+  var time = clock.getElapsedTime();
+
+  if(mixer) mixer.update(dt);
+  for(var i=0; i<bgMixers.length; i++){
+    bgMixers[i].update(dt);
+  }
+
+  // Rotacao suave do dais do heroi ativo
+  if(!isDragging && activeHeroGroup){
+    activeHeroGroup.rotation.y += dt * 0.12;
+  }
+
+  // Efeito cintilante de fogo nos braseiros
+  for(var b=0; b<brazierLights.length; b++){
+    brazierLights[b].intensity = 2.2 + Math.sin(time * 7.5 + b * 1.8) * 0.35 + (Math.random() - 0.5) * 0.2;
+  }
+
+  // Partículas
+  if(particles && partGeo){
+    var pos = partGeo.attributes.position.array;
+    var vel = particles.userData.vel;
+    for(var i=0; i<vel.length; i++){
+      pos[i*3+1] += vel[i].speed * dt;
+      if(pos[i*3+1] > 2.5) pos[i*3+1] = 0.05;
+      vel[i].theta += dt * 0.35;
+      pos[i*3] = Math.cos(vel[i].theta) * vel[i].r;
+      pos[i*3+2] = Math.sin(vel[i].theta) * vel[i].r;
+    }
+    partGeo.attributes.position.needsUpdate = true;
+  }
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+  loadCharactersFromStorage();
+  renderSlots();
+  updateHeroCard();
+  init3D();
+});
+</script>
+
+</body>
+</html>

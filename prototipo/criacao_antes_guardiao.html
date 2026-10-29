@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>IS BLADE - Criação de Personagem (Lineage 2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030611;
+  --panel: rgba(8, 14, 28, 0.88);
+  --panel-border: rgba(245, 196, 81, 0.35);
+  --gold: #f5c451;
+  --gold-glow: rgba(245, 196, 81, 0.45);
+  --cyan: #5aa9ff;
+  --cyan-glow: rgba(90, 169, 255, 0.4);
+  --text: #eaf1fb;
+  --dim: #8b9bb4;
+}
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Outfit', sans-serif; color:var(--text); }
+#canvas-wrap { position:absolute; inset:0; z-index:1; }
+#webgl { width:100%; height:100%; display:block; }
+
+/* Overlay UI */
+.ui-layer { position:absolute; inset:0; z-index:10; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; padding:14px 24px 18px; }
+
+/* Header */
+.header { display:flex; justify-content:space-between; align-items:center; }
+.logo-box { display:flex; flex-direction:column; }
+.logo-title { font-family:'Cinzel', serif; font-size:24px; font-weight:900; letter-spacing:0.12em; color:#fff; text-shadow:0 0 20px var(--cyan-glow); }
+.logo-title span { color:var(--gold); }
+.logo-sub { font-size:10.5px; font-weight:600; letter-spacing:0.2em; color:var(--dim); text-transform:uppercase; margin-top:2px; }
+
+.top-actions { display:flex; gap:12px; pointer-events:auto; }
+.top-btn { background:var(--panel); border:1px solid var(--panel-border); color:var(--gold); padding:6px 14px; border-radius:6px; font-size:11.5px; font-weight:700; text-decoration:none; cursor:pointer; transition:all .2s; backdrop-filter:blur(8px); display:inline-flex; align-items:center; gap:6px; }
+.top-btn:hover { background:rgba(245, 196, 81, 0.2); border-color:var(--gold); transform:translateY(-1px); box-shadow:0 0 15px var(--gold-glow); }
+
+/* Left Customization Panel */
+.main-content { display:flex; justify-content:space-between; align-items:center; flex:1; pointer-events:none; min-height:0; margin:6px 0; }
+.side-panel { width:330px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 150px); overflow-y:auto; }
+.side-panel::-webkit-scrollbar { width:4px; }
+.side-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
+
+/* Right Attributes & Lore Panel */
+.right-panel { width:270px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:10px; max-height:calc(100vh - 150px); overflow-y:auto; }
+.right-panel::-webkit-scrollbar { width:4px; }
+.right-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
+.stat-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; margin-bottom:3px; }
+.stat-label { font-weight:700; color:var(--text); }
+.stat-val { font-weight:800; color:var(--gold); }
+.stat-bar { height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05); }
+.stat-fill { height:100%; background:linear-gradient(90deg, #5aa9ff, var(--gold)); border-radius:3px; }
+.lore-text { font-size:11px; line-height:1.55; color:var(--dim); font-style:italic; border-left:2px solid var(--gold); padding-left:10px; margin:2px 0 6px; }
+.feature-badge { display:inline-flex; align-items:center; gap:6px; font-size:10.5px; color:#d2e5ff; background:rgba(90, 169, 255, 0.1); border:1px solid rgba(90, 169, 255, 0.25); border-radius:4px; padding:4px 8px; }
+
+.section-title { font-family:'Cinzel', serif; font-size:12px; font-weight:800; letter-spacing:0.15em; color:var(--gold); text-transform:uppercase; border-bottom:1px solid rgba(245, 196, 81, 0.2); padding-bottom:6px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; }
+.section-title small { font-family:'Outfit', sans-serif; font-size:10px; color:var(--dim); letter-spacing:0; font-weight:400; }
+
+/* Grid Buttons */
+.opt-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.opt-card { background:rgba(15, 23, 42, 0.7); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:10px 8px; cursor:pointer; text-align:center; transition:all .18s; position:relative; overflow:hidden; }
+.opt-card:hover { border-color:rgba(90, 169, 255, 0.5); background:rgba(90, 169, 255, 0.12); }
+.opt-card.active { border-color:var(--gold); background:rgba(245, 196, 81, 0.16); box-shadow:0 0 12px var(--gold-glow); }
+.opt-card.disabled { opacity:0.35; cursor:not-allowed; }
+.opt-name { font-size:12px; font-weight:700; color:#fff; display:block; }
+.opt-card.active .opt-name { color:var(--gold); }
+.opt-sub { font-size:9.5px; color:var(--dim); margin-top:2px; display:block; }
+.opt-badge { position:absolute; top:3px; right:4px; font-size:8px; font-weight:800; background:rgba(255,255,255,0.12); padding:1px 4px; border-radius:3px; color:#aaa; text-transform:uppercase; }
+
+/* Name Input */
+.name-input-wrap { display:flex; flex-direction:column; gap:6px; }
+.name-input { width:100%; height:38px; background:rgba(5, 10, 20, 0.85); border:1.5px solid var(--panel-border); border-radius:6px; padding:0 12px; font-family:'Cinzel', serif; font-size:14px; font-weight:700; color:var(--gold); outline:none; transition:all .2s; }
+.name-input:focus { border-color:var(--gold); box-shadow:0 0 16px var(--gold-glow); }
+
+/* Animation Action Demo Buttons */
+.anim-row { display:flex; gap:6px; flex-wrap:wrap; }
+.anim-btn { flex:1 1 30%; background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:6px 4px; font-size:10px; font-weight:700; color:var(--dim); cursor:pointer; text-align:center; transition:all .15s; }
+.anim-btn:hover { background:rgba(90, 169, 255, 0.2); color:#fff; border-color:var(--cyan); }
+.anim-btn.active { background:var(--cyan); color:#030611; border-color:var(--cyan); font-weight:800; }
+
+/* Footer / Enter Button */
+.footer-bar { display:flex; justify-content:center; align-items:center; pointer-events:auto; padding-top:12px; }
+.enter-btn { background:linear-gradient(135deg, #f5c451, #e5a720); border:none; border-radius:30px; padding:16px 48px; font-family:'Cinzel', serif; font-size:15px; font-weight:900; letter-spacing:0.18em; color:#060a14; cursor:pointer; box-shadow:0 0 30px var(--gold-glow), 0 8px 24px rgba(0,0,0,0.6); transition:all .22s; display:inline-flex; align-items:center; gap:12px; text-transform:uppercase; }
+.enter-btn:hover { transform:scale(1.04) translateY(-2px); box-shadow:0 0 45px var(--gold-glow), 0 12px 30px rgba(0,0,0,0.8); filter:brightness(1.1); }
+.enter-btn:active { transform:scale(0.98); }
+
+/* Hint */
+.drag-hint { position:absolute; bottom:30px; left:36px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:6px; pointer-events:none; }
+.drag-hint span { display:inline-block; border:1px solid rgba(255,255,255,0.25); border-radius:12px; padding:2px 8px; font-size:9.5px; }
+
+/* Color Palette for Hair */
+.color-palette { display:flex; gap:8px; align-items:center; }
+.color-swatch { width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); cursor:pointer; transition:all .2s; }
+.color-swatch:hover { transform:scale(1.15); border-color:#fff; }
+.color-swatch.active { border-color:var(--gold); box-shadow:0 0 10px var(--gold-glow); transform:scale(1.18); }
+
+/* Flash transition */
+#transition-overlay { position:fixed; inset:0; background:#fff; z-index:9999; opacity:0; pointer-events:none; transition:opacity .5s ease; }
+</style>
+</head>
+<body>
+
+<div id="transition-overlay"></div>
+
+<div id="canvas-wrap">
+  <canvas id="webgl"></canvas>
+</div>
+
+<div class="ui-layer">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-box">
+      <div class="logo-title">IS BLADE <span>&middot; SELEÇÃO</span></div>
+      <div class="logo-sub">Lineage 2 Interlude &middot; Criação Oficial de Personagem</div>
+    </div>
+    <div class="top-actions">
+      <a href="selecao.html" class="top-btn">👥 Seleção de Personagens</a>
+      <a href="cidade.html" class="top-btn">🏰 Entrar em Talking Island</a>
+      <a href="arena.html?mode=duel" class="top-btn">⚔️ Arena do Baium</a>
+    </div>
+  </header>
+
+  <!-- Middle -->
+  <div class="main-content">
+    <aside class="side-panel">
+      <!-- Nome -->
+      <div class="name-input-wrap">
+        <div class="section-title">NOME DO PERSONAGEM <small id="nameStatusTag">Exclusivo</small></div>
+        <input type="text" id="charName" class="name-input" value="Ícaro" maxlength="16" placeholder="Digite seu nome...">
+        <div id="nameFeedback" style="font-size:11px; margin-top:6px; min-height:16px; font-weight:600; transition:all .2s; color:#94a3b8;">Digite o nome do seu herói em Aden.</div>
+      </div>
+
+      <!-- Raça -->
+      <div>
+        <div class="section-title">RAÇA &amp; CLASSE <small>Lineage 2</small></div>
+        <div class="opt-grid">
+          <div class="opt-card active" id="race-human_fighter" onclick="selectRace('human_fighter')">
+            <span class="opt-name">Humano (M)</span>
+            <span class="opt-sub">Human Fighter &middot; Aden</span>
+          </div>
+          <div class="opt-card" id="race-human_fighter_female" onclick="selectRace('human_fighter_female')">
+            <span class="opt-name">Humana (F)</span>
+            <span class="opt-sub">Human Fighter &middot; Imperial</span>
+          </div>
+          <div class="opt-card" id="race-magic_m" onclick="selectRace('magic_m')">
+            <span class="opt-name">Humano Mágico (M)</span>
+            <span class="opt-sub">Mage &middot; Ivory Tower</span>
+          </div>
+          <div class="opt-card" id="race-magic_f" onclick="selectRace('magic_f')">
+            <span class="opt-name">Humana Mágica (F)</span>
+            <span class="opt-sub">Mage &middot; Einhasad</span>
+          </div>
+          <div class="opt-card" id="race-elf_m" onclick="selectRace('elf_m')">
+            <span class="opt-name">Elfo Branco (M)</span>
+            <span class="opt-sub">Elf &middot; Eva Knight</span>
+          </div>
+          <div class="opt-card" id="race-elf_f" onclick="selectRace('elf_f')">
+            <span class="opt-name">Elfa Branca (F)</span>
+            <span class="opt-sub">Elf &middot; Eva Dancer</span>
+          </div>
+          <div class="opt-card" id="race-orc_m" onclick="selectRace('orc_m')">
+            <span class="opt-name">Orc Guerreiro (M)</span>
+            <span class="opt-sub">Orc &middot; Paagrio Titan</span>
+          </div>
+          <div class="opt-card" id="race-orc_f" onclick="selectRace('orc_f')">
+            <span class="opt-name">Orc Guerreira (F)</span>
+            <span class="opt-sub">Orc &middot; Paagrio Fúria</span>
+          </div>
+          <div class="opt-card" id="race-dwarf_m" onclick="selectRace('dwarf_m')">
+            <span class="opt-name">Anão Artesão (M)</span>
+            <span class="opt-sub">Dwarf &middot; Forja Maphr</span>
+          </div>
+          <div class="opt-card" id="race-dwarf_f" onclick="selectRace('dwarf_f')">
+            <span class="opt-name">Anã Artesã (F)</span>
+            <span class="opt-sub">Dwarf &middot; Vigor Maphr</span>
+          </div>
+          <div class="opt-card" id="race-darkelf_m" onclick="selectRace('darkelf_m')">
+            <span class="opt-name">Elfo Negro (M)</span>
+            <span class="opt-sub">Dark Elf &middot; Shilen Assassin</span>
+          </div>
+          <div class="opt-card" id="race-darkelf_f" onclick="selectRace('darkelf_f')">
+            <span class="opt-name">Elfa Negra (F)</span>
+            <span class="opt-sub">Dark Elf &middot; Shilen Templar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Armadura / Set -->
+      <div>
+        <div class="section-title">ARMADURA / SET <small>Equipamento</small></div>
+        <div class="opt-grid">
+          <div class="opt-card active" id="set-starter" onclick="selectSet('fighter')">
+            <span class="opt-name">Traje de Iniciante</span>
+            <span class="opt-sub">No Grade &middot; Trainee</span>
+          </div>
+          <div class="opt-card" id="set-imperial" onclick="selectSet('imperial')">
+            <span class="opt-name">Imperial Crusader</span>
+            <span class="opt-sub">S-Grade &middot; Placas Ouro</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cabelo & Personalização -->
+      <div>
+        <div class="section-title">ESTILO DO CABELO <small>Visual</small></div>
+        <div class="opt-grid">
+          <div class="opt-card active" id="hair-both" onclick="selectHairStyle('both')">
+            <span class="opt-name">Padrão L2</span>
+            <span class="opt-sub">Franja + Rabo</span>
+          </div>
+          <div class="opt-card" id="hair-front" onclick="selectHairStyle('front')">
+            <span class="opt-name">Curto / Ágil</span>
+            <span class="opt-sub">Franja</span>
+          </div>
+          <div class="opt-card" id="hair-back" onclick="selectHairStyle('back')">
+            <span class="opt-name">Longo / Trança</span>
+            <span class="opt-sub">Posterior</span>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-size:10px; font-weight:700; color:var(--dim); margin-bottom:6px; letter-spacing:0.05em; text-transform:uppercase;">Cor do Cabelo</div>
+          <div class="color-palette">
+            <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff;" title="Original / Natural" onclick="selectHairColor('#ffffff')"></div>
+            <div class="color-swatch" data-color="#e8c46d" style="background:#e8c46d;" title="Loiro Dourado" onclick="selectHairColor('#e8c46d')"></div>
+            <div class="color-swatch" data-color="#8b5a2b" style="background:#8b5a2b;" title="Castanho Nobre" onclick="selectHairColor('#8b5a2b')"></div>
+            <div class="color-swatch" data-color="#d2e2f5" style="background:#d2e2f5;" title="Prata Élfico" onclick="selectHairColor('#d2e2f5')"></div>
+            <div class="color-swatch" data-color="#ba3b2a" style="background:#ba3b2a;" title="Ruivo Flamejante" onclick="selectHairColor('#ba3b2a')"></div>
+            <div class="color-swatch" data-color="#2b2b2b" style="background:#2b2b2b;" title="Negro Ébano" onclick="selectHairColor('#2b2b2b')"></div>
+            <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8;" title="Azul Místico" onclick="selectHairColor('#38bdf8')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arma -->
+      <div>
+        <div class="section-title">ARMA EM PUNHO <small>Arsenal</small></div>
+        <div class="opt-grid">
+          <div class="opt-card active" id="wpn-ds" onclick="selectWeapon('dragon_slayer')">
+            <span class="opt-name">Dragon Slayer</span>
+            <span class="opt-sub">Espada Gigante (2 Mãos)</span>
+          </div>
+          <div class="opt-card" id="wpn-1h" onclick="selectWeapon('swordshield')">
+            <span class="opt-name">Espada &amp; Escudo</span>
+            <span class="opt-sub">Guardião 1HS &middot; L2</span>
+          </div>
+          <div class="opt-card" id="wpn-none" onclick="selectWeapon('none')">
+            <span class="opt-name">Desarmado</span>
+            <span class="opt-sub">Punhos Livres</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destino Inicial -->
+      <div>
+        <div class="section-title">DESTINO INICIAL <small>Ponto de Spawn</small></div>
+        <div class="opt-grid">
+          <div class="opt-card active" id="dest-cidade" onclick="selectDest('cidade')">
+            <span class="opt-name">🏰 Talking Island</span>
+            <span class="opt-sub">Vila &middot; Exploração Livre</span>
+          </div>
+          <div class="opt-card" id="dest-arena" onclick="selectDest('arena')">
+            <span class="opt-name">⚔️ Arena do Baium</span>
+            <span class="opt-sub">Duelo &middot; Chefe Colossal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teste de Ações -->
+      <div>
+        <div class="section-title">TESTAR ANIMAÇÃO <small>Ação L2</small></div>
+        <div class="anim-row">
+          <button class="anim-btn active" onclick="playAction('idle')">Espera</button>
+          <button class="anim-btn" onclick="playAction('run')">Corrida L2</button>
+          <button class="anim-btn" onclick="playAction('guard')">Bloqueio L2</button>
+          <button class="anim-btn" onclick="playAction('slash1')">Golpe 1</button>
+          <button class="anim-btn" onclick="playAction('slash2')">Golpe 2</button>
+          <button class="anim-btn" onclick="playAction('slash4')">Power Strike</button>
+          <button class="anim-btn" onclick="playAction('roll')">Rush / Dash</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Attributes & Lore Panel -->
+    <aside class="right-panel">
+      <div class="section-title">FICHA DE ATRIBUTOS <small>Lineage 2</small></div>
+      <div>
+        <div class="stat-row"><span class="stat-label">FORÇA (STR)</span><span class="stat-val" id="val-str">40</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-str" style="width:80%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">DESTREZA (DEX)</span><span class="stat-val" id="val-dex">30</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-dex" style="width:60%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">CONSTITUIÇÃO (CON)</span><span class="stat-val" id="val-con">43</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-con" style="width:86%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">INTELIGÊNCIA (INT)</span><span class="stat-val" id="val-int">21</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-int" style="width:42%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">RACIONALIDADE (WIT)</span><span class="stat-val" id="val-wit">11</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-wit" style="width:22%"></div></div>
+
+        <div class="stat-row"><span class="stat-label">ESPÍRITO (MEN)</span><span class="stat-val" id="val-men">25</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-men" style="width:50%"></div></div>
+      </div>
+
+      <div class="section-title">LORE DA CLASSE <small id="lore-race-label">Aden</small></div>
+      <p class="lore-text" id="lore-desc">"Os Guerreiros Humanos possuem extraordinária força física e equilíbrio inabalável. Dominam espadas pesadas de duas mãos e lideram as frentes de batalha com bravura."</p>
+
+      <div class="section-title">SISTEMA DE COMBATE <small>Ativo</small></div>
+      <div style="display:flex; flex-direction:column; gap:6px;" id="features-container">
+        <div class="feature-badge">🎯 Mira Dragon Nest (Crosshair livre)</div>
+        <div class="feature-badge">⚡ Combo Quádruplo Fluido (1-2-3-4)</div>
+        <div class="feature-badge">🛡️ Bloqueio &amp; Parry Ativo (Espaço)</div>
+        <div class="feature-badge">💨 Rush Tático com I-Frames (Shift)</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer-bar" style="display:flex; justify-content:center; gap:20px; align-items:center;">
+    <a href="selecao.html" class="top-btn" style="padding:12px 24px; border-radius:24px; font-family:'Cinzel',serif; font-size:12px;">👥 Voltar ao Lobby</a>
+    <button class="enter-btn" onclick="enterWorld()">
+      <span>⚔️ Criar &amp; Entrar no Mundo ⚔️</span>
+    </button>
+  </footer>
+
+  <div class="drag-hint">
+    <span>MOUSE</span> Clique e arraste para girar em 360&deg; &middot; Rodinha dá zoom
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from './lib/vendor.js';
+
+var scene, camera, renderer, clock, mixer;
+var currentModel = null, weaponObj = null, shieldObj = null;
+var currentRace = 'human_fighter';
+var currentSet = 'fighter', currentWeapon = 'dragon_slayer', currentDest = 'cidade';
+
+var currentRace = 'human_fighter';
+var shieldObj = null;
+
+var RACE_DATA = {
+  'human_fighter': {
+    name: 'Humano Guerreiro (M)',
+    title: 'Human Fighter Male',
+    deity: 'Aden &middot; Força Inabalável',
+    model: 'assets/personagens/human_fighter.glb?v=7',
+    imperialModel: 'assets/personagens/human_fighter_imperial.glb?v=7',
+    stats: { str: 40, dex: 30, con: 43, int: 21, wit: 11, men: 25 },
+    lore: '"Os Guerreiros Humanos possuem extraordinária força física e equilíbrio inabalável. Dominam montantes de duas mãos e escudos colossais, liderando as frentes de batalha de Aden."',
+    features: ['🎯 Mira Dinâmica (Crosshair livre)', '⚡ Combo Quádruplo Fluido (1-2-3-4)', '🛡️ Bloqueio & Parry Ativo (Espaço)', '💨 Rush Tático com I-Frames (Shift)']
+  },
+  'human_fighter_female': {
+    name: 'Humana Guerreira (F)',
+    title: 'Human Fighter Female',
+    deity: 'Aden &middot; Disciplina de Aço',
+    model: 'assets/personagens/human_fighter_female.glb?v=7',
+    stats: { str: 40, dex: 30, con: 43, int: 21, wit: 11, men: 25 },
+    lore: '"Treinadas na academia militar das falanges imperiais, as Guerreiras Humanas combinam tenacidade mortal com esgrima implacável e postura inquebrantável."',
+    features: ['⚔️ Esgrima Rápida e Precisa', '🛡️ Defesa e Parry Perfeito', '💨 Corrida Tática e Esquiva Ágil', '⚡ Impacto Contínuo de Espadas']
+  },
+  'magic_m': {
+    name: 'Humano Místico (M)',
+    title: 'Human Mage Male',
+    deity: 'Einhasad &middot; Conhecimento Primordial',
+    model: 'assets/personagens/magic_m.glb?v=7',
+    stats: { str: 22, dex: 21, con: 27, int: 41, wit: 20, men: 39 },
+    lore: '"Estudiosos dos pergaminhos arcanos da Torre de Marfim, os Místicos Humanos manipulam a energia cósmica para erguer barreiras e desferir cataclismos elementais."',
+    features: ['🔮 Maior INT de Aden (INT 41)', '⚡ Feitiços Primordiais Elementais', '🌀 Barreira Mística Protetora', '✨ Projéteis Arcanos de Longo Alcance']
+  },
+  'magic_f': {
+    name: 'Humana Mística (F)',
+    title: 'Human Mage Female',
+    deity: 'Einhasad &middot; Luz Celestial',
+    model: 'assets/personagens/magic_f.glb?v=7',
+    stats: { str: 22, dex: 21, con: 27, int: 41, wit: 20, men: 39 },
+    lore: '"Devotas da luz sagrada de Einhasad, as Místicas Humanas canalizam as forças primordiais dos elementos para devastar inimigos à distância com feitiçaria arcana."',
+    features: ['🔮 Maior Dano Mágico Primário', '⚡ Feitiços de Choque e Fogo Destrutivo', '🌀 Escudo Arcano de Mana Defensivo', '✨ Projéteis Luminosos de Alta Velocidade']
+  },
+  'elf_m': {
+    name: 'Elfo Branco (M)',
+    title: 'Elf Knight / Ranger',
+    deity: 'Eva &middot; Vento Sagrado',
+    model: 'assets/personagens/elf_m.glb?v=7',
+    stats: { str: 36, dex: 35, con: 36, int: 23, wit: 14, men: 26 },
+    lore: '"Protetores das florestas sagradas de Eva, os Elfos possuem reflexos ultra-rápidos e movimentação aerodinâmica. Seus cortes são cirúrgicos e velozes."',
+    features: ['🏃 Velocidade de Movimento Superior', '✨ Crítico Elevado e Evasão Ágil', '⚔️ Fluidez Ligeira com Lâminas Duplas', '💨 Salto Evasivo com I-Frames']
+  },
+  'elf_f': {
+    name: 'Elfa Branca (F)',
+    title: 'Elf Fighter / Mystic',
+    deity: 'Eva &middot; Dança Graciosa',
+    model: 'assets/personagens/elf_f.glb?v=7',
+    stats: { str: 36, dex: 35, con: 36, int: 23, wit: 14, men: 26 },
+    lore: '"Abençoadas pela deusa da água Eva, as Elfas possuem a mais alta agilidade e velocidade de ataque de todo o mundo. Seus golpes são velozes e graciosos como uma tempestade de lâminas."',
+    features: ['🏃 Velocidade de Ataque Superior (+15% Atk Spd)', '✨ Alta Taxa de Crítico e Esquiva Natural', '⚔️ Fluidez Ágil de Espadas e Lâminas', '💨 Esquiva Deslizante com Rastro Astral']
+  },
+  'orc_m': {
+    name: 'Orc Guerreiro (M)',
+    title: 'Orc Fighter Male',
+    deity: 'Paagrio &middot; Fogo Primordial',
+    model: 'assets/personagens/orc_m.glb?v=7',
+    stats: { str: 42, dex: 26, con: 47, int: 18, wit: 12, men: 27 },
+    lore: '"Criados pelo deus do fogo Paagrio, os Orcs representam a força bruta primordial. Portam lâminas gigantescas com ferocidade titânica e avançam com fúria implacável."',
+    features: ['🔥 Maior Constituição Física de Aden (CON 47)', '💥 Dano Massivo por Impacto de Golpe', '🛡️ Super-Armadura Natural durante Ataques', '🩸 Fúria Guerreira que Cresce em Combate']
+  },
+  'orc_f': {
+    name: 'Orc Guerreira (F)',
+    title: 'Orc Fighter Female',
+    deity: 'Paagrio &middot; Fúria Vulcânica',
+    model: 'assets/personagens/orc_f.glb?v=7',
+    stats: { str: 42, dex: 26, con: 47, int: 18, wit: 12, men: 27 },
+    lore: '"Guerreiras selvagens dos platôs flamejantes de Elmore, empunham grandes espadas com poder avassalador, liderando invasões com tenacidade feroz."',
+    features: ['🔥 Força Devastadora e Vitalidade Vulcânica', '⚔️ Lâmina Pesada de Impacto Bruto', '🛡️ Resistência Máxima a Dano Físico', '💨 Avanço Imparável contra Linhas Inimigas']
+  },
+  'dwarf_m': {
+    name: 'Anão Artesão (M)',
+    title: 'Dwarf Artisan / Scavenger',
+    deity: 'Maphr &middot; Forja Ancestral',
+    model: 'assets/personagens/dwarf_m.glb?v=7',
+    stats: { str: 39, dex: 29, con: 45, int: 20, wit: 10, men: 27 },
+    lore: '"Mestres da metalurgia e da forja de Aden, os Anãos constroem as armas mais mortíferas e empunham suas criações com força inquebrantável nas cavernas profundas."',
+    features: ['🛡️ Vitalidade e Capacidade Máxima de Carga', '🔨 Golpes Pesados com Efeito Esmagador', '📦 Especialista em Forja e Engenharia L2', '⚡ Armadura de Placas Reforçada']
+  },
+  'dwarf_f': {
+    name: 'Anã Artesã (F)',
+    title: 'Dwarf Fighter / Artisan',
+    deity: 'Maphr &middot; Vigor da Terra',
+    model: 'assets/personagens/dwarf_f.glb?v=7',
+    stats: { str: 39, dex: 29, con: 45, int: 20, wit: 10, men: 27 },
+    lore: '"Filhas da deusa da terra Maphr, as Anãs unem vitalidade colossal a uma força descomunal para empunhar armas pesadas. Sua tenacidade quebra armaduras e abala o solo."',
+    features: ['🛡️ Altíssima Resistência e HP Máximo', '🔨 Quebra de Guarda com Golpes Pesados', '📦 Vigor Inabalável contra Stun e Efeitos', '⚡ Alta Tenacidade em Duelos Fechados']
+  },
+  'darkelf_m': {
+    name: 'Elfo Negro (M)',
+    title: 'Dark Elf Fighter / Assassin',
+    deity: 'Shilen &middot; Sombra Mortal',
+    model: 'assets/personagens/darkelf_m.glb?v=2',
+    stats: { str: 41, dex: 34, con: 32, int: 25, wit: 12, men: 26 },
+    lore: '"Devotos da deusa das trevas Shilen, os Elfos Negros unem força letal a uma destreza sobrenatural. Desferem ataques críticos avassaladores e movem-se como espectros assassinos nas sombras de Aden."',
+    features: ['🩸 Maior Combinação STR/DEX (STR 41, DEX 34)', '⚡ Taxa de Dano Crítico Fatal (+20% Crit Dmg)', '🗡️ Movimentação Espectral com I-Frames', '💀 Golpes Penetrantes que Sangram Inimigos']
+  },
+  'darkelf_f': {
+    name: 'Elfa Negra (F)',
+    title: 'Dark Elf Fighter / Templar',
+    deity: 'Shilen &middot; Lâmina Crepuscular',
+    model: 'assets/personagens/darkelf_f.glb?v=3',
+    stats: { str: 41, dex: 34, con: 32, int: 25, wit: 12, men: 26 },
+    lore: '"Assassinas e guerreiras de Shilen, as Elfas Negras personificam a graça fatal. Com passos silenciosos e esgrima devastadora, eliminam alvos antes que o primeiro reflexo alcance a lâmina."',
+    features: ['🩸 Dano Crítico Máximo do Jogo', '⚡ Velocidade de Corte Rápida e Perfurante', '🗡️ Dança de Sombras com Deslocamento Ágil', '💀 Execução Rápida com Quebra de Guarda']
+  }
+};
+
+var clips = {};
+var pedestalGroup;
+
+// Authentic L2 Sound Effects
+var sfxSwing = new Audio('assets/l2_sounds/itemsound/Sound/public_sword_shing_1.wav');
+var sfxPower = new Audio('assets/l2_sounds/skillsound/Sound/power_strike_shot.wav');
+var sfxDash = new Audio('assets/l2_sounds/skillsound4/Sound/dash_shot.wav');
+var sfxEnter = new Audio('assets/l2_sounds/skillsound/Sound/soul_shot_shot.wav');
+
+function init(){
+  var canvas = document.getElementById('webgl');
+  renderer = new THREE.WebGLRenderer({ canvas:canvas, antialias:true, powerPreference:'high-performance' });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.TextureLoader().load('assets/lobby_temple_bg.jpg');
+  scene.fog = new THREE.FogExp2(0x090e1c, 0.012);
+
+  camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 1.4, 4.2);
+
+  clock = new THREE.Clock();
+
+  setupLighting();
+  setupPedestal();
+  setupParticles();
+  setupControls();
+  setupNameValidation();
+
+  // Load initial model & race from localStorage
+  var savedRace = localStorage.getItem('isblade.char_race') || 'human_fighter';
+  var savedChar = localStorage.getItem('isblade.char_type') || 'fighter';
+  if(savedChar === 'imperial' && savedRace === 'human_fighter'){
+    currentSet = 'imperial';
+    document.getElementById('set-starter').classList.remove('active');
+    document.getElementById('set-imperial').classList.add('active');
+  }
+  selectRace(savedRace);
+
+  window.addEventListener('resize', onResize);
+  animate();
+}
+
+function setupLighting(){
+  var amb = new THREE.AmbientLight(0x23314d, 1.2);
+  scene.add(amb);
+
+  // Key light (Cyan cold from front left)
+  var keyLight = new THREE.DirectionalLight(0xa5cbff, 2.4);
+  keyLight.position.set(-3, 4, 3.5);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(2048, 2048);
+  keyLight.shadow.bias = -0.0005;
+  scene.add(keyLight);
+
+  // Rim light (Gold noble from behind)
+  var rimLight = new THREE.DirectionalLight(0xf5c451, 3.5);
+  rimLight.position.set(2.5, 3.5, -3);
+  scene.add(rimLight);
+
+  // Upward Pedestal Glow Light
+  var glowLight = new THREE.PointLight(0x5aa9ff, 3.8, 4.5);
+  glowLight.position.set(0, 0.25, 0);
+  scene.add(glowLight);
+}
+
+function setupPedestal(){
+  pedestalGroup = new THREE.Group();
+
+  // Stone base
+  var baseGeo = new THREE.CylinderGeometry(1.6, 1.8, 0.35, 48);
+  var baseMat = new THREE.MeshStandardMaterial({
+    color: 0x181e2b,
+    roughness: 0.8,
+    metalness: 0.2
+  });
+  var base = new THREE.Mesh(baseGeo, baseMat);
+  base.position.y = -0.175;
+  base.receiveShadow = true;
+  pedestalGroup.add(base);
+
+  // Glowing rune ring
+  var ringGeo = new THREE.RingGeometry(1.15, 1.45, 48);
+  var ringMat = new THREE.MeshBasicMaterial({
+    color: 0x5aa9ff,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide
+  });
+  var ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.005;
+  pedestalGroup.add(ring);
+
+  // Outer gold rim
+  var rimGeo = new THREE.TorusGeometry(1.58, 0.03, 16, 64);
+  var rimMat = new THREE.MeshStandardMaterial({ color: 0xf5c451, metalness: 0.9, roughness: 0.3 });
+  var rim = new THREE.Mesh(rimGeo, rimMat);
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.002;
+  pedestalGroup.add(rim);
+
+  scene.add(pedestalGroup);
+}
+
+function createSparkleTexture(){
+  var canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  var ctx = canvas.getContext('2d');
+  var grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  grad.addColorStop(0.2, 'rgba(160, 220, 255, 0.9)');
+  grad.addColorStop(0.5, 'rgba(80, 160, 255, 0.35)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 64, 64);
+  var tex = new THREE.CanvasTexture(canvas);
+  return tex;
+}
+
+var partGeo, partMat, particles;
+function setupParticles(){
+  var count = 100;
+  partGeo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count * 3);
+  var vel = [];
+  for(var i=0; i<count; i++){
+    var theta = Math.random() * Math.PI * 2;
+    var r = 0.35 + Math.random() * 1.35;
+    pos[i*3] = Math.cos(theta) * r;
+    pos[i*3+1] = Math.random() * 2.8;
+    pos[i*3+2] = Math.sin(theta) * r;
+    vel.push({ speed: 0.25 + Math.random() * 0.45, r: r, theta: theta });
+  }
+  partGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  partMat = new THREE.PointsMaterial({
+    map: createSparkleTexture(),
+    color: 0x9be0ff,
+    size: 0.12,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  particles = new THREE.Points(partGeo, partMat);
+  particles.userData = { vel: vel };
+  scene.add(particles);
+}
+
+function loadModel(url){
+  if(currentModel){
+    pedestalGroup.remove(currentModel);
+    currentModel = null;
+  }
+  var loader = new THREE.GLTFLoader();
+  loader.load(url, function(gltf){
+    var root = gltf.scene;
+    root.traverse(function(c){
+      if(c.isMesh){
+        c.castShadow = true;
+        c.receiveShadow = true;
+      }
+    });
+
+    var isDwarf = (currentRace === 'dwarf_f' || currentRace === 'dwarf_m');
+    var isOrc = (currentRace === 'orc_m' || currentRace === 'orc_f');
+    var targetH = isDwarf ? 1.65 : (isOrc ? 2.5 : 2.25);
+    root.scale.setScalar(targetH / 42.78);
+    root.position.set(0, 0, 0);
+
+    applyHair(root, currentHairStyle, currentHairColor);
+
+    pedestalGroup.add(root);
+    currentModel = root;
+
+    // Attach weapon
+    attachWeapon();
+
+    // Setup animations
+    mixer = new THREE.AnimationMixer(root);
+    clips = {};
+    gltf.animations.forEach(function(c){
+      clips[c.name] = c;
+      var clean = c.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
+      if(!clips[clean]) clips[clean] = c;
+    });
+    clips['idle'] = clips['idle'] || clips['Wait_2HS_MFighter'] || clips['Wait_1HS_MFighter'] || gltf.animations[0];
+    clips['guard'] = clips['guard'] || clips['AtkWait_2HS_MFighter'];
+    clips['run'] = clips['run'] || clips['Run_2HS_MFighter'] || clips['Run_1HS_MFighter'];
+    clips['walk'] = clips['walk'] || clips['Walk_2HS_MFighter'] || clips['Walk_1HS_MFighter'];
+    clips['slash1'] = clips['slash1'] || clips['Atk01_2HS_MFighter'] || clips['Atk01_1HS_MFighter'];
+    clips['slash2'] = clips['slash2'] || clips['Atk02_2HS_MFighter'] || clips['Atk02_1HS_MFighter'];
+    clips['slash4'] = clips['slash4'] || clips['SpAtk01_2HS_MFighter'] || clips['SpAtk01_1HS_MFighter'];
+    clips['roll'] = clips['roll'] || clips['SpAtk11_2HS_MFighter'] || clips['SpAtk02_1HS_MFighter'];
+    clips['idle_hand'] = clips['idle_hand'] || clips['Wait_Hand_MFighter'] || clips['idle'];
+    clips['run_hand'] = clips['run_hand'] || clips['Run_Hand_MFighter'] || clips['run'];
+    clips['walk_hand'] = clips['walk_hand'] || clips['Walk_Hand_MFighter'] || clips['walk'];
+    clips['punch'] = clips['punch'] || clips['Atk01_Hand_MFighter'] || clips['slash1'];
+    playAction(currentWeapon === 'none' ? 'idle_hand' : 'idle');
+  });
+}
+
+/* ==========================================================================
+   PADRAO DE ANEXACAO DE ITENS / ARMAS LINEAGE 2 (IS ONLINE)
+   - Armas/Escudos exportados do L2 (.psk -> Blender -> .glb com "+Y Up" marcado)
+     possuem vertices convertidos para Y-up pelo Blender, enquanto os ossos de
+     soquete nativos do L2 (Weapon_R_Bone / Shield_L_Bone) operam no espaco Z-up do Unreal.
+   - A rotacao canonica L2_WPN_AXIS_FIX = Math.PI / 2 (+90 graus em X) desfaz com precisao
+     matematica essa conversao do Blender e devolve a malha ao alinhamento nativo do L2.
+   - Itens nao-L2 (gerados no Tecxlabs 3D ou externos) podem passar { isL2: false, rotation, position, scale }.
+   ========================================================================== */
+var L2_WPN_AXIS_FIX = Math.PI / 2;
+
+function attachL2Item(rootOrBone, boneNameOrParent, glbUrl, options, callback){
+  var opts = options || {};
+  var holder = new THREE.Group();
+  if(opts.visible !== undefined) holder.visible = !!opts.visible;
+
+  var targetBone = null;
+  if(typeof boneNameOrParent === 'string'){
+    var root = rootOrBone;
+    var name = boneNameOrParent;
+    if(root && root.getObjectByName){
+      targetBone = root.getObjectByName(name);
+      if(!targetBone && name === 'Weapon_R_Bone') targetBone = root.getObjectByName('Bip01_R_Hand');
+      if(!targetBone && name === 'Shield_L_Bone') targetBone = root.getObjectByName('Bip01_L_Forearm');
+    }
+  } else if(boneNameOrParent && boneNameOrParent.isObject3D){
+    targetBone = boneNameOrParent;
+  } else if(rootOrBone && rootOrBone.isObject3D){
+    targetBone = rootOrBone;
+  }
+
+  if(targetBone){
+    targetBone.add(holder);
+  }
+
+  var loader = opts.loader || (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
+  loader.load(glbUrl, function(gw){
+    var itemScene = gw.scene;
+    itemScene.traverse(function(c){
+      if(c.isMesh){
+        c.castShadow = true;
+        c.receiveShadow = true;
+        if(c.material){
+          if(opts.envMapIntensity !== undefined) c.material.envMapIntensity = opts.envMapIntensity;
+          else if(c.material.envMapIntensity !== undefined) c.material.envMapIntensity = 1.2;
+        }
+      }
+    });
+
+    if(opts.isL2 !== false){
+      itemScene.rotation.set(L2_WPN_AXIS_FIX, 0, 0);
+    }
+
+    if(opts.rotation){
+      if(Array.isArray(opts.rotation)) itemScene.rotation.set(opts.rotation[0], opts.rotation[1], opts.rotation[2]);
+      else if(opts.rotation.isEuler) itemScene.rotation.copy(opts.rotation);
+    }
+    if(opts.position){
+      if(Array.isArray(opts.position)) itemScene.position.set(opts.position[0], opts.position[1], opts.position[2]);
+      else if(opts.position.isVector3) itemScene.position.copy(opts.position);
+    }
+    if(opts.scale !== undefined){
+      if(typeof opts.scale === 'number') itemScene.scale.setScalar(opts.scale);
+      else if(Array.isArray(opts.scale)) itemScene.scale.set(opts.scale[0], opts.scale[1], opts.scale[2]);
+    }
+
+    holder.add(itemScene);
+    if(callback) callback(holder, itemScene, gw);
+  }, undefined, function(err){
+    console.error('[attachL2Item] Falha ao carregar item:', glbUrl, err);
+    if(opts.fallbackUrl){
+      attachL2Item(holder, null, opts.fallbackUrl, {
+        isL2: opts.fallbackIsL2 !== undefined ? opts.fallbackIsL2 : true,
+        loader: loader
+      });
+    }
+  });
+
+  return holder;
+}
+
+function attachWeapon(){
+  if(!currentModel) return;
+  var wpBone = currentModel.getObjectByName('Weapon_R_Bone') || currentModel.getObjectByName('Bip01_R_Hand');
+  var shdBone = currentModel.getObjectByName('Shield_L_Bone') || currentModel.getObjectByName('Bip01_L_Forearm');
+
+  if(weaponObj && wpBone){
+    wpBone.remove(weaponObj);
+    weaponObj = null;
+  }
+  if(shieldObj && shdBone){
+    shdBone.remove(shieldObj);
+    shieldObj = null;
+  }
+
+  if(currentWeapon === 'dragon_slayer' && wpBone){
+    weaponObj = attachL2Item(wpBone, null, 'assets/personagens/dragon_slayer.glb');
+  } else if(currentWeapon === 'swordshield'){
+    if(wpBone){
+      weaponObj = attachL2Item(wpBone, null, 'assets/personagens/weapon_sword_is_0.glb', {
+        isL2: false,
+        position: [-7.63, 0, 0],
+        rotation: [0, 0, -Math.PI / 2],
+        scale: 42.78 / 2.25,
+        fallbackUrl: 'assets/personagens/bastard_sword.glb',
+        fallbackIsL2: true
+      });
+    }
+    if(shdBone){
+      shieldObj = attachL2Item(shdBone, null, 'assets/personagens/composite_shield.glb');
+    }
+  }
+}
+
+var currentAction = null;
+window.playAction = function(name){
+  if(currentWeapon === 'none'){
+    if(name === 'idle') name = 'idle_hand';
+    else if(name === 'run') name = 'run_hand';
+    else if(name === 'walk') name = 'walk_hand';
+    else if(name === 'slash1' || name === 'slash2' || name === 'slash4') name = 'punch';
+  }
+  if(!mixer || !clips[name]) return;
+  var clip = clips[name];
+  var act = mixer.clipAction(clip);
+  if(currentAction && currentAction !== act){
+    currentAction.fadeOut(0.2);
+  }
+  act.reset();
+  var isLoop = (name === 'idle' || name === 'idle_hand' || name === 'run' || name === 'run_hand' || name === 'walk' || name === 'walk_hand' || name === 'guard');
+  act.setLoop(isLoop ? THREE.LoopRepeat : THREE.LoopOnce);
+  act.clampWhenFinished = !isLoop;
+  act.fadeIn(0.2);
+  act.play();
+  currentAction = act;
+
+  // Play matching L2 SFX
+  try {
+    if(name === 'slash1' || name === 'slash2' || name === 'punch'){
+      sfxSwing.currentTime = 0; sfxSwing.play().catch(function(){});
+    } else if(name === 'slash4'){
+      sfxPower.currentTime = 0; sfxPower.play().catch(function(){});
+    } else if(name === 'roll'){
+      sfxDash.currentTime = 0; sfxDash.play().catch(function(){});
+    }
+  } catch(_){}
+
+  // If oneshot, return to idle
+  if(!isLoop){
+    var dur = clip.duration / act.timeScale;
+    setTimeout(function(){
+      if(currentAction === act) playAction(currentWeapon === 'none' ? 'idle_hand' : 'idle');
+    }, dur * 1000 - 150);
+  }
+
+  // Update UI buttons
+  document.querySelectorAll('.anim-btn').forEach(function(b){
+    b.classList.remove('active');
+    var oc = b.getAttribute('onclick') || '';
+    if(oc.includes("'" + name + "'") || (name === 'idle_hand' && oc.includes("'idle'")) || (name === 'run_hand' && oc.includes("'run'")) || (name === 'punch' && oc.includes("'slash1'"))){
+      b.classList.add('active');
+    }
+  });
+};
+
+window.updateAttributesUI = function(rData){
+  if(!rData) return;
+  var s = rData.stats;
+  // Stats
+  var maxStat = 50;
+  var keys = ['str', 'dex', 'con', 'int', 'wit', 'men'];
+  keys.forEach(function(k){
+    var v = s[k] || 10;
+    var elVal = document.getElementById('val-' + k);
+    var elBar = document.getElementById('bar-' + k);
+    if(elVal) elVal.textContent = v;
+    if(elBar) elBar.style.width = Math.min(100, Math.round((v / maxStat) * 100)) + '%';
+  });
+
+  // Lore
+  var loreLbl = document.getElementById('lore-race-label');
+  if(loreLbl) loreLbl.innerHTML = rData.deity || 'Aden';
+  var loreDesc = document.getElementById('lore-desc');
+  if(loreDesc) loreDesc.textContent = rData.lore || '';
+
+  // Features
+  var fWrap = document.getElementById('features-container');
+  if(fWrap && rData.features){
+    fWrap.innerHTML = rData.features.map(function(f){
+      return '<div class="feature-badge">' + f + '</div>';
+    }).join('');
+  }
+};
+
+window.selectRace = function(r){
+  if(!RACE_DATA[r]) return;
+  currentRace = r;
+  try { localStorage.setItem('isblade.char_race', r); } catch(_){}
+
+  // Update race card active states
+  document.querySelectorAll('[id^="race-"]').forEach(function(card){
+    card.classList.toggle('active', card.id === 'race-' + r);
+  });
+
+  var rData = RACE_DATA[r];
+  window.updateAttributesUI(rData);
+
+  // Set availability: Imperial Crusader only for Human Fighter
+  var impCard = document.getElementById('set-imperial');
+  if(impCard){
+    if(r === 'human_fighter'){
+      impCard.style.opacity = '1';
+      impCard.style.pointerEvents = 'auto';
+      impCard.title = 'S-Grade';
+    } else {
+      impCard.style.opacity = '0.35';
+      impCard.style.pointerEvents = 'none';
+      impCard.title = 'Exclusivo para Humano Guerreiro';
+      if(currentSet === 'imperial') selectSet('fighter');
+    }
+  }
+
+  // Load appropriate model
+  var url = (r === 'human_fighter' && currentSet === 'imperial') ? rData.imperialModel : rData.model;
+  loadModel(url);
+};
+
+window.selectSet = function(set){
+  currentSet = set;
+  try { localStorage.setItem('isblade.char_type', set); } catch(_){}
+  document.getElementById('set-starter').classList.toggle('active', set === 'fighter');
+  document.getElementById('set-imperial').classList.toggle('active', set === 'imperial');
+
+  if(currentRace === 'human_fighter'){
+    if(set === 'imperial'){
+      loadModel(RACE_DATA['human_fighter'].imperialModel);
+    } else {
+      loadModel(RACE_DATA['human_fighter'].model);
+    }
+  }
+};
+
+var currentHairStyle = 'both';
+var currentHairColor = '#ffffff';
+
+function applyHair(root, style, colorHex){
+  if(!root) return;
+  root.traverse(function(child){
+    if(child.isMesh){
+      var n = (child.name || '').toLowerCase();
+      var isFront = n.indexOf('hair_front') !== -1 || n.indexOf('_ah') !== -1;
+      var isBack = n.indexOf('hair_back') !== -1 || n.indexOf('_bh') !== -1;
+      if(isFront || isBack){
+        if(isFront && !isBack){
+          child.visible = (style === 'both' || style === 'front');
+        } else if(isBack && !isFront){
+          child.visible = (style === 'both' || style === 'back');
+        }
+        if(child.material){
+          var mList = Array.isArray(child.material) ? child.material : [child.material];
+          mList.forEach(function(m){
+            if(colorHex && colorHex !== '#ffffff'){
+              m.color.setStyle(colorHex);
+              if(m.emissive){
+                var tc = new THREE.Color(colorHex);
+                m.emissive.copy(tc).multiplyScalar(0.32);
+              }
+            } else {
+              m.color.setHex(0xffffff);
+              if(m.emissive) m.emissive.setHex(0x000000);
+            }
+            m.needsUpdate = true;
+          });
+        }
+      }
+    }
+  });
+}
+
+window.selectHairStyle = function(style){
+  currentHairStyle = style;
+  var bEl = document.getElementById('hair-both');
+  var fEl = document.getElementById('hair-front');
+  var bkEl = document.getElementById('hair-back');
+  if(bEl) bEl.classList.toggle('active', style === 'both');
+  if(fEl) fEl.classList.toggle('active', style === 'front');
+  if(bkEl) bkEl.classList.toggle('active', style === 'back');
+  applyHair(currentModel, currentHairStyle, currentHairColor);
+};
+
+window.selectHairColor = function(hex){
+  currentHairColor = hex;
+  document.querySelectorAll('.color-swatch').forEach(function(el){
+    el.classList.toggle('active', el.getAttribute('data-color') === hex);
+  });
+  applyHair(currentModel, currentHairStyle, currentHairColor);
+};
+
+window.selectWeapon = function(wpn){
+  currentWeapon = wpn;
+  try { localStorage.setItem('isblade.weapon', wpn === 'none' ? 'none' : (wpn === 'swordshield' ? 'swordshield' : 'sword')); } catch(_){}
+  document.getElementById('wpn-ds').classList.toggle('active', wpn === 'dragon_slayer');
+  var el1h = document.getElementById('wpn-1h');
+  if(el1h) el1h.classList.toggle('active', wpn === 'swordshield');
+  document.getElementById('wpn-none').classList.toggle('active', wpn === 'none');
+  attachWeapon();
+  playAction(wpn === 'none' ? 'idle_hand' : 'idle');
+};
+
+window.selectDest = function(dest){
+  currentDest = dest;
+  document.getElementById('dest-cidade').classList.toggle('active', dest === 'cidade');
+  document.getElementById('dest-arena').classList.toggle('active', dest === 'arena');
+};
+
+function getExistingNames(){
+  try {
+    var raw = localStorage.getItem('isblade_characters');
+    if(raw){
+      var arr = JSON.parse(raw);
+      return arr.map(function(c){ return (c.name || '').trim().toLowerCase(); });
+    }
+  } catch(_){}
+  return [];
+}
+
+function checkNameAvailability(name){
+  var clean = (name || '').trim();
+  if(!clean) return { valid: false, msg: '⚠️ Digite o nome do seu herói.', color: '#94a3b8' };
+  if(clean.length < 2) return { valid: false, msg: '⚠️ Nome muito curto (mínimo 2 letras).', color: '#f59e0b' };
+  var existing = getExistingNames();
+  if(existing.indexOf(clean.toLowerCase()) !== -1){
+    return { valid: false, msg: '❌ O nome "' + clean + '" já existe! Escolha outro nome.', color: '#ef4444' };
+  }
+  return { valid: true, msg: '✨ Nome "' + clean + '" está livre no Reino de Aden!', color: '#22c55e' };
+}
+
+function setupNameValidation(){
+  var nameEl = document.getElementById('charName');
+  var fbEl = document.getElementById('nameFeedback');
+  if(!nameEl || !fbEl) return;
+
+  var existing = getExistingNames();
+  var defaultName = 'Ícaro';
+  if(existing.indexOf(defaultName.toLowerCase()) !== -1){
+    var n = 2;
+    while(existing.indexOf((defaultName + ' ' + n).toLowerCase()) !== -1){ n++; }
+    defaultName = defaultName + ' ' + n;
+  }
+  nameEl.value = defaultName;
+
+  function updateStatus(){
+    var val = nameEl.value.trim();
+    var res = checkNameAvailability(val);
+    fbEl.textContent = res.msg;
+    fbEl.style.color = res.color;
+    if(!res.valid && val){
+      nameEl.style.borderColor = res.color;
+      nameEl.style.boxShadow = '0 0 10px ' + (res.color === '#ef4444' ? 'rgba(239, 68, 68, 0.45)' : 'rgba(245, 158, 11, 0.35)');
+    } else if(res.valid){
+      nameEl.style.borderColor = '#22c55e';
+      nameEl.style.boxShadow = '0 0 10px rgba(34, 197, 94, 0.35)';
+    } else {
+      nameEl.style.borderColor = 'rgba(90, 169, 255, 0.35)';
+      nameEl.style.boxShadow = 'none';
+    }
+    return res.valid;
+  }
+
+  nameEl.addEventListener('input', updateStatus);
+  nameEl.addEventListener('blur', updateStatus);
+  updateStatus();
+}
+
+window.enterWorld = function(){
+  var nameEl = document.getElementById('charName');
+  var pName = (nameEl && nameEl.value.trim()) || '';
+  var nameCheck = checkNameAvailability(pName);
+  if(!nameCheck.valid){
+    alert(nameCheck.msg);
+    if(nameEl) nameEl.focus();
+    return;
+  }
+
+  var saveType = (currentRace === 'human_fighter' && currentSet === 'imperial') ? 'imperial' : currentRace;
+  var saveWpn = (currentWeapon === 'none' ? 'none' : (currentWeapon === 'swordshield' ? 'swordshield' : 'sword'));
+
+  // Salvar no banco multi-slot isblade_characters
+  var characters = [];
+  try {
+    var raw = localStorage.getItem('isblade_characters');
+    if(raw) characters = JSON.parse(raw);
+  } catch(_){}
+
+  var newCharId = 'char_' + Date.now();
+  var newChar = {
+    id: newCharId,
+    name: pName,
+    race: currentRace,
+    charType: saveType,
+    set: currentSet,
+    weapon: saveWpn,
+    hairStyle: currentHairStyle,
+    hairColor: currentHairColor,
+    level: 1,
+    location: (currentDest === 'arena') ? 'Arena do Baium' : 'Talking Island',
+    createdAt: new Date().toLocaleDateString('pt-BR')
+  };
+
+  characters.push(newChar);
+  try {
+    localStorage.setItem('isblade_characters', JSON.stringify(characters));
+    localStorage.setItem('isblade_active_character_id', newCharId);
+    // Chaves de compatibilidade legado
+    localStorage.setItem('isblade.player_name', pName);
+    localStorage.setItem('isblade.char_type', saveType);
+    localStorage.setItem('isblade.char_race', currentRace);
+    localStorage.setItem('isblade.weapon', saveWpn);
+    localStorage.setItem('isblade.hair_style', currentHairStyle);
+    localStorage.setItem('isblade.hair_color', currentHairColor);
+  } catch(_){}
+
+  try {
+    sfxEnter.currentTime = 0;
+    sfxEnter.play().catch(function(){});
+  } catch(_){}
+
+  var targetUrl = (currentDest === 'arena') ? 'arena.html?mode=duel' : 'cidade.html';
+  var overlay = document.getElementById('transition-overlay');
+  overlay.style.opacity = '1';
+  setTimeout(function(){
+    window.location.href = targetUrl;
+  }, 600);
+};
+
+// Mouse drag to rotate pedestal & zoom
+var isDragging = false, prevX = 0, prevY = 0;
+function setupControls(){
+  window.addEventListener('mousedown', function(e){
+    if(e.target.closest('.side-panel') || e.target.closest('.header') || e.target.closest('.footer-bar')) return;
+    isDragging = true;
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+  window.addEventListener('mousemove', function(e){
+    if(!isDragging || !pedestalGroup) return;
+    var dx = e.clientX - prevX;
+    var dy = e.clientY - prevY;
+    pedestalGroup.rotation.y += dx * 0.008;
+    // Câmera travada perfeitamente na altura padrão de visualização
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+  window.addEventListener('mouseup', function(){ isDragging = false; });
+  window.addEventListener('wheel', function(e){
+    camera.position.z = Math.max(2.5, Math.min(6.5, camera.position.z + e.deltaY * 0.003));
+  }, { passive:true });
+}
+
+function onResize(){
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+}
+
+var guardW = 0;
+var L2_GUARD_ROT = new THREE.Euler(-0.35, 1.57, -1.25, 'XYZ');
+var L2_GUARD_POS = new THREE.Vector3(-0.15, 0.35, 0.25);
+
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = clock.getDelta();
+
+  if(mixer) mixer.update(dt);
+
+  // Smooth blade guard posture (flat broadside facing enemy)
+  var curClip = currentAction ? currentAction.getClip() : null;
+  var wantGuard = (curClip && (curClip.name === 'guard' || curClip.name === 'AtkWait_2HS_MFighter') && currentWeapon === 'dragon_slayer') ? 1 : 0;
+  guardW = Math.max(0, Math.min(1, guardW + (wantGuard ? 1 : -1) * dt / 0.12));
+  var gwVal = guardW * guardW * (3 - 2 * guardW);
+  if(weaponObj){
+    if(gwVal > 0.0005){
+      weaponObj.rotation.set(L2_GUARD_ROT.x * gwVal, L2_GUARD_ROT.y * gwVal, L2_GUARD_ROT.z * gwVal);
+      weaponObj.position.set(L2_GUARD_POS.x * gwVal, L2_GUARD_POS.y * gwVal, L2_GUARD_POS.z * gwVal);
+    } else if(weaponObj.rotation.x !== 0 || weaponObj.position.x !== 0){
+      weaponObj.rotation.set(0, 0, 0);
+      weaponObj.position.set(0, 0, 0);
+    }
+  }
+
+  // Soft idle pedestal rotation when not dragging
+  if(!isDragging && pedestalGroup){
+    pedestalGroup.rotation.y += dt * 0.15;
+  }
+
+  // Update particles
+  if(particles && partGeo){
+    var pos = partGeo.attributes.position.array;
+    var vel = particles.userData.vel;
+    for(var i=0; i<vel.length; i++){
+      pos[i*3+1] += vel[i].speed * dt;
+      if(pos[i*3+1] > 2.8) pos[i*3+1] = 0.05;
+      vel[i].theta += dt * 0.4;
+      pos[i*3] = Math.cos(vel[i].theta) * vel[i].r;
+      pos[i*3+2] = Math.sin(vel[i].theta) * vel[i].r;
+    }
+    partGeo.attributes.position.needsUpdate = true;
+  }
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

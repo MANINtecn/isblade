@@ -1,0 +1,26 @@
+# o que NAO vai para a hospedagem (o jogo nao carrega nada disto)
+node_modules
+__pycache__
+tools
+*.py
+*.bat
+*.md
+*.log
+*.blend
+*.blend1
+*_antes_*.html
+arena_backup_procedural.html
+arena_r128_backup.html
+studio_ready_full.png
+test_render*.png
+assets/personagens/raw_*
+assets/personagens/*.blend
+assets/personagens/*.blend1
+assets/personagens/*backup*.glb
+assets/talking_island/raw_export
+assets/talking_island/extracted_l2
+assets/talking_island/models
+assets/baium_export
+**/*.unr
+**/*.psa
+**/*.md5anim
