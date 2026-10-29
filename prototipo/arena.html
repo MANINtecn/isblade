@@ -1551,141 +1551,38 @@ ring2.rotation.x=Math.PI/2;ring2.position.y=.04;scene.add(ring2);
 
 
 /* =========================================================================
-   PORTAL DIMENSIONAL SOLO LEVELING (S-RANK ORANGE GATE - ESTILO 3 EXPANDIDO)
-   Monolitos de obsidiana levitando, arcos eletricos e vortice de plasma incandescente
+   TEXTURAS E GERADOR DE MONOLITOS SOLO LEVELING HD (S-RANK BLUE GATE)
    ========================================================================= */
-var portal = new THREE.Group();
-portal.position.set(0, 7.2, -22);
-scene.add(portal);
+var TX_PORTAL_VORTEX = new THREE.TextureLoader().load('assets/fx/portal_vortex_blue.png');
+var TX_PORTAL_HORIZON = new THREE.TextureLoader().load('assets/fx/portal_event_horizon.png');
+var TX_PORTAL_RUNE = new THREE.TextureLoader().load('assets/fx/portal_monolith_rune.png');
+var TX_PORTAL_SEAL = new THREE.TextureLoader().load('assets/fx/portal_floor_seal.png');
+var TX_PORTAL_MIST = new THREE.TextureLoader().load('assets/fx/portal_mist_blue.png');
+TX_PORTAL_VORTEX.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_HORIZON.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_RUNE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_SEAL.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_MIST.colorSpace = THREE.SRGBColorSpace;
 
-var SL_RX = 3.8, SL_RY = 5.6; // Escala colossal de ~11.2m de altura x 7.6m largura
-
-var slVortexGroup = new THREE.Group();
-var slCoreVoid = new THREE.Mesh(
-  new THREE.CircleGeometry(1.0, 24),
-  new THREE.MeshBasicMaterial({ color: 0x120300, side: THREE.DoubleSide })
-);
-slCoreVoid.scale.set(SL_RX * 0.72, SL_RY * 0.72, 1);
-slVortexGroup.add(slCoreVoid);
-
-var slPlasmaDisc = new THREE.Mesh(
-  new THREE.RingGeometry(0.35, 1.0, 36),
-  new THREE.MeshBasicMaterial({
-    color: 0xff6600,
-    transparent: true,
-    opacity: 0.88,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending
-  })
-);
-slPlasmaDisc.scale.set(SL_RX * 0.94, SL_RY * 0.94, 1);
-slVortexGroup.add(slPlasmaDisc);
-
-var slOuterRing = new THREE.Mesh(
-  new THREE.RingGeometry(0.85, 1.05, 36),
-  new THREE.MeshBasicMaterial({
-    color: 0xff9900,
-    transparent: true,
-    opacity: 0.72,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending
-  })
-);
-slOuterRing.scale.set(SL_RX * 1.03, SL_RY * 1.03, 1);
-slVortexGroup.add(slOuterRing);
-
-var slOctoRing = new THREE.Mesh(
-  new THREE.TorusGeometry(1.0, 0.08, 4, 16),
-  new THREE.MeshStandardMaterial({
-    color: 0x221105,
-    roughness: 0.3,
-    metalness: 0.8,
-    emissive: 0xff6600,
-    emissiveIntensity: 0.5
-  })
-);
-slOctoRing.scale.set(SL_RX * 1.06, SL_RY * 1.06, 1);
-slVortexGroup.add(slOctoRing);
-portal.add(slVortexGroup);
-
-var slShards = [];
-var slShardMat = new THREE.MeshStandardMaterial({
-  color: 0x0f1118,
-  roughness: 0.2,
-  metalness: 0.9,
-  emissive: 0xff4400,
-  emissiveIntensity: 0.35
-});
-var slRuneMat = new THREE.MeshBasicMaterial({
-  color: 0xff7700,
-  blending: THREE.AdditiveBlending
-});
-
-var SL_SHARD_COUNT = 20;
-for(var si = 0; si < SL_SHARD_COUNT; si++){
-  var th = (si / SL_SHARD_COUNT) * Math.PI * 2;
-  var radSpread = 1.15 + (si % 3) * 0.08;
-  var sx = Math.cos(th) * (SL_RX * radSpread);
-  var sy = Math.sin(th) * (SL_RY * radSpread);
-  var sz = (Math.random() - 0.5) * 0.6;
-
-  var sGroup = new THREE.Group();
-  sGroup.position.set(sx, sy, sz);
-
-  var crystalGeo = new THREE.DodecahedronGeometry(0.55 + (si % 3) * 0.2, 0);
-  crystalGeo.scale(0.55, 1.45, 0.55);
-  var crystalMesh = new THREE.Mesh(crystalGeo, slShardMat);
-  crystalMesh.rotation.z = th + Math.PI / 2;
-  crystalMesh.rotation.y = (Math.random() - 0.5) * 0.4;
-  sGroup.add(crystalMesh);
-
-  var runeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.55, 0.12), slRuneMat);
-  runeMesh.rotation.z = th + Math.PI / 2;
-  sGroup.add(runeMesh);
-
-  portal.add(sGroup);
-  slShards.push({
-    group: sGroup,
-    baseX: sx,
-    baseY: sy,
-    baseZ: sz,
-    phase: th * 2 + Math.random(),
-    rotSpeed: 0.6 + Math.random() * 0.8
-  });
+function makePointedMonolithMesh(w, h, d, mat){
+  var geo = new THREE.BoxGeometry(w, h, d, 2, 4, 2);
+  var pos = geo.attributes.position;
+  for(var i = 0; i < pos.count; i++){
+    var y = pos.getY(i);
+    var ny = Math.abs(y / (h * 0.5)); // 0 no centro, 1 nas pontas
+    var scale = Math.max(0.08, 1.0 - Math.pow(ny, 1.25) * 0.88);
+    pos.setX(i, pos.getX(i) * scale);
+    pos.setZ(i, pos.getZ(i) * scale);
+  }
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat);
 }
 
-var slArcPositions = new Float32Array(SL_SHARD_COUNT * 2 * 3);
-var slArcGeo = new THREE.BufferGeometry();
-slArcGeo.setAttribute('position', new THREE.BufferAttribute(slArcPositions, 3));
-var slArcMat = new THREE.LineBasicMaterial({
-  color: 0xffbb33,
-  transparent: true,
-  opacity: 0.9,
-  blending: THREE.AdditiveBlending,
-  linewidth: 2
-});
-var slArcLines = new THREE.LineSegments(slArcGeo, slArcMat);
-portal.add(slArcLines);
-
-var slPortalLight = new THREE.PointLight(0xff6600, 7.5, 38, 1.4);
-slPortalLight.position.set(0, 0, 2.5);
-portal.add(slPortalLight);
-
-// lightColumn at init
-
-var slGateData = {
-  vortex: slVortexGroup,
-  plasma: slPlasmaDisc,
-  outer: slOuterRing,
-  octo: slOctoRing,
-  shards: slShards,
-  arcLines: slArcLines,
-  arcPositions: slArcPositions,
-  light: slPortalLight,
-  time: 0
-};
-
-
+// Portal de fundo desativado para garantir portal unico e sem duplicidade visual
+var portal = new THREE.Group();
+portal.visible = false;
+scene.add(portal);
+var slGateData = null;
 
 var pillarMat=new THREE.MeshStandardMaterial({color:0x1a2036,roughness:.9});
 
@@ -4847,53 +4744,6 @@ var MOBS=[],EPROJ=[],OBST=[],obstGroup=new THREE.Group();scene.add(obstGroup);
 var BOSS_ON=!DG.on;/* chefe ativo: sempre na arena; na dungeon so na sala do chefe */
 
 
-/* Texturas HD do Portal Dimensional Solo Leveling (Azul/Ciano/Runas/Vortice) */
-var TX_PORTAL_VORTEX = new THREE.TextureLoader().load('assets/fx/portal_vortex_blue.png');
-var TX_PORTAL_HORIZON = new THREE.TextureLoader().load('assets/fx/portal_event_horizon.png');
-var TX_PORTAL_RUNE = new THREE.TextureLoader().load('assets/fx/portal_monolith_rune.png');
-var TX_PORTAL_SEAL = new THREE.TextureLoader().load('assets/fx/portal_floor_seal.png');
-var TX_PORTAL_MIST = new THREE.TextureLoader().load('assets/fx/portal_mist_blue.png');
-TX_PORTAL_VORTEX.colorSpace = THREE.SRGBColorSpace;
-TX_PORTAL_HORIZON.colorSpace = THREE.SRGBColorSpace;
-TX_PORTAL_RUNE.colorSpace = THREE.SRGBColorSpace;
-TX_PORTAL_SEAL.colorSpace = THREE.SRGBColorSpace;
-TX_PORTAL_MIST.colorSpace = THREE.SRGBColorSpace;
-
-function makePointedMonolithMesh(w, h, d, mat){
-  var geo = new THREE.BoxGeometry(w, h, d, 1, 2, 1);
-  var pos = geo.attributes.position;
-  for(var i = 0; i < pos.count; i++){
-    var y = pos.getY(i);
-    var scale = 1.0 - Math.abs(y / (h * 0.5)) * 0.52;
-    pos.setX(i, pos.getX(i) * scale);
-    pos.setZ(i, pos.getZ(i) * scale);
-  }
-  geo.computeVertexNormals();
-  return new THREE.Mesh(geo, mat);
-}
-
-var STONE=new THREE.MeshStandardMaterial({color:0x3b4363,roughness:.92,metalness:.05});
-
-var STONE2=new THREE.MeshStandardMaterial({color:0x2c3350,roughness:.95,metalness:.05});
-
-/* ---- obstaculos: circulos de colisao (muros viram varios circulos) ---- */
-
-function obstPush(x,z,rr){
-
-  for(var i=0;i<OBST.length;i++){
-
-    var c=OBST[i],dx=x-c.x,dz=z-c.z,d=Math.hypot(dx,dz),m=c.r+rr;
-
-    if(d<m){if(d<1e-4){dx=1;dz=0;d=1;}x=c.x+dx/d*m;z=c.z+dz/d*m;}
-
-  }
-
-  return [x,z];
-
-}
-
-function obstAt(x,z,rr){for(var i=0;i<OBST.length;i++){if(Math.hypot(x-OBST[i].x,z-OBST[i].z)<OBST[i].r+rr)return true;}return false;}
-
 function clearObstacles(){
 
   while(obstGroup.children.length){var o=obstGroup.children.pop();o.traverse(function(n){if(n.geometry)n.geometry.dispose();});}
@@ -4998,7 +4848,7 @@ function damageMob(m,dmg,an){
 
   if(TRAIN.on)trainLog(dmg);
 
-  m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
+  m.hp=Math.max(0,m.hp-dmg);m.flash=1;
 
   var f=fwd(Math.atan2(m.x-S.px,m.z-S.pz)),kb=m.T.armor?.12:.45;if(an.skill&&an.skill.burst)kb=m.T.armor?.6:1.8;
 
@@ -5190,13 +5040,7 @@ function updateMobs(dt){
 
             else{var s2=m.sdir*sp*.35*dt;m.x+=f[1]*s2;m.z-=f[0]*s2;}
 
-            if(m.t>=m.wait&&d<=T.range&&attackers<2){
-              m.state='windup';m.t=0;attackers++;
-              var ringCol = T.isMiniBoss ? 0xff0044 : (T.aoe ? 0xff6a4a : 0xf5c451);
-              var ringRad = T.isMiniBoss ? T.range + 1.2 : (T.aoe ? T.range + 0.8 : T.range + 0.3);
-              groundRing(m.x, m.z, ringCol, 0.5, ringRad, T.wind, 0.85);
-              if(T.isMiniBoss) SFX.play('roar');
-            }
+            if(m.t>=m.wait&&d<=T.range&&attackers<2){m.state='windup';m.t=0;attackers++;if(T.aoe)groundRing(m.x,m.z,0xff6a4a,.4,T.range+.5,T.wind,.5);}
 
           }
 
@@ -5253,11 +5097,7 @@ function updateEProj(dt){
 }
 
 
-/* ==========================================================================
-   BAUS DE RECOMPENSA ESTILO ALBION / DRAGON NEST
-   Surge apos limpar salas ou derrotar mini-boss / Baium.
-   Pressione [E] perto do bau para abrir com animacao, som e feedback.
-   ========================================================================== */
+
 var ACTIVE_CHEST = null;
 
 function spawnChest(kind, x, z) {
@@ -5387,93 +5227,124 @@ function interactChest() {
 
 /* ---- fluxo da dungeon ---- */
 
-/* Portal Dimensional Solo Leveling (A/S-Rank - Laranja e Raios Eletricos) */
-function spawnPortal(label){
-  if(DG.portal){scene.remove(DG.portal);DG.portal=null;}
+
+/* =========================================================================
+   SISTEMA UNIFICADO DE PORTAIS DIMENSIONAIS SOLO LEVELING HD (S-RANK BLUE GATE)
+   Fidelidade Canonica: Singularidade Negra, Vortice Cosmico, Horizonte de Eventos,
+   Monolitos de Obsidiana com Runas Incandescentes, Arcos Eletricos e Selo de Invocacao
+   ========================================================================= */
+
+function createSoloLevelingGate(opts){
+  opts = opts || {};
+  var posX = opts.x || 0;
+  var posY = opts.y || 2.7;
+  var posZ = opts.z || -9;
+  var rotY = opts.rotY !== undefined ? opts.rotY : 0;
+  var RX = opts.rx || 1.95;
+  var RY = opts.ry || 2.85;
+  var runeColor = opts.runeColor || 0x00d5ff;
+
   var g = new THREE.Group();
-  g.position.set(0, 2.5, -9);
+  g.position.set(posX, posY, posZ);
+  g.rotation.y = rotY;
 
-  // 1. Escala Imponente (Elipse Vertical ~4.9m x 3.5m)
-  var RX = 1.75, RY = 2.45;
-
-  // 2. Vortice Central em Camadas (Fogo, Plasma e Horizonte de Eventos)
+  // 1. Vortice Cosmico em Camadas com Singularidade Negra
   var vortexGroup = new THREE.Group();
 
-  var coreVoidMat = new THREE.MeshBasicMaterial({color: 0x120400, side: THREE.DoubleSide});
-  var coreVoid = new THREE.Mesh(new THREE.CircleGeometry(1.0, 16), coreVoidMat);
-  coreVoid.scale.set(RX * 0.7, RY * 0.7, 1);
-  vortexGroup.add(coreVoid);
+  // Camada A: Singularidade Central Negra (Pitch Black Void - Profundidade real de abismo dimensional)
+  var voidGeo = new THREE.CircleGeometry(RX * 0.58, 32);
+  var voidMat = new THREE.MeshBasicMaterial({
+    color: 0x01030a,
+    side: THREE.FrontSide,
+    depthWrite: true
+  });
+  var voidMesh = new THREE.Mesh(voidGeo, voidMat);
+  voidMesh.scale.set(1.0, RY / RX, 1.0);
+  voidMesh.position.set(0, 0, -0.05);
+  vortexGroup.add(voidMesh);
 
-  var plasmaMat = new THREE.MeshBasicMaterial({
-    color: 0xff6600,
+  // Camada B: Espiral Primaria de Nebulosa Azul/Ciano (Alta resolucao)
+  var vortexMat = new THREE.MeshBasicMaterial({
+    map: TX_PORTAL_VORTEX,
     transparent: true,
-    opacity: 0.82,
+    opacity: 0.98,
     side: THREE.DoubleSide,
     blending: THREE.AdditiveBlending,
     depthWrite: false
   });
-  var plasmaDisc = new THREE.Mesh(new THREE.CircleGeometry(1.0, 24), plasmaMat);
-  plasmaDisc.scale.set(RX * 0.95, RY * 0.95, 1);
-  vortexGroup.add(plasmaDisc);
+  var vortexMesh = new THREE.Mesh(new THREE.PlaneGeometry(RX * 2.4, RY * 2.4), vortexMat);
+  vortexGroup.add(vortexMesh);
 
-  var outerRingMat = new THREE.MeshBasicMaterial({
-    color: 0xffaa22,
+  // Camada C: Anel de Horizonte de Eventos Radiante (Contra-rotativo suave)
+  var horizonMat = new THREE.MeshBasicMaterial({
+    map: TX_PORTAL_HORIZON,
     transparent: true,
-    opacity: 0.65,
+    opacity: 0.85,
     side: THREE.DoubleSide,
     blending: THREE.AdditiveBlending,
     depthWrite: false
   });
-  var outerRing = new THREE.Mesh(new THREE.RingGeometry(0.85, 1.05, 24), outerRingMat);
-  outerRing.scale.set(RX, RY, 1);
-  vortexGroup.add(outerRing);
-
-  var octoRing = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.08, 4, 12), new THREE.MeshStandardMaterial({
-    color: 0x221105,
-    roughness: 0.3,
-    metalness: 0.8,
-    emissive: 0xff6600,
-    emissiveIntensity: 0.4
-  }));
-  octoRing.scale.set(RX, RY, 1);
-  vortexGroup.add(octoRing);
+  var horizonMesh = new THREE.Mesh(new THREE.PlaneGeometry(RX * 1.85, RY * 1.85), horizonMat);
+  vortexGroup.add(horizonMesh);
 
   g.add(vortexGroup);
 
-  // 3. Estilhacos e Monolitos Levitantes de Obsidiana com Runas Laranjas
+  // 2. Selo Magico de Invocacao no Chao (Runas Dourado/Ciano)
+  var sealMat = new THREE.MeshBasicMaterial({
+    map: TX_PORTAL_SEAL,
+    transparent: true,
+    opacity: 0.88,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  var floorSeal = new THREE.Mesh(new THREE.PlaneGeometry(RX * 2.8, RX * 2.8), sealMat);
+  floorSeal.rotation.x = -Math.PI / 2;
+  floorSeal.position.set(0, -posY + 0.04, 0);
+  g.add(floorSeal);
+
+  // 3. Nevoa Cosmica no Chao (Vapor de Particulas)
+  var mistMat = new THREE.MeshBasicMaterial({
+    map: TX_PORTAL_MIST,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  var mistMesh = new THREE.Mesh(new THREE.PlaneGeometry(RX * 2.5, 1.5), mistMat);
+  mistMesh.position.set(0, -posY + 0.75, 0.3);
+  g.add(mistMesh);
+
+  // 4. Campo de Monolitos de Obsidiana (Cristais com Runas Esculpidas)
   var shards = [];
   var shardMat = new THREE.MeshStandardMaterial({
-    color: 0x14151c,
-    roughness: 0.25,
-    metalness: 0.85,
-    flatShading: true
-  });
-  var runeMat = new THREE.MeshBasicMaterial({
-    color: 0xffaa00,
-    blending: THREE.AdditiveBlending
+    map: TX_PORTAL_RUNE,
+    emissiveMap: TX_PORTAL_RUNE,
+    emissive: runeColor,
+    emissiveIntensity: 1.5,
+    roughness: 0.12,
+    metalness: 0.92
   });
 
-  var shardCount = 14;
+  // Anel Principal: 16 cristais apontando ao longo do perimetro eliptico
+  var shardCount = 16;
   for(var i = 0; i < shardCount; i++){
     var a = (i / shardCount) * Math.PI * 2;
-    var radDist = 1.25 + (i % 2) * 0.18;
-    var sx = Math.sin(a) * RX * radDist;
-    var sy = Math.cos(a) * RY * radDist;
-    var sz = (Math.random() - 0.5) * 0.35;
+    var sx = Math.sin(a) * RX;
+    var sy = Math.cos(a) * RY;
+    var sz = (Math.sin(a * 3) * 0.18) + (Math.random() - 0.5) * 0.12;
 
     var sGroup = new THREE.Group();
     sGroup.position.set(sx, sy, sz);
 
-    var crystalGeo = new THREE.DodecahedronGeometry(0.38 + (i % 3) * 0.12, 0);
-    crystalGeo.scale(0.55, 1.45, 0.55);
-    var crystalMesh = new THREE.Mesh(crystalGeo, shardMat);
-    crystalMesh.rotation.set((i * 1.3) % 1, (i * 2.1) % 1, a + Math.PI / 2);
-    sGroup.add(crystalMesh);
+    var isCrown = (i === 0);
+    var shardW = isCrown ? 0.38 : (0.24 + (i % 3) * 0.05);
+    var shardH = isCrown ? 1.85 : (1.35 + (i % 2) * 0.35);
 
-    var runeCoreGeo = new THREE.OctahedronGeometry(0.16 + (i % 2) * 0.06, 0);
-    var runeCore = new THREE.Mesh(runeCoreGeo, runeMat);
-    runeCore.position.z = 0.16;
-    sGroup.add(runeCore);
+    var shardMesh = makePointedMonolithMesh(shardW, shardH, shardW * 0.65, shardMat);
+    shardMesh.rotation.z = -a;
+    shardMesh.rotation.y = (Math.random() - 0.5) * 0.25;
+    sGroup.add(shardMesh);
 
     g.add(sGroup);
     shards.push({
@@ -5481,44 +5352,85 @@ function spawnPortal(label){
       baseX: sx,
       baseY: sy,
       baseZ: sz,
-      phase: i * 0.7,
-      rotSpeed: 0.4 + (i % 3) * 0.3
+      phase: i * 0.65 + Math.random(),
+      rotSpeed: 0.45 + (i % 3) * 0.3
     });
   }
 
-  // 4. Raios Eletricos Laranjas
+  // Nuvem Orbital Externa: 8 fragmentos menores flutuando no campo dimensional
+  var outerCount = 8;
+  for(var j = 0; j < outerCount; j++){
+    var th = (j / outerCount) * Math.PI * 2 + 0.35;
+    var sx2 = Math.sin(th) * RX * 1.38;
+    var sy2 = Math.cos(th) * RY * 1.35;
+    var sz2 = (Math.random() - 0.5) * 0.6;
+
+    var fragGroup = new THREE.Group();
+    fragGroup.position.set(sx2, sy2, sz2);
+
+    var fW = 0.16 + (j % 2) * 0.05;
+    var fH = 0.85 + (j % 3) * 0.25;
+    var fMesh = makePointedMonolithMesh(fW, fH, fW * 0.6, shardMat);
+    fMesh.rotation.z = -th + 0.15;
+    fMesh.rotation.x = (Math.random() - 0.5) * 0.3;
+    fragGroup.add(fMesh);
+
+    g.add(fragGroup);
+    shards.push({
+      group: fragGroup,
+      baseX: sx2,
+      baseY: sy2,
+      baseZ: sz2,
+      phase: j * 1.1 + 2.0,
+      rotSpeed: 0.6 + (j % 2) * 0.4
+    });
+  }
+
+  // 5. Arcos Eletricos Dinamicos de Alta Tensao (Ciano Vibrante)
+  var totalShards = shardCount + outerCount;
   var arcMat = new THREE.LineBasicMaterial({
-    color: 0xffaa33,
+    color: 0x00f5ff,
     transparent: true,
-    opacity: 0.9,
-    blending: THREE.AdditiveBlending
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
+    linewidth: 2
   });
-  var arcPositions = new Float32Array(shardCount * 8 * 3);
+  var arcPositions = new Float32Array(totalShards * 8 * 3);
   var arcGeo = new THREE.BufferGeometry();
   arcGeo.setAttribute('position', new THREE.BufferAttribute(arcPositions, 3));
   var arcLines = new THREE.LineSegments(arcGeo, arcMat);
   g.add(arcLines);
 
-  // 5. Luz e Feixe Radiante
-  var portalLight = new THREE.PointLight(0xff6600, 4.5, 14, 1.6);
-  portalLight.position.set(0, 0, 0.8);
+  // 6. Luz Dinamica Volumetrica
+  var portalLight = new THREE.PointLight(runeColor, 5.5, 22, 1.5);
+  portalLight.position.set(0, 0, 1.2);
   g.add(portalLight);
 
-  lightColumn(0, -9, 0xff7700, 8.5, 1.8, 999);
-
-  scene.add(g);
-  DG.portal = g;
-  DG.portalLabel = label;
-  DG.portalData = {
-    vortex: vortexGroup,
-    plasma: plasmaDisc,
-    outer: outerRing,
-    shards: shards,
-    arcLines: arcLines,
-    arcPositions: arcPositions,
-    light: portalLight,
-    time: 0
+  return {
+    group: g,
+    data: {
+      vortex: vortexGroup,
+      vortexMesh: vortexMesh,
+      horizonMesh: horizonMesh,
+      floorSeal: floorSeal,
+      shards: shards,
+      arcLines: arcLines,
+      arcPositions: arcPositions,
+      light: portalLight,
+      time: 0
+    }
   };
+}
+
+function spawnPortal(label){
+  if(DG.portal){scene.remove(DG.portal);DG.portal=null;DG.portalData=null;}
+  if(typeof portal !== 'undefined' && portal) portal.visible = false;
+
+  var gate = createSoloLevelingGate({ x: 0, y: 2.7, z: -9, rotY: 0, runeColor: 0x00d5ff });
+  scene.add(gate.group);
+  DG.portal = gate.group;
+  DG.portalLabel = label;
+  DG.portalData = gate.data;
 }
 
 function dgClear(){
@@ -5546,6 +5458,7 @@ function dgBossDuelDefeated(){
   spawnPortal('exit');
   renderHud();
 }
+window.dgBossDuelDefeated = dgBossDuelDefeated;
 
 function startBaiumDirectFight(){
   DG.on = false;
@@ -5590,20 +5503,17 @@ function dgBossDown(){
 }
 
 function spawnCityPortal(){
-  if(DG.cityPortal){scene.remove(DG.cityPortal);DG.cityPortal=null;}
-  var g=new THREE.Group();
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(1.6,.14,10,40),new THREE.MeshBasicMaterial({color:0xf5c451})));
-  g.add(new THREE.Mesh(new THREE.CircleGeometry(1.5,32),new THREE.MeshBasicMaterial({
-    color:0x3aa8ff,transparent:true,opacity:.65,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false
-  })));
-  g.position.set(0,1.8,11.5);
-  scene.add(g);
-  DG.cityPortal=g;
-  lightColumn(0,11.5,0x3aa8ff,6,1.4,1.2);
+  if(DG.cityPortal){scene.remove(DG.cityPortal);DG.cityPortal=null;DG.cityPortalData=null;}
+  // Portal de Retorno a Cidade: Posicionado no eixo Sul (Z = 11.5), virado para o Santuario (RotY = PI)
+  var gate = createSoloLevelingGate({ x: 0, y: 2.7, z: 11.5, rotY: Math.PI, runeColor: 0x3aa8ff });
+  scene.add(gate.group);
+  DG.cityPortal = gate.group;
+  DG.cityPortalData = gate.data;
+  lightColumn(0, 11.5, 0x3aa8ff, 6, 1.4, 1.2);
 }
 
 function removeCityPortal(){
-  if(DG.cityPortal){scene.remove(DG.cityPortal);DG.cityPortal=null;}
+  if(DG.cityPortal){scene.remove(DG.cityPortal);DG.cityPortal=null;DG.cityPortalData=null;}
 }
 
 /* santuario: arena calma com o portal da dungeon; entrar abre a escolha de dificuldade */
@@ -5810,60 +5720,52 @@ function updatePortal(dt){
   var pPrompt = document.getElementById('portal-prompt');
   var nearSomething = false;
 
-  // 1. Portal da Dungeon / Chefe / Saida de sala
-  if(DG.portal){
-    if(DG.portalData){
-        var pd = DG.portalData;
-        pd.time += dt;
-        pd.plasma.rotation.z += dt * 1.2;
-        pd.outer.rotation.z -= dt * 0.7;
+  function animateGateData(pd){
+    if(!pd) return;
+    pd.time += dt;
+    if(pd.vortexMesh) pd.vortexMesh.rotation.z += dt * 0.85;
+    if(pd.horizonMesh) pd.horizonMesh.rotation.z -= dt * 1.15;
+    if(pd.floorSeal) pd.floorSeal.rotation.z += dt * 0.15;
 
-        for(var si = 0; si < pd.shards.length; si++){
-          var s = pd.shards[si];
-          s.group.position.x = s.baseX + Math.sin(pd.time * 1.5 + s.phase) * 0.04;
-          s.group.position.y = s.baseY + Math.sin(pd.time * 2.2 + s.phase) * 0.08;
-          s.group.rotation.z = Math.sin(pd.time * s.rotSpeed + s.phase) * 0.15;
-        }
+    for(var si = 0; si < pd.shards.length; si++){
+      var s = pd.shards[si];
+      s.group.position.x = s.baseX + Math.sin(pd.time * 1.8 + s.phase) * 0.06;
+      s.group.position.y = s.baseY + Math.sin(pd.time * 2.5 + s.phase) * 0.10;
+      s.group.rotation.z = Math.sin(pd.time * s.rotSpeed + s.phase) * 0.12;
+    }
 
-        if(Math.random() < 0.75){
-          var posArr = pd.arcPositions;
-          var pIdx = 0;
-          for(var ai = 0; ai < pd.shards.length; ai++){
-            var nextIdx = (ai + 1) % pd.shards.length;
-            var s1 = pd.shards[ai].group.position;
-            var s2 = pd.shards[nextIdx].group.position;
-            var midX = (s1.x + s2.x) * 0.5 + (Math.random() - 0.5) * 0.35;
-            var midY = (s1.y + s2.y) * 0.5 + (Math.random() - 0.5) * 0.35;
-            var midZ = (s1.z + s2.z) * 0.5 + (Math.random() - 0.5) * 0.25;
+    if(Math.random() < 0.85 && pd.arcPositions){
+      var posArr = pd.arcPositions;
+      var pIdx = 0;
+      for(var ai = 0; ai < pd.shards.length; ai++){
+        var nextIdx = (ai + 1) % pd.shards.length;
+        var s1 = pd.shards[ai].group.position;
+        var s2 = pd.shards[nextIdx].group.position;
+        var midX = (s1.x + s2.x) * 0.5 + (Math.random() - 0.5) * 0.45;
+        var midY = (s1.y + s2.y) * 0.5 + (Math.random() - 0.5) * 0.45;
+        var midZ = (s1.z + s2.z) * 0.5 + (Math.random() - 0.5) * 0.35;
 
-            posArr[pIdx++] = s1.x; posArr[pIdx++] = s1.y; posArr[pIdx++] = s1.z;
-            posArr[pIdx++] = midX; posArr[pIdx++] = midY; posArr[pIdx++] = midZ;
-            posArr[pIdx++] = midX; posArr[pIdx++] = midY; posArr[pIdx++] = midZ;
-            posArr[pIdx++] = s2.x; posArr[pIdx++] = s2.y; posArr[pIdx++] = s2.z;
-
-            if(ai % 3 === 0){
-              var cMidX = s1.x * 0.5 + (Math.random() - 0.5) * 0.4;
-              var cMidY = s1.y * 0.5 + (Math.random() - 0.5) * 0.4;
-              posArr[pIdx++] = s1.x; posArr[pIdx++] = s1.y; posArr[pIdx++] = s1.z;
-              posArr[pIdx++] = cMidX; posArr[pIdx++] = cMidY; posArr[pIdx++] = 0.2;
-            }
-          }
-          pd.arcLines.geometry.attributes.position.needsUpdate = true;
-        }
-        pd.light.intensity = 4.2 + Math.sin(pd.time * 6) * 1.0;
-      } else {
-        DG.portal.rotation.z += dt * .8;
+        posArr[pIdx++] = s1.x; posArr[pIdx++] = s1.y; posArr[pIdx++] = s1.z;
+        posArr[pIdx++] = midX; posArr[pIdx++] = midY; posArr[pIdx++] = midZ;
       }
-      DG.portal.lookAt(camera.position.x,DG.portal.position.y,camera.position.z);
+      pd.arcLines.geometry.attributes.position.needsUpdate = true;
+    }
+    if(pd.light) pd.light.intensity = 5.2 + Math.sin(pd.time * 6.5) * 1.5;
+  }
+
+  // 1. Portal da Dungeon / Chefe / Saida de sala (Norte: Z = -9)
+  if(DG.portal){
+    animateGateData(DG.portalData);
+
     var dP = Math.hypot(S.px, S.pz + 9);
-    if(DG.cleared && !S.pdead && dP < 1.9){
+    if(DG.cleared && !S.pdead && dP < 2.0){
       if(DG.portalLabel==='enter'){if(!DG.menu)openDiff();return;}
       var lab=DG.portalLabel;
-      DG.portal.visible=false;DG.portal=null;
+      DG.portal.visible=false;DG.portal=null;DG.portalData=null;
       if(lab==='exit')dgHub();else dgLoadRoom(DG.room+1,false);
       return;
     }
-    if(dP < 3.5 && !S.pdead){
+    if(dP < 3.8 && !S.pdead){
       nearSomething = true;
       if(pPrompt){
         pPrompt.style.display = 'block';
@@ -5878,28 +5780,26 @@ function updatePortal(dt){
     }
   }
 
-  // 2. Portal de Retorno a Cidade (Talking Island)
+  // 2. Portal de Retorno a Cidade (Sul: Z = 11.5)
   if(DG.cityPortal){
-    DG.cityPortal.rotation.z -= dt*.8;
-    DG.cityPortal.children[0].rotation.z = 0;
-    DG.cityPortal.lookAt(camera.position.x, DG.cityPortal.position.y, camera.position.z);
+    animateGateData(DG.cityPortalData);
+
     var dCity = Math.hypot(S.px, S.pz - 11.5);
-    if(DG.room < 0 && !S.pdead && dCity < 1.9){
+    if(DG.room < 0 && !S.pdead && dCity < 2.0){
       returnToCity();
       return;
     }
-    if(dCity < 3.5 && !S.pdead){
+    if(DG.room < 0 && !S.pdead && dCity < 3.8){
       nearSomething = true;
       if(pPrompt){
         pPrompt.style.display = 'block';
-        pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse para <b>Retornar a Talking Island</b>';
+        pPrompt.innerHTML = 'Atravesse o portal para <b>Retornar à Cidade de Talking Island</b>';
       }
     }
   }
 
-  // Se nao esta perto de nenhum portal nem de bau, esconde prompt
-  if(!nearSomething && (!ACTIVE_CHEST || Math.hypot(S.px - ACTIVE_CHEST.x, S.pz - ACTIVE_CHEST.z) >= 2.5)){
-    if(pPrompt) pPrompt.style.display = 'none';
+  if(!nearSomething && pPrompt){
+    pPrompt.style.display = 'none';
   }
 }
 
@@ -6699,7 +6599,7 @@ function buildPad(){
 
   var host=location.hostname;if(host!=='localhost'&&host!=='127.0.0.1')return;
 
-  window.__dbg={cam:cam,camera:camera,player:player,vrm:function(){return vrm;},boss:function(){return boss;},enemy:enemy,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},applyHit:applyHit,dgHub:dgHub,dgStart:dgStart,killMob:killMob,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,mast:function(){return {lv:mastLevel(),xp:mastXp()};}};/* so localhost: permite testes automaticos ler/alterar o estado */
+  window.__dbg={cam:cam,camera:camera,player:player,vrm:function(){return vrm;},boss:function(){return boss;},enemy:enemy,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},applyHit:applyHit,dgHub:dgHub,dgStart:dgStart,killMob:typeof removeMob!=='undefined'?removeMob:function(){},DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,mast:function(){return {lv:mastLevel(),xp:mastXp()};}};/* so localhost: permite testes automaticos ler/alterar o estado */
 
   var box=document.createElement('div');box.id='dev';box.style.cssText='position:fixed;left:10px;top:10px;bottom:10px;width:min(340px,92vw);z-index:7;overflow:auto;display:none;pointer-events:auto;background:rgba(8,14,30,.94);border:1px solid #f5c451;border-radius:6px;padding:10px 12px;font:11px system-ui;color:#e8f0ff';
 

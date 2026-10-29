@@ -1562,3 +1562,27 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
       5. **Grande Portal Solo Leveling Colossal (Versão 3)**:
          - Substituído o antigo anel roxo por um portal colossal de ~11.2 metros de altura (`SL_RX = 3.8, SL_RY = 5.6`).
          - Composto por 20 monólitos de obsidiana facetada com runas incandescentes orbitando o perímetro, arcos elétricos dinâmicos (`LineSegments`), vórtice de plasma aditivo alaranjado e iluminação dinâmica volumétrica pulsante.
+
+22. **Substituição Definitiva dos Anéis Low-Poly por Portais Solo Leveling HD Canônicos (S-Rank Azul/Ciano) em Todas as Instâncias**:
+    - **Diagnóstico das Capturas do Usuário**:
+      1. O usuário enviou 4 capturas de tela demonstrando que, ao jogar a masmorra e o santuário, o portal de retorno à cidade e o portal de saída após derrotar o Baium ainda renderizavam como um anel roxo/lilás simples e plano (`TorusGeometry` de raio 1.6m com cor `0x8b7bff` e círculo opaco `0x5a3fd0`).
+      2. No Santuário, havia sobreposição visual estranha entre o portal de fundo (`z = -22`) e o portal interativo (`z = -9`), gerando o efeito de vórtices duplicados verticalmente.
+      3. O construtor do portal de retorno à cidade (`spawnCityPortal`) e os fluxos de vitória não utilizavam o novo pipeline de texturas de alta definição.
+    - **Execução Técnica & Renderização**:
+      1. **Geração e Aplicação de Texturas HD Canônicas** (`prototipo/assets/fx/`):
+         - `portal_vortex_blue.png`: Vórtice cósmico em espiral de nebulosa azul safira e ciano elétrico com microestrelas e filamentos energéticos.
+         - `portal_event_horizon.png`: Anel radiante de horizonte de eventos contra-rotativo.
+         - `portal_monolith_rune.png`: Textura de rocha vulcânica obsidiana com hieróglifos rúnicos arcanos entalhados e incandescentes em ciano (`#00e5ff`).
+         - `portal_floor_seal.png`: Círculo de invocação rúnica mágica posicionado no piso sob a fenda dimensional.
+         - `portal_mist_blue.png`: Névoa e partículas de vapor de condensação de éter na base do portal.
+      2. **Construtor Unificado `createSoloLevelingGate(opts)`**:
+         - **Singularidade Negra**: Disco central opaco (`CircleGeometry` com `color: 0x01030a`, `side: THREE.FrontSide`, `depthWrite: true`) simulando a profundidade infinita do abismo espacial/dimensional canônico de Solo Leveling.
+         - **Monólitos de Obsidiana Facetados 3D**: Geometria facetada personalizada (`makePointedMonolithMesh`) simulando obeliscos de cristal afiados, dispostos tangencialmente ao contorno da elipse (com cristais de topo e base ampliados).
+         - **Nuvem Orbital Externa & Arcos Elétricos**: 8 estilhaços orbitais levitantes e linhas de raio de alta voltagem (`0x00f5ff`, `LineSegments`) descarregando pulsos entre os monólitos a cada quadro.
+         - **Fixação Espacial Firme**: Removido o billboarding forçado (`lookAt(camera)` a cada quadro), mantendo os portais firmemente ancorados em seus eixos de entrada com orientação natural.
+      3. **Unificação Total de Cenários**:
+         - *Santuário (Entrada DG)*: Portal S-Rank em `(0, 2.7, -9)` virado para o Sul.
+         - *Santuário (Retorno à Cidade)*: Portal S-Rank em `(0, 2.7, 11.5)` virado para o Norte, banhado em luz azul de retorno a Talking Island.
+         - *Fim de Sala / Vitória do Baium*: Portal de saída dimensional renderizado majestosamente atrás do Baú Lendário com o feixe de luz vertical de tesouro.
+      4. **Verificação Automatizada via Edge/Playwright**:
+         - Validado em tempo real com capturas [screenshot_live_solo_leveling_dungeon_gate.png](file:///C:/Users/icaro/.gemini/antigravity/brain/37e73844-1664-4aea-98c8-1a7ce6965eeb/screenshot_live_solo_leveling_dungeon_gate.png) e [screenshot_live_solo_leveling_baium_defeat_gate.png](file:///C:/Users/icaro/.gemini/antigravity/brain/37e73844-1664-4aea-98c8-1a7ce6965eeb/screenshot_live_solo_leveling_baium_defeat_gate.png).
