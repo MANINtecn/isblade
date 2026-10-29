@@ -1586,3 +1586,37 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
          - *Fim de Sala / Vitória do Baium*: Portal de saída dimensional renderizado majestosamente atrás do Baú Lendário com o feixe de luz vertical de tesouro.
       4. **Verificação Automatizada via Edge/Playwright**:
          - Validado em tempo real com capturas [screenshot_live_solo_leveling_dungeon_gate.png](file:///C:/Users/icaro/.gemini/antigravity/brain/37e73844-1664-4aea-98c8-1a7ce6965eeb/screenshot_live_solo_leveling_dungeon_gate.png) e [screenshot_live_solo_leveling_baium_defeat_gate.png](file:///C:/Users/icaro/.gemini/antigravity/brain/37e73844-1664-4aea-98c8-1a7ce6965eeb/screenshot_live_solo_leveling_baium_defeat_gate.png).
+
+
+23. **Correcao Completa do Retorno a Cidade, Portal Branco Celestial e Morte Definitiva do Baium**:
+    - **Diagnostico Profundo dos Problemas Relatados**:
+      1. *Por que nem o botao nem atravessar o portal voltava pra cidade?*
+         - A funcao 
+eturnToCity() chamava gestMsg('Retornando...'), que tentava acessar $('#msg').textContent. Como o elemento #msg nao existia no DOM, era disparada uma excecao silenciosa (TypeError: Cannot set properties of null), abortando a execucao antes de atingir o setTimeout(..., 400) que redirecionava para cidade.html!
+         - Na rotina de renderizacao de cada quadro (rameBody), updatePortal(dt) e updateChest(dt) estavam encapsulados sob if(DG.on){...}. Quando o jogador iniciava o duelo direto do Baium (DG.on = false), a animacao e deteccao de colisao com o portal e com o bau simplesmente NUNCA executavam!
+         - O raio de deteccao do portal no Sul (z = 11.5) estava restrito a dCity < 2.0. Como o limite fisico da arena e ARENA = 13.5, o jogador precisava encostar na parede extrema do fundo para tentar bater o limite de 2 metros.
+      2. *Por que o Baium ressuscitava em loop apos morrer?*
+         - Na vitoria do duelo direto (dgBossDuelDefeated), a flag DG.cleared nao estava sendo marcada como 	rue e BOSS_ON permanecia ativo.
+         - Se o jogador morresse ou se a arena tentasse resetar, 
+esetDuel() reiniciava a luta inteira restaurando o HP do Baium para o maximo.
+         - Ao dar F5, o localStorage.getItem('isblade.mode') mantinha o valor 'duel', fazendo o navegador reabrir o combate direto em vez de abrir o Santuario limpo ou a cidade.
+    - **Implementacao & Melhorias Aplicadas**:
+      1. **Portal Solo Leveling Branco Celestial Radiante (Sul - Retorno a Talking Island)**:
+         - Criadas texturas celestiais peroladas em alta resolucao: portal_vortex_white.png, portal_event_horizon_white.png, portal_floor_seal_white.png, portal_monolith_rune_white.png, portal_mist_white.png.
+         - O portal do Sul (Z = 11.5) agora e um imponente Solo Leveling Gate em Branco Celestial puro e platina (
+uneColor: 0xffffff), com runas brancas incandescentes e arcos eletricos brancos, contrastando perfeitamente com o Portal Azul Safira da Dungeon (Norte, Z = -9).
+      2. **Ativacao Universal de Retorno & Tecla de Atalho**:
+         - Retirada a trava DG.on de updatePortal e updateChest, permitindo deteccao ativa em qualquer modo.
+         - Ampliado o raio de deteccao de aproximacao para dCity < 3.2 e ativacao por tecla [E] ate 4.5m.
+         - Adicionada a tecla de atalho universal [B] para Retorno Imediato a Talking Island.
+         - Botao de tela [⬅ Retornar a Cidade [B]] no canto superior esquerdo com z-index: 9999 e soltura de mouse automatica (exitPointerLock).
+      3. **Morte Permanente do Baium**:
+         - dgBossDuelDefeated() agora define DG.cleared = true; BOSS_ON = false; S.dead = true; S.hp = 0;. O Baium permanece definitivamente no chao.
+         - 
+esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreicao.
+         - Na vitoria do duelo direto, surge o Portal Branco Celestial de Retorno e o Bau Lendario.
+      4. **Verificacao Automatizada com Suite Completa de Testes**:
+         - Teste 1: Duelo direto contra Baium -> Golpe fatal -> Baium morto com 0 HP -> Espera de 4s confirmou que nao ressuscita.
+         - Teste 2: Atravessar o portal de vitoria redireciona com sucesso para http://localhost:8000/cidade.html.
+         - Teste 3: Atravessar o Portal Sul Branco Celestial redireciona com sucesso para http://localhost:8000/cidade.html.
+         - Teste 4: Pressionar a tecla [B] redireciona com sucesso para http://localhost:8000/cidade.html.

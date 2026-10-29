@@ -58,24 +58,28 @@ function finishArenaLoading(){
 setTimeout(finishArenaLoading, 6000);
 
 function returnToCity(){
-  gestMsg('Retornando para Talking Island...');
-  var screen = document.getElementById('l2LoadingScreen');
-  if(screen){
-    screen.style.display = 'flex';
-    screen.style.opacity = '1';
-    screen.style.pointerEvents = 'all';
-    var status = document.getElementById('l2LoadingStatus');
-    if(status) status.textContent = 'Retornando à Vila de Talking Island...';
-    var title = document.getElementById('l2LoadingTitle');
-    if(title) title.textContent = 'TALKING ISLAND · VILA INICIAL';
-    var bar = document.getElementById('l2LoadingBarFill');
-    if(bar) bar.style.width = '100%';
-    var pct = document.getElementById('l2LoadingPercent');
-    if(pct) pct.textContent = '100%';
-  }
+  try{
+    if(document.exitPointerLock) document.exitPointerLock();
+  }catch(_){}
+  try{
+    var screen = document.getElementById('l2LoadingScreen');
+    if(screen){
+      screen.style.display = 'flex';
+      screen.style.opacity = '1';
+      screen.style.pointerEvents = 'all';
+      var status = document.getElementById('l2LoadingStatus');
+      if(status) status.textContent = 'Retornando à Vila de Talking Island...';
+      var title = document.getElementById('l2LoadingTitle');
+      if(title) title.textContent = 'TALKING ISLAND · VILA INICIAL';
+      var bar = document.getElementById('l2LoadingBarFill');
+      if(bar) bar.style.width = '100%';
+      var pct = document.getElementById('l2LoadingPercent');
+      if(pct) pct.textContent = '100%';
+    }
+  }catch(_){}
   setTimeout(function(){
     window.location.href = 'cidade.html';
-  }, 400);
+  }, 350);
 }
 window.returnToCity = returnToCity;
 
@@ -462,8 +466,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 </div>
 
 <button id="btnFightBaiumDirect" type="button" style="display:none;position:fixed;top:16px;right:16px;z-index:9;background:rgba(255,100,0,0.22);border:1px solid #ff7700;color:#ffaa33;padding:7px 16px;border-radius:4px;cursor:pointer;font-family:system-ui;font-weight:700;font-size:12px;letter-spacing:1px;box-shadow:0 0 14px rgba(255,119,0,0.4);transition:all 0.2s" onmouseover="this.style.background='rgba(255,100,0,0.4)'" onmouseout="this.style.background='rgba(255,100,0,0.22)'">⚔️ DESAFIAR BAIUM (DUELO DIRETO)</button>
-<button id="btnReturnCity" type="button" onclick="returnToCity()" style="display:none;position:fixed;top:14px;left:16px;z-index:90;background:rgba(5,9,20,0.92);border:1.5px solid #f5c451;color:#f5c451;font-family:'Cinzel',serif,system-ui;font-size:11px;font-weight:700;letter-spacing:.12em;padding:8px 16px;cursor:pointer;pointer-events:auto;box-shadow:0 0 14px rgba(245,196,81,.25);transition:all .2s ease;text-transform:uppercase">
-  &#x2B05; Retornar à Cidade
+<button id="btnReturnCity" type="button" onclick="if(document.exitPointerLock)document.exitPointerLock();returnToCity();" style="display:none;position:fixed;top:14px;left:16px;z-index:9999;background:rgba(5,9,20,0.95);border:1.5px solid #f5c451;color:#f5c451;font-family:'Cinzel',serif,system-ui;font-size:11px;font-weight:700;letter-spacing:.12em;padding:9px 18px;cursor:pointer;pointer-events:auto !important;box-shadow:0 0 16px rgba(245,196,81,.35);transition:all .2s ease;text-transform:uppercase">
+  &#x2B05; Retornar à Cidade [B]
 </button>
 
 <div id="portal-prompt" style="display:none;position:fixed;bottom:22%;left:50%;transform:translateX(-50%);z-index:90;background:rgba(5,9,20,0.92);border:1.5px solid #f5c451;padding:8px 20px;color:#f5c451;font-family:'Cinzel',serif,system-ui;font-size:12px;font-weight:700;letter-spacing:.1em;box-shadow:0 0 16px rgba(245,196,81,.4);pointer-events:none;text-transform:uppercase;text-align:center">
@@ -657,7 +661,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js?v=6';
+import { Guardiao } from './js/guardiao.js?v=8';
 import { Net } from './js/net.js?v=6';
 /* <<< CLAUDE [guardiao] */
 import { MuHud } from './js/mu_hud.js?v=11';
@@ -1563,6 +1567,17 @@ TX_PORTAL_HORIZON.colorSpace = THREE.SRGBColorSpace;
 TX_PORTAL_RUNE.colorSpace = THREE.SRGBColorSpace;
 TX_PORTAL_SEAL.colorSpace = THREE.SRGBColorSpace;
 TX_PORTAL_MIST.colorSpace = THREE.SRGBColorSpace;
+
+var TX_PORTAL_VORTEX_WHITE = new THREE.TextureLoader().load('assets/fx/portal_vortex_white.png');
+var TX_PORTAL_HORIZON_WHITE = new THREE.TextureLoader().load('assets/fx/portal_event_horizon_white.png');
+var TX_PORTAL_RUNE_WHITE = new THREE.TextureLoader().load('assets/fx/portal_monolith_rune_white.png');
+var TX_PORTAL_SEAL_WHITE = new THREE.TextureLoader().load('assets/fx/portal_floor_seal_white.png');
+var TX_PORTAL_MIST_WHITE = new THREE.TextureLoader().load('assets/fx/portal_mist_white.png');
+TX_PORTAL_VORTEX_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_HORIZON_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_RUNE_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_SEAL_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_MIST_WHITE.colorSpace = THREE.SRGBColorSpace;
 
 function makePointedMonolithMesh(w, h, d, mat){
   var geo = new THREE.BoxGeometry(w, h, d, 2, 4, 2);
@@ -3725,7 +3740,14 @@ function hurtFlash(){var h=$('#hurt');h.classList.add('on');setTimeout(function(
 
 /* pode interromper a animacao atual? so depois do golpe acertar (ou de 60% dela); skill de varios golpes so no fim */
 
-function canCancel(an){
+/* >>> CLAUDE [guardiao] 2026-10-29 — AGILIDADE do lutador: cancelar uma skill no meio dispara AGORA o golpe que faltava (o efeito nao se perde) e deixa engatar a proxima */
+function flushHits(an){
+  if(!an||!an.clipMode)return;
+  if(an.hitList){while(an.hi<an.hitList.length){var hh=an.hitList[an.hi++];an.hit=true;applyHit({id:an.id,dmg:hh.dmg,sk:null,perfect:false,skill:an.skill,part:an.hi,parts:an.hitList.length});}}
+  else if(!an.hit){an.hit=true;applyHit(an);}
+}
+/* <<< CLAUDE [guardiao] */
+function canCancel(an){if(an){var gc=Guardiao.podeCancelar(an);if(gc!==null)return gc;}
 
   if(!an)return true;
 
@@ -3789,7 +3811,7 @@ function perform(id,q){
 
   dmg=Math.round(dmg*(.92+Math.random()*.16)*3);
 
-  S.anim=mkAnim(id,dmg,sk,perfect,null);
+  if(S.anim&&WPN==='shield')flushHits(S.anim);S.anim=mkAnim(id,dmg,sk,perfect,null);
   /* >>> CLAUDE [guardiao] 2026-10-28 — efeitos de antes do golpe do ataque padrao (rastro, poeira) */ if(WPN==='shield')Guardiao.aoAtacar(S.anim); /* <<< CLAUDE [guardiao] */
 
   if(broke)sysMsg('Combo interrompido. Recomece pelo primeiro golpe.');
@@ -3830,7 +3852,7 @@ function castSkill(i){
 
   var dmg=Math.round(sk.dmg*(sk.hits?sk.hits.length:1)*(.92+Math.random()*.16));
 
-  S.anim=mkAnim(sk.pose,dmg,null,false,sk);
+  if(S.anim&&WPN==='shield')flushHits(S.anim);S.anim=mkAnim(sk.pose,dmg,null,false,sk);
   /* >>> CLAUDE [guardiao] 2026-10-27 — efeitos de antes do golpe (carga, voo do escudo) */ Guardiao.aoCastar(sk); /* <<< CLAUDE [guardiao] */
 
   if(sk.pose==='dash')spark(S.px,1.4,S.pz,2.6,0x5aa9ff,.3);
@@ -4702,7 +4724,11 @@ function hurtPlayer(d,soft,quiet){
 }
 
 function resetDuel(){
-
+  if(DG.cleared){
+    if(!DG.on) returnToCity();
+    else dgHub();
+    return;
+  }
   if(DG.on){/* dungeon: morreu = recomeca a sala atual com a vida cheia */
 
     if(!DG.run){dgHub();return;}
@@ -4737,7 +4763,7 @@ var BEST={};try{BEST=JSON.parse(localStorage.getItem('isblade.dgbest'))||{};}cat
 
 function DIFF(){return DGD.difficulties[DG.diff]||DGD.difficulties.normal;}
 
-try{var _m=location.search.match(/[?&]mode=(dungeon|duel)/);DG.on=((_m?_m[1]:localStorage.getItem('isblade.mode'))||'dungeon')==='dungeon';}catch(_){}
+try{var _m=location.search.match(/[?&]mode=(dungeon|duel)/);DG.on=(_m?_m[1]:'dungeon')==='dungeon';}catch(_){}
 
 var MOBS=[],EPROJ=[],OBST=[],obstGroup=new THREE.Group();scene.add(obstGroup);
 
@@ -5249,13 +5275,21 @@ function interactChest() {
 
 function createSoloLevelingGate(opts){
   opts = opts || {};
+  var isWhite = (opts.theme === 'white' || opts.colorMode === 'white');
   var posX = opts.x || 0;
   var posY = opts.y || 2.7;
   var posZ = opts.z || -9;
   var rotY = opts.rotY !== undefined ? opts.rotY : 0;
   var RX = opts.rx || 1.95;
   var RY = opts.ry || 2.85;
-  var runeColor = opts.runeColor || 0x00d5ff;
+  var runeColor = opts.runeColor || (isWhite ? 0xffffff : 0x00d5ff);
+  var arcColor = isWhite ? 0xffffff : 0x00f5ff;
+
+  var texVortex = isWhite ? TX_PORTAL_VORTEX_WHITE : TX_PORTAL_VORTEX;
+  var texHorizon = isWhite ? TX_PORTAL_HORIZON_WHITE : TX_PORTAL_HORIZON;
+  var texSeal = isWhite ? TX_PORTAL_SEAL_WHITE : TX_PORTAL_SEAL;
+  var texMist = isWhite ? TX_PORTAL_MIST_WHITE : TX_PORTAL_MIST;
+  var texRune = isWhite ? TX_PORTAL_RUNE_WHITE : TX_PORTAL_RUNE;
 
   var g = new THREE.Group();
   g.position.set(posX, posY, posZ);
@@ -5267,7 +5301,7 @@ function createSoloLevelingGate(opts){
   // Camada A: Singularidade Central Negra (Pitch Black Void - Profundidade real de abismo dimensional)
   var voidGeo = new THREE.CircleGeometry(RX * 0.58, 32);
   var voidMat = new THREE.MeshBasicMaterial({
-    color: 0x01030a,
+    color: isWhite ? 0x040812 : 0x01030a,
     side: THREE.FrontSide,
     depthWrite: true
   });
@@ -5276,9 +5310,9 @@ function createSoloLevelingGate(opts){
   voidMesh.position.set(0, 0, -0.05);
   vortexGroup.add(voidMesh);
 
-  // Camada B: Espiral Primaria de Nebulosa Azul/Ciano (Alta resolucao)
+  // Camada B: Espiral Primaria de Nebulosa (Alta resolucao - Azul ou Celestial Branco Puro)
   var vortexMat = new THREE.MeshBasicMaterial({
-    map: TX_PORTAL_VORTEX,
+    map: texVortex,
     transparent: true,
     opacity: 0.98,
     side: THREE.DoubleSide,
@@ -5290,7 +5324,7 @@ function createSoloLevelingGate(opts){
 
   // Camada C: Anel de Horizonte de Eventos Radiante (Contra-rotativo suave)
   var horizonMat = new THREE.MeshBasicMaterial({
-    map: TX_PORTAL_HORIZON,
+    map: texHorizon,
     transparent: true,
     opacity: 0.85,
     side: THREE.DoubleSide,
@@ -5302,9 +5336,9 @@ function createSoloLevelingGate(opts){
 
   g.add(vortexGroup);
 
-  // 2. Selo Magico de Invocacao no Chao (Runas Dourado/Ciano)
+  // 2. Selo Magico de Invocacao no Chao (Runas)
   var sealMat = new THREE.MeshBasicMaterial({
-    map: TX_PORTAL_SEAL,
+    map: texSeal,
     transparent: true,
     opacity: 0.88,
     blending: THREE.AdditiveBlending,
@@ -5318,7 +5352,7 @@ function createSoloLevelingGate(opts){
 
   // 3. Nevoa Cosmica no Chao (Vapor de Particulas)
   var mistMat = new THREE.MeshBasicMaterial({
-    map: TX_PORTAL_MIST,
+    map: texMist,
     transparent: true,
     opacity: 0.65,
     blending: THREE.AdditiveBlending,
@@ -5331,10 +5365,10 @@ function createSoloLevelingGate(opts){
   // 4. Campo de Monolitos de Obsidiana (Cristais com Runas Esculpidas)
   var shards = [];
   var shardMat = new THREE.MeshStandardMaterial({
-    map: TX_PORTAL_RUNE,
-    emissiveMap: TX_PORTAL_RUNE,
+    map: texRune,
+    emissiveMap: texRune,
     emissive: runeColor,
-    emissiveIntensity: 1.5,
+    emissiveIntensity: isWhite ? 1.85 : 1.5,
     roughness: 0.12,
     metalness: 0.92
   });
@@ -5399,10 +5433,10 @@ function createSoloLevelingGate(opts){
     });
   }
 
-  // 5. Arcos Eletricos Dinamicos de Alta Tensao (Ciano Vibrante)
+  // 5. Arcos Eletricos Dinamicos de Alta Tensao
   var totalShards = shardCount + outerCount;
   var arcMat = new THREE.LineBasicMaterial({
-    color: 0x00f5ff,
+    color: arcColor,
     transparent: true,
     opacity: 0.95,
     blending: THREE.AdditiveBlending,
@@ -5435,11 +5469,19 @@ function createSoloLevelingGate(opts){
   };
 }
 
-function spawnPortal(label){
+function spawnPortal(label, theme){
   if(DG.portal){scene.remove(DG.portal);DG.portal=null;DG.portalData=null;}
   if(typeof portal !== 'undefined' && portal) portal.visible = false;
 
-  var gate = createSoloLevelingGate({ x: 0, y: 2.7, z: -9, rotY: 0, runeColor: 0x00d5ff });
+  var isWhite = (theme === 'white') || (label === 'exit');
+  var gate = createSoloLevelingGate({
+    x: 0,
+    y: 2.7,
+    z: -9,
+    rotY: 0,
+    runeColor: isWhite ? 0xffffff : 0x00d5ff,
+    theme: isWhite ? 'white' : 'blue'
+  });
   scene.add(gate.group);
   DG.portal = gate.group;
   DG.portalLabel = label;
@@ -5466,9 +5508,15 @@ function dgClear(){
 
 
 function dgBossDuelDefeated(){
+  DG.cleared = true;
+  BOSS_ON = false;
+  S.dead = true;
+  S.hp = 0;
   spawnChest('legendary', S.ex, S.ez + 2.5);
   banner('VITORIA! BAIUM DERROTADO!','Parabens! O Imperador Baium foi vencido!','#f5c451');
-  spawnPortal('exit');
+  spawnPortal('exit', 'white');
+  var bCity = document.getElementById('btnReturnCity');
+  if(bCity) bCity.style.display = 'block';
   renderHud();
 }
 window.dgBossDuelDefeated = dgBossDuelDefeated;
@@ -5511,18 +5559,19 @@ function dgBossDown(){
 
   BEST[DG.diff]=true;try{localStorage.setItem('isblade.dgbest',JSON.stringify(BEST));}catch(_){}
 
-  spawnPortal('exit');renderHud();
+  spawnPortal('exit', 'white');renderHud();
 
 }
 
 function spawnCityPortal(){
   if(DG.cityPortal){scene.remove(DG.cityPortal);DG.cityPortal=null;DG.cityPortalData=null;}
   // Portal de Retorno a Cidade: Posicionado no eixo Sul (Z = 11.5), virado para o Santuario (RotY = PI)
-  var gate = createSoloLevelingGate({ x: 0, y: 2.7, z: 11.5, rotY: Math.PI, runeColor: 0x3aa8ff });
+  // Tema Celestial Branco Radiante com runas puras para diferenciar da Dungeon Azul
+  var gate = createSoloLevelingGate({ x: 0, y: 2.7, z: 11.5, rotY: Math.PI, runeColor: 0xffffff, theme: 'white' });
   scene.add(gate.group);
   DG.cityPortal = gate.group;
   DG.cityPortalData = gate.data;
-  lightColumn(0, 11.5, 0x3aa8ff, 6, 1.4, 1.2);
+  lightColumn(0, 11.5, 0xffffff, 6, 1.4, 1.2);
 }
 
 function removeCityPortal(){
@@ -5772,42 +5821,47 @@ function updatePortal(dt){
     animateGateData(DG.portalData);
 
     var dP = Math.hypot(S.px, S.pz + 9);
-    if(DG.cleared && !S.pdead && dP < 2.0){
+    if(DG.cleared && !S.pdead && dP < 3.2){
       if(DG.portalLabel==='enter'){if(!DG.menu)openDiff();return;}
       var lab=DG.portalLabel;
       DG.portal.visible=false;DG.portal=null;DG.portalData=null;
-      if(lab==='exit')dgHub();else dgLoadRoom(DG.room+1,false);
+      if(lab==='exit'){
+        if(!DG.on) returnToCity();
+        else dgHub();
+      }else{
+        dgLoadRoom(DG.room+1,false);
+      }
       return;
     }
-    if(dP < 3.8 && !S.pdead){
+    if(dP < 4.2 && !S.pdead){
       nearSomething = true;
       if(pPrompt){
         pPrompt.style.display = 'block';
         if(DG.portalLabel === 'enter'){
           pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse para <b>Escolher Dificuldade da Masmorra</b>';
         } else if(DG.portalLabel === 'exit'){
-          pPrompt.innerHTML = 'Atravesse o portal para <b>Retornar ao Santuário</b>';
+          pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar à Talking Island</b>';
         } else {
-          pPrompt.innerHTML = 'Atravesse o portal para a <b>Próxima Sala</b>';
+          pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para a <b>Próxima Sala</b>';
         }
       }
     }
   }
 
-  // 2. Portal de Retorno a Cidade (Sul: Z = 11.5)
+  // 2. Portal de Retorno a Cidade (Sul: Z = 11.5) - Solo Leveling Gate Branco Celestial
   if(DG.cityPortal){
     animateGateData(DG.cityPortalData);
 
     var dCity = Math.hypot(S.px, S.pz - 11.5);
-    if(DG.room < 0 && !S.pdead && dCity < 2.0){
+    if(!S.pdead && dCity < 3.2){
       returnToCity();
       return;
     }
-    if(DG.room < 0 && !S.pdead && dCity < 3.8){
+    if(!S.pdead && dCity < 4.5){
       nearSomething = true;
       if(pPrompt){
         pPrompt.style.display = 'block';
-        pPrompt.innerHTML = 'Atravesse o portal para <b>Retornar à Cidade de Talking Island</b>';
+        pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar à Cidade de Talking Island</b>';
       }
     }
   }
@@ -5845,7 +5899,13 @@ function renderHud(){
 
     $('#ehpfill').style.width=(S.hp/S.maxhp*100)+'%';
 
-    $('#ehptxt').textContent=(DG.on?'Sala '+(DG.room+1)+'/'+DGD.rooms.length+'  -  ':'')+'👑 BAIUM — RAID BOSS (Lv 75)   '+S.hp+' / '+S.maxhp;
+    if(S.dead){
+      $('#ehptxt').textContent='👑 BAIUM — RAID BOSS (Lv 75) DERROTADO! [Vitória]';
+      var bCity = document.getElementById('btnReturnCity');
+      if(bCity) bCity.style.display = 'block';
+    }else{
+      $('#ehptxt').textContent=(DG.on?'Sala '+(DG.room+1)+'/'+DGD.rooms.length+'  -  ':'')+'👑 BAIUM — RAID BOSS (Lv 75)   '+S.hp+' / '+S.maxhp;
+    }
 
   }
 
@@ -6734,14 +6794,20 @@ window.addEventListener('keydown',function(e){
   var k=e.key.toLowerCase();
   if(k==='e'){
     if(interactChest()) return;
-    if(DG.on && DG.room < 0 && Math.hypot(S.px, S.pz - 11.5) < 3.5){
+    if(DG.cityPortal && Math.hypot(S.px, S.pz - 11.5) < 4.5){
       returnToCity();
       return;
     }
-    if(DG.on && DG.room < 0 && Math.hypot(S.px, S.pz + 9) < 3.5){
-      if(!DG.menu) openDiff();
+    if(DG.portal && Math.hypot(S.px, S.pz + 9) < 4.5){
+      if(DG.portalLabel==='enter'){ if(!DG.menu) openDiff(); }
+      else if(DG.portalLabel==='exit'){ if(!DG.on) returnToCity(); else dgHub(); }
+      else { dgLoadRoom(DG.room+1,false); }
       return;
     }
+  }
+  if(k==='b'){
+    returnToCity();
+    return;
   }
 
   if(e.code==='PageUp'){e.preventDefault();NAV.view='fp';applyView();return;}
@@ -6970,7 +7036,7 @@ function endStroke(){
 
 var gmT;
 
-function gestMsg(t){var e=$('#msg');e.textContent=t;e.style.opacity='1';clearTimeout(gmT);gmT=setTimeout(function(){e.style.opacity='0';},1100);}
+function gestMsg(t){var e=document.getElementById('msg')||document.getElementById('banner');if(!e)return;e.textContent=t;e.style.opacity='1';clearTimeout(gmT);gmT=setTimeout(function(){e.style.opacity='0';},1100);}
 
 function drawTrail(list,alpha,ok){
 
@@ -7135,7 +7201,7 @@ function frame2(dt,T){
 
   if(S.buf){
 
-    if(performance.now()/1000-S.buf.t>BUF_T)S.buf=null;
+    if(performance.now()/1000-S.buf.t>(S.buf.type==='skill'&&WPN==='shield'?1.2:BUF_T))S.buf=null;/* skill do Guardiao: o comando espera ate 1,2 s (antes 0,35 s) e sai assim que puder */
 
     else if(doAct(S.buf.type,S.buf.arg)!=='busy')S.buf=null;
 
@@ -7285,7 +7351,8 @@ function frame2(dt,T){
 
   updateProj(dt);updateArcs(dt);
 
-  if(DG.on){updateMobs(dt);updateEProj(dt);updatePortal(dt);updateChest(dt);}
+  if(DG.on){updateMobs(dt);updateEProj(dt);}
+  updatePortal(dt);updateChest(dt);
 
   rings.visible=showRings;if(showRings)rings.position.set(S.px,.06,S.pz);
 
