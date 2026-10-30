@@ -6,7 +6,7 @@
      3) fora de combate (sem hit dado/recebido por `saidaSegundos`, 60 s) libera a troca;
      4) trocar de arma nao zera o cooldown das skills (guardado por arma). */
 
-import { criarFX } from './guardiao_fx.js';
+import { criarFX } from './guardiao_fx.js?v=7';
 
 export const Guardiao = (function(){
   var ctx = null;
@@ -61,7 +61,7 @@ export const Guardiao = (function(){
   var clipsPromise = null;
   G.carregarClipes = function(THREE, gltfLoader){
     if(!clipsPromise) clipsPromise = new Promise(function(ok){
-      gltfLoader.load('assets/personagens/guardian_anims.glb?v=3', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });
+      gltfLoader.load('assets/personagens/guardian_anims.glb?v=5', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });
     });
     return clipsPromise;
   };
@@ -155,12 +155,12 @@ export const Guardiao = (function(){
     sweep:  { c: 'g_atk1',   sp: 2.0, hit: .58, cut: .86, lg: 2.6 },
     thrust: { c: 'g_atk2',   sp: 1.9, hit: .52, cut: .92, lg: 0 },
     spin:   { c: 'g_atk3',   sp: 1.7, hit: .58, cut: .82, lg: 0 },
-    g_s1:   { c: 'g_skill1', sp: 2.7, hit: .74, cut: .93, lg: 0 },
-    g_s2:   { c: 'g_skill2', sp: 2.5, hit: .51, cut: .72, lg: 0 },
-    g_s3:   { c: 'g_skill3', sp: 2.0, hit: .67, cut: .93, lg: 0 },
-    g_s4:   { c: 'g_skill4', sp: 2.0, hit: .37, cut: .56, lg: 0 },
-    g_s5:   { c: 'g_skill5', sp: 1.7, hit: .35, cut: .78, lg: 0 },
-    g_s6:   { c: 'g_skill6', sp: 1.6, hit: .28, cut: .76, lg: 0 }
+    g_s1:   { c: 'l2_cast1', sp: 1.0, hit: .86, cut: .94, lg: 0, fz: 1.1 },      /* CastMid do L2 (1,79 s): escudo erguido = pose segurada (congela em fz s), impulso = liberacao (golpe em ~1,53 s) */
+    g_s2:   { c: 'l2_s2', sp: 2.0, hit: .63, cut: .75, lg: 0 },       /* SpAtk03_2HS do L2: pulo + pancada ajoelhado com o escudo no chao (impacto em 1,03 s) */
+    g_s3:   { c: 'l2_s3', sp: 2.0, hit: .95, cut: .995, lg: 0 },       /* CastLong do L2 (recortado, x1,6): invocacao com os bracos erguidos; a chuva cai ao baixar (2,10 s) */
+    g_s4:   { c: 'l2_s4', sp: 1.0, hit: .41, cut: .53, lg: 0 },       /* Social_Atk do L2 (x1,3): gesto de desafio, escudo aberto e braco apontando (impacto em 0,85 s) */
+    g_s5:   { c: 'l2_s5', sp: 1.0, hit: .445, cut: .58, lg: 0 },      /* Magicshot do L2: soco para a frente e braco subindo (impacto em 0,67 s) */
+    g_s6:   { c: 'l2_s6', sp: 1.0, hit: .554, cut: .81, lg: 0, solta: 1.13 }   /* ShieldAtk_1HS do L2 + pausa final (2,58 s): o escudo e solto em 1,13 s e o voo e um escudo de energia separado */
   };
   G.clipeConfig = function(pose, rig){
     var m = CM[pose];
@@ -191,14 +191,24 @@ export const Guardiao = (function(){
     canal.t += dt; S.stun = 0; canal.ctrl.tempo(canal.t);
     var l = canal.t >= 5 ? 2 : (canal.t >= 3 ? 1 : 0); if(l > (canal.lv || 0)){ canal.lv = l; canal.ctrl.pulso(); } canal.lv = l;
     if(S.skHeld === idx && canal.t < CANAL_T){                          /* segurando: o escudo e o domo ja estao ativos; a animacao congela na pose de carga */
-      if(an.tt >= sec(CANAL_FRAME, cfg.sp)){ if(act) act.paused = true; return true; }
+      if(an.tt >= (cfg.fz ? cfg.fz / cfg.sp : sec(CANAL_FRAME, cfg.sp))){ if(act) act.paused = true; return true; }
       return false;
     }
     canal.ph = 3; if(act) act.paused = false;                            /* soltou (ou chegou aos 5 s): resolve o reflexo */
     canal.mult = canal.t >= 5 ? 2 : (canal.t >= 3 ? 1 : .5); canal.dano = Math.round(canal.acc * canal.mult);
     if(canal.dano <= 0){ an.hitT = 1e9; fimCanal(); }                  /* nada acumulado: sem golpe e sem efeito */
-    else { an.dmg = canal.dano; an.skill = Object.assign({}, an.skill, { range: 10, half: Math.PI / 2 }); }
+    else { an.dmg = canal.dano; an.skill = Object.assign({}, an.skill, { range: 15, half: Math.PI / 2 }); }
     return false;
+  };
+  /* LIBERACAO (agilidade): `cut` = fracao do clipe em que o personagem volta a agir = ultimo golpe + uma pequena recuperacao; o resto do clipe (a "cauda" em que o braco relaxa) e cortado,
+     porque o jogo so libera ataque basico, skill, andar normal e guarda quando a animacao (S.anim) acaba. Recuperacao por skill (s depois do ultimo golpe): s1 .15, s2 .20, s3 .10, s4 .25, s5 .20, s6 .10
+     (na 6 o escudo volta ~0,1 s depois). Antes liberava 0,4 a 1,1 s depois do golpe. */
+  /* cancelar: SO depois do ultimo golpe. A regra padrao do jogo liberava aos 60% do clipe mesmo antes do golpe (a Chuva de Escudos perdia o efeito); aqui nunca ha skill por cima de skill
+     nem golpe perdido. null = regra padrao do jogo (outras armas). */
+  G.podeCancelar = function(an){
+    if(!ctx || !an || !an.skill || !an.clipMode || ctx.getWPN() !== 'shield' || !CM[an.skill.pose]) return null;
+    if(an.skill.pose === 'g_s1' && canal.ph === 2) return false;
+    return an.hitList ? an.hi >= an.hitList.length : !!an.hit;
   };
   G.filtrarDano = function(d){
     if(!ctx || ctx.getWPN() !== 'shield' || d <= 0) return d;
@@ -251,12 +261,17 @@ export const Guardiao = (function(){
     if(sk.pose === 'g_s1'){                                          /* canalizada: o domo e o escudo astral nascem quando a animacao chega na pose de carga (G.canalTick) */
       fimCanal(); canal.ph = 2; canal.lv = 0; canal.acc = 0; canal.t = 0; canal.dano = 0;               /* o escudo astral e o domo aparecem NA HORA do cast */
       canal.ctrl = FX.domo({ info: geoEscudo(ctx.getVrm()), getPos: function(){ var s = ctx.getS(); return { x: s.px, z: s.pz, face: s.face }; } });
-    } else if(sk.pose === 'g_s6'){                                   /* escudo girando de lado, voo com rastro e espetos, e a volta */
-      [[30, 64], [108, 150]].forEach(function(w){
-        var t0 = sec(w[0], cfg.sp), d = sec(w[1] - w[0], cfg.sp);
-        FX.seguir(shieldObj, function(grp){ return FX.espetosGirando(grp, {}); }, d, t0);
-        FX.trilha(function(){ var o = shieldObj(); if(!o) return null; return o.getWorldPosition(new window.THREE.Vector3()); }, { color: COR.fogo, hot: COR.quente, width: w[0] > 100 ? .7 : .45, life: d + .5, lag: t0, n: 30 });
-      });
+    } else if(sk.pose === 'g_s6'){                                   /* o escudo do braco vira um disco de energia que voa ate 5,7 m, segura um instante e volta; o escudo real some do braco enquanto isso */
+      var gc6 = geoEscudo(ctx.getVrm()), ev6 = FX.add(null, .01, null, cfg.solta || 1.13);
+      ev6.done = function(){
+        var S6 = ctx.getS(), o6 = shieldObj(), T6 = window.THREE, hp6 = o6 ? o6.getWorldPosition(new T6.Vector3()) : { x: S6.px, y: 1.3, z: S6.pz };
+        if(!gc6){ return; }
+        if(o6) o6.visible = false;
+        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: S6.face, dist: 5.7, tOut: .3, tHold: .12, tBack: .55, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
+          getHand: function(){ var oo = shieldObj(); return oo ? oo.getWorldPosition(new T6.Vector3()) : null; }, onEnd: function(){ var oo = shieldObj(); if(oo) oo.visible = true; } });
+        FX.trilha(function(){ return vo.obj ? vo.obj.position.clone() : null; }, { color: COR.fogo, hot: COR.quente, width: .55, life: 1.2, n: 30 });
+        FX.seguir(function(){ return vo.obj; }, function(grp){ return FX.espetosGirando(grp, {}); }, 1.0, 0);
+      };
     }
   };
 
@@ -313,7 +328,7 @@ export const Guardiao = (function(){
       FX.brasas(px + f[0] * 2, .3, pz + f[1] * 2, { n: 26, spread: 3, rise: 2.2, color: COR.ceu, life: 1.4, size: .2 }); FX.luz(px + f[0] * 1.5, 1.3, pz + f[1] * 1.5, { color: COR.gelo, intensity: 70, life: .6 });
       sh(.35);
     } else if(sk.pose === 'g_s2'){                                   /* fortaleza egide: zona de 6 m por 8 s */
-      buffs.zona = { x: px, z: pz, r: 6, t: 8 };
+      buffs.zona = { x: px, z: pz, r: 6, t: 8, ang: 0, acc: 0, dano: Math.max(1, Math.round(sk.dmg * .3)) };   /* o domo gira: a cada .5 s corta quem esta dentro (dano = 30% do da skill) e cura mais que o golpe comum */
       FX.runas(px, pz, { r: 6.4, life: 8 }); FX.cupula(px, pz, { r: 6, life: 8 });
       [0, .16, .32].forEach(function(l, i){ FX.anel(px, pz, { r0: .8, r1: 7 + i * 1.5, color: i ? COR.ambar : COR.ouro, life: 1.1, lag: l }); });
       FX.cratera(px, pz, { R: 1.6, life: 8 }); FX.rachaduras(px, pz, { R: 5, seed: 31, n: 12, life: 8, hold: .75, color: COR.fogo });
@@ -341,8 +356,12 @@ export const Guardiao = (function(){
       FX.anel(px + f[0] * 1.6, pz + f[1] * 1.6, { r0: .4, r1: 2.6, color: COR.brasa, life: .5 }); FX.espetos(px + f[0] * 1.2, .5, pz + f[1] * 1.2, { n: 10, seed: 81, size: 1.7, color: COR.fogo, life: .45 });
       FX.rachaduras(px + f[0] * 1.5, pz + f[1] * 1.5, { R: 3, seed: 91, n: 9, life: 3, hold: .6, color: COR.fogo }); FX.luz(px + f[0], 1, pz + f[1], { color: COR.fogo, intensity: 30, life: .4 });
     } else if(sk.pose === 'g_s6'){                                   /* arremesso: crava a 5,7 m, explode; ao voltar, destroi o local */
-      var tx = px + f[0] * 5.7, tz = pz + f[1] * 5.7, first = !an.part || an.part === 1;
-      if(first){
+      var tx = px + f[0] * 5.7, tz = pz + f[1] * 5.7, pt = an.part || 1, first = pt === 1;
+      if(pt === 2 || pt === 3 || pt === 5 || pt === 6){                   /* golpes extras (3 na ida, 3 na volta): pulso curto no mesmo ponto */
+        var volta = pt > 3, cp = volta ? COR.ouro : COR.fogo;
+        FX.anel(tx, tz, { r0: .5, r1: volta ? 8 : 5.5, color: cp, life: .35 }); FX.espetos(tx, 1.2, tz, { n: 10, seed: 70 + pt, size: volta ? 4.6 : 3.4, bw: .028, color: cp, life: .4 });
+        FX.brasas(tx, .2, tz, { n: 8, spread: 2, rise: 3, color: COR.ouro, life: 1 }); FX.luz(tx, 2, tz, { color: cp, intensity: 35, life: .3 }); sh(.15);
+      } else if(first){
         FX.espetos(tx, 1.2, tz, { n: 26, seed: 11, size: 5.4, bw: .03, color: COR.fogo, life: .9 }); FX.espetos(tx, 1.2, tz, { n: 16, seed: 29, size: 4, bw: .022, color: COR.ouro, life: .75, lag: .02 });
         FX.casca(tx, 0, tz, { r0: .6, r1: 6.5, h0: .9, h1: 1.5, life: .55, color: COR.fogo, hot: COR.quente, vert: 'fade', power: 1.1, ns: 3.2, flow: -1.5, expand: 'out' });
         FX.anel(tx, tz, { r0: .5, r1: 6.5, color: COR.ouro, life: .7 }); FX.anel(tx, tz, { r0: .5, r1: 4.6, color: COR.quente, life: .6, lag: .08 });
@@ -364,10 +383,7 @@ export const Guardiao = (function(){
   G.fxHit = function(an, hx, hz){
     var sk = an.skill; if(!sk || !ctx || !FX) return; var S = ctx.getS();
     FX.espetos(hx, 1.5, hz, { n: 10, seed: 17, size: 1.5, color: COR.fogo, life: .4, bw: .026 }); FX.brasas(hx, 1, hz, { n: 8, spread: .8, rise: 1.6, color: COR.ouro, life: .9 });
-    if(sk.pull){
-      var f = ctx.fx.fwd(S.face);
-      buffs.puxar = { t: 0, dur: .4, tx: S.px + f[0] * 3.4, tz: S.pz + f[1] * 3.4 };
-    }
+    /* o puxao dos mobs comuns e em arena.html (hitMobs); o chefe nunca e puxado */
   };
 
   G.tickEfeitos = function(dt){
@@ -378,7 +394,12 @@ export const Guardiao = (function(){
     if(canal.ph === 3 && !S.anim) canal.ph = 0;
     if(buffs.reflexoT > 0) buffs.reflexoT -= dt;
     if(buffs.defT > 0) buffs.defT -= dt;
-    if(buffs.zona){ buffs.zona.t -= dt; if(buffs.zona.t <= 0) buffs.zona = null; }
+    if(buffs.zona){
+      var zn = buffs.zona; zn.t -= dt; zn.ang += dt * 4.2; zn.acc += dt;
+      if(zn.acc >= .5){ zn.acc -= .5; GIRO = true; try{ if(ctx.domoDano) ctx.domoDano(zn.x, zn.z, zn.r, zn.dano); } finally { GIRO = false; }
+        if(ctx.fx && ctx.fx.slashArc){ ctx.fx.slashArc(zn.x, zn.z, zn.ang, 0xffc83a, 5.2, 1.4); ctx.fx.slashArc(zn.x, zn.z, zn.ang + Math.PI, 0xff8a2a, 5.2, 1.4); } }
+      if(zn.t <= 0) buffs.zona = null;
+    }
     var p = buffs.puxar;
     if(p){                                                       /* o alvo vem ate a frente do escudo */
       p.t += dt; var k = Math.min(1, p.t / p.dur), e = S.en;
@@ -389,17 +410,18 @@ export const Guardiao = (function(){
   };
   G.buffs = buffs;
   /* Fortaleza Egide: dentro da zona (8 s) parte do dano causado volta como vida. Equilibrado: 10% do dano; devolve a cura (o jogo aplica). */
-  var DRENO = .10;
+  var DRENO = .10, DRENO_GIRO = .35, GIRO = false;   /* o golpe do domo girando cura 35% (o comum, 10%) */
   G.drenar = function(dmg){
     if(!ctx || ctx.getWPN() !== 'shield' || !(dmg > 0)) return 0; var z = buffs.zona, S = ctx.getS();
     if(!z || z.t <= 0 || Math.hypot(S.px - z.x, S.pz - z.z) > z.r) return 0;
-    var h = Math.max(1, Math.round(dmg * DRENO));
+    var h = Math.max(1, Math.round(dmg * (GIRO ? DRENO_GIRO : DRENO)));
     if(FX) FX.brasas(S.px, .3, S.pz, { n: 6, spread: .7, rise: 2.4, color: 0x8dffa8, life: .8, size: .14 });
     return h;
   };
 
   G.init = function(c, dados){
-    ctx = c; G.dados = dados; if(c.getScene && window.THREE) FX = criarFX(window.THREE, { getScene: c.getScene, getCamera: c.getCamera });
+    ctx = c; G.dados = dados; if(c.getScene && window.THREE) FX = criarFX(window.THREE, { getScene: c.getScene, getCamera: c.getCamera, compile: c.compile });
+    if(FX && FX.aquecer) [2000, 6000, 12000].forEach(function(ms){ setTimeout(function(){ G.aquecer(); }, ms); });        /* compila os efeitos antes da 1a skill (evita a travada); repete porque o cenario termina de carregar depois (as repeticoes sao baratas: o que ja esta compilado nao recompila) */
     if(dados && dados.estadoCombate && dados.estadoCombate.saidaSegundos) cfg.saidaSegundos = dados.estadoCombate.saidaSegundos;
     /* teste rapido no console: Guardiao.estado() */
     window.Guardiao = G;
@@ -425,7 +447,25 @@ export const Guardiao = (function(){
     var l2 = false; try { l2 = localStorage.getItem('isblade.escudo') === 'l2'; } catch(e){}
     return l2 ? { url: 'assets/personagens/composite_shield.glb', isL2: true } : { url: 'assets/personagens/shield_is.glb?v=4', isL2: false };
   };
-  G.cena = function(){ return ctx ? { wpn: ctx.getWPN(), vrm: ctx.getVrm(), camera: ctx.getCamera && ctx.getCamera(), scene: ctx.getScene && ctx.getScene(), fx: FX } : null; };  /* acesso de depuracao (capturas de teste) */
+  /* pre-aquecimento: roda UMA vez, longe do jogador (x=z=4000, fora da tela), o codigo real dos efeitos das 6 skills e dos 3 golpes e compila os shaders antes da 1a skill.
+     guarda e devolve o que esse codigo mexe (posicao, buffs, tremor, arma) e nenhum efeito chega a ser desenhado perto do jogador. */
+  G.aquecer = function(){
+    if(!ctx || !FX || !FX.aquecer) return; G._quente = (G._quente || 0) + 1;
+    var S = ctx.getS(), skills = G.dados && G.dados.armas && G.dados.armas.shield ? G.dados.armas.shield.skills : [];
+    var sv = { px: S.px, pz: S.pz, face: S.face, shake: ctx.shake, wpn: ctx.getWPN, buffs: { reflexoT: buffs.reflexoT, defT: buffs.defT, zona: buffs.zona, puxar: buffs.puxar } };
+    try {
+      FX.aquecer(function(){
+        S.px = 4000; S.pz = 4000; S.face = 0; ctx.shake = function(){}; ctx.getWPN = function(){ return 'shield'; };
+        skills.forEach(function(sk, i){ try { G.fxSwing({ skill: sk, part: 1, parts: 1 }); } catch(e){} });
+        ['sweep', 'thrust', 'spin'].forEach(function(id){ try { G.fxBasico({ id: id }); } catch(e){} });
+      });
+    } catch(e){ console.warn('aquecer:', e); }
+    finally {
+      S.px = sv.px; S.pz = sv.pz; S.face = sv.face; ctx.shake = sv.shake; ctx.getWPN = sv.wpn;
+      buffs.reflexoT = sv.buffs.reflexoT; buffs.defT = sv.buffs.defT; buffs.zona = sv.buffs.zona; buffs.puxar = sv.buffs.puxar;
+    }
+  };
+  G.cena = function(){ return ctx ? { wpn: ctx.getWPN(), vrm: ctx.getVrm(), camera: ctx.getCamera && ctx.getCamera(), scene: ctx.getScene && ctx.getScene(), fx: FX, S: ctx.getS() } : null; };  /* acesso de depuracao (capturas de teste) */
   G.shd = function(ox, oy, oz, rx, ry, rz){ var r = ctx && ctx.getVrm(); if(!r || !r.shd) return null; var h = r.shd; if(!h.userData.base0) h.userData.base0 = { p: h.position.clone(), r: h.rotation.clone() }; var b = h.userData.base0; h.position.set(b.p.x + (ox||0), b.p.y + (oy||0), b.p.z + (oz||0)); h.rotation.set(b.r.x + (rx||0), b.r.y + (ry||0), b.r.z + (rz||0)); return { p: b.p.toArray(), r: [b.r.x, b.r.y, b.r.z], parent: h.parent && h.parent.name }; };
   /* ---------- posicao do escudo na pose parada, por raca (o escudo anda no osso da mao; cada raca tem a mao em lugar diferente) ----------
      x/y/z em METROS do jogo (eixos do osso do escudo: x- e y- e z+ aproximam do corpo), r = giro em radianos. Em combate volta a zero. */

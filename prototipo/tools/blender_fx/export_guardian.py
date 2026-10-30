@@ -13,6 +13,9 @@ CLIPS = {
     'Skill_EnergyShield_1p2s': 'g_skill1', 'Skill2_AegisFortress': 'g_skill2', 'Skill3_ShieldRain': 'g_skill3',
     'Skill4_GuardianRoar': 'g_skill4', 'Skill5_ChainPull': 'g_skill5', 'Skill6_ShieldThrow': 'g_skill6',
     'Dodge_Roll': 'g_roll',          # rolagem do Mixamo retargeteada (tools/blender_fx/dodge_roll.py): esquiva de todo lutador
+    'L2_Cast_Skill1': 'l2_cast1',    # Skill 1 (canalizada): CastMid do L2 (MFighter_anim.psa) a 48 fps; escudo erguido = pose segurada, impulso = liberacao
+    # Skills 2-6 em cima das animacoes nativas do L2 (MFighter_anim.psa; ver prototipo/tools/blender_fx/skills_l2.py)
+    'L2_Skill2_Slam': 'l2_s2', 'L2_Skill3_Rain': 'l2_s3', 'L2_Skill4_Taunt': 'l2_s4', 'L2_Skill5_Hook': 'l2_s5', 'L2_Skill6_ShieldThrow': 'l2_s6',
 }
 miss = [k for k in CLIPS if k not in bpy.data.actions]
 print('faltando', miss)

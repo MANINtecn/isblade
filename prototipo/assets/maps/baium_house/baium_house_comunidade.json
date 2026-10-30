@@ -1,0 +1,29 @@
+{
+ "origem": "toh_boss02 (L2 -49337,1664,-1045)",
+ "unidade": "1 = 35.714 uu do L2 (mesma escala da Talking Island)",
+ "agua_y": -89.908,
+ "chao_y_aprox": 0.0,
+ "spawns": [
+  [
+   -47.79,
+   -1.46,
+   -58.65
+  ],
+  [
+   -2.9,
+   -0.78,
+   -4.58
+  ],
+  [
+   -36.3,
+   -15.89,
+   -67.32
+  ],
+  [
+   -55.1,
+   23.91,
+   -121.48
+  ]
+ ],
+ "nota": "spawns em [x, altura, z] ja no sistema do glTF (Y para cima); verificar visualmente"
+}

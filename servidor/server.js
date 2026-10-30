@@ -103,7 +103,7 @@ const srv = http.createServer((req, res) => {
   let url; try { url = decodeURIComponent(req.url.split('?')[0]); } catch (e) { res.writeHead(400); return res.end(); }
   if(url === '/status'){ res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' }); return res.end(JSON.stringify({ cap: CAP, canais: todosCanais().map(c => ({ mapa: c.mapa, n: c.n, jogadores: c.jog.size })) })); }
   if(!SERVE_STATIC){ res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return res.end('servidor de jogo (sem arquivos). WebSocket em /ws, estado em /status'); }
-  if(url === '/') url = '/selecao.html';
+  if(url === '/') url = '/index.html';              /* entrada do jogo (botao Start -> selecao.html) */
   const f = path.normalize(path.join(RAIZ, url)); if(!f.startsWith(RAIZ)) { res.writeHead(403); return res.end(); }
   fs.stat(f, (e, st) => {
     if(e || !st.isFile()){ res.writeHead(404); return res.end('nao encontrado'); }

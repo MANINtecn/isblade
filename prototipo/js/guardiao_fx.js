@@ -37,7 +37,7 @@ export function criarFX(THREE, ctx){
         e.dead = true; if(e.obj){ scene().remove(e.obj); dispose(e.obj); } if(e.done) e.done(); list.splice(i, 1);
       }
     }
-    if(lightE.t < lightE.dur){ lightE.t += dt; var k = Math.max(0, 1 - lightE.t / lightE.dur); light.intensity = lightE.peak * k * k; if(k <= 0) light.visible = false; }
+    if(lightE.t < lightE.dur){ lightE.t += dt; var k = Math.max(0, 1 - lightE.t / lightE.dur); light.intensity = lightE.peak * k * k; }                                  /* a luz FICA na cena (intensidade 0 quando apagada): ligar/desligar mudava o numero de luzes e o three.js recompilava os shaders da cena toda a cada skill */
   }
 
   /* ---------- shaders ---------- */
@@ -98,10 +98,10 @@ export function criarFX(THREE, ctx){
   function discGeo(){ if(!discG) discG = new THREE.CircleGeometry(1, 48); return discG; }
 
   /* ---------- luz de impacto (uma so, criada ja no inicio para nao recompilar shaders) ---------- */
-  var light = new THREE.PointLight(0xff8a2a, 0, 40, 2); light.visible = false; var lightE = { t: 99, dur: 1, peak: 0 }; var lightInit = false;
+  var light = new THREE.PointLight(0xff8a2a, 0, 40, 2); light.visible = true; var lightE = { t: 99, dur: 1, peak: 0 }; var lightInit = false;
   function luz(x, y, z, o){
     o = o || {}; if(!lightInit){ scene().add(light); lightInit = true; }
-    light.position.set(x, y, z); light.color.set(o.color || 0xff8a2a); lightE.t = 0; lightE.dur = o.life || .5; lightE.peak = o.intensity || 60; light.visible = true;
+    light.position.set(x, y, z); light.color.set(o.color || 0xff8a2a); lightE.t = 0; lightE.dur = o.life || .5; lightE.peak = o.intensity || 60;
   }
 
   /* ---------- construtores ---------- */
@@ -246,7 +246,7 @@ export function criarFX(THREE, ctx){
     if(!domeG) domeG = new THREE.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2);
     var m = mat(DOME_VS, DOME_FS, { uCol: { value: col(o.color || 0xff8a2a) }, uHot: { value: col(o.hot || 0xfff0c8) }, uA: { value: 0 }, uTime: { value: 0 } });
     var mesh = new THREE.Mesh(domeG, m); mesh.position.set(x, 0, z); var R = o.r || 6, life = o.life || 8;
-    return add(mesh, life, function(u, dt, t){ var k = smooth(Math.min(1, t / .45)); mesh.scale.set(R * k, R * k * .95, R * k); m.uniforms.uTime.value = t; m.uniforms.uA.value = (u > .88 ? (1 - u) / .12 : 1) * (.55 + .25 * Math.sin(t * 2)) * Math.min(1, t / .3); }, o.lag);
+    return add(mesh, life, function(u, dt, t){ var k = smooth(Math.min(1, t / .45)); mesh.scale.set(R * k, R * k * .95, R * k); mesh.rotation.y = t * 1.6; m.uniforms.uTime.value = t; m.uniforms.uA.value = (u > .88 ? (1 - u) / .12 : 1) * (.55 + .25 * Math.sin(t * 2)) * Math.min(1, t / .3); }, o.lag);
   }
   /* circulo de runas no chao (textura desenhada na hora) */
   var runeTex;
@@ -340,7 +340,7 @@ export function criarFX(THREE, ctx){
   }
   function escudoFantasma(x, z, o){
     var g = escudoGeo(), m = shM.clone(), mesh = new THREE.Mesh(g, m), h0 = o.h || 11, size = o.size || 1.3, life = o.fall || .26, a = rr(0, Math.PI * 2);
-    mesh.scale.setScalar(size); mesh.position.set(x, h0, z); mesh.rotation.set(Math.PI, a, 0); m.userData.own = true;
+    mesh.scale.setScalar(size); mesh.position.set(x, h0, z); mesh.rotation.set(0, a, 0); m.userData.own = true;     /* de pe (ponta para baixo), nao de cabeca para baixo */
     var done = false;
     var e = add(mesh, life + .35, function(u, dt, t){
       if(t < life){ var k = t / life; mesh.position.y = h0 * (1 - k * k) + .9 * size * k * k; mesh.rotation.z = Math.sin(t * 30) * .08; }
@@ -475,6 +475,23 @@ export function criarFX(THREE, ctx){
     }, o.lag);
   }
 
+  /* escudo VOADOR (skill 6): disco de energia com o desenho do escudo equipado; sai da mao, vai ate 'dist', segura um instante e volta girando para a mao.
+     o escudo real do braco some durante o voo (o chamador esconde e devolve em onEnd). o Blender nao anima mais o voo: o clipe do L2 so move o braco. */
+  function escudoVoo(o){
+    var m = enMat(o.color || 0xff6a1a, o.hot || 0xfff0c8, o.edge || 0xffc83a); m.uniforms.uGain.value = o.gain || 1.25;
+    var mesh = new THREE.Mesh(o.info.geo, m); mesh.frustumCulled = false; mesh.scale.setScalar((o.info.altura || 2) / 2 * (o.size || 1));
+    var tO = o.tOut || .3, tH = o.tHold || .12, tB = o.tBack || .55, T = tO + tH + tB, from = o.from, fx = Math.sin(o.face), fz = Math.cos(o.face), D = o.dist || 5.7, tgt = { x: from.x + fx * D, y: from.y, z: from.z + fz * D };
+    var e = add(mesh, T, function(u, dt, t){
+      var a, hand = o.getHand ? (o.getHand() || from) : from, p;
+      if(t < tO){ a = 1 - Math.pow(1 - t / tO, 2); p = { x: from.x + (tgt.x - from.x) * a, y: from.y + .25 * Math.sin(a * Math.PI), z: from.z + (tgt.z - from.z) * a }; }
+      else if(t < tO + tH){ p = tgt; }
+      else { a = (t - tO - tH) / tB; a = a * a * (3 - 2 * a); p = { x: tgt.x + (hand.x - tgt.x) * a, y: tgt.y + (hand.y - tgt.y) * a + .3 * Math.sin(a * Math.PI), z: tgt.z + (hand.z - tgt.z) * a }; }
+      mesh.position.set(p.x, p.y, p.z); mesh.rotation.set(0, o.face + t * 20, 0);
+      m.uniforms.uTime.value = t * 2; m.uniforms.uA.value = u < .06 ? u / .06 : (u > .94 ? (1 - u) / .06 : 1);
+    });
+    e.done = o.onEnd; return e;
+  }
+
   /* ---------- domo de colmeia + escudo astral (Skill 1: Escudo de Energia, canalizada) ----------
      meio domo de celulas hexagonais na frente do Guardiao (180 graus); cada golpe absorvido encaixa celulas ("tum"); ao soltar, o domo se expande e some.
      o escudo astral e um desenho fixo do IS (textura de canvas), de frente e de costas (a camera de terceira pessoa ve por tras). */
@@ -540,7 +557,7 @@ export function criarFX(THREE, ctx){
       clock = t; var p = o.getPos(); grp.position.set(p.x, .2, p.z); grp.rotation.y = p.face;
       var f = Math.min(.999, st.t / 5) * (CARGA.length - 1), i0 = Math.floor(f), k = f - i0, A = CARGA[i0], Bq = CARGA[i0 + 1]; cc.set(A[0]).lerp(cb.set(Bq[0]), k); cd.set(A[2]).lerp(cb.set(Bq[2]), k); ce.set(A[1]).lerp(cb.set(Bq[1]), k);
       st.pulse = Math.max(0, st.pulse - dt * 2.2); var rel = st.rel >= 0, ex = 1, ext = 0, fade = 1;
-      if(rel){ st.rel += dt; var r = Math.min(1, st.rel / .65); ex = 1 + (10 / R - 1) * (1 - Math.pow(1 - r, 2.4)); ext = r; fade = 1 - r; if(r >= 1) e.t = e.dur; }
+      if(rel){ st.rel += dt; var r = Math.min(1, st.rel / .65); ex = 1 + (15 / R - 1) * (1 - Math.pow(1 - r, 2.4)); ext = r; fade = 1 - r; if(r >= 1) e.t = e.dur; }
       var U = dm.uniforms; U.uTime.value = clock; U.uCol.value.copy(cc); U.uHot.value.copy(cd); U.uExp.value = ex; U.uExpT.value = ext; U.uPulse.value = st.pulse;
       var grow = smooth(clock / .35); asg.scale.setScalar(asc * (.4 + .6 * grow) * (rel ? 1 + st.rel * 2.2 : 1)); asg.position.y = 1.1 + .05 * Math.sin(clock * 2.2); asg.position.z = R * .5 + (rel ? st.rel * 4 : 0);
       if(em){ var W = em.uniforms; W.uCol.value.copy(cc); W.uEdge.value.copy(ce); W.uHot.value.copy(cd); W.uTime.value = clock * (1 + st.t * .4); W.uGain.value = .8 + .6 * Math.min(1, st.t / 5) + st.pulse * .6; W.uA.value = grow * fade; }
@@ -553,7 +570,26 @@ export function criarFX(THREE, ctx){
     };
   }
 
-  return { domo: domo, feixe: feixe, escudoCarga: escudoCarga, escudoEnergia: escudoEnergia, cunha: cunha, update: update, add: add, espetos: espetos, casca: casca, anel: anel, disco: disco, rachaduras: rachaduras, cratera: cratera, rochas: rochas, brasas: brasas, humo: humo,
+  /* pre-aquecimento: a luz dos efeitos entra na cena JA no carregamento (nunca mais muda o numero de luzes) e cada efeito e criado uma vez e compilado antes de aparecer na tela.
+     sem isso, a 1a skill compilava de 10 a 13 shaders de uma vez (travada de centenas de ms) e cada efeito novo compilava o seu na hora de aparecer. Chamado pelo Guardiao.init. */
+  var sentinelas = [];
+  function iniciarLuz(){ try { var sc = scene(); if(sc && !lightInit){ sc.add(light); lightInit = true; } } catch(e){} }
+  function aquecer(extra){
+    iniciarLuz(); if(!ctx.compile) return; var antes = list.length, o0 = { life: .02 };
+    var T = [function(){ espetos(0, 0, 0, o0); }, function(){ casca(0, 0, 0, { r0: 1, r1: 1, h0: 1, h1: 1, life: .02 }); }, function(){ anel(0, 0, o0); }, function(){ disco(0, 0, 0, o0); },
+      function(){ rachaduras(0, 0, { R: 2, life: .02 }); }, function(){ cratera(0, 0, { R: 1, life: .02 }); }, function(){ rochas(0, 0, { n: 1 }); }, function(){ brasas(0, 0, 0, { n: 1, life: .02 }); },
+      function(){ humo(0, 0, { n: 1 }); }, function(){ cupula(0, 0, { r: 1, life: .02 }); }, function(){ runas(0, 0, { r: 1, life: .02 }); }, function(){ trilha(function(){ return new V3(0, 0, 0); }, o0); },
+      function(){ correntes(0, 0, 0, o0); }, function(){ escudoFantasma(0, 0, o0); }, function(){ cunha(0, 0, 0, o0); }, function(){ domo({ getPos: function(){ return { x: 0, z: 0, face: 0 }; } }); }];
+    T.forEach(function(f){ try { f(); } catch(e){} });
+    try { escudoEnergia(0, 0, 0, { limpo: true, life: .02 }); } catch(e){}
+    try { if(extra) extra(); } catch(e){ console.warn('aquecer (extra):', e); }
+    for(var j = antes; j < list.length; j++) if(list[j].obj) list[j].obj.visible = true;               /* efeitos com atraso (lag) nascem invisiveis e o three.js so compila o que esta visivel */
+    try { ctx.compile(); } catch(e){}
+    for(var i = list.length - 1; i >= antes; i--){ var e = list[i]; if(e.obj){ try { scene().remove(e.obj); sentinelas.push(e.obj); } catch(x){} } list.splice(i, 1); }      /* ninguem chegou a ser desenhado: sai da cena SEM dispose: o three.js destroi o programa do shader quando o ultimo material dele e descartado; estas instancias ficam vivas (fora da cena) so para manter os programas compilados */
+  }
+  iniciarLuz();
+
+  return { escudoVoo: escudoVoo, aquecer: aquecer, domo: domo, feixe: feixe, escudoCarga: escudoCarga, escudoEnergia: escudoEnergia, cunha: cunha, update: update, add: add, espetos: espetos, casca: casca, anel: anel, disco: disco, rachaduras: rachaduras, cratera: cratera, rochas: rochas, brasas: brasas, humo: humo,
            cupula: cupula, runas: runas, trilha: trilha, seguir: seguir, espetosGirando: espetosGirando, correntes: correntes, escudoFantasma: escudoFantasma, luz: luz, rnd: rnd, rr: rr, seeded: seeded };
 }
 /* <<< CLAUDE [guardiao] */

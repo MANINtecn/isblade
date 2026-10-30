@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt-br"><head><meta charset="utf-8"><title>Torre do Baium - teste de andar</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0b0f18;overflow:hidden;font:12px system-ui;color:#dfe9ff}
+#hud{position:fixed;left:10px;top:8px;background:rgba(5,10,20,.72);padding:8px 10px;border-radius:6px;line-height:1.5;max-width:430px;pointer-events:none}
+#hud b{color:#ffd36a}
+#mini{position:fixed;right:10px;top:10px;border:1px solid #456;background:#000;width:220px;height:220px;image-rendering:pixelated}
+#notas{position:fixed;left:10px;bottom:10px;max-width:460px;max-height:30vh;overflow:auto;background:rgba(5,10,20,.72);padding:6px 10px;border-radius:6px;font-size:11px}
+#load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0b0f18;font-size:16px}
+</style></head><body>
+<div id="load">carregando a torre (17 MB)...</div>
+<div id="hud"></div><canvas id="mini" width="220" height="220"></canvas><div id="notas"></div>
+<script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script>
+<script>
+/* Teste de andar na torre do Baium (Mini Toi): le o mapa de chao andavel (assets/maps/baium_house/mini_toi_walkgrid.*)
+   gerado pelo Blender (tools/blender_maps/gerar_walkgrid.py). Nao usa arena.html. Coordenadas = as do glTF (X, altura, Z). */
+var DIR='assets/maps/baium_house/';
+var ALTURA=2.4, RAIO=.55, PASSO=.9, GRAV=34, PULO=11, VEL=9, CORRE=1.7;
+var R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);R.outputEncoding=THREE.sRGBEncoding;document.body.appendChild(R.domElement);
+var S=new THREE.Scene();S.background=new THREE.Color(0x2a3550);S.fog=new THREE.Fog(0x2a3550,260,900);
+var C=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.2,3000);
+S.add(new THREE.HemisphereLight(0xdfe8ff,0x6a5f50,1.5));var sol=new THREE.DirectionalLight(0xfff2dd,1.5);sol.position.set(120,200,80);S.add(sol);
+/* jogador: capsula simples + seta de direcao */
+var P=new THREE.Group();
+var corpo=new THREE.Mesh(new THREE.CylinderGeometry(RAIO,RAIO,ALTURA-RAIO*2,14),new THREE.MeshStandardMaterial({color:0x3aa0ff}));corpo.position.y=ALTURA/2;P.add(corpo);
+var cab=new THREE.Mesh(new THREE.SphereGeometry(RAIO,14,10),new THREE.MeshStandardMaterial({color:0xffd36a}));cab.position.y=ALTURA-RAIO;P.add(cab);
+var seta=new THREE.Mesh(new THREE.ConeGeometry(.35,.9,8),new THREE.MeshBasicMaterial({color:0xff5050}));seta.rotation.x=Math.PI/2;seta.position.set(0,ALTURA*.55,RAIO+.5);P.add(seta);
+S.add(P);
+var G=null,bin=null,offs=null,dv=null;var estado={x:-27.05,y:-62,z:-50.71,vy:0,chao:true,face:0};
+var FLOORS=[{n:1,y:-62.0},{n:2,y:-33.8},{n:3,y:-3.8}], TORRE={x:-27.05,z:-50.71};
+/* ---- mapa de chao ---- */
+function camadas(ix,iz){
+  if(ix<0||iz<0||ix>=G.n||iz>=G.n)return null;
+  var i=iz*G.n+ix,a=offs[i],b=offs[i+1],out=[];
+  for(var k=a;k<b;k++){var p=G.base+G.stride*k;out.push({h:dv.getInt16(p,true)/G.hs,l:dv.getUint8(p+2)/G.ls,m:dv.getUint8(p+3)});}
+  return out;
+}
+function celula(x,z){return[Math.floor((x-G.x0)/G.cel),Math.floor((-z-G.y0)/G.cel)];}
+/* devolve {chao:h|null, bloqueado:bool} para um ponto, vendo de altura y */
+function sonda(x,z,y){
+  var c=celula(x,z),L=camadas(c[0],c[1]);
+  if(!L)return{chao:null,bloq:true};                              /* fora do mapa: parede invisivel */
+  var melhor=null,bloq=false;
+  for(var i=0;i<L.length;i++){
+    var q=L[i];
+    if(q.h>y+PASSO){ if(q.h<y+ALTURA)bloq=true; continue; }       /* alto demais para subir: se fica na altura do corpo e uma parede/degrau alto; mais acima e teto (da para passar por baixo) */
+    if(q.l>=ALTURA){ if(melhor===null||q.h>melhor)melhor=q.h; }   /* chao livre */
+    else if(q.h>y-.35)bloq=true;                                  /* superficie ao nivel do pe com pouco espaco: parede/cerca */
+  }
+  return{chao:melhor,bloq:bloq};
+}
+/* paredes/cercas finas: o gerador marcou, por camada, se a aresta para a celula vizinha (+x / +z do mapa) esta bloqueada */
+function camadaDe(ix,iz,y){var L=camadas(ix,iz);if(!L)return null;var b=null;for(var i=0;i<L.length;i++){if(L[i].h<=y+PASSO&&(b===null||L[i].h>b.h))b=L[i];}return b;}
+function arestaBloq(x0,z0,x1,z1,y){
+  var a=celula(x0,z0),b=celula(x1,z1);if(a[0]===b[0]&&a[1]===b[1])return false;
+  if(a[0]!==b[0]){var q=camadaDe(Math.min(a[0],b[0]),a[1],y);if(q&&(q.m&1))return true;}
+  if(a[1]!==b[1]){var q2=camadaDe(a[0],Math.min(a[1],b[1]),y);if(q2&&(q2.m&2))return true;}
+  return false;
+}
+function cruza(x0,z0,x1,z1,y){
+  var off=[[0,0],[RAIO,0],[-RAIO,0],[0,RAIO],[0,-RAIO]];
+  for(var i=0;i<off.length;i++){if(arestaBloq(x0+off[i][0],z0+off[i][1],x1+off[i][0],z1+off[i][1],y))return true;}
+  return false;
+}
+function pontoLivre(x,z,y){
+  var pts=[[0,0],[RAIO,0],[-RAIO,0],[0,RAIO],[0,-RAIO],[RAIO*.7,RAIO*.7],[-RAIO*.7,RAIO*.7],[RAIO*.7,-RAIO*.7],[-RAIO*.7,-RAIO*.7]];
+  for(var i=0;i<pts.length;i++){if(sonda(x+pts[i][0],z+pts[i][1],y).bloq)return false;}
+  return true;
+}
+function passo(dt,mx,mz,corre,pula){
+  var e=estado,v=VEL*(corre?CORRE:1),dx=mx*v*dt,dz=mz*v*dt;
+  if(dx||dz){
+    if(pontoLivre(e.x+dx,e.z+dz,e.y)&&!cruza(e.x,e.z,e.x+dx,e.z+dz,e.y)){e.x+=dx;e.z+=dz;}
+    else if(dx&&pontoLivre(e.x+dx,e.z,e.y)&&!cruza(e.x,e.z,e.x+dx,e.z,e.y))e.x+=dx;
+    else if(dz&&pontoLivre(e.x,e.z+dz,e.y)&&!cruza(e.x,e.z,e.x,e.z+dz,e.y))e.z+=dz;
+  }
+  var s=sonda(e.x,e.z,e.y),ch=s.chao;
+  if(pula&&e.chao){e.vy=PULO;e.chao=false;}
+  if(ch!==null&&e.vy<=0&&e.y<=ch+.08){ if(ch>e.y)e.y+=Math.min(ch-e.y,dt*20+.2); else e.y=ch; if(e.y>=ch-.01){e.y=ch;e.vy=0;e.chao=true;} }
+  else{e.chao=false;e.vy-=GRAV*dt;e.y+=e.vy*dt; if(ch!==null&&e.vy<=0&&e.y<=ch){e.y=ch;e.vy=0;e.chao=true;}}
+  if(e.y<-130){ renasce(); }
+}
+/* ponto de nascimento de cada andar: o ponto livre mais proximo do centro da torre, com folga de 2 un em volta */
+function achaSpawn(yAndar){
+  for(var r=0;r<70;r+=1){
+    for(var a=0;a<(r?Math.ceil(r*6.3/1):1);a++){
+      var ang=r?a/Math.ceil(r*6.3)*6.283:0,x=TORRE.x+Math.cos(ang)*r,z=TORRE.z+Math.sin(ang)*r,ok=true;
+      for(var k=0;k<9&&ok;k++){var qx=x+(k%3-1)*2,qz=z+(Math.floor(k/3)-1)*2,q=sonda(qx,qz,yAndar+.6);if(q.bloq||q.chao===null||Math.abs(q.chao-yAndar)>.7)ok=false;}
+      if(ok)return[x,z];
+    }
+  }
+  return[TORRE.x,TORRE.z];
+}
+function tp(x,y,z){estado.x=x;estado.y=y;estado.z=z;estado.vy=0;estado.chao=false;}
+function renasce(){var f=FLOORS[1];tp(f.sx,f.y+.5,f.sz);}   /* como no L2: comeca na rampa do Baium (2o andar) */
+function irAndar(i){var f=FLOORS[i];tp(f.sx,f.y+.5,f.sz);}
+/* ---- entrada ---- */
+var K={},orb={az:.6,el:.5,d:16},arr=false,px=0,py=0,notas=[],trilha=[],trilhaOn=false,linha=null;
+addEventListener('keydown',function(e){K[e.code]=1;
+  if(e.code==='Digit1')irAndar(0);if(e.code==='Digit2')irAndar(1);if(e.code==='Digit3')irAndar(2);
+  if(e.code==='KeyR')renasce();
+  if(e.code==='KeyT'){trilhaOn=!trilhaOn;if(!trilhaOn)trilha=[];}
+  if(e.code==='KeyN'){var t=prompt('Nota neste ponto (ex.: "aqui deveria ter chao", "subir por aqui"):','');if(t!==null){notas.push({x:+estado.x.toFixed(2),y:+estado.y.toFixed(2),z:+estado.z.toFixed(2),andar:andarAtual(),nota:t});lista();}}
+  if(e.code==='KeyE')exportar();
+  if(e.code==='KeyV'){ovlOn=!ovlOn;atualizaOvl();}
+  if(e.code==='KeyG')irVao(e.shiftKey?-1:1);
+  if(e.code==='KeyM')document.getElementById('mini').style.display=(document.getElementById('mini').style.display==='none'?'block':'none');
+});
+addEventListener('keyup',function(e){K[e.code]=0;});
+addEventListener('pointerdown',function(e){arr=true;px=e.clientX;py=e.clientY;});addEventListener('pointerup',function(){arr=false;});
+addEventListener('pointermove',function(e){if(!arr)return;orb.az-=(e.clientX-px)*.006;orb.el=Math.max(-.2,Math.min(1.4,orb.el+(e.clientY-py)*.006));px=e.clientX;py=e.clientY;});
+addEventListener('wheel',function(e){orb.d=Math.max(5,Math.min(80,orb.d*(e.deltaY>0?1.1:.9)));});
+addEventListener('resize',function(){R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();});
+function andarAtual(){var m=0,d=1e9;FLOORS.forEach(function(f,i){var q=Math.abs(estado.y-f.y);if(q<d){d=q;m=i;}});return d<8?FLOORS[m].n:'?';}
+function lista(){document.getElementById('notas').innerHTML='<b>Notas ('+notas.length+')</b> - E para baixar<br>'+notas.map(function(n,i){return(i+1)+'. andar '+n.andar+' ('+n.x+', '+n.y+', '+n.z+'): '+n.nota;}).join('<br>');}
+function exportar(){
+  var dados={mapa:'mini_toi',unidade:'glTF (X, altura, Z); 1 un = 35.714 uu do L2',notas:notas,trilha:trilha.map(function(p){return[+p[0].toFixed(2),+p[1].toFixed(2),+p[2].toFixed(2)];})};
+  var txt=JSON.stringify(dados,null,1);try{navigator.clipboard.writeText(txt);}catch(_){ }
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download='torre_notas.json';a.click();
+}
+/* ---- sobreposicao 3D do chao que o jogo enxerga (tecla V): verde = anda, vermelho = bloqueado/baixo demais, laranja = parede fina na aresta ---- */
+var ovl=null,ovlOn=false,ovlT=0,ovlPos=[1e9,1e9,1e9];
+function atualizaOvl(){
+  if(ovl){S.remove(ovl);ovl.geometry.dispose();ovl=null;}
+  if(!ovlOn||!G)return;
+  var RR=22,c0=celula(estado.x-RR,estado.z+RR),c1=celula(estado.x+RR,estado.z-RR),pos=[],col=[];
+  var i0=Math.min(c0[0],c1[0]),i1=Math.max(c0[0],c1[0]),j0=Math.min(c0[1],c1[1]),j1=Math.max(c0[1],c1[1]);
+  for(var iz=j0;iz<=j1;iz++)for(var ix=i0;ix<=i1;ix++){
+    var L=camadas(ix,iz);if(!L)continue;
+    for(var k=0;k<L.length;k++){var q=L[k];if(q.h<estado.y-7||q.h>estado.y+7)continue;
+      var x=G.x0+ix*G.cel,z=-(G.y0+iz*G.cel),y=q.h+.07,e=G.cel*.88,r,g,b;
+      if(q.l<ALTURA){r=1;g=.2;b=.2;}else if(q.m){r=1;g=.65;b=.2;}else{r=.15;g=1;b=.3;}
+      pos.push(x,y,z, x+e,y,z, x+e,y,z-e, x,y,z, x+e,y,z-e, x,y,z-e);
+      for(var t=0;t<6;t++)col.push(r,g,b);
+    }
+  }
+  var geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  ovl=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.42,depthWrite:false,side:THREE.DoubleSide}));ovl.renderOrder=5;S.add(ovl);ovlPos=[estado.x,estado.y,estado.z];
+}
+/* ---- tour de vaos (tecla G / Shift+G): lugares onde duas areas de mesma altura estao separadas por um vao pequeno (candidatos a "falta chao") ---- */
+var VAOS=[ /* [Ax,Az,altA, Bx,Bz,altB, largura] em coordenadas da pagina; achados pelo gerador de colisao */
+ [-92.8,-28.2,21.2,-92.8,-36.2,21.2,8.0],[12.2,-110.2,13.6,10.8,-108.2,11.7,2.5],[-25.2,24.2,13.0,-24.2,15.8,11.2,8.6],[38.2,-63.8,11.3,38.2,-67.8,10.5,4.0],
+ [39.8,-45.2,11.3,37.2,-39.2,10.1,6.5],[39.8,-63.8,11.3,45.8,-66.2,9.9,6.5],[-62.8,8.2,11.2,-65.2,12.8,9.9,5.1],[-60.8,7.2,11.2,-54.2,8.2,9.9,6.6],
+ [-75.8,-2.2,11.2,-79.8,1.8,9.9,5.7],[-25.2,12.2,11.2,-36.2,14.8,9.9,11.3],[17.8,-17.2,11.2,21.8,-26.2,10.1,9.8],[26.8,-11.2,11.2,33.8,-7.2,9.8,8.1],
+ [-96.2,-45.8,1.8,-95.8,-35.8,-.6,10.0],[-93.8,-68.8,1.8,-92.8,-74.8,-.6,6.1],[-42.8,17.8,-.6,-50.2,15.2,-.8,7.9],[-90.2,-20.8,-.6,-85.8,-11.8,-.8,10.1],[38.2,-30.2,-.6,38.2,-25.8,-.7,4.5]];
+var vaoI=-1,vaoMarca=null;
+function irVao(d){
+  vaoI=(vaoI+d+VAOS.length)%VAOS.length;var v=VAOS[vaoI];
+  tp(v[0],v[2]+.6,v[1]);estado.face=Math.atan2(v[3]-v[0],v[4]-v[1]);orb.az=estado.face+Math.PI;
+  if(vaoMarca){S.remove(vaoMarca);vaoMarca=null;}
+  vaoMarca=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,30,6),new THREE.MeshBasicMaterial({color:0xff3030}));
+  vaoMarca.position.set((v[0]+v[3])/2,(v[2]+v[5])/2+15,(v[1]+v[4])/2);S.add(vaoMarca);
+  document.getElementById('notas').innerHTML='<b>Vao '+(vaoI+1)+'/'+VAOS.length+'</b>: largura '+v[6]+' un, altura '+v[2]+' / '+v[5]+'. A coluna vermelha marca o meio do vao. G = proximo, Shift+G = anterior. Se aqui falta chao, aperte N e escreva.';
+}
+/* ---- minimapa do andar atual ---- */
+var mc=document.getElementById('mini'),mx2=mc.getContext('2d'),mframe=0;
+function mini(){
+  if(!G||mc.style.display==='none')return;var W=220,raio=22,esc=W/(raio*2),im=mx2.createImageData(W,W),d=im.data;
+  for(var j=0;j<W;j++)for(var i=0;i<W;i++){
+    var wx=estado.x+(i-W/2)/esc,wz=estado.z+(j-W/2)/esc,s=sonda(wx,wz,estado.y),k=(j*W+i)*4,r=18,g=22,b=34;
+    if(s.chao!==null&&Math.abs(s.chao-estado.y)<2.5){r=200;g=210;b=225;}      /* chao neste nivel */
+    else if(s.chao!==null&&s.chao<estado.y-2.5){r=60;g=80;b=110;}              /* chao bem abaixo */
+    if(s.bloq){r=220;g=70;b=70;}                                                /* parede/cerca */
+    else if(s.chao!==null){var cc=celula(wx,wz),q=camadaDe(cc[0],cc[1],estado.y);if(q&&q.m){r=255;g=150;b=60;}}   /* laranja = parede fina na aresta da celula */
+    d[k]=r;d[k+1]=g;d[k+2]=b;d[k+3]=255;
+  }
+  mx2.putImageData(im,0,0);mx2.fillStyle='#3aa0ff';mx2.beginPath();mx2.arc(W/2,W/2,4,0,6.3);mx2.fill();
+  mx2.strokeStyle='#ff5050';mx2.beginPath();mx2.moveTo(W/2,W/2);mx2.lineTo(W/2+Math.sin(estado.face)*14,W/2+Math.cos(estado.face)*14);mx2.stroke();
+}
+/* ---- carga ---- */
+Promise.all([fetch(DIR+'mini_toi_walkgrid.json').then(function(r){return r.json();}),fetch(DIR+'mini_toi_walkgrid.bin').then(function(r){return r.arrayBuffer();})]).then(function(r){
+  var j=r[0];bin=r[1];G={n:j.n,cel:j.celula,x0:j.x0,y0:j.y0,hs:j.altura_escala,ls:j.livre_escala,base:4*(j.n*j.n+1),stride:j.bytes_por_camada||3};
+  offs=new Uint32Array(bin,0,j.n*j.n+1);dv=new DataView(bin);
+  new THREE.GLTFLoader().load(DIR+'mini_toi.glb',function(g){
+    g.scene.traverse(function(o){if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.side=THREE.DoubleSide;});});
+    S.add(g.scene);FLOORS.forEach(function(f){var sp=achaSpawn(f.y);f.sx=sp[0];f.sz=sp[1];});document.getElementById('load').style.display='none';renasce();window.__ok=1;
+  },undefined,function(e){document.getElementById('load').textContent='ERRO ao carregar a torre: '+e;window.__err=String(e);});
+});
+/* ---- laco ---- */
+var rel=new THREE.Clock();
+function laco(){
+  requestAnimationFrame(laco);var dt=Math.min(rel.getDelta(),.05);
+  if(G){
+    var f=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0),s=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0);
+    var fx=-Math.sin(orb.az),fz=-Math.cos(orb.az),rx=Math.cos(orb.az),rz=-Math.sin(orb.az);   /* frente = longe da camera */
+    var mx=fx*f+rx*s,mz=fz*f+rz*s,m=Math.hypot(mx,mz);if(m>1){mx/=m;mz/=m;}
+    if(m>.01)estado.face=Math.atan2(mx,mz);
+    passo(dt,mx,mz,K.ShiftLeft||K.ShiftRight,K.Space);
+    if(trilhaOn){var u=trilha[trilha.length-1];if(!u||Math.hypot(u[0]-estado.x,u[1]-estado.y,u[2]-estado.z)>.6)trilha.push([estado.x,estado.y,estado.z]);}
+  }
+  P.position.set(estado.x,estado.y,estado.z);P.rotation.y=estado.face;
+  var alvo=new THREE.Vector3(estado.x,estado.y+ALTURA*.8,estado.z);
+  C.position.set(alvo.x+Math.sin(orb.az)*Math.cos(orb.el)*orb.d,alvo.y+Math.sin(orb.el)*orb.d,alvo.z+Math.cos(orb.az)*Math.cos(orb.el)*orb.d);C.lookAt(alvo);
+  if(linha){S.remove(linha);linha=null;} if(trilhaOn&&trilha.length>1){var geo=new THREE.BufferGeometry().setFromPoints(trilha.map(function(p){return new THREE.Vector3(p[0],p[1]+.1,p[2]);}));linha=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xffe14a}));S.add(linha);}
+  if(ovlOn&&Math.hypot(estado.x-ovlPos[0],estado.z-ovlPos[2])+Math.abs(estado.y-ovlPos[1])>2)atualizaOvl();
+  if((mframe++%6)===0)mini();
+  document.getElementById('hud').innerHTML='<b>Torre do Baium - teste</b><br>WASD/setas andar (Shift corre, Espaco pula) &middot; arrastar = camera &middot; roda = zoom<br>1/2/3 = ir para o andar &middot; R = renascer &middot; T = trilha amarela &middot; <b>N</b> = anotar ponto &middot; <b>E</b> = baixar notas &middot; M = minimapa &middot; <b>V</b> = ver o chao que o jogo enxerga &middot; <b>G</b> = tour dos vaos<br>andar <b>'+andarAtual()+'</b> &middot; pos ('+estado.x.toFixed(1)+', '+estado.y.toFixed(1)+', '+estado.z.toFixed(1)+') &middot; '+(estado.chao?'no chao':'no ar')+'<br><span style="color:#9fb">minimapa: branco = chao deste nivel, vermelho = parede/cerca, azul = chao la embaixo</span>';
+  R.render(S,C);
+}
+laco();
+window.__t={arestaBloq:arestaBloq,cruza:cruza,tp:tp,passo:passo,estado:estado,sonda:sonda,andar:andarAtual,FLOORS:FLOORS,TORRE:TORRE,get G(){return G;},camadas:camadas,celula:celula};
+</script></body></html>

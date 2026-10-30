@@ -55,3 +55,4 @@ convert_to_white_celestial("portal_event_horizon.png", "portal_event_horizon_whi
 convert_to_white_celestial("portal_floor_seal.png", "portal_floor_seal_white.png", 1.15, 1.2)
 convert_to_white_celestial("portal_monolith_rune.png", "portal_monolith_rune_white.png", 1.3, 1.25)
 convert_to_white_celestial("portal_mist_blue.png", "portal_mist_white.png", 1.1, 1.1)
+

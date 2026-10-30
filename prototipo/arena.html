@@ -10,7 +10,7 @@
 
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
-<link rel="stylesheet" href="css/mu_hud.css?v=14">
+<link rel="stylesheet" href="css/mu_hud.css?v=15">
 
 <script>
 
@@ -521,7 +521,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 <div id="sysmsg" class="ui"><h4>SISTEMA</h4><p></p></div>
 
-<div id="msg" class="ui">Mouse gira a camera e mira (mira no centro) &middot; clique esquerdo (segure): ataque &middot; WASD: mover &middot; Espaco: bloquear/parry &middot; Shift: esquivar &middot; Q E R F T Z: skills &middot; PgUp/PgDn: 1a/3a pessoa &middot; M: modo clique &middot; V: cone &middot; B: reguas</div>
+<div id="msg" class="ui">Mouse gira a camera e mira (mira no centro) &middot; clique esquerdo (segure): ataque &middot; WASD: mover &middot; Espaco: pular &middot; C (segurar): guarda/parry &middot; Shift: esquivar &middot; Q E R F T Z: skills &middot; PgUp/PgDn: 1a/3a pessoa &middot; M: modo clique &middot; V: cone &middot; B: reguas</div>
 
 <div id="pbars" class="ui">
 
@@ -619,13 +619,13 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
   <label style="margin-top:6px"><input type="checkbox" id="cfgInf"><span>Estamina infinita</span></label>
 
-  <h3 style="margin-top:14px">ATALHOS DAS SKILLS</h3>
+  <h3 style="margin-top:14px">ATALHOS DA BARRA (SKILLS)</h3>
 
   <div id="cfgKeys"></div>
 
   <button id="cfgKeysReset" type="button">Restaurar padrao</button>
 
-  <div class="hint">Clique no atalho e aperte a nova tecla. Se ela ja for de outra skill, as duas trocam de lugar. Teclas do sistema (WASD, 1-6, M, V, B, G, Y) nao podem ser usadas.</div>
+  <div class="hint">Clique no atalho de um slot e aperte a nova tecla. Se ela ja for de outro slot, os dois trocam. Arraste a skill (tecla S) ou o item para o slot da barra; a tecla do slot e a que voce define aqui. Nao podem ser usadas: WASD, 1-6, M, V, B, C, I, K, X.</div>
 
   <div class="hint">Com o mouse capturado, aperte Esc para clicar aqui.</div>
 
@@ -661,10 +661,27 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js?v=8';
+import { Guardiao } from './js/guardiao.js?v=13';
 import { Net } from './js/net.js?v=6';
+import { CC } from './js/cc.js?v=1';
+/* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
+   Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
+function ck(k){var id=null;try{id=localStorage.getItem('isblade_active_character_id');}catch(_){}return id?k+'.'+id:k;}
+function ckGet(k){
+  try{
+    var id=localStorage.getItem('isblade_active_character_id'),v=localStorage.getItem(ck(k));
+    if(v===null&&id){var leg=localStorage.getItem(k),dono=localStorage.getItem('isblade.legado_dono.'+k);
+      if(leg!==null&&(!dono||dono===id)){localStorage.setItem(ck(k),leg);localStorage.setItem('isblade.legado_dono.'+k,id);v=leg;}}
+    return v;
+  }catch(_){return null;}
+}
+function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
+/* <<< CLAUDE [perchar] */
+
+import { Torre } from './js/torre.js?v=7';
+var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=11';
+import { MuHud } from './js/mu_hud.js?v=14';
 
 window.THREE = THREE;
 
@@ -1232,7 +1249,7 @@ var SK=[],SKEY={};/* skills da arma atual (copias de data/armas/<arma>.json); o 
 
 /* cada slot tem a skill base (w.skills[slot]) e variantes (w.variants com slot=N); o jogador escolhe qual equipar (tecla K), salvo em 'isblade.skillSel' */
 
-var SEL={};try{SEL=JSON.parse(localStorage.getItem('isblade.skillSel'))||{};}catch(_){}
+var SEL={};try{SEL=JSON.parse(ckGet('isblade.skillSel'))||{};}catch(_){}
 
 function skillCands(slot){var w=(DATA.armas&&DATA.armas[WPN])||DATA.armas.sword;return [w.skills[slot]].concat((w.variants||[]).filter(function(v){return v.slot===slot;}));}
 
@@ -1258,7 +1275,7 @@ function loadWeaponSkills(){
 
 /* maestria por arma (estilo Albion: sem nivel de personagem): cada arma tem seu XP, e skills exigem nivel de maestria */
 
-var MAST={};try{MAST=JSON.parse(localStorage.getItem('isblade.mastery'))||{};}catch(_){}
+var MAST={};try{MAST=JSON.parse(ckGet('isblade.mastery'))||{};}catch(_){}
 
 function mastCfg(){return ((DATA.armas&&DATA.armas[WPN])||DATA.armas.sword).mastery;}
 
@@ -1268,7 +1285,7 @@ function mastXp(){return MAST[WPN]||0;}
 
 function mastLevel(){return mastLevelOf(mastXp());}
 
-function saveMast(){try{localStorage.setItem('isblade.mastery',JSON.stringify(MAST));}catch(_){}}
+function saveMast(){try{ckSet('isblade.mastery',JSON.stringify(MAST));}catch(_){}}
 
 loadWeaponSkills();
 
@@ -1552,6 +1569,8 @@ var ring2=new THREE.Mesh(new THREE.TorusGeometry(ARENA+1,.03,8,128),new THREE.Me
 
 ring2.rotation.x=Math.PI/2;ring2.position.y=.04;scene.add(ring2);
 
+var ARENA_DECOR=[floor,ring,ring2];/* escondidos no modo torre */
+
 
 
 /* =========================================================================
@@ -1609,9 +1628,11 @@ for(i=0;i<18;i++){
 
   var pl=new THREE.Mesh(new THREE.CylinderGeometry(.5,.6,hh,8),pillarMat);
 
-  pl.position.set(Math.cos(a)*rr,hh/2,Math.sin(a)*rr);scene.add(pl);
+  pl.position.set(Math.cos(a)*rr,hh/2,Math.sin(a)*rr);scene.add(pl);ARENA_DECOR.push(pl);
 
 }
+
+if(TORRE_MODE)ARENA=1e6;/* sem a parede invisivel da arena: quem limita e o mapa da torre */
 
 /* cenario gerado no TECX LABS 3D (?cenario=0 desliga) */
 
@@ -1621,7 +1642,7 @@ if(!/[?&]cenario=0/.test(location.search)){
 
   var cenLoader=new THREE.GLTFLoader();
 
-  var cenLoad=function(file,cb){cenLoader.load('assets/cenario/'+file,function(g){g.scene.traverse(function(o){if(o.isMesh)o.frustumCulled=false;});cb(g.scene);},undefined,function(e){console.log('CENARIOERR '+file+' '+e);});};
+  var cenLoad=function(file,cb){cenLoader.load('assets/cenario/'+file,function(g){g.scene.traverse(function(o){if(o.isMesh)o.frustumCulled=false;});var n0=scene.children.length;cb(g.scene);for(var qd=n0;qd<scene.children.length;qd++){ARENA_DECOR.push(scene.children[qd]);if(window.Torre&&Torre.on)scene.children[qd].visible=false;}/* [torre] piso/muralha/bandeiras do TECX LABS tambem somem na torre */},undefined,function(e){console.log('CENARIOERR '+file+' '+e);});};
 
   floor.position.y=-.3;/* o chao quadriculado antigo vira fundo, abaixo do piso novo */
 
@@ -2538,7 +2559,7 @@ function playerLoco(){
   else if(cType.indexOf('elf') !== -1) raceScale = 1.06; /* passada esbelta e veloz */
 
   if((want==='run'||want==='run_hand'||want==='Run_1HS_MFighter'||want==='Run_1HS'||want==='g_run_rest')&&d.cur){
-    d.cur.timeScale = clamp(Math.hypot(S.vx,S.vz)/RUN, 0.75, 1.08);
+    d.cur.timeScale = clamp(Math.hypot(S.vx,S.vz)/RUN, 0.75, S.sprint?1.9:1.08);
   }
 
 }
@@ -3636,7 +3657,7 @@ function skillHitFx(an,hx,hz){
 
 /* ---------------- estado do jogo ---------------- */
 
-var S={
+var S=window.S={/* o script e modulo: sem window.S o HUD do MU (mu_hud.js) nao enxerga vida do alvo nem recargas */
 
   px:0,pz:6,face:Math.PI,ex:0,ez:-3,eh:0,pex:0,pez:-3,
 
@@ -3644,7 +3665,7 @@ var S={
 
   php:100,pmax:100,st:100,stDelay:0,pdead:false,pdT:0,stun:0,
 
-  guardHeld:false,guard:false,guardT:0,gcd:0,
+  guardHeld:false,guard:false,guardT:0,gcd:0,jy:0,jv:0,/* >>> CLAUDE [pulo] altura e velocidade vertical do pulo (modo plano) */
 
   rollT:-1,rdx:0,rdz:0,rfx:0,rfz:0,focus:0,cd:[0,0,0,0,0,0],ifr:0,gauge:100,gmax:100,gT:0,ey:0,evy:0,air:false,airHits:0,combo:0,cT:0,maxCombo:0,dmgTaken:0,fightT:0,fightOn:false,buf:null,vx:0,vz:0,hitStop:0,
 
@@ -3740,13 +3761,6 @@ function hurtFlash(){var h=$('#hurt');h.classList.add('on');setTimeout(function(
 
 /* pode interromper a animacao atual? so depois do golpe acertar (ou de 60% dela); skill de varios golpes so no fim */
 
-/* >>> CLAUDE [guardiao] 2026-10-29 — AGILIDADE do lutador: cancelar uma skill no meio dispara AGORA o golpe que faltava (o efeito nao se perde) e deixa engatar a proxima */
-function flushHits(an){
-  if(!an||!an.clipMode)return;
-  if(an.hitList){while(an.hi<an.hitList.length){var hh=an.hitList[an.hi++];an.hit=true;applyHit({id:an.id,dmg:hh.dmg,sk:null,perfect:false,skill:an.skill,part:an.hi,parts:an.hitList.length});}}
-  else if(!an.hit){an.hit=true;applyHit(an);}
-}
-/* <<< CLAUDE [guardiao] */
 function canCancel(an){if(an){var gc=Guardiao.podeCancelar(an);if(gc!==null)return gc;}
 
   if(!an)return true;
@@ -3811,7 +3825,7 @@ function perform(id,q){
 
   dmg=Math.round(dmg*(.92+Math.random()*.16)*3);
 
-  if(S.anim&&WPN==='shield')flushHits(S.anim);S.anim=mkAnim(id,dmg,sk,perfect,null);
+  S.anim=mkAnim(id,dmg,sk,perfect,null);
   /* >>> CLAUDE [guardiao] 2026-10-28 — efeitos de antes do golpe do ataque padrao (rastro, poeira) */ if(WPN==='shield')Guardiao.aoAtacar(S.anim); /* <<< CLAUDE [guardiao] */
 
   if(broke)sysMsg('Combo interrompido. Recomece pelo primeiro golpe.');
@@ -3852,7 +3866,7 @@ function castSkill(i){
 
   var dmg=Math.round(sk.dmg*(sk.hits?sk.hits.length:1)*(.92+Math.random()*.16));
 
-  if(S.anim&&WPN==='shield')flushHits(S.anim);S.anim=mkAnim(sk.pose,dmg,null,false,sk);
+  S.anim=mkAnim(sk.pose,dmg,null,false,sk);
   /* >>> CLAUDE [guardiao] 2026-10-27 — efeitos de antes do golpe (carga, voo do escudo) */ Guardiao.aoCastar(sk); /* <<< CLAUDE [guardiao] */
 
   if(sk.pose==='dash')spark(S.px,1.4,S.pz,2.6,0x5aa9ff,.3);
@@ -3910,9 +3924,9 @@ if(S.dead&&!MOBS.length)return;
 
   /* so o ataque padrao recupera estamina: pouco no inicio do combo, mais conforme o combo cresce (skills nao recuperam) */
 
-  if(!an.part||an.part===1)addMastery(an.skill?mastCfg().xpSkill:mastCfg().xpHit);/* skill de varios golpes conta uma vez */
+  if(!an.dome&&(!an.part||an.part===1))addMastery(an.skill?mastCfg().xpSkill:mastCfg().xpHit);/* skill de varios golpes conta uma vez */
 
-  if(!an.skill&&S.st<100){
+  if(!an.skill&&!an.dome&&S.st<100){
 
     var sg=Math.min(100-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX));
 
@@ -3954,7 +3968,7 @@ if(S.dead&&!MOBS.length)return;
 
   var big=!!an.sk||(an.skill&&an.skill.intr>=1),color=an.skill?an.skill.css:(an.sk?(an.sk.secret?'#b79cff':'#f5c451'):(an.perfect?'#f5c451':'#e8f0ff'));
 
-  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;
+  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
 
   floatText(tag+(an.perfect?'PERFEITO ':'')+dmg,color,big?30:(an.perfect?24:20));
 
@@ -4235,10 +4249,25 @@ function doAct(type,arg){
 
   if(type==='roll')return doRoll();
 
+  if(type==='jump')return doJump();
+
   return 'no';
 
 }
 
+/* >>> CLAUDE [pulo] Espaco pula; a guarda virou a skill universal 'C' (segurar). Nao pula parado em skill/rolagem/atordoado/guardando; custa 8 de estamina. */
+var JUMP_V=12,JUMP_G=34,JUMP_COST=8;
+/* >>> CLAUDE [corrida] Shift: esquiva NA HORA ao apertar; continuar segurando (> SPRINT_HOLD s) = correr; segurar (> SPRINT_HOLD s) = correr mais rapido, gastando estamina aos poucos. Ajustar aqui. */
+var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=10,SPRINT_MIN=12;
+/* <<< CLAUDE [corrida] */
+function jumpH(){return (Torre.on)?Torre.altura:S.jy;}
+function doJump(){
+  if(S.pdead||S.stun>0||S.rollT>=0||S.anim||S.guard||S.st<JUMP_COST)return 'no';
+  if(Torre.on){if(!Torre.pular())return 'no';}
+  else{if(S.jy>.02)return 'no';S.jv=JUMP_V;S.jy=.001;}
+  S.st-=JUMP_COST;S.stDelay=.5;SFX.play('swing');return 'ok';
+}
+/* <<< CLAUDE [pulo] */
 function req(type,arg){
 
   var r=doAct(type,arg);
@@ -4253,11 +4282,13 @@ function separate(){
 
   var dx=S.px-S.ex,dz=S.pz-S.ez,d=Math.hypot(dx,dz);
 
-  if(BOSS_ON&&d<1.25&&d>0){S.px=S.ex+dx/d*1.25;S.pz=S.ez+dz/d*1.25;}
+  if(BOSS_ON&&d<3.75&&d>0){S.px=S.ex+dx/d*3.75;S.pz=S.ez+dz/d*3.75;}/* corpo do Baium 3x: raio 1,25 -> 3,75 */
 
   if(OBST.length){var q=obstPush(S.px,S.pz,.55);S.px=q[0];S.pz=q[1];}
 
   var r=Math.hypot(S.px,S.pz);if(r>ARENA){S.px*=ARENA/r;S.pz*=ARENA/r;}
+
+  if(Torre.on){Torre.depois(S);if(BOSS_ON)enemy.visible=Torre.chefeVisivel()&&!S.dead;}/* colisao e andares da torre */
 
 }
 
@@ -4304,6 +4335,8 @@ function startAttack(d){
 function enemyThink(dt){
 
   var E=S.en;if(S.dead||S.pdead)return;
+
+  if(Torre.on&&!Torre.chefeAtivo())return;/* o Baium so acorda no 3o andar */
 
   E.t+=dt;
 
@@ -4368,6 +4401,8 @@ function enemyThink(dt){
   }
 
   var r=Math.hypot(S.ex,S.ez);if(r>ARENA){S.ex*=ARENA/r;S.ez*=ARENA/r;}
+
+  if(Torre.on)Torre.chefe(S);/* chefe nao sai do chao do 3o andar */
 
 }
 
@@ -4733,7 +4768,7 @@ function resetDuel(){
 
     if(!DG.run){dgHub();return;}
 
-    dgLoadRoom(Math.max(0,DG.room),true);S.php=S.pmax;flip.rotation.x=0;if(vrm&&vrm.drv)vrm.drv.hold=0;renderHud();return;
+    if(DG.torre)torreDgLoad(true);else dgLoadRoom(Math.max(0,DG.room),true);S.php=S.pmax;flip.rotation.x=0;if(vrm&&vrm.drv)vrm.drv.hold=0;renderHud();return;
 
   }
 
@@ -4759,7 +4794,7 @@ var DG={on:true,room:-1,cleared:false,portal:null,kills:0,run:false,diff:'normal
 
 var BOSS_BASE_HP=S.maxhp;
 
-var BEST={};try{BEST=JSON.parse(localStorage.getItem('isblade.dgbest'))||{};}catch(_){}
+var BEST={};try{BEST=JSON.parse(ckGet('isblade.dgbest'))||{};}catch(_){}
 
 function DIFF(){return DGD.difficulties[DG.diff]||DGD.difficulties.normal;}
 
@@ -4877,6 +4912,12 @@ function removeMob(m){
 
 function mobsAlive(){return MOBS.filter(function(m){return !m.dead;}).length;}
 
+/* >>> CLAUDE [guardiao] 2026-10-29 — dano do domo girando (Fortaleza Egide): mobs e chefe dentro do raio */
+function domoDano(x,z,r,dmg){
+  MOBS.forEach(function(m){if(m.dead)return;if(Math.hypot(m.x-x,m.z-z)-m.r*.6<=r)damageMob(m,mobDmg({dmg:dmg}),{dome:true,part:1,parts:1,noRange:true});});
+  if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)-1.5<=r)applyHit({id:'dome',dmg:mobDmg({dmg:dmg}),sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1});
+}
+/* <<< CLAUDE [guardiao] */
 function mobDmg(an){var d=an.dmg;if(S.focus>0)d*=1.3;if(ST.dano)d*=1+ST.dano/100;return Math.round(d);}
 
 function damageMob(m,dmg,an){
@@ -4887,19 +4928,20 @@ function damageMob(m,dmg,an){
 
   if(TRAIN.on)trainLog(dmg);
 
-  m.hp=Math.max(0,m.hp-dmg);m.flash=1;
+  m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
 
   var f=fwd(Math.atan2(m.x-S.px,m.z-S.pz)),kb=m.T.armor?.12:.45;if(an.skill&&an.skill.burst)kb=m.T.armor?.6:1.8;
 
   var q=obstPush(m.x+f[0]*kb,m.z+f[1]*kb,m.r);m.x=q[0];m.z=q[1];
 
   if(!m.T.armor&&m.state==='windup'){m.state='chase';m.t=0;m.wait=.4;}/* golpe interrompe o ataque (brutamontes tem armadura) */
+  if(an.skill&&an.skill.golpe){var ccE=CC.mob(m,an.skill,an.part,{desloca:function(mm,d){var fq=fwd(Math.atan2(mm.x-S.px,mm.z-S.pz)),qq=obstPush(mm.x+fq[0]*d,mm.z+fq[1]*d,mm.r);mm.x=qq[0];mm.z=qq[1];}});if(ccE)floatText(CC.NOMES[ccE],'#f5c451',22,{x:m.x,z:m.z,y:2.8*m.T.size});}/* controle (CC): estado de golpe pela SA, ver js/cc.js */
 
   m.fg.scale.x=Math.max(.001,m.hp/m.max);
 
   floatText((m.stun>0?'FRAQUEZA ':'')+dmg,an.skill?an.skill.css:'#e8f0ff',an.skill?26:20,{x:m.x,z:m.z,y:2.2*m.T.size});
 
-  S.hitStop=Math.max(S.hitStop,an.skill&&an.skill.intr>=1?HS_BIG:HS_SMALL);S.shake=Math.max(S.shake,an.skill?.22:.1);
+  if(!an.dome){S.hitStop=Math.max(S.hitStop,an.skill&&an.skill.intr>=1?HS_BIG:HS_SMALL);S.shake=Math.max(S.shake,an.skill?.22:.1);}
 
   spark(m.x,1.4*m.T.size,m.z,an.skill?3:2,0x8bc1ff,.3);burst(m.x,1.4*m.T.size,m.z,an.skill?18:8,0x8bc1ff,an.skill?3.5:2.2);
 
@@ -4917,7 +4959,7 @@ function killMob(m){
 
   renderHud();
 
-  if(!BOSS_ON&&mobsAlive()===0)dgClear();
+  if(DG.torre&&!BOSS_ON){if(m.type!=='mini_boss')DG.kr++;torreCheck();}else if(!BOSS_ON&&mobsAlive()===0)dgClear();
 
 }
 
@@ -4942,6 +4984,8 @@ function hitMobs(an,rng,half){
     if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r,Math.max(reach,.5)))return;
 
     damageMob(m,mobDmg(an),an);n++;
+
+    if(an.skill&&an.skill.pull&&!m.dead&&m.type!=='mini_boss'){var pa=S.face+(Math.random()-.5)*.9;m.pull={t:0,dur:.4,tx:S.px+Math.sin(pa)*2.6,tz:S.pz+Math.cos(pa)*2.6};}/* [puxao] corrente puxa os mobs comuns ate a frente do escudo; chefe nunca */
 
   });
 
@@ -4979,9 +5023,10 @@ function playerTakeHit(h){
 
     }
 
-    if(S.st>=h.cost){
+    var gcost=WPN==='shield'?h.cost*.6:h.cost;/* Guardiao (escudo) gasta 40% menos estamina ao bloquear */
+    if(S.st>=gcost){
 
-      S.st-=h.cost;S.stDelay=.9;SFX.play('block');floatText('BLOQUEOU','#8bc1ff',20,'p');spark(S.px+fp[0]*.9,1.7,S.pz+fp[1]*.9,2.0,0x8bc1ff,.3);
+      S.st-=gcost;S.stDelay=.9;SFX.play('block');floatText('BLOQUEOU','#8bc1ff',20,'p');spark(S.px+fp[0]*.9,1.7,S.pz+fp[1]*.9,2.0,0x8bc1ff,.3);
 
       hurtPlayer(Math.round(h.dmg*.2),true);return;
 
@@ -5047,6 +5092,8 @@ function updateMobs(dt){
 
     m.flash=Math.max(0,m.flash-dt*4);
 
+    if(m.pull){var PL=m.pull;PL.t+=dt;var pk=Math.min(1,dt*9);m.x+=(PL.tx-m.x)*pk;m.z+=(PL.tz-m.z)*pk;if(PL.t>=PL.dur)m.pull=null;}/* [puxao] */
+
     m.mat.emissiveIntensity=.15+m.flash*1.1+(m.state==='windup'?.45+.45*Math.sin(m.t*30):0);
 
     if(!S.pdead){
@@ -5055,7 +5102,7 @@ function updateMobs(dt){
 
       var dx=S.px-m.x,dz=S.pz-m.z,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(m.face),sp=m.spd;
 
-      if(m.stun>0){m.stun-=dt;}
+      var ccOn=CC.tick(m,dt);if(m.stun>0||ccOn){if(m.stun>0)m.stun-=dt;}
 
       else{
 
@@ -5105,9 +5152,11 @@ function updateMobs(dt){
 
       var rr=Math.hypot(m.x,m.z);if(rr>ARENA-.6){m.x*=(ARENA-.6)/rr;m.z*=(ARENA-.6)/rr;}
 
+      if(DG.torre&&Torre.on)Torre.mob(m);/* [torre-dg] mobs ficam no andar */
+
     }
 
-    m.g.position.set(m.x,0,m.z);m.g.rotation.y=m.face;
+    m.g.position.set(m.x,0,m.z);m.g.rotation.y=m.face;m.g.rotation.x=m.cc?((m.cc.e==='derrubado'||m.cc.e==='lift')?-1.2:(m.cc.e==='stun'?.12*Math.sin(m.t*40):0)):0;
 
     m.bar.position.set(m.x,2.45*T.size,m.z);m.bar.quaternion.copy(camera.quaternion);
 
@@ -5236,7 +5285,7 @@ function updateChest(dt) {
       pPrompt.style.display = 'block';
       pPrompt.innerHTML = 'Pressione <b>[E]</b> para Abrir o Bau de ' + (c.kind === 'gold' ? 'Ouro' : 'Prata');
     }
-  } else if (!DG.portal || Math.hypot(S.px, S.pz + 9) >= 2.5) {
+  } else if (!DG.portal || Math.hypot(S.px - portalPos()[0], S.pz - portalPos()[1]) >= 2.5) {
     if (pPrompt && !c.opened) pPrompt.style.display = 'none';
   }
 }
@@ -5475,9 +5524,9 @@ function spawnPortal(label, theme){
 
   var isWhite = (theme === 'white') || (label === 'exit');
   var gate = createSoloLevelingGate({
-    x: 0,
+    x: portalPos()[0],
     y: 2.7,
-    z: -9,
+    z: portalPos()[1],
     rotY: 0,
     runeColor: isWhite ? 0xffffff : 0x00d5ff,
     theme: isWhite ? 'white' : 'blue'
@@ -5489,6 +5538,8 @@ function spawnPortal(label, theme){
 }
 
 function dgClear(){
+
+  if(DG.torre){torreClear();return;}/* [torre-dg] */
 
   DG.cleared=true;SFX.levelup();
 
@@ -5557,7 +5608,7 @@ function dgBossDown(){
 
   banner('DUNGEON CONCLUIDA!  -  '+DIFF().name,'Baium Derrotado! Abra o Bau de Ouro e volte pelo portal.','#f5c451');
 
-  BEST[DG.diff]=true;try{localStorage.setItem('isblade.dgbest',JSON.stringify(BEST));}catch(_){}
+  BEST[DG.diff]=true;try{ckSet('isblade.dgbest',JSON.stringify(BEST));}catch(_){}
 
   spawnPortal('exit', 'white');renderHud();
 
@@ -5581,6 +5632,8 @@ function removeCityPortal(){
 /* santuario: arena calma com o portal da dungeon; entrar abre a escolha de dificuldade */
 
 function dgHub(){
+
+  torreSair();/* [torre-dg] */
 
   MOBS.slice().forEach(removeMob);
 
@@ -5618,8 +5671,102 @@ function dgHub(){
 
 }
 
+/* >>> CLAUDE [torre-dg] DG na Torre do Baium: andar 1 = normal/medio, andar 2 = hard (limpar libera a porta do Baium no 3o). Dados: data/dungeon.json -> "torre". */
+function portalPos(){return DG.portalPos||[0,-9];}
+function torreDgStart(key){
+  var cfg=DGD.torre&&DGD.torre[key];
+  if(!cfg){banner('EM BREVE','Essa dificuldade ainda nao existe na torre','#ff6b6b');$('#diff').classList.remove('open');return;}
+  if(!Torre.pronto){
+    if(!Torre._carregando){Torre._carregando=true;banner('CARREGANDO A TORRE...','Primeira vez: baixando o mapa (16 MB)','#f5c451');
+      Torre.carregar(THREE,scene).then(function(){Torre._carregando=false;torreDgStart(key);}).catch(function(e){Torre._carregando=false;console.error('torre',e);banner('ERRO','Nao consegui carregar a torre','#ff6b6b');});}
+    return;
+  }
+  $('#diff').classList.remove('open');
+  DG.diff=key;DG.run=true;DG.menu=false;DG.kills=0;DG.torre=cfg;
+  S.maxhp=Math.round(BOSS_BASE_HP*DIFF().bossHp);
+  if(!DG._salas)DG._salas=DGD.rooms;
+  DGD.rooms=[{name:cfg.nome,mobs:cfg.mobs,chest:cfg.bau}];
+  ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});
+  Torre.liberarPorta(false);Torre.fecharPorta();
+  torreDgLoad(false);
+}
+function torreDgLoad(retry){
+  var cfg=DG.torre;if(!cfg)return;
+  MOBS.slice().forEach(removeMob);
+  EPROJ.splice(0).forEach(function(p){scene.remove(p.m);p.m.geometry.dispose();p.m.material.dispose();});
+  clearObstacles();removeChest();if(DG.portal){scene.remove(DG.portal);DG.portal=null;}removeCityPortal();
+  var bDirect=document.getElementById('btnFightBaiumDirect');if(bDirect)bDirect.style.display='none';
+  while(PROJ.length){var pj=PROJ.pop();scene.remove(pj.g);}
+  DG.room=0;DG.cleared=false;
+  S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;S.st=100;S.php=S.pmax;
+  if(Torre.on)Torre.nasce(S,cfg.andar);else Torre.ativar(S,cfg.andar);
+  Torre.andarDG=cfg.andar;S.face=Math.PI;
+  if(retry)Torre.fecharPorta();
+  BOSS_ON=false;enemy.visible=false;S.dead=true;S.deadT=0;S.ex=0;S.ez=-500;setEnemy('idle');S.en.wait=1e9;
+  resetFight();
+  DG.total=0;DG.kr=0;DG.tLeft=cfg.tempo||0;DG.rsp=0;DG.nReg=0;DG.fim=false;
+  cfg.mobs.forEach(function(mb){
+    var cnt=Math.max(1,Math.round(mb[1]*DIFF().count));DG.total+=cnt;if(mb[0]!=='mini_boss')DG.nReg+=cnt;
+    for(var n=0;n<cnt;n++){var p=Torre.pontoAleatorio(cfg.andar,16,46);var m=mkMob(mb[0],p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);}
+  });
+  DG.portalPos=Torre.pontoPortal(cfg.andar);
+  banner(cfg.nome.toUpperCase(),(retry?'De novo! ':'')+'Elimine todos os inimigos - '+DIFF().name,DIFF().css);
+  renderHud();
+}
+/* [torre-dg] tempo + ressurgimento: chamado todo quadro */
+function torreTick(dt){
+  if(DG.torre&&Torre.on&&Torre.porta.liberada&&!BOSS_ON&&!S.pdead&&Torre.pertoDaPorta()){Torre.abrirPorta();S.shake=Math.max(S.shake,.5);SFX.play('smash');torreAcordaBaium();return;}/* porta liberada abre sozinha ao chegar */
+  var cfg=DG.torre;if(!cfg||DG.cleared||!DG.run||DG.fim||S.pdead)return;
+  if(cfg.tempo){
+    DG.tLeft-=dt;
+    DG._hu=(DG._hu||0)-dt;if(DG._hu<=0){DG._hu=.25;renderHud();}
+    if(DG.tLeft<=0){DG.fim=true;banner('TEMPO ESGOTADO','Voce foi expulso da dungeon','#ff6b6b');setTimeout(function(){if(DG.torre)dgHub();},1800);return;}
+  }
+  var vivos=0;MOBS.forEach(function(m){if(!m.dead&&m.type!=='mini_boss')vivos++;});
+  DG.rsp-=dt;
+  if(DG.rsp<=0&&cfg.meta&&DG.kr+vivos<cfg.meta&&vivos<DG.nReg){
+    DG.rsp=cfg.respawn||3;
+    var tipos=cfg.mobs.filter(function(mb){return mb[0]!=='mini_boss';}),tot=0;tipos.forEach(function(mb){tot+=mb[1];});
+    var r=Math.random()*tot,tp=tipos[0][0];for(var i=0;i<tipos.length;i++){r-=tipos[i][1];if(r<=0){tp=tipos[i][0];break;}}
+    for(var k=0;k<8;k++){var p=Torre.pontoAleatorio(cfg.andar,16,46);if(Math.hypot(p[0]-S.px,p[1]-S.pz)<12&&k<7)continue;
+      var m=mkMob(tp,p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);DG.total++;break;}
+  }
+}
+function torreCheck(){
+  var cfg=DG.torre;if(!cfg||DG.cleared)return;
+  var boss=MOBS.some(function(m){return !m.dead&&m.type==='mini_boss';});
+  if(DG.kr>=(cfg.meta||0)&&!boss){MOBS.slice().forEach(function(m){if(!m.dead)removeMob(m);});torreClear();}
+}
+function torreClear(){
+  var cfg=DG.torre;DG.cleared=true;SFX.levelup();
+  var f=Torre.andares[cfg.andar-1],msg='Abra o Bau [E] e atravesse o portal para sair';
+  spawnChest(cfg.bau||'silver',f.sx+3,f.sz);
+  if(cfg.liberaPorta){Torre.liberarPorta(true);msg='A porta do Baium foi LIBERADA: suba ao 3o andar';}
+  if(cfg.liberaPorta){banner('ANDAR LIMPO!','A porta do Baium vai se abrir: suba a escada ate o 3o andar','#f5c451');renderHud();return;}/* hard: sem portal, o caminho e a escada */
+  banner('ANDAR LIMPO!',msg,'#f5c451');
+  spawnPortal('exit');renderHud();
+}
+function torreAcordaBaium(){
+  if(!DG.torre||BOSS_ON)return;
+  var p=Torre.posChefe();S.ex=p[0];S.ez=p[1];S.eh=0;
+  BOSS_ON=true;enemy.visible=true;S.dead=false;S.hp=S.maxhp;enemy.rotation.x=0;enemy.position.y=0;
+  if(boss&&boss.drv){boss.drv.hold=0;playClip(boss,'boss_idle',{fade:.1});}
+  if(boss)boss._playedDeath=false;
+  setEnemy('idle');S.en.wait=1.8;resetFight();
+  DG.portalPos=[p[0]+3,p[1]];
+  banner('BAIUM','O Imperador despertou!','#ff5500');
+}
+function torreSair(){
+  if(!DG.torre)return;
+  DG.torre=null;DG.portalPos=null;if(DG._salas){DGD.rooms=DG._salas;DG._salas=null;}
+  ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
+  Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
+}
+window.__torreDbg=function(){return{acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+/* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
+  if(TORRE_DG&&!TORRE_MODE){torreDgStart(key);return;}/* [torre-dg] */
   DG.diff=key;DG.run=true;DG.menu=false;DG.kills=0;
 
   S.maxhp=Math.round(BOSS_BASE_HP*DIFF().bossHp);
@@ -5820,7 +5967,7 @@ function updatePortal(dt){
   if(DG.portal){
     animateGateData(DG.portalData);
 
-    var dP = Math.hypot(S.px, S.pz + 9);
+    var dP = Math.hypot(S.px - portalPos()[0], S.pz - portalPos()[1]);
     if(DG.cleared && !S.pdead && dP < 3.2){
       if(DG.portalLabel==='enter'){if(!DG.menu)openDiff();return;}
       var lab=DG.portalLabel;
@@ -5866,6 +6013,7 @@ function updatePortal(dt){
     }
   }
 
+  if(Torre.on&&Torre.pertoDaPorta()){nearSomething=true;if(pPrompt){pPrompt.style.display='block';pPrompt.innerHTML=Torre.porta.liberada?'Pressione <b>[E]</b> para <b>Abrir a Porta do Baium</b>':'Porta do Baium <b>selada</b>: limpe o 2o andar (Hard)';}}/* [torre] */
   if(!nearSomething && pPrompt){
     pPrompt.style.display = 'none';
   }
@@ -5891,7 +6039,10 @@ function renderHud(){
 
     $('#ehpfill').style.width=(tot?al/tot*100:0)+'%';
 
-    $('#ehptxt').textContent='Sala '+(DG.room+1)+'/'+DGD.rooms.length+'  -  '+rm.name+'  -  Inimigos: '+al+'  ['+DIFF().name+']';
+    if(DG.torre&&DG.torre.meta){var tl=Math.max(0,Math.ceil(DG.tLeft||0)),bs=MOBS.filter(function(m){return !m.dead&&m.type==='mini_boss';}).length;
+      $('#ehpfill').style.width=(DG.cleared?0:Math.min(100,(1-DG.kr/DG.torre.meta)*100))+'%';
+      $('#ehptxt').textContent=(DG.cleared?(DG.torre.liberaPorta?'ANDAR LIMPO - suba a escada, a porta do Baium vai abrir':'DG CONCLUIDA - entre no portal'):'Abates '+DG.kr+'/'+DG.torre.meta+(bs?'  -  Chefe: '+bs:'  -  Chefe derrotado')+'  -  Tempo '+Math.floor(tl/60)+':'+('0'+tl%60).slice(-2))+'  ['+DIFF().name+']';}
+    else $('#ehptxt').textContent='Sala '+(DG.room+1)+'/'+DGD.rooms.length+'  -  '+rm.name+'  -  Inimigos: '+al+'  ['+DIFF().name+']';
     var bCity = document.getElementById('btnReturnCity');
     if(bCity) bCity.style.display = 'none';
 
@@ -6027,7 +6178,7 @@ function mkItem(baseId,rar){
 
 function statTxt(stats){return Object.keys(stats).map(function(k){var s=ITM.stats[k];return s.name.split(' ')[0]+' +'+stats[k]+s.unit;}).join(' · ');}
 
-function saveInv(){try{localStorage.setItem('isblade.inv',JSON.stringify(INV));}catch(_){}}
+function saveInv(){try{ckSet('isblade.inv',JSON.stringify(INV));}catch(_){}}
 
 function applyStats(){
 
@@ -6227,7 +6378,7 @@ function selectSkill(slot,idx){
 
   SEL[WPN]=SEL[WPN]||{};SEL[WPN][slot]=idx;
 
-  try{localStorage.setItem('isblade.skillSel',JSON.stringify(SEL));}catch(_){}
+  try{ckSet('isblade.skillSel',JSON.stringify(SEL));}catch(_){}
 
   loadWeaponSkills();buildFans();buildSkills();S.cd[slot]=0;
 
@@ -6271,7 +6422,7 @@ function renderSk(){
 
 function initInv(){
 
-  var saved=null;try{saved=JSON.parse(localStorage.getItem('isblade.inv'));}catch(_){}
+  var saved=null;try{saved=JSON.parse(ckGet('isblade.inv'));}catch(_){}
 
   if(saved&&Array.isArray(saved.items)&&saved.equip){
 
@@ -6299,6 +6450,16 @@ function initInv(){
 
   }
 
+  /* >>> CLAUDE [arma] a arma escolhida na criacao do personagem manda: equipa o item dela (cria se faltar). Antes o kit inicial (espada) sobrescrevia o Guardiao. */
+  if(WPN!=='none'&&!/[?&]wpn=/.test(location.search)){
+    var _cur=baseOf(findItem(INV.equip.weapon).base).weapon;
+    if(_cur!==WPN){
+      var _alvo=INV.items.filter(function(i){return baseOf(i.base).weapon===WPN;})[0];
+      if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===WPN;})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
+      if(_alvo){INV.equip.weapon=_alvo.uid;saveInv();}
+    }
+  }
+  /* <<< CLAUDE [arma] */
   var w=baseOf(findItem(INV.equip.weapon).base).weapon;
 
   if(!/[?&]wpn=/.test(location.search))setWeapon(w);
@@ -6591,77 +6752,34 @@ function buildPad(){
 
   /* atalhos das skills: um por SLOT (valem para qualquer arma), reatribuiveis, salvos em localStorage ('isblade.skillKeys') */
 
-  var DEF=DATA.slots.map(function(k){return k.toLowerCase();});
-
-  var RESERVED='wasdmvbgyikx123456'.split('');
-
+  /* [atalhos] as teclas agora pertencem aos SLOTS da barra (mu_hud.js): arraste a skill para o slot; aqui voce muda a tecla de cada slot. */
   var listEl=$('#cfgKeys'),waiting=-1;
-
-  function applyKeys(arr){
-
-    SLOTKEYS=arr.slice();
-
-    SKEY={};
-
-    SK.forEach(function(s,i){var k=arr[i];s.key=k.toUpperCase();SKEY[k]=i;});
-
-    buildSkills();renderKeys();
-
-    try{localStorage.setItem('isblade.skillKeys',JSON.stringify(arr));}catch(_){}
-
-  }
-
-  function curKeys(){return SLOTKEYS.slice();}
-
-  onSkillsChanged=function(){renderKeys();};
-
+  window.__hotbarKeys=function(map){
+    SKEY=map;
+    SK.forEach(function(s,i){s.key='';});
+    Object.keys(map).forEach(function(k){var sk=SK[map[k]];if(sk)sk.key=k.toUpperCase();});
+  };
   function renderKeys(){
-
-    listEl.innerHTML=SK.map(function(s,i){
-
-      return '<div class="row"><span>'+s.name+'</span><button type="button" data-i="'+i+'"'+(waiting===i?' class="wait"':'')+'>'+(waiting===i?'aperte...':s.key)+'</button></div>';
-
+    if(!listEl)return;
+    listEl.innerHTML=MuHud.slots.map(function(d,i){
+      var nm=d?(d.type==='skill'&&SK[d.skillSlot]?SK[d.skillSlot].name:(d.name||'Item')):'(vazio)';
+      return '<div class="row"><span>Slot '+(i+1)+' - '+nm+'</span><button type="button" data-i="'+i+'"'+(waiting===i?' class="wait"':'')+'>'+(waiting===i?'aperte...':MuHud.keyOf(i))+'</button></div>';
     }).join('');
-
     Array.prototype.forEach.call(listEl.querySelectorAll('button'),function(b){
-
       b.addEventListener('click',function(){waiting=waiting===+b.getAttribute('data-i')?-1:+b.getAttribute('data-i');renderKeys();});
-
     });
-
   }
-
+  window.__renderKeysCfg=renderKeys;
   window.addEventListener('keydown',function(e){
-
     if(waiting<0)return;
-
     e.preventDefault();e.stopImmediatePropagation();
-
     var k=e.key.toLowerCase(),i=waiting;
-
     if(k==='escape'){waiting=-1;renderKeys();return;}
-
-    if(e.key.length!==1||k===' '||RESERVED.indexOf(k)>=0){
-
-      gestMsg('Tecla nao permitida: escolha outra');return;
-
-    }
-
-    var arr=curKeys(),j=arr.indexOf(k);
-
-    if(j>=0&&j!==i)arr[j]=arr[i];
-
-    arr[i]=k;waiting=-1;applyKeys(arr);
-
+    if(!MuHud.setKey(i,k)){gestMsg('Tecla nao permitida: escolha outra');return;}
+    waiting=-1;renderKeys();
   },true);
-
-  $('#cfgKeysReset').addEventListener('click',function(){waiting=-1;applyKeys(DEF.slice());});
-
-  var savedKeys=null;try{savedKeys=JSON.parse(localStorage.getItem('isblade.skillKeys'));}catch(_){}
-
-  if(Array.isArray(savedKeys)&&savedKeys.length===SK.length&&savedKeys.every(function(k){return typeof k==='string'&&k.length===1&&RESERVED.indexOf(k)<0;})&&new Set(savedKeys).size===SK.length)applyKeys(savedKeys);
-
-  else renderKeys();
+  $('#cfgKeysReset').addEventListener('click',function(){waiting=-1;MuHud.resetKeys();});
+  if(MuHud.initialized)MuHud.sync();else renderKeys();
 
 })();
 
@@ -6793,12 +6911,13 @@ window.addEventListener('keydown',function(e){
 
   var k=e.key.toLowerCase();
   if(k==='e'){
+    if(Torre.on&&Torre.pertoDaPorta()){if(!Torre.porta.liberada){banner('PORTA SELADA','Limpe o 2o andar (Hard) para libera-la','#ff6b6b');return;}Torre.abrirPorta();S.shake=Math.max(S.shake,.5);SFX.play('smash');if(DG.torre)torreAcordaBaium();else banner('A PORTA DE BAIUM SE ABRE','O Imperador despertou','#f5c451');return;}/* [torre] */
     if(interactChest()) return;
     if(DG.cityPortal && Math.hypot(S.px, S.pz - 11.5) < 4.5){
       returnToCity();
       return;
     }
-    if(DG.portal && Math.hypot(S.px, S.pz + 9) < 4.5){
+    if(DG.portal && Math.hypot(S.px - portalPos()[0], S.pz - portalPos()[1]) < 4.5){
       if(DG.portalLabel==='enter'){ if(!DG.menu) openDiff(); }
       else if(DG.portalLabel==='exit'){ if(!DG.on) returnToCity(); else dgHub(); }
       else { dgLoadRoom(DG.room+1,false); }
@@ -6816,9 +6935,11 @@ window.addEventListener('keydown',function(e){
 
   if(e.code==='F3'){e.preventDefault();perf.on=!perf.on;document.getElementById('perf').style.display=perf.on?'block':'none';return;}
 
-  if(e.code==='Space'){e.preventDefault();S.guardHeld=true;return;}
+  if(e.code==='Space'){e.preventDefault();if(!e.repeat)req('jump');return;}/* [pulo] */
 
-  if(k==='shift'){if(!e.repeat)req('roll');return;}
+  if(k==='c'){S.guardHeld=true;return;}/* [pulo] guarda: segurar C */
+
+  if(k==='shift'){if(!e.repeat){S.shiftT=performance.now();S.shiftDown=true;req('roll');}return;}/* [corrida] toque = esquiva (ao soltar), segurar = correr */
 
   keys[k]=true;
 
@@ -6828,6 +6949,7 @@ window.addEventListener('keydown',function(e){
 
   if(KEYMAP[e.key])req('stroke',KEYMAP[e.key]);
 
+  else if(typeof MuHud!=='undefined'&&MuHud.keyTrigger(k)){}/* [atalhos] item da barra */
   else if(SKEY[k]!==undefined){S.skHeld=SKEY[k];/* >>> CLAUDE [guardiao] tecla da skill segurada (canalizacao do Escudo de Energia) <<< */req('skill',SKEY[k]);}
 
   else if(k==='i')toggleInv();
@@ -6854,7 +6976,9 @@ window.addEventListener('keyup',function(e){
 
   var k=e.key.toLowerCase();
 
-  if(e.code==='Space')S.guardHeld=false;
+  if(k==='c')S.guardHeld=false;
+
+  if(k==='shift'){S.shiftDown=false;S.sprint=false;}/* [corrida] */
 
   if(SKEY[k]!==undefined&&S.skHeld===SKEY[k])S.skHeld=-1;/* >>> CLAUDE [guardiao] <<< */
 
@@ -6862,7 +6986,7 @@ window.addEventListener('keyup',function(e){
 
 });
 
-window.addEventListener('blur',function(){S.guardHeld=false;S.skHeld=-1;keys={};});
+window.addEventListener('blur',function(){S.shiftDown=false;S.sprint=false;S.guardHeld=false;S.skHeld=-1;keys={};});
 
 
 
@@ -7201,7 +7325,7 @@ function frame2(dt,T){
 
   if(S.buf){
 
-    if(performance.now()/1000-S.buf.t>(S.buf.type==='skill'&&WPN==='shield'?1.2:BUF_T))S.buf=null;/* skill do Guardiao: o comando espera ate 1,2 s (antes 0,35 s) e sai assim que puder */
+    if(performance.now()/1000-S.buf.t>BUF_T)S.buf=null;
 
     else if(doAct(S.buf.type,S.buf.arg)!=='busy')S.buf=null;
 
@@ -7263,7 +7387,10 @@ function frame2(dt,T){
 
   if(canWalk&&mv.m>0){
 
-    var spd=(S.guard?2.2:RUN)*mv.m*(an0?MOVE_CAST:1);
+    /* [corrida] segurou Shift: corre se ha estamina, nao esta guardando nem usando skill; so volta a correr soltando e apertando de novo */
+    var segurando=S.shiftDown&&(performance.now()-S.shiftT)>=SPRINT_HOLD*1000;
+    if(segurando&&!S.guard&&!an0&&S.st>(S.sprint?0:SPRINT_MIN)){S.sprint=true;S.st=Math.max(0,S.st-SPRINT_DRAIN*dt);S.stDelay=Math.max(S.stDelay,.5);if(S.st<=0){S.shiftDown=false;S.sprint=false;}}else S.sprint=false;
+    var spd=(S.guard?2.2:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1);
 
     tvx=mv.x*spd;tvz=mv.z*spd;
 
@@ -7288,6 +7415,8 @@ function frame2(dt,T){
   var spNow=Math.hypot(S.vx,S.vz);
 
   S.px+=S.vx*dt;S.pz+=S.vz*dt;
+
+  if(!(Torre.on)&&(S.jy>0||S.jv>0)){S.jv-=JUMP_G*dt;S.jy=Math.max(0,S.jy+S.jv*dt);if(S.jy===0)S.jv=0;}/* [pulo] */
 
   S.walking=spNow>.6;S.mvm=spNow/RUN;
 
@@ -7465,12 +7594,13 @@ function frame2(dt,T){
   }
 
   if(!S.pdead)separate();
+  torreTick(dt);/* [torre-dg] */
 
   pivot.rotation.x=S.cur.th;
 
   player.rotation.y=S.cur.yaw;
 
-  wrap.position.set(S.px,0,S.pz);
+  wrap.position.set(S.px,jumpH(),S.pz);/* [pulo] */
 
   wrap.rotation.y=S.face;
 
@@ -7744,11 +7874,11 @@ function frameBody(nowMs){
 
     if(NAV.view==='fp'){
 
-      camera.position.set(S.px+Fx*.35+shx,2.3+shy,S.pz+Fz*.35);
+      camera.position.set(S.px+Fx*.35+shx,2.3+shy+jumpH(),S.pz+Fz*.35);
 
     }else{
 
-      camera.position.set(S.px-Fx*NAV.tpDist+shx,Math.max(.5,2.8-Fy*NAV.tpDist+shy),S.pz-Fz*NAV.tpDist);
+      camera.position.set(S.px-Fx*NAV.tpDist+shx,Math.max(.5,2.8-Fy*NAV.tpDist+shy)+jumpH()*.85,S.pz-Fz*NAV.tpDist);
 
     }
 
@@ -8342,9 +8472,8 @@ function loadBaium(cb){
 
     });
 
-    // Escala colossal do Baium (~4.8m de altura real)
-
-    root.scale.set(.014,.014,.014);
+    // Escala colossal do Baium: era ~4.8 m (.014); agora 3x (.042, ~14 m) a pedido do usuario
+    root.scale.set(.042,.042,.042);
 
     root.position.set(0,0,0);
 
@@ -8402,6 +8531,15 @@ function loadBaium(cb){
 
 }
 
+function torreStart(){
+  startBaiumDirectFight();
+  ARENA_DECOR.forEach(function(m){m.visible=false;});
+  var p=Torre.posChefe();S.ex=p[0];S.ez=p[1];
+  Torre.ativar(S);
+  banner('TORRE DO BAIUM','Suba os 3 andares ate o Baium','#f5c451');
+}
+if(TORRE_MODE){var _tw=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready&&Torre.pronto){clearInterval(_tw);torreStart();}},400);Torre.carregar(THREE,scene).catch(function(e){console.error('torre',e);});}
+/* <<< CLAUDE [torre] */
 loadBaium(function(r){
 
   enemy.children.forEach(function(c){c.visible=false;});
@@ -8413,6 +8551,10 @@ loadBaium(function(r){
 });
 
 if(DG.on)dgHub();
+/* >>> CLAUDE [portal-cidade] ?go=normal|medio|hard|pvp: vem do portal da cidade e pula o santuario */
+(function(){var mm=location.search.match(/[?&]go=(\w+)/);if(!mm||!DG.on)return;var go=mm[1];
+  var w=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready){clearInterval(w);if(go==='pvp')pvpStart();else if(DGD.difficulties[go])dgStart(go);}},400);})();
+/* <<< CLAUDE [portal-cidade] */
 
 if(/[?&]dbg=1/.test(location.search))console.log('DBG INIT_DONE');
 
@@ -8420,7 +8562,7 @@ if(/[?&]dbg=1/.test(location.search))console.log('DBG INIT_DONE');
 Guardiao.init({
   getScene:function(){return scene;},getCamera:function(){return camera;},compile:function(){try{if(BLOOM.on){bloomInit();renderer.setRenderTarget(BLOOM.rt);}renderer.compile(scene,camera);}catch(_){}try{renderer.setRenderTarget(null);}catch(_){}},/* compila para o alvo do bloom (o jogo desenha a cena nele): para a tela os shaders sairiam diferentes e recompilariam na 1a skill */
   getWPN:function(){return WPN;},getVrm:function(){return vrm;},getS:function(){return S;},playClip:playClip,gestMsg:gestMsg,
-  shake:function(v){S.shake=Math.max(S.shake,v);},
+  shake:function(v){S.shake=Math.max(S.shake,v);},domoDano:function(x,z,r,d){domoDano(x,z,r,d);},
   getFoes:function(){var a=[];if(BOSS_ON&&!S.dead)a.push({x:S.ex,z:S.ez});MOBS.forEach(function(m){if(!m.dead)a.push({x:m.x,z:m.z});});return a;},/* atacantes possiveis (direcao do dano recebido) */
   fx:{fwd:fwd,spark:spark,burst:burst,groundRing:groundRing,streak:streak,slashArc:slashArc}
 },DATA);

@@ -25,3 +25,15 @@ notify.log
 .vscode/
 .DS_Store
 Thumbs.db
+
+# --- backups de trabalho, fontes do Blender e rascunhos (nao vao para o repositorio) ---
+*.blend
+*.blend1
+*_antes_*
+*.antes_vila_*
+notify.log
+test_mobs_initial.py
+test_orc_preview.py
+prototipo/assets/maps/baium_house/baium_house.glb
+prototipo/assets/maps/baium_house/baium_house_comunidade.glb
+prototipo/assets/maps/baium_house/*.json.bak

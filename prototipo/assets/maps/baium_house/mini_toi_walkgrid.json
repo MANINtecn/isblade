@@ -1,0 +1,13 @@
+{
+ "versao": 1793386608,
+ "celula": 0.5,
+ "raio": 85.0,
+ "n": 340,
+ "camadas": 367566,
+ "altura_escala": 50,
+ "livre_escala": 10,
+ "bytes_por_camada": 4,
+ "x0": -112.0,
+ "y0": -34.0,
+ "nota": "indice = iz*n+ix; x_blender = x0+(ix+.5)*celula; y_blender = y0+(iz+.5)*celula; no three/glTF: X=x_blender, Y=altura, Z=-y_blender"
+}

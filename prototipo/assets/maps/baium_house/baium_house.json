@@ -1,0 +1,29 @@
+{
+ "origem": "toh_boss02 do mapa 23_18 do cliente 300x (L2 116100,17514,10187)",
+ "fonte": "Cliente Interlud 300x / maps/23_18.unr + staticmeshes/aden_tower_of_hubris_s.usx",
+ "unidade": "1 = 35.714 uu do L2 (mesma escala da Talking Island); Y para cima",
+ "recorte": "atores com z>=7200 e a menos de 4800 uu do pedestal do chefe",
+ "spawns_playerstart": [
+  [
+   -53.87,
+   -15.89,
+   54.26
+  ],
+  [
+   -3.53,
+   -0.78,
+   4.09
+  ],
+  [
+   -42.25,
+   -1.46,
+   62.74
+  ],
+  [
+   -88.42,
+   -87.7,
+   11.17
+  ]
+ ],
+ "nota": "posicoes no sistema do glTF (x, altura, z); validar visualmente"
+}

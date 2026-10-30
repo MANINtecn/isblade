@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-br"><head><meta charset="utf-8"><title>Casa do Baium (visualizador)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html,body{margin:0;height:100%;background:#0b0f18;overflow:hidden;font:12px system-ui;color:#cfe}#i{position:fixed;left:10px;top:8px;opacity:.8}</style></head><body>
+<div id="i">Casa do Baium (topo da Torre da Insolencia, cliente 300x) &middot; arraste = girar &middot; roda = zoom &middot; <span id="s">carregando...</span></div>
+<script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script>
+<script>
+var R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);R.outputEncoding=THREE.sRGBEncoding;document.body.appendChild(R.domElement);
+var S=new THREE.Scene();S.background=new THREE.Color(0x2a3550);S.fog=new THREE.Fog(0x2a3550,500,1600);
+var C=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.5,3000);
+S.add(new THREE.HemisphereLight(0xdfe8ff,0x6a5f50,1.6));var d=new THREE.DirectionalLight(0xfff2dd,1.6);d.position.set(120,200,80);S.add(d);
+var meta={};fetch('assets/maps/baium_house/baium_house.json').then(function(r){return r.json();}).then(function(m){meta=m;if(m.agua_y===undefined)return;
+ var w=new THREE.Mesh(new THREE.PlaneGeometry(2400,2400),new THREE.MeshBasicMaterial({color:0x1f6f78,transparent:true,opacity:.7}));w.rotation.x=-Math.PI/2;w.position.y=m.agua_y;S.add(w);});
+var tgt=new THREE.Vector3(0,-5,0),az=.8,el=.6,dist=230;
+new THREE.GLTFLoader().load('assets/maps/baium_house/baium_house.glb',function(g){S.add(g.scene);
+ var n=0;g.scene.traverse(function(o){if(o.isMesh){n++;(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.side=THREE.DoubleSide;});}});
+ document.getElementById('s').textContent=n+' malhas';window.__ok=n;},undefined,function(e){document.getElementById('s').textContent='ERRO '+e;window.__err=String(e);});
+var drag=false,px=0,py=0;addEventListener('pointerdown',function(e){drag=true;px=e.clientX;py=e.clientY;});addEventListener('pointerup',function(){drag=false;});
+addEventListener('pointermove',function(e){if(!drag)return;az-=(e.clientX-px)*.008;el=Math.max(.05,Math.min(1.5,el+(e.clientY-py)*.008));px=e.clientX;py=e.clientY;});
+addEventListener('wheel',function(e){dist=Math.max(20,Math.min(900,dist*(e.deltaY>0?1.1:.9)));});
+addEventListener('resize',function(){R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();});
+(function loop(){requestAnimationFrame(loop);if(!drag&&!window.__still)az+=.002;C.position.set(tgt.x+Math.sin(az)*Math.cos(el)*dist,tgt.y+Math.sin(el)*dist,tgt.z+Math.cos(az)*Math.cos(el)*dist);C.lookAt(tgt);R.render(S,C);})();
+</script></body></html>

@@ -24,3 +24,7 @@ assets/baium_export
 **/*.unr
 **/*.psa
 **/*.md5anim
+*_antes_*
+*.antes_vila_*
+assets/maps/baium_house/baium_house.glb
+assets/maps/baium_house/baium_house_comunidade.glb

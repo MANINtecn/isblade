@@ -8,12 +8,20 @@
      Skills da Árvore (#skp) e Itens do Inventário (#inv) no PC e Mobile
    ========================================================================== */
 
-const SLOT_DEFAULT_KEYS = ['Q', 'E', 'R', 'F', 'T', 'Z', '1', '2'];
+/* [atalhos] cada SLOT da barra tem uma tecla (configuravel em Opcoes); a skill/item que estiver no slot responde a essa tecla.
+   Padrao: Q E R T F G nas skills; slots 7 e 8 sem tecla (1-6 sao dos golpes basicos). Tudo por personagem. */
+const SLOT_DEFAULT_KEYS = ['Q', 'E', 'R', 'T', 'F', 'G', '', ''];
 const STORAGE_KEY = 'isblade.custom_slots_v5';
+const KEYS_KEY = 'isblade.hotbar_keys';
+const RESERVED_KEYS = 'wasdmvbikxc123456'.split('');
+function perChar(k) { try { var id = localStorage.getItem('isblade_active_character_id'); return id ? k + '.' + id : k; } catch (_) { return k; } }
+function readPerChar(k) { try { var v = localStorage.getItem(perChar(k)); return v !== null ? v : localStorage.getItem(k); } catch (_) { return null; } }
 
 export const MuHud = {
   initialized: false,
   slots: [null, null, null, null, null, null, null, null],
+  keys: SLOT_DEFAULT_KEYS.slice(),
+  keyOf: function(i) { return this.keys[i] || '—'; },
   activePickerSlot: -1,
 
   init: function() {
@@ -24,14 +32,16 @@ export const MuHud = {
     this.setupHotbarInteractions();
     this.setupCleanTopRight();
     this.hookUpdates();
-    this.renderHotbar();
     this.initialized = true;
+    this.sync();
     console.log('⚔️ HUD Gótico V5 (Full-Width Clean) Inicializado.');
   },
 
   loadSavedSlots: function() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
+      var raw = readPerChar(STORAGE_KEY);
+      var rk = JSON.parse(readPerChar(KEYS_KEY) || 'null');
+      if (Array.isArray(rk) && rk.length === 8 && rk.every(function(k) { return typeof k === 'string' && k.length <= 1; })) this.keys = rk;
       if (raw) {
         var parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length === 8) {
@@ -43,7 +53,8 @@ export const MuHud = {
 
   saveSlots: function() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.slots));
+      localStorage.setItem(perChar(STORAGE_KEY), JSON.stringify(this.slots));
+      localStorage.setItem(perChar(KEYS_KEY), JSON.stringify(this.keys));
     } catch (_) {}
   },
 
@@ -62,7 +73,7 @@ export const MuHud = {
           <div class="slot-cd-fill"></div>
           <div class="slot-icon"></div>
           <span class="slot-cd-txt"></span>
-          <b class="slot-key">${SLOT_DEFAULT_KEYS[i]}</b>
+          <b class="slot-key">${(SLOT_DEFAULT_KEYS[i] || '—')}</b>
           <span class="slot-tip">Slot Vazio · Clique ou arraste Skill [S] / Item [I]</span>
         </button>
       `;
@@ -157,7 +168,7 @@ export const MuHud = {
         iconEl.innerHTML = '';
         if (cdFill) cdFill.style.height = '0%';
         if (cdTxt) cdTxt.textContent = '';
-        if (keyEl) keyEl.textContent = SLOT_DEFAULT_KEYS[idx];
+        if (keyEl) keyEl.textContent = self.keyOf(idx);
         if (tipEl) tipEl.textContent = 'Slot ' + (idx + 1) + ' Vazio · Clique ou arraste Skill [S] / Item [I]';
         return;
       }
@@ -169,7 +180,7 @@ export const MuHud = {
           var skName = skBtn.querySelector('strong');
           var skKey = skBtn.querySelector('b');
           iconEl.innerHTML = skIcon ? skIcon.innerHTML : '';
-          if (keyEl) keyEl.textContent = skKey ? skKey.textContent : SLOT_DEFAULT_KEYS[idx];
+          if (keyEl) keyEl.textContent = self.keyOf(idx);
           var nm = skName ? skName.textContent : (data.name || 'Skill');
           if (tipEl) tipEl.textContent = nm + ' [' + (keyEl ? keyEl.textContent : '') + '] · Botão direito remove';
         } else {
@@ -180,10 +191,54 @@ export const MuHud = {
         iconEl.innerHTML = self.getItemSvgIcon(data.slotType || 'weapon', data.color || '#f5c451');
         if (cdFill) cdFill.style.height = '0%';
         if (cdTxt) cdTxt.textContent = '';
-        if (keyEl) keyEl.textContent = SLOT_DEFAULT_KEYS[idx];
+        if (keyEl) keyEl.textContent = self.keyOf(idx);
         if (tipEl) tipEl.textContent = (data.name || 'Item') + ' · Clique para equipar/usar (Dir. remove)';
       }
     });
+  },
+
+  /* coloca skill/item no slot (a mesma skill nao fica em dois slots) */
+  place: function(idx, payload) {
+    var self = this;
+    if (payload.type === 'skill') self.slots.forEach(function(d, i) { if (d && d.type === 'skill' && d.skillSlot === payload.skillSlot && i !== idx) self.slots[i] = null; });
+    self.slots[idx] = payload;
+    self.saveSlots(); self.sync();
+  },
+
+  /* troca a tecla de um slot; se outra ja usa, as duas trocam */
+  setKey: function(idx, k) {
+    k = (k || '').toLowerCase();
+    if (k.length !== 1 || RESERVED_KEYS.indexOf(k) >= 0) return false;
+    var up = k.toUpperCase(), j = this.keys.indexOf(up);
+    if (j >= 0 && j !== idx) this.keys[j] = this.keys[idx];
+    this.keys[idx] = up;
+    this.saveSlots(); this.sync();
+    return true;
+  },
+  resetKeys: function() { this.keys = SLOT_DEFAULT_KEYS.slice(); this.saveSlots(); this.sync(); },
+
+  /* liga a barra ao jogo: tecla do slot -> skill (mapa entregue a pagina em window.__hotbarKeys) */
+  sync: function() {
+    var self = this;
+    var vazia = !this.slots.some(function(d) { return d; });
+    var nSk = document.querySelectorAll('#skills button').length;
+    if (vazia && nSk && !localStorage.getItem(perChar('isblade.hotbar_init'))) {
+      for (var i = 0; i < Math.min(6, nSk); i++) this.slots[i] = { type: 'skill', skillSlot: i, name: 'Skill', svg: '' };
+      try { localStorage.setItem(perChar('isblade.hotbar_init'), '1'); } catch (_) {}
+      this.saveSlots();
+    }
+    var map = {};
+    this.slots.forEach(function(d, i) { if (d && d.type === 'skill' && self.keys[i]) map[self.keys[i].toLowerCase()] = d.skillSlot; });
+    if (typeof window.__hotbarKeys === 'function') window.__hotbarKeys(map);
+    this.renderHotbar();
+    if (typeof window.__renderKeysCfg === 'function') window.__renderKeysCfg();
+  },
+
+  /* tecla de item da barra (as de skill a pagina trata sozinha) */
+  keyTrigger: function(k) {
+    var idx = this.keys.indexOf((k || '').toUpperCase());
+    if (idx < 0 || !this.slots[idx] || this.slots[idx].type !== 'item') return false;
+    this.triggerSlot(idx); return true;
   },
 
   triggerSlot: function(idx) {
@@ -228,7 +283,7 @@ export const MuHud = {
 
     var html = `
       <div class="pk-hd">
-        <span>EQUIPAR NO SLOT ${slotIdx + 1} (ATALHO ${SLOT_DEFAULT_KEYS[slotIdx]})</span>
+        <span>EQUIPAR NO SLOT ${slotIdx + 1} (ATALHO ${self.keyOf(slotIdx)})</span>
         <div style="display:flex;gap:6px">
           <button type="button" id="mu-pk-clear">Limpar Slot</button>
           <button type="button" id="mu-pk-close" style="background:rgba(148,163,184,0.18);border-color:#94a3b8;color:#e2e8f0">Fechar</button>
@@ -261,14 +316,12 @@ export const MuHud = {
       `;
       card.addEventListener('click', function() {
         if (isLocked) return;
-        self.slots[slotIdx] = {
+        self.place(slotIdx, {
           type: 'skill',
           skillSlot: sIdx,
           name: nm ? nm.textContent : 'Skill',
           svg: ic ? ic.innerHTML : ''
-        };
-        self.saveSlots();
-        self.renderHotbar();
+        });
         picker.classList.remove('open');
       });
       skGrid.appendChild(card);
@@ -276,7 +329,7 @@ export const MuHud = {
 
     var itGrid = document.getElementById('mu-pk-items');
     var invData = null;
-    try { invData = JSON.parse(localStorage.getItem('isblade.inv')); } catch (_) {}
+    try { var _id = localStorage.getItem('isblade_active_character_id'); invData = JSON.parse((_id && localStorage.getItem('isblade.inv.' + _id)) || localStorage.getItem('isblade.inv')); } catch (_) {}
     var rarColors = { normal: '#94a3b8', raro: '#38bdf8', epico: '#c084fc', lendario: '#f5c451' };
     var baseNames = {
       sword_iron: ['Espada Longa', 'weapon'],
@@ -311,7 +364,7 @@ export const MuHud = {
             color: col
           };
           self.saveSlots();
-          self.renderHotbar();
+          self.sync();
           picker.classList.remove('open');
         });
         itGrid.appendChild(card);
@@ -323,7 +376,7 @@ export const MuHud = {
     document.getElementById('mu-pk-clear').addEventListener('click', function() {
       self.slots[slotIdx] = null;
       self.saveSlots();
-      self.renderHotbar();
+      self.sync();
       picker.classList.remove('open');
     });
 
@@ -351,12 +404,18 @@ export const MuHud = {
         if (self.slots[idx]) {
           self.slots[idx] = null;
           self.saveSlots();
-          self.renderHotbar();
+          self.sync();
         } else {
           self.openSlotPicker(idx);
         }
       });
 
+      // arrastar de um slot para outro troca os dois de lugar
+      btn.setAttribute('draggable', 'true');
+      btn.addEventListener('dragstart', function(e) {
+        if (!self.slots[idx]) { e.preventDefault(); return; }
+        e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'move', from: idx }));
+      });
       // Receber Drag & Drop vindo da Árvore de Skills (#skp) ou do Inventário (#inv)
       btn.addEventListener('dragover', function(e) {
         e.preventDefault();
@@ -372,10 +431,11 @@ export const MuHud = {
           var raw = e.dataTransfer.getData('text/plain');
           if (!raw) return;
           var payload = JSON.parse(raw);
-          if (payload && (payload.type === 'skill' || payload.type === 'item')) {
-            self.slots[idx] = payload;
-            self.saveSlots();
-            self.renderHotbar();
+          if (payload && payload.type === 'move') {
+            var tmp = self.slots[idx]; self.slots[idx] = self.slots[payload.from]; self.slots[payload.from] = tmp;
+            self.saveSlots(); self.sync();
+          } else if (payload && (payload.type === 'skill' || payload.type === 'item')) {
+            self.place(idx, payload);
           }
         } catch (_) {}
       });
@@ -548,7 +608,7 @@ export const MuHud = {
       tgtName.textContent = 'Espantalho de Treino';
       topEl.insertBefore(tgtName, topEl.firstChild);
 
-      var firstBar = topEl.querySelector('.bar');
+      var firstBar = topEl.querySelector('.bar'); if (firstBar) firstBar.classList.add('mu-hp-bar');   /* o CSS usava :first-of-type, mas a div do nome entra antes e escondia a barra de vida */
       if (firstBar && !document.getElementById('mu-target-hp-liquid')) {
         var tgtLiq = document.createElement('img');
         tgtLiq.className = 'mu-target-crystal';
@@ -699,7 +759,7 @@ export const MuHud = {
     var origSkills = document.getElementById('skills');
     if (origSkills) {
       var skObs = new MutationObserver(function() {
-        self.renderHotbar();
+        self.sync();
       });
       skObs.observe(origSkills, { childList: true });
     }

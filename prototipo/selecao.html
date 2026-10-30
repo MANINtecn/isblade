@@ -672,6 +672,7 @@ window.confirmDelete = function(){
     if(characters[i].id === activeCharId){ idx = i; break; }
   }
   if(idx !== -1){
+    ['isblade.inv','isblade.skillSel','isblade.mastery','isblade.dgbest'].forEach(function(k){try{localStorage.removeItem(k + '.' + characters[idx].id);}catch(_){}});/* [perchar] apaga os dados do personagem */
     characters.splice(idx, 1);
     activeCharId = characters[Math.max(0, idx - 1)].id;
     saveCharactersToStorage();

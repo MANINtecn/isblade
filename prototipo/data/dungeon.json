@@ -307,5 +307,87 @@
       "rarityBoost": 2.8,
       "desc": "Hordas grandes, rapidas e muito fortes. Melhor chance de itens epicos e lendarios."
     }
+  },
+  "torre": {
+    "_nota": "DG da Torre do Baium (portal -> dificuldade). Cada DG tem TEMPO (s): acabou, sai da DG. Mobs ressurgem a cada 'respawn' s ate 'meta' abates; matar a meta E todos os chefes (mini_boss) limpa e abre o portal de saida. andar 1 = normal/medio; andar 2 = hard (libera a porta do Baium). count de difficulties multiplica os mobs.",
+    "normal": {
+      "andar": 1,
+      "nome": "Torre da Insolencia - 1o Andar",
+      "mobs": [
+        [
+          "shade",
+          8
+        ],
+        [
+          "caster",
+          3
+        ],
+        [
+          "brute",
+          2
+        ],
+        [
+          "mini_boss",
+          1
+        ]
+      ],
+      "bau": "silver",
+      "meta": 25,
+      "tempo": 480,
+      "respawn": 3
+    },
+    "medio": {
+      "andar": 1,
+      "nome": "Torre da Insolencia - 1o Andar (Medio)",
+      "mobs": [
+        [
+          "shade",
+          8
+        ],
+        [
+          "caster",
+          3
+        ],
+        [
+          "brute",
+          2
+        ],
+        [
+          "mini_boss",
+          1
+        ]
+      ],
+      "bau": "silver",
+      "meta": 40,
+      "tempo": 540,
+      "respawn": 2.6
+    },
+    "hard": {
+      "andar": 2,
+      "nome": "Torre da Insolencia - 2o Andar (Hard)",
+      "mobs": [
+        [
+          "shade",
+          8
+        ],
+        [
+          "caster",
+          4
+        ],
+        [
+          "brute",
+          3
+        ],
+        [
+          "mini_boss",
+          2
+        ]
+      ],
+      "bau": "gold",
+      "liberaPorta": true,
+      "meta": 55,
+      "tempo": 600,
+      "respawn": 2.2
+    }
   }
 }

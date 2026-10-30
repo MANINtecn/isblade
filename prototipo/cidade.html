@@ -22,7 +22,7 @@
 
 
 
-<link rel="stylesheet" href="css/mu_hud.css?v=14">
+<link rel="stylesheet" href="css/mu_hud.css?v=15">
 
 
 
@@ -929,7 +929,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-<div id="msg" class="ui">Mouse gira a camera e mira (mira no centro) &middot; clique esquerdo (segure): ataque &middot; WASD: mover &middot; Espaco: bloquear/parry &middot; Shift: esquivar &middot; Q E R F T Z: skills &middot; PgUp/PgDn: 1a/3a pessoa &middot; M: modo clique &middot; V: cone &middot; B: reguas</div>
+<div id="msg" class="ui">Mouse gira a camera e mira (mira no centro) &middot; clique esquerdo (segure): ataque &middot; WASD: mover &middot; Espaco: pular &middot; C (segurar): guarda/parry &middot; Shift: esquivar &middot; Q E R F T Z: skills &middot; PgUp/PgDn: 1a/3a pessoa &middot; M: modo clique &middot; V: cone &middot; B: reguas</div>
 
 
 
@@ -1065,7 +1065,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-  <div id="teleport-bar" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:340px">
+  <div id="teleport-bar">
 
 
 
@@ -1133,7 +1133,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-<div id="portal-prompt" class="ui">Pressione <b>[E]</b> para Entrar na Dungeon do Baium</div>
+<div id="portal-prompt" class="ui">Pressione <b>[E]</b> para abrir o Portal (Dungeon / Duelo / PvP)</div>
 
 
 
@@ -1217,7 +1217,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-  <h3 style="margin-top:14px">ATALHOS DAS SKILLS</h3>
+  <h3 style="margin-top:14px">ATALHOS DA BARRA (SKILLS)</h3>
 
 
 
@@ -1229,7 +1229,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-  <div class="hint">Clique no atalho e aperte a nova tecla. Se ela ja for de outra skill, as duas trocam de lugar. Teclas do sistema (WASD, 1-6, M, V, B, G, Y) nao podem ser usadas.</div>
+  <div class="hint">Clique no atalho de um slot e aperte a nova tecla. Se ela ja for de outro slot, os dois trocam. Arraste a skill (tecla S) ou o item para o slot da barra; a tecla do slot e a que voce define aqui. Nao podem ser usadas: WASD, 1-6, M, V, B, C, I, K, X.</div>
 
 
 
@@ -1301,12 +1301,27 @@ import * as THREE from './lib/vendor.js';
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js';
+import { Guardiao } from './js/guardiao.js?v=13';
 import { Net } from './js/net.js?v=6';
+import { CC } from './js/cc.js?v=1';
+/* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
+   Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
+function ck(k){var id=null;try{id=localStorage.getItem('isblade_active_character_id');}catch(_){}return id?k+'.'+id:k;}
+function ckGet(k){
+  try{
+    var id=localStorage.getItem('isblade_active_character_id'),v=localStorage.getItem(ck(k));
+    if(v===null&&id){var leg=localStorage.getItem(k),dono=localStorage.getItem('isblade.legado_dono.'+k);
+      if(leg!==null&&(!dono||dono===id)){localStorage.setItem(ck(k),leg);localStorage.setItem('isblade.legado_dono.'+k,id);v=leg;}}
+    return v;
+  }catch(_){return null;}
+}
+function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
+/* <<< CLAUDE [perchar] */
+
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=11';
+import { MuHud } from './js/mu_hud.js?v=14';
 
 
 
@@ -2442,7 +2457,7 @@ var SK=[],SKEY={};/* skills da arma atual (copias de data/armas/<arma>.json); o 
 
 
 
-var SEL={};try{SEL=JSON.parse(localStorage.getItem('isblade.skillSel'))||{};}catch(_){}
+var SEL={};try{SEL=JSON.parse(ckGet('isblade.skillSel'))||{};}catch(_){}
 
 
 
@@ -2494,7 +2509,7 @@ function loadWeaponSkills(){
 
 
 
-var MAST={};try{MAST=JSON.parse(localStorage.getItem('isblade.mastery'))||{};}catch(_){}
+var MAST={};try{MAST=JSON.parse(ckGet('isblade.mastery'))||{};}catch(_){}
 
 
 
@@ -2514,7 +2529,7 @@ function mastLevel(){return mastLevelOf(mastXp());}
 
 
 
-function saveMast(){try{localStorage.setItem('isblade.mastery',JSON.stringify(MAST));}catch(_){}}
+function saveMast(){try{ckSet('isblade.mastery',JSON.stringify(MAST));}catch(_){}}
 
 
 
@@ -4117,6 +4132,293 @@ var portalParticles = new THREE.Points(pGeo, pMat);
 
 
 portalGroup.add(portalParticles);
+/* >>> CLAUDE [portal-cidade] o portal feio (arco azul) sai; entra o MESMO portal do santuario (Solo Leveling). [E] perto dele abre a escolha de destino (DG / Duelo / PvP). */
+portalGroup.visible=false;
+/* =========================================================================
+   TEXTURAS E GERADOR DE MONOLITOS SOLO LEVELING HD (S-RANK BLUE GATE)
+   ========================================================================= */
+var TX_PORTAL_VORTEX = new THREE.TextureLoader().load('assets/fx/portal_vortex_blue.png');
+var TX_PORTAL_HORIZON = new THREE.TextureLoader().load('assets/fx/portal_event_horizon.png');
+var TX_PORTAL_RUNE = new THREE.TextureLoader().load('assets/fx/portal_monolith_rune.png');
+var TX_PORTAL_SEAL = new THREE.TextureLoader().load('assets/fx/portal_floor_seal.png');
+var TX_PORTAL_MIST = new THREE.TextureLoader().load('assets/fx/portal_mist_blue.png');
+TX_PORTAL_VORTEX.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_HORIZON.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_RUNE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_SEAL.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_MIST.colorSpace = THREE.SRGBColorSpace;
+
+var TX_PORTAL_VORTEX_WHITE = new THREE.TextureLoader().load('assets/fx/portal_vortex_white.png');
+var TX_PORTAL_HORIZON_WHITE = new THREE.TextureLoader().load('assets/fx/portal_event_horizon_white.png');
+var TX_PORTAL_RUNE_WHITE = new THREE.TextureLoader().load('assets/fx/portal_monolith_rune_white.png');
+var TX_PORTAL_SEAL_WHITE = new THREE.TextureLoader().load('assets/fx/portal_floor_seal_white.png');
+var TX_PORTAL_MIST_WHITE = new THREE.TextureLoader().load('assets/fx/portal_mist_white.png');
+TX_PORTAL_VORTEX_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_HORIZON_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_RUNE_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_SEAL_WHITE.colorSpace = THREE.SRGBColorSpace;
+TX_PORTAL_MIST_WHITE.colorSpace = THREE.SRGBColorSpace;
+
+function makePointedMonolithMesh(w, h, d, mat){
+  var geo = new THREE.BoxGeometry(w, h, d, 2, 4, 2);
+  var pos = geo.attributes.position;
+  for(var i = 0; i < pos.count; i++){
+    var y = pos.getY(i);
+    var ny = Math.abs(y / (h * 0.5)); // 0 no centro, 1 nas pontas
+    var scale = Math.max(0.08, 1.0 - Math.pow(ny, 1.25) * 0.88);
+    pos.setX(i, pos.getX(i) * scale);
+    pos.setZ(i, pos.getZ(i) * scale);
+  }
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat);
+}
+function createSoloLevelingGate(opts){
+  opts = opts || {};
+  var isWhite = (opts.theme === 'white' || opts.colorMode === 'white');
+  var posX = opts.x || 0;
+  var posY = opts.y || 2.7;
+  var posZ = opts.z || -9;
+  var rotY = opts.rotY !== undefined ? opts.rotY : 0;
+  var RX = opts.rx || 1.95;
+  var RY = opts.ry || 2.85;
+  var runeColor = opts.runeColor || (isWhite ? 0xffffff : 0x00d5ff);
+  var arcColor = isWhite ? 0xffffff : 0x00f5ff;
+
+  var texVortex = isWhite ? TX_PORTAL_VORTEX_WHITE : TX_PORTAL_VORTEX;
+  var texHorizon = isWhite ? TX_PORTAL_HORIZON_WHITE : TX_PORTAL_HORIZON;
+  var texSeal = isWhite ? TX_PORTAL_SEAL_WHITE : TX_PORTAL_SEAL;
+  var texMist = isWhite ? TX_PORTAL_MIST_WHITE : TX_PORTAL_MIST;
+  var texRune = isWhite ? TX_PORTAL_RUNE_WHITE : TX_PORTAL_RUNE;
+
+  var g = new THREE.Group();
+  g.position.set(posX, posY, posZ);
+  g.rotation.y = rotY;
+
+  // 1. Vortice Cosmico em Camadas com Singularidade Negra
+  var vortexGroup = new THREE.Group();
+
+  // Camada A: Singularidade Central Negra (Pitch Black Void - Profundidade real de abismo dimensional)
+  var voidGeo = new THREE.CircleGeometry(RX * 0.58, 32);
+  var voidMat = new THREE.MeshBasicMaterial({
+    color: isWhite ? 0x040812 : 0x01030a,
+    side: THREE.FrontSide,
+    depthWrite: true
+  });
+  var voidMesh = new THREE.Mesh(voidGeo, voidMat);
+  voidMesh.scale.set(1.0, RY / RX, 1.0);
+  voidMesh.position.set(0, 0, -0.05);
+  vortexGroup.add(voidMesh);
+
+  // Camada B: Espiral Primaria de Nebulosa (Alta resolucao - Azul ou Celestial Branco Puro)
+  var vortexMat = new THREE.MeshBasicMaterial({
+    map: texVortex,
+    transparent: true,
+    opacity: 0.98,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  var vortexMesh = new THREE.Mesh(new THREE.PlaneGeometry(RX * 2.4, RY * 2.4), vortexMat);
+  vortexGroup.add(vortexMesh);
+
+  // Camada C: Anel de Horizonte de Eventos Radiante (Contra-rotativo suave)
+  var horizonMat = new THREE.MeshBasicMaterial({
+    map: texHorizon,
+    transparent: true,
+    opacity: 0.85,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  var horizonMesh = new THREE.Mesh(new THREE.PlaneGeometry(RX * 1.85, RY * 1.85), horizonMat);
+  vortexGroup.add(horizonMesh);
+
+  g.add(vortexGroup);
+
+  // 2. Selo Magico de Invocacao no Chao (Runas)
+  var sealMat = new THREE.MeshBasicMaterial({
+    map: texSeal,
+    transparent: true,
+    opacity: 0.88,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  var floorSeal = new THREE.Mesh(new THREE.PlaneGeometry(RX * 2.8, RX * 2.8), sealMat);
+  floorSeal.rotation.x = -Math.PI / 2;
+  floorSeal.position.set(0, -posY + 0.04, 0);
+  g.add(floorSeal);
+
+  // 3. Nevoa Cosmica no Chao (Vapor de Particulas)
+  var mistMat = new THREE.MeshBasicMaterial({
+    map: texMist,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  var mistMesh = new THREE.Mesh(new THREE.PlaneGeometry(RX * 2.5, 1.5), mistMat);
+  mistMesh.position.set(0, -posY + 0.75, 0.3);
+  g.add(mistMesh);
+
+  // 4. Campo de Monolitos de Obsidiana (Cristais com Runas Esculpidas)
+  var shards = [];
+  var shardMat = new THREE.MeshStandardMaterial({
+    map: texRune,
+    emissiveMap: texRune,
+    emissive: runeColor,
+    emissiveIntensity: isWhite ? 1.85 : 1.5,
+    roughness: 0.12,
+    metalness: 0.92
+  });
+
+  // Anel Principal: 16 cristais apontando ao longo do perimetro eliptico
+  var shardCount = 16;
+  for(var i = 0; i < shardCount; i++){
+    var a = (i / shardCount) * Math.PI * 2;
+    var sx = Math.sin(a) * RX;
+    var sy = Math.cos(a) * RY;
+    var sz = (Math.sin(a * 3) * 0.18) + (Math.random() - 0.5) * 0.12;
+
+    var sGroup = new THREE.Group();
+    sGroup.position.set(sx, sy, sz);
+
+    var isCrown = (i === 0);
+    var shardW = isCrown ? 0.38 : (0.24 + (i % 3) * 0.05);
+    var shardH = isCrown ? 1.85 : (1.35 + (i % 2) * 0.35);
+
+    var shardMesh = makePointedMonolithMesh(shardW, shardH, shardW * 0.65, shardMat);
+    shardMesh.rotation.z = -a;
+    shardMesh.rotation.y = (Math.random() - 0.5) * 0.25;
+    sGroup.add(shardMesh);
+
+    g.add(sGroup);
+    shards.push({
+      group: sGroup,
+      baseX: sx,
+      baseY: sy,
+      baseZ: sz,
+      phase: i * 0.65 + Math.random(),
+      rotSpeed: 0.45 + (i % 3) * 0.3
+    });
+  }
+
+  // Nuvem Orbital Externa: 8 fragmentos menores flutuando no campo dimensional
+  var outerCount = 8;
+  for(var j = 0; j < outerCount; j++){
+    var th = (j / outerCount) * Math.PI * 2 + 0.35;
+    var sx2 = Math.sin(th) * RX * 1.38;
+    var sy2 = Math.cos(th) * RY * 1.35;
+    var sz2 = (Math.random() - 0.5) * 0.6;
+
+    var fragGroup = new THREE.Group();
+    fragGroup.position.set(sx2, sy2, sz2);
+
+    var fW = 0.16 + (j % 2) * 0.05;
+    var fH = 0.85 + (j % 3) * 0.25;
+    var fMesh = makePointedMonolithMesh(fW, fH, fW * 0.6, shardMat);
+    fMesh.rotation.z = -th + 0.15;
+    fMesh.rotation.x = (Math.random() - 0.5) * 0.3;
+    fragGroup.add(fMesh);
+
+    g.add(fragGroup);
+    shards.push({
+      group: fragGroup,
+      baseX: sx2,
+      baseY: sy2,
+      baseZ: sz2,
+      phase: j * 1.1 + 2.0,
+      rotSpeed: 0.6 + (j % 2) * 0.4
+    });
+  }
+
+  // 5. Arcos Eletricos Dinamicos de Alta Tensao
+  var totalShards = shardCount + outerCount;
+  var arcMat = new THREE.LineBasicMaterial({
+    color: arcColor,
+    transparent: true,
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
+    linewidth: 2
+  });
+  var arcPositions = new Float32Array(totalShards * 8 * 3);
+  var arcGeo = new THREE.BufferGeometry();
+  arcGeo.setAttribute('position', new THREE.BufferAttribute(arcPositions, 3));
+  var arcLines = new THREE.LineSegments(arcGeo, arcMat);
+  g.add(arcLines);
+
+  // 6. Luz Dinamica Volumetrica
+  var portalLight = new THREE.PointLight(runeColor, 5.5, 22, 1.5);
+  portalLight.position.set(0, 0, 1.2);
+  g.add(portalLight);
+
+  return {
+    group: g,
+    data: {
+      vortex: vortexGroup,
+      vortexMesh: vortexMesh,
+      horizonMesh: horizonMesh,
+      floorSeal: floorSeal,
+      shards: shards,
+      arcLines: arcLines,
+      arcPositions: arcPositions,
+      light: portalLight,
+      time: 0
+    }
+  };
+}
+  function animateGateData(pd,dt){
+    if(!pd) return;
+    pd.time += dt;
+    if(pd.vortexMesh) pd.vortexMesh.rotation.z += dt * 0.85;
+    if(pd.horizonMesh) pd.horizonMesh.rotation.z -= dt * 1.15;
+    if(pd.floorSeal) pd.floorSeal.rotation.z += dt * 0.15;
+
+    for(var si = 0; si < pd.shards.length; si++){
+      var s = pd.shards[si];
+      s.group.position.x = s.baseX + Math.sin(pd.time * 1.8 + s.phase) * 0.06;
+      s.group.position.y = s.baseY + Math.sin(pd.time * 2.5 + s.phase) * 0.10;
+      s.group.rotation.z = Math.sin(pd.time * s.rotSpeed + s.phase) * 0.12;
+    }
+
+    if(Math.random() < 0.85 && pd.arcPositions){
+      var posArr = pd.arcPositions;
+      var pIdx = 0;
+      for(var ai = 0; ai < pd.shards.length; ai++){
+        var nextIdx = (ai + 1) % pd.shards.length;
+        var s1 = pd.shards[ai].group.position;
+        var s2 = pd.shards[nextIdx].group.position;
+        var midX = (s1.x + s2.x) * 0.5 + (Math.random() - 0.5) * 0.45;
+        var midY = (s1.y + s2.y) * 0.5 + (Math.random() - 0.5) * 0.45;
+        var midZ = (s1.z + s2.z) * 0.5 + (Math.random() - 0.5) * 0.35;
+
+        posArr[pIdx++] = s1.x; posArr[pIdx++] = s1.y; posArr[pIdx++] = s1.z;
+        posArr[pIdx++] = midX; posArr[pIdx++] = midY; posArr[pIdx++] = midZ;
+      }
+      pd.arcLines.geometry.attributes.position.needsUpdate = true;
+    }
+    if(pd.light) pd.light.intensity = 5.2 + Math.sin(pd.time * 6.5) * 1.5;
+  }
+var CITY_GATE=createSoloLevelingGate({x:-13.5,y:2.7,z:-13.0,rotY:0.65,theme:'blue',runeColor:0x00d5ff});
+scene.add(CITY_GATE.group);
+var PORTAL_MENU=false;
+function openPortalMenu(){
+  PORTAL_MENU=true;try{document.exitPointerLock();}catch(_){}
+  var h='<div class="hd"><b style="letter-spacing:.2em">PORTAL DIMENSIONAL - ESCOLHA O DESTINO</b><button type="button" id="diffX">Cancelar (Esc)</button></div><div class="dcards">';
+  var DD=(typeof DGD!=='undefined'&&DGD.difficulties)||{};
+  Object.keys(DD).forEach(function(k){var D=DD[k];
+    h+='<div class="dcard" data-go="'+k+'" style="border-color:'+D.css+'"><b style="color:'+D.css+'">Dungeon - '+D.name+'</b><small>'+D.desc+'</small></div>';});
+  h+='<div class="dcard" data-go="__duel" style="border-color:#f5c451"><b style="color:#f5c451">Duelo contra o Baium</b><small>Arena do chefe, direto na luta.</small></div>';
+  h+='<div class="dcard" data-go="__pvp" style="border-color:#ff6b6b"><b style="color:#ff6b6b">PvP</b><small>Arena de jogador contra jogador (online).</small></div></div>';
+  var box=document.getElementById('diff');box.innerHTML=h;box.classList.add('open');
+  Array.prototype.forEach.call(box.querySelectorAll('.dcard'),function(el){el.addEventListener('click',function(){
+    var g=el.getAttribute('data-go');
+    window.location.href=g==='__duel'?'arena.html?mode=duel':'arena.html?mode=dungeon&go='+(g==='__pvp'?'pvp':g);});});
+  document.getElementById('diffX').addEventListener('click',closePortalMenu);
+}
+function closePortalMenu(){PORTAL_MENU=false;document.getElementById('diff').classList.remove('open');}
+/* <<< CLAUDE [portal-cidade] */
+
 
 
 
@@ -5978,7 +6280,7 @@ function playerLoco(){
 
   if((want==='run'||want==='run_hand'||want==='Run_1HS_MFighter'||want==='Run_1HS'||want==='g_run_rest')&&d.cur){
 
-    d.cur.timeScale = clamp(Math.hypot(S.vx,S.vz)/RUN, 0.75, 1.08);
+    d.cur.timeScale = clamp(Math.hypot(S.vx,S.vz)/RUN, 0.75, S.sprint?1.9:1.08);
 
   }
 
@@ -8194,7 +8496,7 @@ var S=window.S={
 
 
 
-  guardHeld:false,guard:false,guardT:0,gcd:0,
+  guardHeld:false,guard:false,guardT:0,gcd:0,jy:0,jv:0,/* >>> CLAUDE [pulo] altura e velocidade vertical do pulo */
 
 
 
@@ -8386,7 +8688,7 @@ function hurtFlash(){var h=$('#hurt');h.classList.add('on');setTimeout(function(
 
 
 
-function canCancel(an){
+function canCancel(an){if(an){var gc=Guardiao.podeCancelar(an);if(gc!==null)return gc;}
 
 
 
@@ -8704,11 +9006,11 @@ function applyHit(an){Net.atacou(an);
 
 
 
-  if(!an.part||an.part===1)addMastery(an.skill?mastCfg().xpSkill:mastCfg().xpHit);/* skill de varios golpes conta uma vez */
+  if(!an.dome&&(!an.part||an.part===1))addMastery(an.skill?mastCfg().xpSkill:mastCfg().xpHit);/* skill de varios golpes conta uma vez */
 
 
 
-  if(!an.skill&&S.st<100){
+  if(!an.skill&&!an.dome&&S.st<100){
 
 
 
@@ -8792,7 +9094,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;
+  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
 
 
 
@@ -9348,6 +9650,10 @@ function doAct(type,arg){
 
 
 
+  if(type==='jump')return doJump();
+
+
+
   return 'no';
 
 
@@ -9356,6 +9662,18 @@ function doAct(type,arg){
 
 
 
+/* >>> CLAUDE [pulo] Espaco pula; a guarda virou a skill universal 'C' (segurar). Igual a arena.html. */
+var JUMP_V=12,JUMP_G=34,JUMP_COST=8;
+/* >>> CLAUDE [corrida] Shift: esquiva NA HORA ao apertar; continuar segurando (> SPRINT_HOLD s) = correr; segurar (> SPRINT_HOLD s) = correr mais rapido, gastando estamina aos poucos. Ajustar aqui. */
+var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=10,SPRINT_MIN=12;
+/* <<< CLAUDE [corrida] */
+function jumpH(){return S.jy||0;}
+function doJump(){
+  if(S.pdead||S.stun>0||S.rollT>=0||S.anim||S.guard||S.st<JUMP_COST)return 'no';
+  if(S.jy>.02)return 'no';S.jv=JUMP_V;S.jy=.001;
+  S.st-=JUMP_COST;S.stDelay=.5;SFX.play('swing');return 'ok';
+}
+/* <<< CLAUDE [pulo] */
 function req(type,arg){
 
 
@@ -10640,6 +10958,12 @@ function mobsAlive(){return MOBS.filter(function(m){return !m.dead;}).length;}
 
 
 
+/* >>> CLAUDE [guardiao] 2026-10-29 — dano do domo girando (Fortaleza Egide): mobs e chefe dentro do raio */
+function domoDano(x,z,r,dmg){
+  MOBS.forEach(function(m){if(m.dead)return;if(Math.hypot(m.x-x,m.z-z)-m.r*.6<=r)damageMob(m,mobDmg({dmg:dmg}),{dome:true,part:1,parts:1,noRange:true});});
+  if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)-1.5<=r)applyHit({id:'dome',dmg:mobDmg({dmg:dmg}),sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1});
+}
+/* <<< CLAUDE [guardiao] */
 function mobDmg(an){var d=an.dmg;if(S.focus>0)d*=1.3;if(ST.dano)d*=1+ST.dano/100;return Math.round(d);}
 
 
@@ -10673,6 +10997,7 @@ function damageMob(m,dmg,an){
 
 
   if(!m.T.armor&&m.state==='windup'){m.state='chase';m.t=0;m.wait=.4;}/* golpe interrompe o ataque (brutamontes tem armadura) */
+  if(an.skill&&an.skill.golpe){var ccE=CC.mob(m,an.skill,an.part,{desloca:function(mm,d){var fq=fwd(Math.atan2(mm.x-S.px,mm.z-S.pz)),qq=obstPush(mm.x+fq[0]*d,mm.z+fq[1]*d,mm.r);mm.x=qq[0];mm.z=qq[1];}});if(ccE)floatText(CC.NOMES[ccE],'#f5c451',22,{x:m.x,z:m.z,y:2.8*m.T.size});}/* controle (CC): estado de golpe pela SA, ver js/cc.js */
 
 
 
@@ -10684,7 +11009,7 @@ function damageMob(m,dmg,an){
 
 
 
-  S.hitStop=Math.max(S.hitStop,an.skill&&an.skill.intr>=1?HS_BIG:HS_SMALL);S.shake=Math.max(S.shake,an.skill?.22:.1);
+  if(!an.dome){S.hitStop=Math.max(S.hitStop,an.skill&&an.skill.intr>=1?HS_BIG:HS_SMALL);S.shake=Math.max(S.shake,an.skill?.22:.1);}
 
 
 
@@ -10844,11 +11169,12 @@ function playerTakeHit(h){
 
 
 
-    if(S.st>=h.cost){
+    var gcost=WPN==='shield'?h.cost*.6:h.cost;/* Guardiao (escudo) gasta 40% menos estamina ao bloquear */
+    if(S.st>=gcost){
 
 
 
-      S.st-=h.cost;S.stDelay=.9;SFX.play('block');floatText('BLOQUEOU','#8bc1ff',20,'p');spark(S.px+fp[0]*.9,1.7,S.pz+fp[1]*.9,2.0,0x8bc1ff,.3);
+      S.st-=gcost;S.stDelay=.9;SFX.play('block');floatText('BLOQUEOU','#8bc1ff',20,'p');spark(S.px+fp[0]*.9,1.7,S.pz+fp[1]*.9,2.0,0x8bc1ff,.3);
 
 
 
@@ -10996,7 +11322,7 @@ function updateMobs(dt){
 
 
 
-      if(m.stun>0){m.stun-=dt;}
+      var ccOn=CC.tick(m,dt);if(m.stun>0||ccOn){if(m.stun>0)m.stun-=dt;}
 
 
 
@@ -11100,7 +11426,7 @@ function updateMobs(dt){
 
 
 
-    m.g.position.set(m.x,0,m.z);m.g.rotation.y=m.face;
+    m.g.position.set(m.x,0,m.z);m.g.rotation.y=m.face;m.g.rotation.x=m.cc?((m.cc.e==='derrubado'||m.cc.e==='lift')?-1.2:(m.cc.e==='stun'?.12*Math.sin(m.t*40):0)):0;
 
 
 
@@ -11908,7 +12234,7 @@ function statTxt(stats){return Object.keys(stats).map(function(k){var s=ITM.stat
 
 
 
-function saveInv(){try{localStorage.setItem('isblade.inv',JSON.stringify(INV));}catch(_){}}
+function saveInv(){try{ckSet('isblade.inv',JSON.stringify(INV));}catch(_){}}
 
 
 
@@ -12308,7 +12634,7 @@ function selectSkill(slot,idx){
 
 
 
-  try{localStorage.setItem('isblade.skillSel',JSON.stringify(SEL));}catch(_){}
+  try{ckSet('isblade.skillSel',JSON.stringify(SEL));}catch(_){}
 
 
 
@@ -12396,7 +12722,7 @@ function initInv(){
 
 
 
-  var saved=null;try{saved=JSON.parse(localStorage.getItem('isblade.inv'));}catch(_){}
+  var saved=null;try{saved=JSON.parse(ckGet('isblade.inv'));}catch(_){}
 
 
 
@@ -12452,6 +12778,16 @@ function initInv(){
 
 
 
+  /* >>> CLAUDE [arma] a arma escolhida na criacao do personagem manda: equipa o item dela (cria se faltar). Antes o kit inicial (espada) sobrescrevia o Guardiao. */
+  if(WPN!=='none'&&!/[?&]wpn=/.test(location.search)){
+    var _cur=baseOf(findItem(INV.equip.weapon).base).weapon;
+    if(_cur!==WPN){
+      var _alvo=INV.items.filter(function(i){return baseOf(i.base).weapon===WPN;})[0];
+      if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===WPN;})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
+      if(_alvo){INV.equip.weapon=_alvo.uid;saveInv();}
+    }
+  }
+  /* <<< CLAUDE [arma] */
   var w=baseOf(findItem(INV.equip.weapon).base).weapon;
 
 
@@ -13040,147 +13376,34 @@ function buildPad(){
 
 
 
-  var DEF=DATA.slots.map(function(k){return k.toLowerCase();});
-
-
-
-  var RESERVED='wasdmvbgyikx123456'.split('');
-
-
-
+  /* [atalhos] as teclas agora pertencem aos SLOTS da barra (mu_hud.js): arraste a skill para o slot; aqui voce muda a tecla de cada slot. */
   var listEl=$('#cfgKeys'),waiting=-1;
-
-
-
-  function applyKeys(arr){
-
-
-
-    SLOTKEYS=arr.slice();
-
-
-
-    SKEY={};
-
-
-
-    SK.forEach(function(s,i){var k=arr[i];s.key=k.toUpperCase();SKEY[k]=i;});
-
-
-
-    buildSkills();renderKeys();
-
-
-
-    try{localStorage.setItem('isblade.skillKeys',JSON.stringify(arr));}catch(_){}
-
-
-
-  }
-
-
-
-  function curKeys(){return SLOTKEYS.slice();}
-
-
-
-  onSkillsChanged=function(){renderKeys();};
-
-
-
+  window.__hotbarKeys=function(map){
+    SKEY=map;
+    SK.forEach(function(s,i){s.key='';});
+    Object.keys(map).forEach(function(k){var sk=SK[map[k]];if(sk)sk.key=k.toUpperCase();});
+  };
   function renderKeys(){
-
-
-
-    listEl.innerHTML=SK.map(function(s,i){
-
-
-
-      return '<div class="row"><span>'+s.name+'</span><button type="button" data-i="'+i+'"'+(waiting===i?' class="wait"':'')+'>'+(waiting===i?'aperte...':s.key)+'</button></div>';
-
-
-
+    if(!listEl)return;
+    listEl.innerHTML=MuHud.slots.map(function(d,i){
+      var nm=d?(d.type==='skill'&&SK[d.skillSlot]?SK[d.skillSlot].name:(d.name||'Item')):'(vazio)';
+      return '<div class="row"><span>Slot '+(i+1)+' - '+nm+'</span><button type="button" data-i="'+i+'"'+(waiting===i?' class="wait"':'')+'>'+(waiting===i?'aperte...':MuHud.keyOf(i))+'</button></div>';
     }).join('');
-
-
-
     Array.prototype.forEach.call(listEl.querySelectorAll('button'),function(b){
-
-
-
       b.addEventListener('click',function(){waiting=waiting===+b.getAttribute('data-i')?-1:+b.getAttribute('data-i');renderKeys();});
-
-
-
     });
-
-
-
   }
-
-
-
+  window.__renderKeysCfg=renderKeys;
   window.addEventListener('keydown',function(e){
-
-
-
     if(waiting<0)return;
-
-
-
     e.preventDefault();e.stopImmediatePropagation();
-
-
-
     var k=e.key.toLowerCase(),i=waiting;
-
-
-
     if(k==='escape'){waiting=-1;renderKeys();return;}
-
-
-
-    if(e.key.length!==1||k===' '||RESERVED.indexOf(k)>=0){
-
-
-
-      gestMsg('Tecla nao permitida: escolha outra');return;
-
-
-
-    }
-
-
-
-    var arr=curKeys(),j=arr.indexOf(k);
-
-
-
-    if(j>=0&&j!==i)arr[j]=arr[i];
-
-
-
-    arr[i]=k;waiting=-1;applyKeys(arr);
-
-
-
+    if(!MuHud.setKey(i,k)){gestMsg('Tecla nao permitida: escolha outra');return;}
+    waiting=-1;renderKeys();
   },true);
-
-
-
-  $('#cfgKeysReset').addEventListener('click',function(){waiting=-1;applyKeys(DEF.slice());});
-
-
-
-  var savedKeys=null;try{savedKeys=JSON.parse(localStorage.getItem('isblade.skillKeys'));}catch(_){}
-
-
-
-  if(Array.isArray(savedKeys)&&savedKeys.length===SK.length&&savedKeys.every(function(k){return typeof k==='string'&&k.length===1&&RESERVED.indexOf(k)<0;})&&new Set(savedKeys).size===SK.length)applyKeys(savedKeys);
-
-
-
-  else renderKeys();
+  $('#cfgKeysReset').addEventListener('click',function(){waiting=-1;MuHud.resetKeys();});
+  if(MuHud.initialized)MuHud.sync();else renderKeys();
 
 
 
@@ -13874,7 +14097,8 @@ window.addEventListener('keydown',function(e){
 
 
 
-  if(k==='e' && Math.hypot(S.px - (-13.5), S.pz - (-13.0)) < 7.0){ window.location.href='arena.html?mode=dungeon'; return; }
+  if(PORTAL_MENU){if(k==='escape'||k==='e')closePortalMenu();return;}/* [portal-cidade] */
+  if(k==='e' && Math.hypot(S.px - (-13.5), S.pz - (-13.0)) < 5.0){ openPortalMenu(); return; }
 
 
 
@@ -13890,11 +14114,13 @@ window.addEventListener('keydown',function(e){
 
 
 
-  if(e.code==='Space'){e.preventDefault();S.guardHeld=true;return;}
+  if(e.code==='Space'){e.preventDefault();if(!e.repeat)req('jump');return;}/* [pulo] */
+
+  if(k==='c'){S.guardHeld=true;return;}/* [pulo] guarda: segurar C */
 
 
 
-  if(k==='shift'){if(!e.repeat)req('roll');return;}
+  if(k==='shift'){if(!e.repeat){S.shiftT=performance.now();S.shiftDown=true;req('roll');}return;}/* [corrida] toque = esquiva (ao soltar), segurar = correr */
 
 
 
@@ -13914,6 +14140,7 @@ window.addEventListener('keydown',function(e){
 
 
 
+  else if(typeof MuHud!=='undefined'&&MuHud.keyTrigger(k)){}/* [atalhos] item da barra */
   else if(SKEY[k]!==undefined){S.skHeld=SKEY[k];req('skill',SKEY[k]);} /* >>> CLAUDE [guardiao] 2026-10-28 — tecla da skill segurada <<< */
 
 
@@ -13966,7 +14193,9 @@ window.addEventListener('keyup',function(e){
 
 
 
-  if(e.code==='Space')S.guardHeld=false; /* >>> CLAUDE [guardiao] 2026-10-28 */ if(SKEY[k]!==undefined&&S.skHeld===SKEY[k])S.skHeld=-1; /* <<< CLAUDE [guardiao] */
+  if(k==='c')S.guardHeld=false;
+
+  if(k==='shift'){S.shiftDown=false;S.sprint=false;}/* [corrida] */ /* >>> CLAUDE [guardiao] 2026-10-28 */ if(SKEY[k]!==undefined&&S.skHeld===SKEY[k])S.skHeld=-1; /* <<< CLAUDE [guardiao] */
 
 
 
@@ -13978,7 +14207,7 @@ window.addEventListener('keyup',function(e){
 
 
 
-window.addEventListener('blur',function(){S.guardHeld=false;S.skHeld=-1;keys={};});
+window.addEventListener('blur',function(){S.shiftDown=false;S.sprint=false;S.guardHeld=false;S.skHeld=-1;keys={};});
 
 
 
@@ -14652,6 +14881,7 @@ function frame2(dt,T){
 
 
 
+  animateGateData(CITY_GATE.data,dt);/* [portal-cidade] */
   // Animação do Portal da Dungeon
 
 
@@ -14748,7 +14978,7 @@ function frame2(dt,T){
 
 
 
-  if (distToPortal < 7.0) {
+  if (distToPortal < 5.0 && !PORTAL_MENU) {
 
 
 
@@ -14756,15 +14986,7 @@ function frame2(dt,T){
 
 
 
-    if (distToPortal < 2.5) {
 
-
-
-      window.location.href = 'arena.html?mode=dungeon';
-
-
-
-    }
 
 
 
@@ -15032,7 +15254,10 @@ function frame2(dt,T){
 
 
 
-    var spd=(S.guard?2.2:RUN)*mv.m*(an0?MOVE_CAST:1);
+    /* [corrida] segurou Shift: corre se ha estamina, nao esta guardando nem usando skill; so volta a correr soltando e apertando de novo */
+    var segurando=S.shiftDown&&(performance.now()-S.shiftT)>=SPRINT_HOLD*1000;
+    if(segurando&&!S.guard&&!an0&&S.st>(S.sprint?0:SPRINT_MIN)){S.sprint=true;S.st=Math.max(0,S.st-SPRINT_DRAIN*dt);S.stDelay=Math.max(S.stDelay,.5);if(S.st<=0){S.shiftDown=false;S.sprint=false;}}else S.sprint=false;
+    var spd=(S.guard?2.2:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1);
 
 
 
@@ -15081,6 +15306,8 @@ function frame2(dt,T){
 
 
   S.px+=S.vx*dt;S.pz+=S.vz*dt;
+
+  if(S.jy>0||S.jv>0){S.jv-=JUMP_G*dt;S.jy=Math.max(0,S.jy+S.jv*dt);if(S.jy===0)S.jv=0;}/* [pulo] */
 
 
 
@@ -15456,7 +15683,7 @@ function frame2(dt,T){
 
 
 
-  wrap.position.set(S.px, S.py, S.pz);
+  wrap.position.set(S.px, S.py+jumpH(), S.pz);/* [pulo] */
 
 
 
@@ -16000,7 +16227,7 @@ function frameBody(nowMs){
 
 
 
-      camera.position.set(S.px+Fx*.35+shx,2.3+shy,S.pz+Fz*.35);
+      camera.position.set(S.px+Fx*.35+shx,2.3+shy+jumpH(),S.pz+Fz*.35);
 
 
 
@@ -16008,7 +16235,7 @@ function frameBody(nowMs){
 
 
 
-      camera.position.set(S.px-Fx*NAV.tpDist+shx,Math.max((S.py||0)+.5, (S.py||0)+2.8-Fy*NAV.tpDist+shy),S.pz-Fz*NAV.tpDist);
+      camera.position.set(S.px-Fx*NAV.tpDist+shx,Math.max((S.py||0)+.5, (S.py||0)+2.8-Fy*NAV.tpDist+shy)+jumpH()*.85,S.pz-Fz*NAV.tpDist);
 
 
 
@@ -17332,11 +17559,11 @@ if(/[?&]dbg=1/.test(location.search))console.log('DBG INIT_DONE');
 
 Guardiao.init({
 
-  getScene:function(){return scene;},getCamera:function(){return camera;},
+  getScene:function(){return scene;},getCamera:function(){return camera;},compile:function(){try{if(BLOOM.on){bloomInit();renderer.setRenderTarget(BLOOM.rt);}renderer.compile(scene,camera);}catch(_){}try{renderer.setRenderTarget(null);}catch(_){}},/* compila para o alvo do bloom (o jogo desenha a cena nele): para a tela os shaders sairiam diferentes e recompilariam na 1a skill */
 
   getWPN:function(){return WPN;},getVrm:function(){return vrm;},getS:function(){return S;},playClip:playClip,gestMsg:gestMsg,
 
-  shake:function(v){S.shake=Math.max(S.shake,v);},getFoes:function(){var a=[];if(BOSS_ON&&!S.dead)a.push({x:S.ex,z:S.ez});MOBS.forEach(function(m){if(!m.dead)a.push({x:m.x,z:m.z});});return a;},
+  shake:function(v){S.shake=Math.max(S.shake,v);},domoDano:function(x,z,r,d){domoDano(x,z,r,d);},getFoes:function(){var a=[];if(BOSS_ON&&!S.dead)a.push({x:S.ex,z:S.ez});MOBS.forEach(function(m){if(!m.dead)a.push({x:m.x,z:m.z});});return a;},
 
   fx:{fwd:fwd,spark:spark,burst:burst,groundRing:groundRing,streak:streak,slashArc:slashArc}
 

@@ -1,0 +1,103 @@
+{
+ "unidade": "coordenadas do jogo: X, Z (=-y do Blender); altura em unidades do jogo relativas ao pedestal",
+ "salao": {
+  "poligono": [
+   [
+    -72.26,
+    -119.04
+   ],
+   [
+    -59.72,
+    -127.39
+   ],
+   [
+    -53.48,
+    -115.95
+   ],
+   [
+    -66.82,
+    -108.91
+   ]
+  ],
+  "centro": [
+   -63.07,
+   -117.82
+  ],
+  "altura_piso": -3.78
+ },
+ "porta_entrada": {
+  "objetos": [
+   "StaticMeshActor455",
+   "StaticMeshActor474"
+  ],
+  "poligono": [
+   [
+    -63.51,
+    -109.61
+   ],
+   [
+    -60.63,
+    -111.43
+   ],
+   [
+    -60.3,
+    -111.61
+   ],
+   [
+    -59.54,
+    -112.02
+   ],
+   [
+    -59.21,
+    -112.19
+   ],
+   [
+    -56.08,
+    -113.58
+   ],
+   [
+    -55.45,
+    -112.4
+   ],
+   [
+    -58.34,
+    -110.57
+   ],
+   [
+    -58.67,
+    -110.39
+   ],
+   [
+    -59.43,
+    -109.98
+   ],
+   [
+    -59.76,
+    -109.81
+   ],
+   [
+    -62.88,
+    -108.43
+   ]
+  ],
+  "centro": [
+   -59.48,
+   -111.0
+  ],
+  "z_min": -3.87,
+  "z_max": 6.56
+ },
+ "arena": {
+  "_nota": "arena do Baium = o circulo gigante do 3o andar (centro/raio em coordenadas do jogo). spawn = 12 m para dentro da porta; gatilho = distancia da porta que acorda o Baium.",
+  "centro": [
+   -28.4,
+   -53.85
+  ],
+  "raio": 62.0,
+  "spawn": [
+   -53.75,
+   -100.46
+  ],
+  "gatilho": 34
+ }
+}
