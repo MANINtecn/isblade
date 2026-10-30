@@ -14,7 +14,7 @@ export const Net = (function(){
   function r2(v){ return Math.round(v * 100) / 100; }
   function sessao(){ var k = 'isblade.sid', v = null; try { v = localStorage.getItem(k); if(!v){ v = 'p' + Math.random().toString(36).slice(2, 12); localStorage.setItem(k, v); } } catch(e){} N.sid = v || ('p' + Math.random().toString(36).slice(2, 12)); return N.sid; }
   function heroUrl(t){ return 'assets/personagens/' + (HERO[t] || HERO.fighter); }
-  var SRV_PADRAO = '';                                              /* endereco do servidor de jogo quando o cliente roda em outro lugar (ex.: Vercel): 'wss://play.seudominio.com/ws'. Vazio = mesmo endereco da pagina */
+  var SRV_PADRAO = 'wss://play.isblade.tecx.pro/ws';                                              /* endereco do servidor de jogo quando o cliente roda em outro lugar (ex.: Vercel): 'wss://play.seudominio.com/ws'. Vazio = mesmo endereco da pagina */
   function urlServidor(){
     try {
       var q = location.search.match(/[?&]srv=([^&]*)/);                       /* ?srv=wss://host/ws  guarda o servidor para as proximas paginas (cidade -> arena recarrega a pagina); ?srv=off volta ao padrao */

@@ -5,7 +5,7 @@ set STATIC=0
 set PORT=3000
 set CAP=50
 set PVP_MULT=0.5
-set ORIGINS=https://www.isblade.tecx.pro,https://isblade.tecx.pro
+set ORIGINS=https://www.isblade.tecx.pro,https://isblade.tecx.pro,https://isblade.vercel.app
 for %%I in ("%~dp0..") do set SERV=%%~fI
 :loop
 echo [%date% %time%] iniciando servidor >> "%~dp0servidor.log"
