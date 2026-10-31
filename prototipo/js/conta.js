@@ -28,9 +28,11 @@
   function mudouLocal(){ var a = g(SNAP); return g(SUJO) === '1' || (a !== null && a !== JSON.stringify(chavesLocais())); }     /* mudou neste aparelho desde a ultima sincronia (mesmo em paginas sem o gancho, como a criacao) */
   function mescla(local, remoto){                                  /* personagens das duas pontas: ninguem some */
     var out = {}, k; for(k in remoto) out[k] = remoto[k]; for(k in local) out[k] = local[k];
-    try { var a = JSON.parse(local.isblade_characters || '[]'), b = JSON.parse(remoto.isblade_characters || '[]'), ids = {}, m = [];
-      a.concat(b).forEach(function(c){ if(c && c.id && !ids[c.id]){ ids[c.id] = 1; m.push(c); } }); out.isblade_characters = JSON.stringify(m);
-      m.forEach(function(c){ ['isblade.inv.', 'isblade.skillSel.', 'isblade.mastery.', 'isblade.dgbest.', 'isblade.custom_slots_v5.', 'isblade.hotbar_keys.', 'isblade.hotbar_init.'].forEach(function(p){ var kk = p + c.id; if(!(kk in out)){ if(kk in remoto) out[kk] = remoto[kk]; } }); });
+    try {                                                          /* MMO: a LISTA de personagens e do servidor (so ele cria/apaga); do aparelho so entra progresso dos ids que a conta tem */
+      var a = JSON.parse(local.isblade_characters || '[]'), b = JSON.parse(remoto.isblade_characters || '[]'), ids = {};
+      b.forEach(function(c){ ids[c.id] = c; var l = a.filter(function(x){ return x && x.id === c.id; })[0]; if(l && (l.level | 0) > (c.level | 0)) c.level = l.level | 0; });
+      out.isblade_characters = JSON.stringify(b);
+      for(k in out){ var mm = /^isblade\.(inv|skillSel|mastery|dgbest|custom_slots_v5|hotbar_keys|hotbar_init)\.(.+)$/.exec(k); if(mm && !ids[mm[2]]) delete out[k]; }
     } catch(e){}
     return out;
   }
@@ -112,7 +114,7 @@
       '<label>Usuário</label><input id="cu" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="16" placeholder="ex.: guerreiro_01">' +
       '<label>Senha</label><div class="ln"><input id="cs" type="password" autocomplete="current-password" maxlength="64" placeholder="mínimo 6 caracteres"><button type="button" class="ver" id="cv">ver</button></div>' +
       '<div class="er" id="ce"></div><div class="bt"><button class="b s" id="cen" type="button">Entrar</button><button class="b p" id="ccr" type="button">Criar conta</button></div>' +
-      '<button class="cv" id="ccv" type="button">Jogar sem conta (salva só neste aparelho)</button></div></div>');
+      '</div></div>');
     if(opt.host){ o.className = 'cnt-inline'; opt.host.appendChild(o); } else document.body.appendChild(o);
     var u = o.querySelector('#cu'), p = o.querySelector('#cs'), e = o.querySelector('#ce'), ocupado = false;
     o.querySelector('#cv').onclick = function(){ p.type = p.type === 'password' ? 'text' : 'password'; this.textContent = p.type === 'password' ? 'ver' : 'ocultar'; };
@@ -137,7 +139,6 @@
     }
     o.querySelector('#cen').onclick = function(){ vai('entrar'); }; o.querySelector('#ccr').onclick = function(){ vai('criar'); };
     p.addEventListener('keydown', function(ev){ if(ev.key === 'Enter') vai('entrar'); });
-    o.querySelector('#ccv').onclick = function(){ s(CONV, '1'); if(opt.convidado) location.href = opt.convidado; else { o.remove(); chip(); } };
     setTimeout(function(){ try { u.focus(); } catch(x){} }, 50);
   }
   function chip(){
@@ -157,14 +158,16 @@
 
   window.Conta = {
     logado: logado, usuario: function(){ return g(USR); }, sair: sair, enviar: enviar,
-    exigir: function(){ if(!logado() && g(CONV) !== '1'){ location.replace('login.html'); return; } quando(chip); },
+    exigir: function(){ if(!logado()){ location.replace('login.html'); return; } quando(chip); },
     recuperar: function(){ var b = null; try { b = JSON.parse(g(BKP) || 'null'); } catch(e){} if(!b || !Object.keys(b).length) return false; var k; for(k in b) if(RE.test(k)) setI(k, b[k]); s(SUJO, '1'); enviar(false); return true; },
     temBackup: function(){ try { var b = JSON.parse(g(BKP) || 'null'); return !!(b && Object.keys(b).length); } catch(e){ return false; } },
     /* O fluxo e o mesmo no PC e no celular: inicio -> login -> painel -> carregamento -> lobby. Quem abre uma pagina do jogo direto (favorito, aba nova) volta ao inicio.
        A tela de carregamento libera a aba (sessionStorage); ?dev=1 libera para testes. */
-    fluxo: function(){ try { if(/[?&]dev=1/.test(location.search)) sessionStorage.setItem('isblade.fluxo', '1'); if(sessionStorage.getItem('isblade.fluxo') !== '1') location.replace('index.html'); } catch(e){} },
+    fluxo: function(){ try { if(/[?&]dev=1/.test(location.search)) sessionStorage.setItem('isblade.fluxo', '1'); if(sessionStorage.getItem('isblade.fluxo') !== '1') location.replace('index.html'); else if(!logado()) location.replace('login.html'); } catch(e){} },
     liberaFluxo: function(){ try { sessionStorage.setItem('isblade.fluxo', '1'); } catch(e){} },
-    telaLogin: telaLogin, convidado: function(){ return g(CONV) === '1'; }, puxar: puxar,
+    telaLogin: telaLogin, convidado: function(){ return false; }, puxar: puxar,
+    /* personagens: criar, renomear e apagar passam pelo SERVIDOR (cb(codigo, resposta)); ao dar certo a lista local vira copia da do servidor */
+    api: function(metodo, caminho, corpo, cb){ if(!logado()) return cb(401, { erro: 'Entre na conta.' }); pedeAsync(metodo, caminho, corpo, function(cod, j){ if(cod === 200 && j && j.pers){ try { setI('isblade_characters', JSON.stringify(j.pers)); s(REV, String(j.rev)); remI(SUJO); snap(); } catch(e){} } cb(cod, j); }); },
     chip: function(){ quando(chip); }
   };
 })();

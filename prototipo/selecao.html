@@ -135,7 +135,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
   <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
-<script src="js/conta.js?v=3"></script><script>Conta.fluxo();</script><script>Conta.exigir();</script>
+<script src="js/conta.js?v=4"></script><script>Conta.fluxo();</script><script>Conta.exigir();</script>
 <script src="js/mobile.js?v=5"></script>
 </head>
 <body>
@@ -402,25 +402,8 @@ function loadCharactersFromStorage(){
   }
 
   // Se nao houver nenhum personagem salvo, cria o primeiro automaticamente (Default Ícaro)
-  if((!characters || characters.length === 0) && window.Conta && Conta.logado()){      /* conta nova: sem personagem de brinde, vai direto criar o seu */
+  if(!characters || characters.length === 0){      /* MMO: o servidor e quem cria; conta sem personagem vai direto criar o primeiro */
     location.replace('criacao.html'); return;
-  }
-  if(!characters || characters.length === 0){
-    var defaultChar = {
-      id: 'char_default_1',
-      name: localStorage.getItem('isblade.player_name') || 'Ícaro',
-      race: localStorage.getItem('isblade.char_race') || 'human_fighter',
-      charType: localStorage.getItem('isblade.char_type') || 'human_fighter',
-      set: 'starter',
-      weapon: localStorage.getItem('isblade.weapon') || 'sword',
-      hairStyle: localStorage.getItem('isblade.hair_style') || 'both',
-      hairColor: localStorage.getItem('isblade.hair_color') || '#ffffff',
-      level: 1,
-      location: 'Talking Island',
-      createdAt: 'Oficial'
-    };
-    characters = [defaultChar];
-    saveCharactersToStorage();
   }
 
   // Deteccao e resolucao automatica de duplicados historicos (ex: duas "Lyra")
@@ -513,20 +496,18 @@ window.confirmRename = function(){
     return;
   }
 
-  var c = characters.find(function(item){ return item.id === renameTargetCharId; });
-  if(c){
-    c.name = newName;
-    if(c.id === activeCharId){
-      localStorage.setItem('isblade.player_name', newName);
-    }
-    saveCharactersToStorage();
+  var alvo = renameTargetCharId;
+  Conta.api('POST', '/api/personagens/renomear', { id: alvo, name: newName }, function(cod, j){
+    if(cod !== 200){ fb.textContent = '❌ ' + ((j && j.erro) || 'Não consegui falar com o servidor.'); return; }
+    characters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if(alvo === activeCharId) localStorage.setItem('isblade.player_name', newName);
     renderSlots();
     updateHeroCard();
     if(typeof loadBackgroundCharacters3D === 'function'){
       loadBackgroundCharacters3D();
     }
-  }
-  closeRenameModal();
+    closeRenameModal();
+  });
 };
 
 window.openDeleteModalForId = function(e, id){
@@ -676,15 +657,19 @@ window.confirmDelete = function(){
   for(var i=0; i<characters.length; i++){
     if(characters[i].id === activeCharId){ idx = i; break; }
   }
-  if(idx !== -1){
-    ['isblade.inv','isblade.skillSel','isblade.mastery','isblade.dgbest'].forEach(function(k){try{localStorage.removeItem(k + '.' + characters[idx].id);}catch(_){}});/* [perchar] apaga os dados do personagem */
-    characters.splice(idx, 1);
+  if(idx === -1) return;
+  var apagado = characters[idx].id;
+  Conta.api('POST', '/api/personagens/apagar', { id: apagado }, function(cod, j){
+    if(cod !== 200){ alert((j && j.erro) || 'Não consegui apagar: sem conexão com o servidor.'); return; }
+    ['isblade.inv','isblade.skillSel','isblade.mastery','isblade.dgbest','isblade.custom_slots_v5','isblade.hotbar_keys','isblade.hotbar_init'].forEach(function(k){try{localStorage.removeItem(k + '.' + apagado);}catch(_){}});
+    characters = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if(!characters.length){ location.replace('criacao.html'); return; }
     activeCharId = characters[Math.max(0, idx - 1)].id;
     saveCharactersToStorage();
     renderSlots();
     updateHeroCard();
     loadCharacter3D();
-  }
+  });
 };
 
 // Entrar no Mundo

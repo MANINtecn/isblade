@@ -129,6 +129,8 @@ export const Torre = (function(){
   T.nasce = function(S, andar){
     var f = T.andares[(andar || T.andarInicial) - 1]; S.px = f.sx; S.pz = f.sz; S.vx = 0; S.vz = 0; T.lx = f.sx; T.lz = f.sz; T.y = f.y + .3; T.vy = 0; T.chao = false; T.baseY = T.y; T.altura = 0; grupo.position.y = -T.baseY;
   };
+  /* PvP: coloca o jogador num ponto do andar (x,z do mapa) sem mexer na porta */
+  T.teleporta = function(S, x, z, andar){ var f = T.andares[(andar || 3) - 1]; S.px = x; S.pz = z; S.vx = 0; S.vz = 0; T.lx = x; T.lz = z; T.y = f.y + .3; T.vy = 0; T.chao = false; T.baseY = T.y; T.altura = 0; grupo.position.y = -T.baseY; };
   /* neblina: a da arena (22..62) apagava paredes e muros da torre; dentro dela fica longe (escuro so la fora, no vazio) */
   var neb0 = null;
   function neblina(on){ var fg = scene.fog; if(!fg) return; if(on){ if(!neb0) neb0 = [fg.near, fg.far]; fg.near = 75; fg.far = 195; } else if(neb0){ fg.near = neb0[0]; fg.far = neb0[1]; neb0 = null; } }

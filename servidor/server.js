@@ -15,10 +15,11 @@ const SERVE_STATIC = process.env.STATIC !== '0', ORIGINS = (process.env.ORIGINS 
 const casa = (p, o) => { if(!p.includes('*')) return p === o; const [a, b] = p.split('*'); return !!o && o.startsWith(a) && o.endsWith(b) && o.length > a.length + b.length && !o.slice(a.length, o.length - b.length).includes('.'); };   /* um '*' vale um trecho sem ponto (um nivel de subdominio) */
 const origemOk = o => !ORIGINS.length || ORIGINS.some(p => casa(p, o));
 const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), origemOk });      /* cadastro rapido + salvamento na nuvem (contas.js) */
+const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 14;                                                   /* m/s: corrida ~4,3, esquiva 4,6 m em 0,4 s = 11,5; folga de latencia */
 const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } } };
-const SPAWN_TIME = { A: { x: 0, z: -9 }, B: { x: 0, z: 9 } };    /* mapa de PvP: cada time nasce de um lado */
+const SPAWN_TIME = { A: { x: -64.4, z: -53.85, f: Math.PI / 2 }, B: { x: 7.6, z: -53.85, f: -Math.PI / 2 } };    /* mapa de PvP = circulo gigante do Baium (3o andar da Torre, centro -28,4/-53,85, raio 62): cada time nasce num lado, 72 m de distancia */
 const PARTY_MAX = 6, PARTY_GRACA = 90;                              /* grupo: ate 6; quem cai ou troca de pagina tem 90 s para voltar */
 const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
@@ -125,11 +126,18 @@ wss.on('connection', ws => {
   ws.on('message', buf => {
     if(++msgs > 80) return; let m; try { m = JSON.parse(buf); } catch (e) { return; }
     if(m.t === 'join' && !J){
+      let pers = null, conta = null;
+      if(AUTH){
+        conta = Contas.validaToken(m.tk); pers = conta && Array.isArray(conta.pers) ? conta.pers.find(p => p.id === String(m.cid || '')) : null;
+        if(!pers){ try { ws.send(JSON.stringify({ t: 'erro', m: conta ? 'Personagem invalido.' : 'Entre na conta.' })); } catch (e) {} return ws.close(); }
+        for(const cc of todosCanais()) for(const o of cc.jog.values()) if(o.cid === pers.id){ try { o.ws.send(JSON.stringify({ t: 'erro', m: 'Este personagem entrou em outro lugar.' })); } catch (e) {} o.ws.close(); }      /* um personagem, uma conexao */
+        m.nome = pers.name; m.raca = pers.charType; m.cls = /magic/.test(pers.charType) ? 'magic' : 'fighter';
+      }
       const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); c = (mate && mate.canalRef && mate.canalRef.jog.size < CAP) ? mate.canalRef : canalLivre(mapa, m.canal | 0);
       J = { id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
-            sid, party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
+            sid, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
       if(mapa === 'pvp'){ if(mate && mate.canalRef === c) J.team = mate.team; else { let a = 0, b = 0; for(const o of c.jog.values()) o.team === 'A' ? a++ : b++; J.team = a <= b ? 'A' : 'B'; } }     /* times equilibrados */
-      const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = mapa === 'pvp' ? (J.team === 'A' ? 0 : Math.PI) : Math.PI;
+      const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = mapa === 'pvp' ? SPAWN_TIME[J.team].f : Math.PI;
       if(mapa === 'cidade' && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 600 && Math.abs(m.z) < 600){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */

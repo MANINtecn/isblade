@@ -110,6 +110,8 @@ export const Net = (function(){
         if(morreu !== e.morto){ e.morto = morreu; e.curA = ''; if(e.tag) desenhaTag(e); }
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
+    } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
+    } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && m.k === 's' && e.vis && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f);
     } else if(m.t === 'j'){ addRemoto(m.p); atualizaHud();
     } else if(m.t === 'l'){ removeRemoto(m.id); atualizaHud();
     } else if(m.t === 'hit'){
@@ -235,7 +237,7 @@ export const Net = (function(){
     try { s = new WebSocket(urlServidor()); } catch(e){ N.tentando = false; return; }
     ws = s;
     s.onopen = function(){
-      var S = ctx.getS(); send({ t: 'join', sid: sessao(), nome: ctx.nome(), raca: ctx.tipo(), cls: /magic/.test(ctx.tipo()) ? 'magic' : 'fighter', arma: ctx.getWPN(), pmax: S.pmax, mapa: N.mapaAlvo, canal: N.canalAlvo | 0, x: r2(S.px), z: r2(S.pz) });
+      var S = ctx.getS(); send({ t: 'join', tk: (function(){ try { return localStorage.getItem('isblade.conta_token') || ''; } catch(e){ return ''; } })(), cid: (function(){ try { return localStorage.getItem('isblade_active_character_id') || ''; } catch(e){ return ''; } })(), sid: sessao(), nome: ctx.nome(), raca: ctx.tipo(), cls: /magic/.test(ctx.tipo()) ? 'magic' : 'fighter', arma: ctx.getWPN(), pmax: S.pmax, mapa: N.mapaAlvo, canal: N.canalAlvo | 0, x: r2(S.px), z: r2(S.pz) });
     };
     s.onmessage = function(ev){ try { msg(JSON.parse(ev.data)); } catch(e){ console.warn('net:', e); } };
     s.onclose = function(){

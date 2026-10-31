@@ -107,7 +107,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
   <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
-<script src="js/conta.js?v=3"></script><script>Conta.fluxo();</script>
+<script src="js/conta.js?v=4"></script><script>Conta.fluxo();</script><script>Conta.exigir();</script>
 </head>
 <body>
 
@@ -1032,41 +1032,31 @@ window.enterWorld = function(){
   var saveType = (currentRace === 'human_fighter' && currentSet === 'imperial') ? 'imperial' : currentRace;
   var saveWpn = (currentWeapon === 'none' ? 'none' : (currentWeapon === 'shield' ? 'shield' : 'sword')/* CLAUDE [guardiao] */);
 
-  // Salvar no banco multi-slot isblade_characters
-  var characters = [];
-  try {
-    var raw = localStorage.getItem('isblade_characters');
-    if(raw) characters = JSON.parse(raw);
-  } catch(_){}
-
-  var newCharId = 'char_' + Date.now();
-  var newChar = {
-    id: newCharId,
-    name: pName,
-    race: currentRace,
-    charType: saveType,
-    set: currentSet,
-    weapon: saveWpn,
-    hairStyle: currentHairStyle,
-    hairColor: currentHairColor,
-    level: 1,
-    location: 'Talking Island',
-    createdAt: new Date().toLocaleDateString('pt-BR')
-  };
-
-  characters.push(newChar);
-  try {
-    localStorage.setItem('isblade_characters', JSON.stringify(characters));
-    localStorage.setItem('isblade_active_character_id', newCharId);
-    // Chaves de compatibilidade legado
-    localStorage.setItem('isblade.player_name', pName);
-    localStorage.setItem('isblade.char_type', saveType);
-    localStorage.setItem('isblade.char_race', currentRace);
-    localStorage.setItem('isblade.weapon', saveWpn);
-    localStorage.setItem('isblade.hair_style', currentHairStyle);
-    localStorage.setItem('isblade.hair_color', currentHairColor);
-  } catch(_){}
-
+  /* MMO: quem cria o personagem e o SERVIDOR (nome unico, limite de slots); aqui so se pede e se guarda a copia devolvida */
+  if(window._criando) return; window._criando = true;
+  var corpoCria = { name: pName, race: currentRace, charType: saveType, set: currentSet, weapon: saveWpn, hairStyle: currentHairStyle, hairColor: currentHairColor };
+  Conta.api('POST', '/api/personagens', corpoCria, function(cod, j){
+    window._criando = false;
+    if(cod !== 200 || !j || !j.char){
+      alert((j && j.erro) || (cod === 401 ? 'Sua sessão expirou. Entre na conta de novo.' : 'Não consegui falar com o servidor. Tente de novo.'));
+      if(cod === 401) location.replace('login.html');
+      return;
+    }
+    var newChar = j.char, newCharId = newChar.id;
+    try {
+      localStorage.setItem('isblade_active_character_id', newCharId);
+      // Chaves de compatibilidade legado
+      localStorage.setItem('isblade.player_name', newChar.name);
+      localStorage.setItem('isblade.char_type', newChar.charType);
+      localStorage.setItem('isblade.char_race', newChar.race);
+      localStorage.setItem('isblade.weapon', newChar.weapon);
+      localStorage.setItem('isblade.hair_style', newChar.hairStyle);
+      localStorage.setItem('isblade.hair_color', newChar.hairColor);
+    } catch(_){}
+    irParaMundo();
+  });
+};
+function irParaMundo(){
   try {
     sfxEnter.currentTime = 0;
     sfxEnter.play().catch(function(){});
@@ -1078,7 +1068,7 @@ window.enterWorld = function(){
   setTimeout(function(){
     window.location.href = targetUrl;
   }, 600);
-};
+}
 
 // Mouse drag to rotate pedestal & zoom
 var isDragging = false, prevX = 0, prevY = 0;
