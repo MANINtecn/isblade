@@ -1,3 +1,9 @@
+# REGISTRO DO CLAUDE — DESCONTINUADO
+
+> **Desde 31/10/2026 tudo vai para `DIARIO_IS_BLADE.md`** (padrão do projeto: `### [Claude] DD/MM/AAAA - Título`). As entradas de 28 a 31/10 foram copiadas para lá, na seção "DETALHE POR MUDANÇA". Este arquivo fica só como histórico anterior; não escreva mais aqui.
+
+---
+
 # REGISTRO DO CLAUDE — o que eu mexi e onde (trabalho em paralelo com o Gemini)
 
 > **Convenção de assinatura (vale para as duas IAs):**
