@@ -4,7 +4,7 @@
    - Na selecao: puxa os dados da conta ANTES da pagina ler os personagens (pedido sincrono curto) e pede login se nao houver conta nem modo convidado.
    Uso:  <script src="js/conta.js"></script>   e, na selecao,   <script>Conta.exigir();</script>  */
 (function(){
-  var TOK = 'isblade.conta_token', USR = 'isblade.conta_user', REV = 'isblade.conta_rev', SUJO = 'isblade.conta_sujo', CONV = 'isblade.conta_convidado', BKP = 'isblade.conta_bkp_local';
+  var SNAP = 'isblade.conta_snap', TOK = 'isblade.conta_token', USR = 'isblade.conta_user', REV = 'isblade.conta_rev', SUJO = 'isblade.conta_sujo', CONV = 'isblade.conta_convidado', BKP = 'isblade.conta_bkp_local';
   var ls = window.localStorage, setI = ls.setItem.bind(ls), remI = ls.removeItem.bind(ls), getI = ls.getItem.bind(ls);
   var timer = null, enviando = false;
   var RE = /^(isblade_characters|isblade\.(inv|skillSel|mastery|dgbest|custom_slots_v5|hotbar_keys|hotbar_init)\.[A-Za-z0-9_-]+)$/;     /* so o que e progresso do personagem; volume, graficos etc. ficam no aparelho */
@@ -22,7 +22,17 @@
     try { s(BKP, JSON.stringify(atuais)); } catch(e){}
     for(k in atuais) if(!(k in ch)) remI(k);
     for(k in ch) if(RE.test(k)) setI(k, ch[k]);
-    s(REV, String(rev)); remI(SUJO);
+    s(REV, String(rev)); remI(SUJO); snap();
+  }
+  function snap(){ try { s(SNAP, JSON.stringify(chavesLocais())); } catch(e){} }
+  function mudouLocal(){ var a = g(SNAP); return g(SUJO) === '1' || (a !== null && a !== JSON.stringify(chavesLocais())); }     /* mudou neste aparelho desde a ultima sincronia (mesmo em paginas sem o gancho, como a criacao) */
+  function mescla(local, remoto){                                  /* personagens das duas pontas: ninguem some */
+    var out = {}, k; for(k in remoto) out[k] = remoto[k]; for(k in local) out[k] = local[k];
+    try { var a = JSON.parse(local.isblade_characters || '[]'), b = JSON.parse(remoto.isblade_characters || '[]'), ids = {}, m = [];
+      a.concat(b).forEach(function(c){ if(c && c.id && !ids[c.id]){ ids[c.id] = 1; m.push(c); } }); out.isblade_characters = JSON.stringify(m);
+      m.forEach(function(c){ ['isblade.inv.', 'isblade.skillSel.', 'isblade.mastery.', 'isblade.dgbest.', 'isblade.custom_slots_v5.', 'isblade.hotbar_keys.', 'isblade.hotbar_init.'].forEach(function(p){ var kk = p + c.id; if(!(kk in out)){ if(kk in remoto) out[kk] = remoto[kk]; } }); });
+    } catch(e){}
+    return out;
   }
   function logado(){ return !!g(TOK); }
 
@@ -55,7 +65,10 @@
         if(r.cod !== 200 || !r.j) return ok();
         var remoto = r.j.chaves || {}, temRemoto = Object.keys(remoto).length > 0, rev = +g(REV) || 0;
         if(!temRemoto){ if(Object.keys(chavesLocais()).length) s(SUJO, '1'); return ok(); }                 /* conta nova: o que existe aqui sobe para a conta */
-        if(g(SUJO) === '1' && r.j.rev <= rev) return ok();                                                    /* mudancas deste aparelho ainda nao enviadas */
+        if(mudouLocal()){                                                                                     /* ha mudancas aqui que a conta nao tem: junta as duas e envia */
+          var juntos = mescla(chavesLocais(), remoto), k; try { s(BKP, JSON.stringify(chavesLocais())); } catch(e){}
+          for(k in juntos) if(RE.test(k)) setI(k, juntos[k]); s(REV, String(r.j.rev)); s(SUJO, '1'); enviar(false); return ok();
+        }
         if(r.j.rev !== rev || !Object.keys(chavesLocais()).length) aplica(remoto, r.j.rev);
         ok();
       }).catch(function(){ clearTimeout(t); ok(); });                                                          /* servidor fora do ar: segue com o que ha no aparelho */
@@ -65,7 +78,7 @@
     if(!logado() || enviando || g(SUJO) !== '1') return; enviando = true;
     pedeAsync('PUT', '/api/dados', { chaves: chavesLocais() }, function(cod, j){
       enviando = false;
-      if(cod === 200 && j){ s(REV, String(j.rev)); remI(SUJO); }
+      if(cod === 200 && j){ s(REV, String(j.rev)); remI(SUJO); snap(); }
       else if(cod === 401){ remI(TOK); remI(USR); }
     }, keep);
   }
@@ -145,6 +158,12 @@
   window.Conta = {
     logado: logado, usuario: function(){ return g(USR); }, sair: sair, enviar: enviar,
     exigir: function(){ if(!logado() && g(CONV) !== '1'){ location.replace('login.html'); return; } quando(chip); },
+    recuperar: function(){ var b = null; try { b = JSON.parse(g(BKP) || 'null'); } catch(e){} if(!b || !Object.keys(b).length) return false; var k; for(k in b) if(RE.test(k)) setI(k, b[k]); s(SUJO, '1'); enviar(false); return true; },
+    temBackup: function(){ try { var b = JSON.parse(g(BKP) || 'null'); return !!(b && Object.keys(b).length); } catch(e){ return false; } },
+    /* O fluxo e o mesmo no PC e no celular: inicio -> login -> painel -> carregamento -> lobby. Quem abre uma pagina do jogo direto (favorito, aba nova) volta ao inicio.
+       A tela de carregamento libera a aba (sessionStorage); ?dev=1 libera para testes. */
+    fluxo: function(){ try { if(/[?&]dev=1/.test(location.search)) sessionStorage.setItem('isblade.fluxo', '1'); if(sessionStorage.getItem('isblade.fluxo') !== '1') location.replace('index.html'); } catch(e){} },
+    liberaFluxo: function(){ try { sessionStorage.setItem('isblade.fluxo', '1'); } catch(e){} },
     telaLogin: telaLogin, convidado: function(){ return g(CONV) === '1'; }, puxar: puxar,
     chip: function(){ quando(chip); }
   };

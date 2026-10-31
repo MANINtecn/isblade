@@ -33,10 +33,11 @@
     <p class="pula" id="pula">Demorando? <a href="selecao.html">Entrar mesmo assim</a> (o resto carrega durante o jogo).</p>
   </div>
 </main>
-<script src="js/conta.js?v=2"></script>
+<script src="js/conta.js?v=3"></script>
 <script>
 (function(){
   if(!Conta.logado() && !Conta.convidado()){ location.replace('login.html'); return; }
+  Conta.liberaFluxo();                                                /* a partir daqui esta aba pode abrir lobby, cidade e arena */
   var DICAS = [
     'Um toque no Shift é uma ESQUIVA. Continue segurando para CORRER; correr gasta estamina aos poucos.',
     'Esquive no instante do golpe do inimigo: a ESQUIVA PERFEITA devolve estamina.',
