@@ -126,7 +126,7 @@ export const Net = (function(){
       if(m.id === N.id){ ctx.meResp(m.x, m.z, m.hp / (N.eu.pmax || 100), !!m.keep); }
       else { e = remotos.get(m.id); if(e){ e.morto = false; e.hp = m.hp; e.curA = ''; if(!m.keep){ e.x = e.tx = m.x; e.z = e.tz = m.z; } if(e.tag) desenhaTag(e); } }
     } else if(m.t === 'duelreq'){
-      pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce  -  U aceita, N recusa', '#ffd166');
+      pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce', '#ffd166'); desenhaPed();
     } else if(m.t === 'duelsent'){ ctx.sysMsg('Desafio enviado para ' + m.nome + '...');
     } else if(m.t === 'duelrecusou'){ ctx.sysMsg(m.nome + ' recusou o duelo');
     } else if(m.t === 'duelstart'){
@@ -135,7 +135,7 @@ export const Net = (function(){
     } else if(m.t === 'duelend'){
       if(N.duelo && (m.v === N.id || m.l === N.id)){ ctx.banner(m.v === N.id ? 'VITORIA!' : 'DERROTA', m.v === N.id ? 'Voce venceu ' + m.nl : m.nv + ' venceu o duelo', m.v === N.id ? '#f5c451' : '#ff4d6d'); N.duelo = null; }
       else ctx.sysMsg((m.nv || '?') + ' venceu o duelo contra ' + m.nl);
-    } else if(m.t === 'preq'){ pedGrupo = { de: m.de, nome: m.nome, ate: Date.now() + 20000 }; ctx.banner('CONVITE DE GRUPO', m.nome + ' convida você  -  U aceita, N recusa', '#7fd2ff');
+    } else if(m.t === 'preq'){ pedGrupo = { de: m.de, nome: m.nome, ate: Date.now() + 20000 }; ctx.banner('CONVITE DE GRUPO', m.nome + ' convida você', '#7fd2ff'); desenhaPed();
     } else if(m.t === 'psent'){ ctx.sysMsg('Convite de grupo enviado para ' + m.nome);
     } else if(m.t === 'prec'){ ctx.sysMsg(m.nome + ' recusou o convite de grupo');
     } else if(m.t === 'party'){ var tinha = N.grupo; N.grupo = m; if(!tinha) ctx.sysMsg('Você entrou no grupo (' + m.m.length + ' membros)'); renderParty(); renderMenu();
@@ -144,7 +144,7 @@ export const Net = (function(){
   }
 
   /* ---------- MENU (tecla P ou botao): so CSS, sem nenhuma imagem. O que funciona fica em destaque; o resto aparece apagado ("em breve") ---------- */
-  var alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
+  var pedEl = null, alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
   var ITENS = [{ k: 'duelo', nome: 'Duelo', ativo: true, dica: 'Desafie um jogador por perto' }, { k: 'grupo', nome: 'Grupo', ativo: true, dica: 'Party de até 6 jogadores' },
     { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'guilda', nome: 'Guilda', ativo: false },
     { k: 'msg', nome: 'Mensagem', ativo: false }, { k: 'rank', nome: 'Ranking', ativo: false }];
@@ -168,6 +168,8 @@ export const Net = (function(){
       '#netParty{position:fixed;left:12px;top:8px;z-index:61;pointer-events:none;font:600 12px system-ui,sans-serif;color:#dbe6ff;text-shadow:0 1px 3px #000}' +
       '#netParty .m{display:flex;align-items:center;gap:6px;margin:3px 0;padding:3px 8px;border-radius:6px;background:rgba(8,10,20,.72)}#netParty .bar{width:64px;height:6px;border-radius:3px;background:#222a40;overflow:hidden}#netParty .bar b{display:block;height:100%;background:#5cd65c}#netParty .off{opacity:.45}#netParty .m{padding:2px 7px;margin:2px 0;font-size:11px}#netParty .bar{width:56px;height:5px}' +
       '#btnReturnCity,#netBtn,#mbfs,#btnFightBaiumDirect{margin-top:var(--party-h,0px)!important}' +
+      '#netPed{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:66;display:none;min-width:250px;max-width:94vw;padding:10px 12px;border-radius:10px;background:rgba(8,12,24,.94);box-shadow:inset 0 0 0 2px #ffd166,0 8px 24px rgba(0,0,0,.7);color:#fff;font:600 13px system-ui,sans-serif;text-align:center}' +
+      '#netPed b{color:#ffd166}#netPed .a{display:flex;gap:8px;margin-top:8px}#netPed button{flex:1;padding:10px 6px;border-radius:8px;border:0;font:800 12px system-ui,sans-serif;letter-spacing:.06em;cursor:pointer}#netPed .ok{background:#2fae5a;color:#fff}#netPed .no{background:#3a4260;color:#dbe6ff}#netPed small{display:block;color:#8fa6c4;font-weight:500;margin-top:2px}' +
       '#netAlvo{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:64;display:none;min-width:230px;max-width:92vw;padding:8px 10px;border-radius:10px;background:rgba(8,12,24,.88);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45),0 6px 20px rgba(0,0,0,.6);color:#e8f3ff;font:600 12px system-ui,sans-serif}' +
       '#netAlvo .t{display:flex;align-items:center;gap:8px;margin-bottom:6px}#netAlvo .t b{flex:1;font-size:13px;letter-spacing:.06em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#netAlvo .t small{color:#8fa6c4;font-weight:500}#netAlvo .x{background:none;border:0;color:#8fa6c4;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}' +
       '#netAlvo .hp{height:6px;border-radius:3px;background:#222a40;overflow:hidden;margin-bottom:7px}#netAlvo .hp b{display:block;height:100%;background:#f03a2e;transition:width .15s}' +
@@ -181,6 +183,8 @@ export const Net = (function(){
     menuEl = document.createElement('div'); menuEl.id = 'netMenu'; document.body.appendChild(menuEl);
     partyEl = document.createElement('div'); partyEl.id = 'netParty'; document.body.appendChild(partyEl);
     alvoEl = document.createElement('div'); alvoEl.id = 'netAlvo'; document.body.appendChild(alvoEl);
+    pedEl = document.createElement('div'); pedEl.id = 'netPed'; document.body.appendChild(pedEl);
+    pedEl.addEventListener('click', function(e){ var el = e.target.closest ? e.target.closest('[data-a]') : null; if(!el) return; var v = el.getAttribute('data-v'); if(el.getAttribute('data-a') === 'sim') aceitar(v); else recusar(v); desenhaPed(); });
     alvoEl.addEventListener('click', function(e){
       var el = e.target.closest ? e.target.closest('[data-a]') : null; if(!el || el.disabled) return; var a = el.getAttribute('data-a'), al = alvo();
       if(a === 'x'){ selecionar(0); return; } if(!al){ selecionar(0); return; }
@@ -266,12 +270,21 @@ export const Net = (function(){
   }
   function aoToque(ev){
     if(!N.on || document.pointerLockElement || (ev.button && ev.button !== 0)) return;
-    var t = ev.target; if(t && t.closest && t.closest('#netMenu,#netAlvo,#netParty,#mb,#mbsys,#mbbar,#mbedit,#mbfs,#netBtn,#diff,.mu-hotbar-slot,.mu-sys-btn,#mu-slot-picker,button,input,select')) return;
+    var t = ev.target; if(t && t.closest && t.closest('#netMenu,#netPed,#netAlvo,#netParty,#mb,#mbsys,#mbbar,#mbedit,#mbfs,#netBtn,#diff,.mu-hotbar-slot,.mu-sys-btn,#mu-slot-picker,button,input,select')) return;
     var e = achaNaTela(ev.clientX, ev.clientY); if(!e) return;
     ev.stopImmediatePropagation(); ev.preventDefault(); selecionar(e.id);
   }
   function selecionaMaisPerto(){ var S = ctx.getS(), melhor = null, bd = 40; remotos.forEach(function(e){ if(!e.vis || e.morto) return; var d = Math.hypot(e.x - S.px, e.z - S.pz); if(d < bd){ bd = d; melhor = e; } }); if(melhor) selecionar(melhor.id); else ctx.sysMsg('Ninguém por perto (até 40 m)'); }
+  /* convite de grupo/duelo: cartao com Aceitar/Recusar enquanto valer (no celular nao ha tecla U/N) */
+  function desenhaPed(){
+    if(!pedEl) return; var t = Date.now(), tipo = '', p = null;
+    if(pedGrupo && t < pedGrupo.ate){ tipo = 'grupo'; p = pedGrupo; } else if(pedDuelo && t < pedDuelo.ate){ tipo = 'duelo'; p = pedDuelo; }
+    if(!p){ pedEl.style.display = 'none'; pedEl._h = ''; return; }
+    var seg = Math.max(0, Math.ceil((p.ate - t) / 1000)), h = '<b>' + esc(p.nome) + '</b> ' + (tipo === 'grupo' ? 'convidou você para o <b>grupo</b>' : 'desafiou você para um <b>duelo</b>') + '<small>expira em <span id="netPedS"></span> s</small><div class="a"><button class="ok" data-a="sim" data-v="' + tipo + '">ACEITAR</button><button class="no" data-a="nao" data-v="' + tipo + '">RECUSAR</button></div>';
+    if(pedEl._h !== h){ pedEl._h = h; pedEl.innerHTML = h; } pedEl.style.display = 'block'; var sp = document.getElementById('netPedS'); if(sp) sp.textContent = seg;
+  }
   function atualizaAlvo(){
+    desenhaPed();
     var e = alvo(); if(N.alvo && !e){ selecionar(0); return; } if(!e){ return; }
     var S = ctx.getS(); if(Math.hypot(e.x - S.px, e.z - S.pz) > 90 || !e.dentro){ selecionar(0); return; }
     if(anelAlvo){ anelAlvo.visible = !!e.vis; anelAlvo.position.set(e.x, .15, e.z); var k = 1 + Math.sin(performance.now() / 220) * .06; anelAlvo.scale.set(k, k, k); }
@@ -302,7 +315,7 @@ export const Net = (function(){
   N.init = function(c){
     ctx = c; THREE = c.THREE; window.Net = N; try { desligado = /[?&]online=0/.test(location.search); } catch(e){}
     hud(); criaMenu();
-    window.addEventListener('pointerdown', aoToque, true);
+    window.addEventListener('pointerdown', aoToque, true); setInterval(desenhaPed, 500);
     window.addEventListener('keydown', function(ev){
       if(ev.repeat) return; var t = ev.target && ev.target.tagName; if(t === 'INPUT' || t === 'TEXTAREA') return; var k = ev.key.toLowerCase();
       if(k === 't' && N.on){ selecionaMaisPerto(); return; }

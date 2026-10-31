@@ -1309,7 +1309,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=11';
+import { Net } from './js/net.js?v=14';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -8342,6 +8342,21 @@ function hexCss(c){return '#'+('000000'+c.toString(16)).slice(-6);}
 
 
 
+/* >>> CLAUDE [pvp-fx] efeito das skills dos OUTROS jogadores (o servidor avisa 'atk'; cada cliente refaz a explosao na posicao do atacante) */
+var REMOTEFX=false;
+function skillFxRemoto(e,i,f){
+  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;
+  if(Math.hypot(e.x-S.px,e.z-S.pz)>45)return;
+  var n=(sk.hits||[1]).length;
+  for(var k=0;k<n;k++)(function(k){setTimeout(function(){
+    if(!e.rig||e.morto)return;
+    var o={px:S.px,pz:S.pz,face:S.face,shake:S.shake,anim:S.anim,wpn:WPN};
+    REMOTEFX=true;S.px=e.x;S.pz=e.z;S.face=f;WPN=e.arma;S.anim=null;
+    try{skillSwingFx({skill:sk,part:k+1,parts:n});}catch(_){}
+    finally{REMOTEFX=false;S.px=o.px;S.pz=o.pz;S.face=o.face;S.shake=o.shake;S.anim=o.anim;WPN=o.wpn;}
+  },350+k*260);})(k);
+}
+/* <<< CLAUDE [pvp-fx] */
 function skillSwingFx(an){
 
 
@@ -8358,7 +8373,7 @@ function skillSwingFx(an){
 
 
 
-  SFX.skill(an.skill.pose,'swing');try{Voz.tocar('skill');}catch(_){}
+  SFX.skill(an.skill.pose,'swing');if(!REMOTEFX)try{Voz.tocar('skill');}catch(_){}
 
 
 
@@ -17634,7 +17649,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},fxSkill:skillFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);

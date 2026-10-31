@@ -2219,3 +2219,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Causa: o portal "Duelo com Baium" da cidade abre `arena.html?mode=duel`, que nunca chamava `startBaiumDirectFight` (o ajuste anterior só valia pelo botão dentro do santuário). Agora `?mode=duel` espera o jogo carregar e chama a função, que leva ao salão circular do 3º andar (instância solo).
 - Anel dourado do Arremesso do Escudo (`miraAnel`) não é mais desenhado; a mira por ponto (2 a 10 m) continua valendo.
 - Testado: `arena.html?mode=duel` → andar 3, Baium visível, sem pilares do santuário, sem erros. Backup `arena_antes_duelo_modo.html`.
+
+### [Claude] 31/10/2026 - Convite de grupo/duelo com botões na tela; skills do outro jogador também na cidade
+- Convite de grupo/duelo antes só aparecia como aviso rápido e se aceitava com a tecla U (celular não tem). Agora um cartão no topo mostra quem convidou, a contagem de expiração e os botões ACEITAR / RECUSAR (`#netPed`, `js/net.js` v14). Aparece no instante em que o convite chega e tem relógio de reserva (500 ms) para abas em segundo plano; só o número da contagem é atualizado (o cartão não se redesenha, para não perder o clique).
+- Skills do outro jogador: o efeito (`skillFxRemoto`) só existia na arena; agora também na cidade (`cidade.html`), onde acontece o duelo.
+- Testado (local, 2 contas na cidade): convite chega com botões; aceitar forma o grupo e a vida dos dois aparece no canto; a skill de um explode na tela do outro. Backups `js/net_antes_pedido.js`, `cidade_antes_fxremoto.html`.
