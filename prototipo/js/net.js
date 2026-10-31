@@ -146,7 +146,7 @@ export const Net = (function(){
   /* ---------- MENU (tecla P ou botao): so CSS, sem nenhuma imagem. O que funciona fica em destaque; o resto aparece apagado ("em breve") ---------- */
   var pedEl = null, alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
   var ITENS = [{ k: 'duelo', nome: 'Duelo', ativo: true, dica: 'Desafie um jogador por perto' }, { k: 'grupo', nome: 'Grupo', ativo: true, dica: 'Party de até 6 jogadores' },
-    { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'guilda', nome: 'Guilda', ativo: false },
+    { k: 'canal', nome: 'Canal', ativo: true, dica: 'Escolha em qual canal jogar' }, { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'guilda', nome: 'Guilda', ativo: false },
     { k: 'msg', nome: 'Mensagem', ativo: false }, { k: 'rank', nome: 'Ranking', ativo: false }];
   function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function bonito(r){ return String(r || '').replace(/_/g, ' '); }
@@ -196,8 +196,10 @@ export const Net = (function(){
     anelAlvo = new THREE.Mesh(new THREE.RingGeometry(.85, 1.0, 40), new THREE.MeshBasicMaterial({ color: 0xf5c451, transparent: true, opacity: .85, side: THREE.DoubleSide, depthTest: false })); anelAlvo.rotation.x = -Math.PI / 2; anelAlvo.renderOrder = 998; anelAlvo.visible = false; ctx.scene.add(anelAlvo);
     menuEl.addEventListener('click', function(e){
       var el = e.target.closest ? e.target.closest('[data-a]') : null; if(!el || el.disabled) return; var a = el.getAttribute('data-a'), v = el.getAttribute('data-v');
-      if(a === 'aba'){ var it = ITENS.filter(function(i){ return i.k === v; })[0]; if(it && it.ativo) aba = v; else ctx.sysMsg((it ? it.nome : 'Isso') + ': em breve'); }
+      if(a === 'aba'){ var it = ITENS.filter(function(i){ return i.k === v; })[0]; if(it && it.ativo){ aba = v; if(v === 'canal') carregaCanais(); } else ctx.sysMsg((it ? it.nome : 'Isso') + ': em breve'); }
       else if(a === 'fechar') alterna(false);
+      else if(a === 'canal'){ preferirCanal(N.mapa, +v | 0); N.entrar(N.mapa, +v | 0); alterna(false); ctx.sysMsg('Entrando no canal ' + v + '...'); }
+      else if(a === 'canalauto'){ preferirCanal(N.mapa, 0); N.entrar(N.mapa, 0); alterna(false); }
       else if(a === 'duelar') send({ t: 'duel', to: +v | 0 });
       else if(a === 'convidar') send({ t: 'pinvite', to: +v | 0 });
       else if(a === 'expulsar') send({ t: 'pkick', to: +v | 0 });
@@ -233,6 +235,13 @@ export const Net = (function(){
       if(N.mapa !== 'cidade') h += '<p>Duelo só na cidade. Aqui a arena é livre: todos contra todos.</p>';
       else if(N.duelo) h += '<p>Em duelo com <b>' + esc(N.duelo.nome) + '</b>. <kbd>H</kbd> desiste.</p>';
       else { var L = perto(40); if(!L.length) h += '<p>Ninguém por perto (até 40 m).</p>'; L.forEach(function(o){ h += '<div class="r"><span class="n">' + esc(o.e.nome) + ' <small>' + esc(bonito(o.e.raca)) + ' · ' + Math.round(o.d) + ' m</small></span><button data-a="duelar" data-v="' + o.e.id + '"' + (o.d > 20 ? ' disabled title="Chegue a 20 m"' : '') + '>Desafiar</button></div>'; }); h += '<p>O duelo não mata: quem chega a 1 de vida perde. Vida cheia ao fim.</p>'; }
+    } else if(aba === 'canal'){
+      h += '<h4>CANAL</h4><p>Automático: você entra no primeiro canal com vaga e, quando enche (' + (N.mapa === 'pvp' ? 'sem limite no PvP' : '50 jogadores') + '), os próximos vão para o canal seguinte. Para jogar com um amigo, escolham o <b>mesmo canal</b> abaixo.</p>';
+      if(N.mapa === 'masmorra') h += '<p>A masmorra é uma instância só sua; o canal vale na cidade e no PvP.</p>';
+      else { var cs = (N.canais || []).filter(function(c){ return c.mapa === N.mapa; }), n = Math.max(cs.length, N.canal || 1, 3);
+        for(var i = 1; i <= Math.min(10, n + 1); i++){ var c = cs.filter(function(x){ return x.n === i; })[0], q = c ? c.jogadores : 0, atual = i === N.canal;
+          h += '<div class="r"><span class="n">Canal ' + i + (atual ? ' <small>(você está aqui)</small>' : '') + ' <small>' + q + (N.mapa === 'pvp' ? '' : '/50') + ' jogadores</small></span><button data-a="canal" data-v="' + i + '"' + (atual ? ' disabled' : '') + '>ENTRAR</button></div>'; }
+        h += '<button class="bt" data-a="canalauto" style="margin-top:6px">AUTOMÁTICO</button>'; }
     } else if(aba === 'grupo'){
       h += '<h4>GRUPO</h4>'; if(pedGrupo && Date.now() < pedGrupo.ate) h += linhaPed('grupo', pedGrupo);
       var g = N.grupo, souLider = g && g.lider === N.sid;
@@ -327,7 +336,13 @@ export const Net = (function(){
       else if(k === 'h' && N.duelo) send({ t: 'dueldesiste' });
     });
   };
-  N.entrar = function(mapa, canal){ if(!ctx || desligado) return; N.sair(); N.mapaAlvo = mapa; N.canalAlvo = canal | 0; conectar(); };
+  function preferirCanal(mapa, n){ try { if(n) localStorage.setItem('isblade.canal.' + mapa, String(n)); else localStorage.removeItem('isblade.canal.' + mapa); } catch(e){} }
+  function canalPreferido(mapa){ try { return +localStorage.getItem('isblade.canal.' + mapa) | 0; } catch(e){ return 0; } }
+  function carregaCanais(){
+    var u = urlServidor().replace(/^wss:/, 'https:').replace(/^ws:/, 'http:').replace(/\/ws$/, '/status');
+    fetch(u, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(d){ N.canais = d.canais || []; if(menuAberto && aba === 'canal') renderMenu(); }).catch(function(){});
+  }
+  N.entrar = function(mapa, canal){ if(!ctx || desligado) return; N.sair(); N.mapaAlvo = mapa; N.canalAlvo = (canal | 0) || (mapa === 'masmorra' ? 0 : canalPreferido(mapa)); conectar(); };
   N.sair = function(){ if(ws){ var s = ws; ws = null; try { s.close(); } catch(e){} } N.on = false; N.grupo = null; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; atualizaHud(); renderParty(); };
   N.tick = function(dt){
     if(!ctx || !N.on) return; tEnv += dt; tHud += dt;

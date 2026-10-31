@@ -47,6 +47,7 @@ let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [] };           
 function canalLivre(mapa, pedido){
   const L = canais[mapa];
   const cap = mapa === 'pvp' ? CAP_PVP : (mapa === 'masmorra' ? 1 : CAP);
+  if(mapa !== 'masmorra' && pedido > 0 && pedido <= 10) while(L.length < pedido) L.push({ mapa, n: L.length + 1, jog: new Map() });      /* canal escolhido pelo jogador (ate 10): cria se ainda nao existe */
   if(pedido && L[pedido - 1] && L[pedido - 1].jog.size < cap) return L[pedido - 1];
   for(const c of L) if(c.jog.size < cap) return c;
   const c = { mapa, n: L.length + 1, jog: new Map() }; L.push(c); return c;
