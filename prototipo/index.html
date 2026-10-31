@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>IS BLADE — RPG de ação no navegador</title>
-<meta name="description" content="IS BLADE: RPG de ação 3D que roda no navegador, com duelos, grupos e arena PvP em tempo real. Versão de teste.">
-<meta name="theme-color" content="#08070a">
+<title>IS BLADE — o único L2 hack and slash</title>
+<meta name="description" content="IS BLADE, da IS Labs: o único L2 hack and slash. Ação em tempo real, dungeons, o Baium e PvP, direto no navegador, no PC ou no celular.">
+<meta name="theme-color" content="#06070d">
 <link rel="icon" href="icons/icon-192.png">
 <!-- >>> CLAUDE [pwa] 2026-10-28 -->
   <link rel="manifest" href="manifest.json">
@@ -15,84 +15,30 @@
   <!-- <<< CLAUDE [pwa] -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Sora:wght@200;300;400;600;800&display=swap">
-<style>
-  :root{--void:#08070a;--void-2:#0d0b10;--card:#100d13;--edge:#221d17;--gold:#d9a441;--gold-dim:#8a6d2f;--gold-glow:rgba(217,164,65,.16);--ink:#f4eee2;--ink-2:#9b9484;--ink-3:#6b6558;--chama:#3d8fd6;--claro:#bfe6ff;--brilho:rgba(61,143,214,.45)}
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{min-height:100%}
-  body{background:var(--void);color:var(--ink);font-family:'Sora',system-ui,sans-serif;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;
-    background-image:radial-gradient(ellipse 70% 55% at 50% 18%,rgba(61,143,214,.20),transparent 70%),radial-gradient(ellipse 50% 40% at 85% 90%,rgba(217,164,65,.10),transparent 70%);background-attachment:fixed}
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 clamp(16px,4vw,32px)}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
-  header img{height:34px;width:34px;display:block;border-radius:8px}
-  .marca{display:flex;align-items:center;gap:10px;font:700 13px 'Sora',sans-serif;letter-spacing:.22em;color:var(--ink)}
-  header .voltar{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-  .hero{text-align:center;padding:clamp(40px,9vh,96px) 0 clamp(28px,6vh,56px)}
-  .tag{display:inline-block;padding:5px 14px;border:1px solid var(--gold-dim);border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);background:var(--gold-glow)}
-  h1{font-family:'Cinzel Decorative',serif;font-weight:900;font-size:clamp(46px,11vw,112px);line-height:1;letter-spacing:.04em;margin:22px 0 14px;
-    background:linear-gradient(180deg,#fff 0%,var(--claro) 38%,var(--chama) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 28px var(--brilho))}
-  .sub{max-width:620px;margin:0 auto;font-size:clamp(15px,2.2vw,18px);color:var(--ink-2);font-weight:300}
-  .sub b{color:var(--ink);font-weight:600}
-  .start{display:inline-flex;align-items:center;gap:12px;margin-top:38px;padding:18px 54px;border-radius:6px;border:1px solid var(--gold);background:linear-gradient(180deg,#e7b957,#c48d2c);color:#1b1306;font:800 18px 'Sora',sans-serif;letter-spacing:.28em;text-transform:uppercase;
-    box-shadow:0 0 0 0 var(--gold-glow),0 10px 40px rgba(217,164,65,.28);transition:transform .15s,box-shadow .2s}
-  .start:hover{transform:translateY(-2px);box-shadow:0 0 0 6px var(--gold-glow),0 14px 50px rgba(217,164,65,.4)}
-  .start:active{transform:translateY(0)}
-  .start svg{width:18px;height:18px;fill:currentColor}
-  .status{display:inline-flex;align-items:center;gap:9px;margin-top:22px;padding:7px 16px;border-radius:999px;background:var(--card);border:1px solid var(--edge);font-size:12.5px;color:var(--ink-2)}
-  .status i{width:8px;height:8px;border-radius:50%;background:var(--ink-3);box-shadow:0 0 0 0 transparent}
-  .status.on i{background:#4cd964;box-shadow:0 0 10px #4cd964}
-  .status.off i{background:#d1583c}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:clamp(8px,3vh,28px) 0 40px}
-  .card{background:linear-gradient(180deg,var(--card),var(--void-2));border:1px solid var(--edge);border-radius:10px;padding:24px 22px;transition:border-color .25s,transform .25s}
-  .card:hover{border-color:var(--gold-dim);transform:translateY(-3px)}
-  .card h3{font-family:'Cinzel Decorative',serif;font-size:16px;font-weight:700;letter-spacing:.08em;color:var(--gold);margin-bottom:8px}
-  .card p{font-size:14px;color:var(--ink-2)}
-  .info{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 28px;padding:22px 24px;border:1px solid var(--edge);border-radius:10px;background:rgba(16,13,19,.6);margin-bottom:40px}
-  .info div{font-size:13.5px;color:var(--ink-2)}
-  .info b{display:block;color:var(--ink);font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px}
-  footer{padding:20px 0 40px;text-align:center;font-size:12px;color:var(--ink-3);letter-spacing:.06em}
-  footer a{color:var(--ink-2);border-bottom:1px solid var(--edge)}
-  @media (max-width:560px){.start{padding:16px 38px;letter-spacing:.2em;font-size:16px}}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
+<link rel="stylesheet" href="css/portal.css?v=2">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <span class="marca"><img src="icons/icon-192.png" alt="IS BLADE"><b>IS BLADE</b></span>
-    <span class="voltar">isblade.tecx.pro</span>
-  </header>
-
-  <section class="hero">
-    <span class="tag">Versão de teste</span>
-    <h1>IS BLADE</h1>
-    <p class="sub">RPG de ação 3D que roda <b>direto no navegador</b>. Explore a Ilha de Talking, desafie jogadores em <b>duelos</b>, forme <b>grupos</b> e entre na <b>arena PvP</b> por times.</p>
-    <a class="start" id="start" href="selecao.html">
-      Start
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-    </a>
-    <div><span class="status" id="status"><i></i><span id="statusTxt">Verificando o servidor…</span></span></div>
-  </section>
-
-  <section class="grid">
-    <article class="card"><h3>Duelo e Grupo</h3><p>Abra o menu com <b>P</b>, desafie quem está perto para um duelo sem risco de morte ou convide amigos para o seu grupo.</p></article>
-    <article class="card"><h3>Arena PvP</h3><p>Guerra de dois times, sem fogo amigo. Quem está no mesmo grupo cai no mesmo time.</p></article>
-    <article class="card"><h3>Dungeon</h3><p>Salas com obstáculos e chefe, em três dificuldades. O portal central deixa você escolher entre a dungeon e o PvP.</p></article>
-  </section>
-
-  <section class="info">
-    <div><b>Primeira vez</b>O jogo baixa uns 200 MB e guarda no aparelho. Nas próximas vezes abre bem mais rápido.</div>
-    <div><b>PC e celular</b>Funciona nos dois. No celular, use a tela na horizontal e instale como app pelo menu do navegador.</div>
-    <div><b>Em teste</b>É uma versão inicial: pode ter falhas, e o progresso ainda não é salvo entre sessões.</div>
-  </section>
-
-  <footer>TECX · isblade.tecx.pro · versão de teste</footer>
-</div>
+<main class="centro">
+  <img class="logo" src="icons/is-labs.png" alt="IS Labs">
+  <span class="selo">IS Labs apresenta</span>
+  <h1>IS BLADE</h1>
+  <p class="frase">O único L2 hack and slash</p>
+  <p class="sub">Ação em tempo real com a alma do <b>Lineage 2</b>: esquive, bloqueie e encadeie skills contra hordas, atravesse a <b>Torre do Baium</b> e enfrente o chefe. Tudo <b>direto no navegador</b>, no PC ou no celular.</p>
+  <div class="chips">
+    <span class="chip"><b>Hack and slash</b> em tempo real</span>
+    <span class="chip"><b>Dungeons</b> com tempo e chefe</span>
+    <span class="chip"><b>PvP</b> e duelos online</span>
+  </div>
+  <a class="btn m" id="jogar" href="login.html">Jogar <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></a>
+  <div><span class="status" id="status"><i></i><span id="statusTxt">Verificando o servidor…</span></span></div>
+  <p class="rodape">IS Labs · isblade.tecx.pro · versão de teste</p>
+</main>
 <script>
-  /* Mostra se o servidor de jogo esta no ar (o jogo continua jogavel sozinho se estiver fora). Troque a URL se o servidor mudar de endereco; o endereco guardado em ?srv= tem prioridade. */
+  /* Quem ja entrou na conta vai direto ao painel; os outros passam pelo login. */
   (function(){
+    try { if(localStorage.getItem('isblade.conta_token')) document.getElementById('jogar').setAttribute('href', 'painel.html'); } catch(e){}
     var URL_STATUS = 'https://play.isblade.tecx.pro/status', el = document.getElementById('status'), tx = document.getElementById('statusTxt');
-    try { var sv = localStorage.getItem('isblade.srv'); if(sv){ URL_STATUS = sv.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:').replace(/\/ws$/, '/status'); } } catch(e){}
+    try { var sv = localStorage.getItem('isblade.srv'); if(sv) URL_STATUS = sv.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:').replace(/\/ws$/, '/status'); } catch(e){}
     var ctl = ('AbortController' in window) ? new AbortController() : null, t = setTimeout(function(){ if(ctl) ctl.abort(); }, 5000);
     fetch(URL_STATUS, ctl ? { signal: ctl.signal, cache: 'no-store' } : { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(d){
       clearTimeout(t); var n = (d.canais || []).reduce(function(a, c){ return a + (c.jogadores || 0); }, 0);

@@ -2,7 +2,7 @@
   "name": "IS BLADE",
   "short_name": "IS BLADE",
   "description": "RPG de acao no navegador (nome provisorio).",
-  "start_url": "./selecao.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],

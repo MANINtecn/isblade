@@ -28,7 +28,7 @@
 
   /* ---- pedidos ---- */
   function pedeSync(metodo, caminho, corpo, tokenFixo){
-    var x = new XMLHttpRequest(); x.open(metodo, base() + caminho, false); x.timeout = 4000;
+    var x = new XMLHttpRequest(); x.open(metodo, base() + caminho, false);      /* sincrono: sem timeout (so usado ao sair da conta) */
     try {
       x.setRequestHeader('content-type', 'application/json'); var t = tokenFixo || g(TOK); if(t) x.setRequestHeader('authorization', 'Bearer ' + t);
       x.send(corpo ? JSON.stringify(corpo) : null);
@@ -43,15 +43,23 @@
   }
 
   /* ---- sincronizacao ---- */
-  function puxar(){                                               /* chamada na selecao, antes de a pagina ler os personagens */
-    if(!logado()) return;
-    var r = pedeSync('GET', '/api/dados');
-    if(r.cod === 401){ remI(TOK); remI(USR); return; }
-    if(r.cod !== 200 || !r.j) return;                             /* servidor fora do ar: segue com o que ha no aparelho */
-    var remoto = r.j.chaves || {}, temRemoto = Object.keys(remoto).length > 0, rev = +g(REV) || 0;
-    if(!temRemoto){ if(Object.keys(chavesLocais()).length) s(SUJO, '1'); return; }          /* conta nova: o que existe aqui sobe para a conta */
-    if(g(SUJO) === '1' && r.j.rev <= rev) return;                  /* mudancas deste aparelho ainda nao enviadas */
-    if(r.j.rev !== rev || !Object.keys(chavesLocais()).length) aplica(remoto, r.j.rev);
+  function puxar(){                                               /* traz os dados da conta (painel/carregamento); devolve uma Promise que sempre resolve */
+    return new Promise(function(ok){
+      if(!logado()) return ok();
+      var ctl = ('AbortController' in window) ? new AbortController() : null, t = setTimeout(function(){ if(ctl) ctl.abort(); ok(); }, 5000), t0 = g(TOK);
+      fetch(base() + '/api/dados', { headers: { authorization: 'Bearer ' + t0 }, cache: 'no-store', signal: ctl ? ctl.signal : undefined }).then(function(r){
+        return r.json().then(function(j){ return { cod: r.status, j: j }; });
+      }).then(function(r){
+        clearTimeout(t);
+        if(r.cod === 401){ remI(TOK); remI(USR); return ok(); }
+        if(r.cod !== 200 || !r.j) return ok();
+        var remoto = r.j.chaves || {}, temRemoto = Object.keys(remoto).length > 0, rev = +g(REV) || 0;
+        if(!temRemoto){ if(Object.keys(chavesLocais()).length) s(SUJO, '1'); return ok(); }                 /* conta nova: o que existe aqui sobe para a conta */
+        if(g(SUJO) === '1' && r.j.rev <= rev) return ok();                                                    /* mudancas deste aparelho ainda nao enviadas */
+        if(r.j.rev !== rev || !Object.keys(chavesLocais()).length) aplica(remoto, r.j.rev);
+        ok();
+      }).catch(function(){ clearTimeout(t); ok(); });                                                          /* servidor fora do ar: segue com o que ha no aparelho */
+    });
   }
   function enviar(keep){
     if(!logado() || enviando || g(SUJO) !== '1') return; enviando = true;
@@ -80,18 +88,19 @@
     '#cnt .bt{display:flex;gap:10px;margin-top:16px}#cnt button.b{flex:1;padding:13px 8px;font-size:15px;font-weight:700;border-radius:8px;cursor:pointer;border:1px solid #6b5a2b}' +
     '#cnt .p{background:linear-gradient(#f5c451,#c8932a);color:#1a1205}#cnt .s{background:#12203c;color:#f5c451}' +
     '#cnt .er{min-height:18px;margin-top:10px;font-size:13px;color:#ff8a8a;text-align:center}#cnt .cv{display:block;margin:14px auto 0;background:none;border:0;color:#8aa0cc;font-size:13px;text-decoration:underline;cursor:pointer}' +
+    '#cnt.cnt-inline{position:static;z-index:auto;background:none;padding:0;display:block}#cnt.cnt-inline .cx{margin:0 auto}' +
     '#cntchip{position:fixed;left:10px;bottom:10px;z-index:9000;padding:6px 10px;font:600 12px system-ui,sans-serif;color:#cfe0ff;background:rgba(5,10,24,.85);border:1px solid #2b3a63;border-radius:999px;cursor:pointer}';
   function el(h){ var d = document.createElement('div'); d.innerHTML = h; return d.firstChild; }
   function estilo(){ if(document.getElementById('cntcss')) return; var st = document.createElement('style'); st.id = 'cntcss'; st.textContent = CSS; document.head.appendChild(st); }
 
-  function telaLogin(){
-    estilo();
+  function telaLogin(opt){
+    opt = opt || {}; estilo();
     var o = el('<div id="cnt"><div class="cx"><h2>IS BLADE</h2><p>Crie sua conta em 10 segundos: só usuário e senha.</p>' +
       '<label>Usuário</label><input id="cu" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="16" placeholder="ex.: guerreiro_01">' +
       '<label>Senha</label><div class="ln"><input id="cs" type="password" autocomplete="current-password" maxlength="64" placeholder="mínimo 6 caracteres"><button type="button" class="ver" id="cv">ver</button></div>' +
       '<div class="er" id="ce"></div><div class="bt"><button class="b s" id="cen" type="button">Entrar</button><button class="b p" id="ccr" type="button">Criar conta</button></div>' +
       '<button class="cv" id="ccv" type="button">Jogar sem conta (salva só neste aparelho)</button></div></div>');
-    document.body.appendChild(o);
+    if(opt.host){ o.className = 'cnt-inline'; opt.host.appendChild(o); } else document.body.appendChild(o);
     var u = o.querySelector('#cu'), p = o.querySelector('#cs'), e = o.querySelector('#ce'), ocupado = false;
     o.querySelector('#cv').onclick = function(){ p.type = p.type === 'password' ? 'text' : 'password'; this.textContent = p.type === 'password' ? 'ver' : 'ocultar'; };
     function vai(acao){
@@ -107,7 +116,7 @@
           var ch = j.chaves || {};
           if(Object.keys(ch).length) aplica(ch, j.rev); else { s(REV, String(j.rev || 0)); if(Object.keys(chavesLocais()).length) s(SUJO, '1'); }
           if(g(SUJO) === '1') enviar(false);
-          location.reload();
+          if(opt.depois) location.href = opt.depois; else location.reload();
         } else { e.style.color = '#ff8a8a'; e.textContent = (j && j.erro) || 'Não consegui falar com o servidor. Tente de novo.'; }
       };
       t.onerror = t.ontimeout = function(){ ocupado = false; e.style.color = '#ff8a8a'; e.textContent = 'Servidor fora do ar no momento. Você pode jogar sem conta e entrar depois.'; };
@@ -115,7 +124,7 @@
     }
     o.querySelector('#cen').onclick = function(){ vai('entrar'); }; o.querySelector('#ccr').onclick = function(){ vai('criar'); };
     p.addEventListener('keydown', function(ev){ if(ev.key === 'Enter') vai('entrar'); });
-    o.querySelector('#ccv').onclick = function(){ s(CONV, '1'); o.remove(); chip(); };
+    o.querySelector('#ccv').onclick = function(){ s(CONV, '1'); if(opt.convidado) location.href = opt.convidado; else { o.remove(); chip(); } };
     setTimeout(function(){ try { u.focus(); } catch(x){} }, 50);
   }
   function chip(){
@@ -135,7 +144,8 @@
 
   window.Conta = {
     logado: logado, usuario: function(){ return g(USR); }, sair: sair, enviar: enviar,
-    exigir: function(){ puxar(); quando(function(){ if(!logado() && g(CONV) !== '1') telaLogin(); else chip(); }); },
+    exigir: function(){ if(!logado() && g(CONV) !== '1'){ location.replace('login.html'); return; } quando(chip); },
+    telaLogin: telaLogin, convidado: function(){ return g(CONV) === '1'; }, puxar: puxar,
     chip: function(){ quando(chip); }
   };
 })();
