@@ -1,0 +1,564 @@
+{
+ "MHFighter": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "FHFighter": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "MHMagician": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "FHMagician": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "MElf": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "FElf": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "MOFighter": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "FOFighter": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "MDwarf": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "FDwarf": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "MDElf": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ },
+ "FDElf": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg",
+   "atk_8.ogg",
+   "atk_9.ogg",
+   "atk_10.ogg",
+   "atk_11.ogg",
+   "atk_12.ogg",
+   "atk_13.ogg",
+   "atk_14.ogg",
+   "atk_15.ogg",
+   "atk_16.ogg",
+   "atk_17.ogg"
+  ],
+  "skill": [
+   "skill_1.ogg",
+   "skill_2.ogg",
+   "skill_3.ogg",
+   "skill_4.ogg",
+   "skill_5.ogg",
+   "skill_6.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "breath": [
+   "breath_1.ogg",
+   "breath_2.ogg"
+  ],
+  "victory": [
+   "victory_1.ogg"
+  ],
+  "greeting": [
+   "greeting_1.ogg"
+  ]
+ }
+}

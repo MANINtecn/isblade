@@ -441,6 +441,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/conta.js?v=3"></script><script>Conta.fluxo();</script>
 <script src="js/mobile.js?v=1"></script>
 <script src="js/qualidade.js?v=1"></script>
+<script src="js/voz.js?v=1"></script>
 </head>
 
 <body>
@@ -1168,6 +1169,7 @@ var SFX=(function(){
 })();
 
 window.SFX = SFX;
+(function(){var l=SFX.levelup;if(l)SFX.levelup=function(){try{Voz.tocar('victory');}catch(_){}return l.apply(this,arguments);};})();/* [voz] vitoria/nivel */
 
 
 
@@ -3573,7 +3575,7 @@ function skillSwingFx(an){
 
   spark(S.px, 1.4, S.pz, 2.0, 0xcfe6ff, 0.25);
 
-  SFX.skill(an.skill.pose,'swing');
+  SFX.skill(an.skill.pose,'swing');try{Voz.tocar('skill');}catch(_){}
 
   var sk=an.skill,f=fwd(S.face),px=S.px,pz=S.pz,col=parseInt(sk.css.slice(1),16),last=!an.part||an.part===an.parts;
 
@@ -3898,7 +3900,7 @@ if(S.dead&&!MOBS.length)return;
 
     if(!an.skill){
 
-      SFX.play('swing');
+      SFX.play('swing');try{Voz.tocar('atk');}catch(_){}
 
       if(an.part&&an.part===an.parts){SFX.play('soulshot');spark(S.px,1.4,S.pz,1.8,0x8bc1ff,.25);}
 
@@ -4181,7 +4183,7 @@ function doRoll(){
 
   else{var ax=S.px-S.ex,az=S.pz-S.ez,l=Math.hypot(ax,az)||1;dx=ax/l;dz=az/l;}
 
-  SFX.play('roll');Net.rolou();
+  SFX.play('roll');try{Voz.tocar('breath');}catch(_){}Net.rolou();
 
   S.rollT=0;S.rfx=S.px;S.rfz=S.pz;S.rdx=dx;S.rdz=dz;S.face=Math.atan2(dx,dz);S.anim=null;
 
@@ -4516,7 +4518,7 @@ function spawnBaiumBolt(x,z){
 
             floatText('-'+dmg+' RAIO DE BAIUM','#ff4d6d',24,'p');
 
-            SFX.play('hurt');
+            SFX.play('hurt');try{Voz.tocar('dmg');}catch(_){}
 
           }
 
@@ -4742,7 +4744,7 @@ function hurtPlayer(d,soft,quiet){
 
   if(d>0)floatText('-'+d,'#ff4d6d',soft?18:24,'p');
 
-  SFX.play('hurt');hurtFlash();
+  SFX.play('hurt');try{Voz.tocar('dmg');}catch(_){}hurtFlash();
 
   if(!soft){
 
@@ -4756,7 +4758,7 @@ function hurtPlayer(d,soft,quiet){
 
   }
 
-  if(S.php<=0){S.pdead=true;S.pdT=0;SFX.play('playerDie');banner('VOCE CAIU','tente de novo','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});}
+  if(S.php<=0){S.pdead=true;S.pdT=0;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','tente de novo','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});}
 
   renderHud();
 
@@ -8583,7 +8585,7 @@ Net.init({
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);
     if(!b&&d>=6&&clipsOn()&&!S.anim&&!S.pdead)playClip(vrm,'hit_small',{once:true,speed:1.5,fade:.05,hold:.4});
-    if(S.php<=0&&!S.pdead){S.pdead=true;S.pdT=0;S.anim=null;S.buf=null;S.guard=false;SFX.play('playerDie');banner('VOCE CAIU','Reaparece em instantes...','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});}
+    if(S.php<=0&&!S.pdead){S.pdead=true;S.pdT=0;S.anim=null;S.buf=null;S.guard=false;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','Reaparece em instantes...','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});}
     renderHud();
   },
   meResp:function(x,z,ratio,keep){
