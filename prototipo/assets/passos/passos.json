@@ -1,0 +1,168 @@
+{
+ "carpet": {
+  "run": [
+   "carpet_run_1.ogg",
+   "carpet_run_2.ogg",
+   "carpet_run_3.ogg"
+  ],
+  "walk": [
+   "carpet_walk_1.ogg",
+   "carpet_walk_2.ogg",
+   "carpet_walk_3.ogg"
+  ]
+ },
+ "default": {
+  "run": [
+   "default_run_1.ogg",
+   "default_run_2.ogg",
+   "default_run_3.ogg"
+  ],
+  "walk": [
+   "default_walk_1.ogg",
+   "default_walk_2.ogg",
+   "default_walk_3.ogg"
+  ]
+ },
+ "dirt": {
+  "run": [
+   "dirt_run_1.ogg",
+   "dirt_run_2.ogg",
+   "dirt_run_3.ogg"
+  ],
+  "walk": [
+   "dirt_walk_1.ogg",
+   "dirt_walk_2.ogg",
+   "dirt_walk_3.ogg"
+  ]
+ },
+ "grass": {
+  "run": [
+   "grass_run_1.ogg",
+   "grass_run_2.ogg",
+   "grass_run_3.ogg"
+  ],
+  "walk": [
+   "grass_walk_1.ogg",
+   "grass_walk_2.ogg",
+   "grass_walk_3.ogg"
+  ]
+ },
+ "gravel": {
+  "run": [
+   "gravel_run_1.ogg",
+   "gravel_run_2.ogg",
+   "gravel_run_3.ogg"
+  ],
+  "walk": [
+   "gravel_walk_1.ogg",
+   "gravel_walk_2.ogg",
+   "gravel_walk_3.ogg"
+  ]
+ },
+ "ice": {
+  "run": [
+   "ice_run_1.ogg",
+   "ice_run_2.ogg",
+   "ice_run_3.ogg"
+  ],
+  "walk": [
+   "ice_walk_1.ogg",
+   "ice_walk_2.ogg",
+   "ice_walk_3.ogg"
+  ]
+ },
+ "marsh": {
+  "run": [
+   "marsh_run_1.ogg",
+   "marsh_run_2.ogg",
+   "marsh_run_3.ogg"
+  ],
+  "walk": [
+   "marsh_walk_1.ogg",
+   "marsh_walk_2.ogg",
+   "marsh_walk_3.ogg"
+  ]
+ },
+ "metal": {
+  "run": [
+   "metal_run_1.ogg",
+   "metal_run_2.ogg",
+   "metal_run_3.ogg"
+  ],
+  "walk": [
+   "metal_walk_1.ogg",
+   "metal_walk_2.ogg",
+   "metal_walk_3.ogg"
+  ]
+ },
+ "sand": {
+  "run": [
+   "sand_run_1.ogg",
+   "sand_run_2.ogg",
+   "sand_run_3.ogg"
+  ],
+  "walk": [
+   "sand_walk_1.ogg",
+   "sand_walk_2.ogg",
+   "sand_walk_3.ogg"
+  ]
+ },
+ "snow": {
+  "run": [
+   "snow_run_1.ogg",
+   "snow_run_2.ogg",
+   "snow_run_3.ogg"
+  ],
+  "walk": [
+   "snow_walk_1.ogg",
+   "snow_walk_2.ogg",
+   "snow_walk_3.ogg"
+  ]
+ },
+ "stone": {
+  "run": [
+   "stone_run_1.ogg",
+   "stone_run_2.ogg"
+  ],
+  "walk": [
+   "stone_walk_1.ogg",
+   "stone_walk_2.ogg"
+  ]
+ },
+ "stone_gritty": {
+  "run": [
+   "stone_gritty_run_1.ogg",
+   "stone_gritty_run_2.ogg",
+   "stone_gritty_run_3.ogg"
+  ],
+  "walk": [
+   "stone_gritty_walk_1.ogg",
+   "stone_gritty_walk_2.ogg",
+   "stone_gritty_walk_3.ogg"
+  ]
+ },
+ "stone_hard": {
+  "run": [
+   "stone_hard_run_1.ogg",
+   "stone_hard_run_2.ogg",
+   "stone_hard_run_3.ogg"
+  ],
+  "walk": [
+   "stone_hard_walk_1.ogg",
+   "stone_hard_walk_2.ogg",
+   "stone_hard_walk_3.ogg"
+  ]
+ },
+ "wood": {
+  "run": [
+   "wood_run_1.ogg",
+   "wood_run_2.ogg",
+   "wood_run_3.ogg"
+  ],
+  "walk": [
+   "wood_walk_1.ogg",
+   "wood_walk_2.ogg",
+   "wood_walk_3.ogg"
+  ]
+ }
+}

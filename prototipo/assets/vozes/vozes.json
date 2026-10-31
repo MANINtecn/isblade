@@ -44,6 +44,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "FHFighter": {
@@ -91,6 +98,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "MHMagician": {
@@ -138,6 +152,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "FHMagician": {
@@ -185,6 +206,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "MElf": {
@@ -232,6 +260,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "FElf": {
@@ -279,6 +314,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "MOFighter": {
@@ -326,6 +368,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "FOFighter": {
@@ -373,6 +422,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "MDwarf": {
@@ -420,6 +476,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "FDwarf": {
@@ -467,6 +530,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "MDElf": {
@@ -512,6 +582,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  },
  "FDElf": {
@@ -559,6 +636,13 @@
   ],
   "greeting": [
    "greeting_1.ogg"
+  ],
+  "cast": [
+   "cast_1.ogg",
+   "cast_2.ogg"
+  ],
+  "fail": [
+   "fail_1.ogg"
   ]
  }
 }

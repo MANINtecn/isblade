@@ -1,0 +1,126 @@
+{
+ "shade": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "caster": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg",
+   "death_2.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg",
+   "idle_3.ogg"
+  ]
+ },
+ "brute": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "mini_boss": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg"
+  ],
+  "windup": [],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg",
+   "dmg_4.ogg",
+   "dmg_5.ogg",
+   "dmg_6.ogg",
+   "dmg_7.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "baium": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [],
+  "dmg": [],
+  "death": [
+   "death_1.ogg",
+   "death_2.ogg",
+   "death_3.ogg",
+   "death_4.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg",
+   "idle_3.ogg",
+   "idle_4.ogg",
+   "idle_5.ogg"
+  ]
+ }
+}

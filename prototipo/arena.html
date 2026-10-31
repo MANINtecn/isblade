@@ -984,9 +984,9 @@ var SFX=(function(){
 
     /* GEMIDO CLÁSSICO DE DANO DO MU ONLINE ("Urh! Urh!") */
 
-    hurt:function(){return smp(MU.hurt,1.0,1.0) || smp(F.sH,.95,1,0,{lp:3500});},
+    hurt:function(){return smp(F.sH,.8,1,0,{lp:3500});},      /* a voz de dor agora e a do L2 da raca (js/voz.js); o MU (voz humana masculina) saiu */
 
-    playerDie:function(){return smp(MU.die,1.0,1.0);},
+    playerDie:function(){return smp(F.lfe,.55,1);},      /* o grito de morte e a voz da raca (js/voz.js) */
 
     levelup:function(){return smp(MU.levelup,1.0,1.0);},
 
@@ -1169,6 +1169,7 @@ var SFX=(function(){
 })();
 
 window.SFX = SFX;
+(function(){var pl=SFX.play;SFX.play=function(n){var ok=false;try{if(n==='bossWind')ok=Voz.mob('baium','windup',0);else if(n==='roar')ok=Voz.mob('baium','atk',0);else if(n==='bossStrike'||n==='slam'||n==='smash'||n==='sweep')Voz.mob('baium','atk',0);}catch(_){}if(ok)return;return pl.apply(this,arguments);};})();/* [voz] Baium com os sons do proprio Baium do L2 */
 (function(){var l=SFX.levelup;if(l)SFX.levelup=function(){try{Voz.tocar('victory');}catch(_){}return l.apply(this,arguments);};})();/* [voz] vitoria/nivel */
 
 
@@ -3854,7 +3855,7 @@ function castSkill(i){
 
   if(S.pdead)return 'no';
 
-  if(S.cd[i]>0)return 'no';
+  if(S.cd[i]>0){try{Voz.tocar('fail');}catch(_){}return 'no';}
 
   if(S.stun>0||S.rollT>=0)return 'busy';
 
@@ -4952,6 +4953,7 @@ function damageMob(m,dmg,an){
   spark(m.x,1.4*m.T.size,m.z,an.skill?3:2,0x8bc1ff,.3);burst(m.x,1.4*m.T.size,m.z,an.skill?18:8,0x8bc1ff,an.skill?3.5:2.2);
 
   if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else SFX.play('hit');
+  try{if(m.hp>0)Voz.mob(m.type,'dmg',Math.hypot(m.x-S.px,m.z-S.pz));}catch(_){}/* [voz] gemido do monstro (L2) */
 
   if(m.hp<=0)killMob(m);
 
@@ -4959,7 +4961,7 @@ function damageMob(m,dmg,an){
 
 function killMob(m){
 
-  SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(25+(m.T.hp>300?40:0));
+  if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(25+(m.T.hp>300?40:0));
 
   if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
 
@@ -5070,7 +5072,7 @@ function mobStrike(m){
 
   }
 
-  SFX.play(T.aoe?'slam':'bossStrike');
+  SFX.play(T.aoe?'slam':'bossStrike');try{Voz.mob(m.type,'atk',Math.hypot(m.x-S.px,m.z-S.pz));}catch(_){}
 
   if(T.aoe){groundRing(m.x,m.z,0xff6a4a,.8,T.range+.6,.4,.9);S.shake=Math.max(S.shake,.25);}
 
@@ -5107,6 +5109,7 @@ function updateMobs(dt){
       m.t+=dt;
 
       var dx=S.px-m.x,dz=S.pz-m.z,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(m.face),sp=m.spd;
+      if(m.state==='chase'&&d<26&&Math.random()<dt*.06)Voz.mob(m.type,'idle',d);/* [voz] rosnado de vez em quando */
 
       var ccOn=CC.tick(m,dt);if(m.stun>0||ccOn){if(m.stun>0)m.stun-=dt;}
 
@@ -5124,7 +5127,7 @@ function updateMobs(dt){
 
             else{var s=m.sdir*sp*.5*dt;m.x+=f[1]*s;m.z-=f[0]*s;}
 
-            if(m.t>=m.wait&&d<=T.range){m.state='windup';m.t=0;SFX.play('bossWind');}
+            if(m.t>=m.wait&&d<=T.range){m.state='windup';m.t=0;if(!Voz.mob(m.type,'windup',d))SFX.play('bossWind');}
 
           }else{
 
@@ -7601,6 +7604,7 @@ function frame2(dt,T){
   }
 
   if(!S.pdead)separate();
+  try{Voz.passo(dt,S.px,S.pz,{ar:((S.jy||0)>.12||(typeof Torre!=='undefined'&&Torre.on&&Torre.altura>.12)),rolando:S.rollT>=0,sup:(typeof Torre!=='undefined'&&Torre.on)?'stone_hard':'stone'});}catch(_){}/* [voz] passos */
   torreTick(dt);/* [torre-dg] */
 
   pivot.rotation.x=S.cur.th;
@@ -7739,7 +7743,7 @@ function frame2(dt,T){
 
       if(!boss._playedDeath){
 
-        boss._playedDeath=true;
+        boss._playedDeath=true;try{Voz.mob('baium','death',0);}catch(_){}
 
         playClip(boss,'death',{once:true,speed:1,fade:.1,hold:99});
 

@@ -11,6 +11,10 @@ SAIDA = os.path.join(RAIZ, 'assets', 'vozes')
 CONJUNTOS = ['MHFighter', 'FHFighter', 'MHMagician', 'FHMagician', 'MElf', 'FElf', 'MOFighter', 'FOFighter', 'MDwarf', 'FDwarf', 'MDElf', 'FDElf']
 EVENTOS = [('atk', r'(Preatk_\d|(1H|2H|Pole)_Atk_\d)'), ('skill', r'(1H|2H|Pole)_S_Atk_\d'), ('dmg', r'Dmg_\d'), ('death', r'Death'),
            ('breath', r'Breath_\d'), ('victory', r'Victory'), ('greeting', r'Greeting')]
+# sons de lancamento proprios de cada raca/genero (F_/M_<raca>_<tipo>): Shot/Throw = soltar a skill (~0,8 s), Notarget = "nao da" (sem alvo/indisponivel)
+FM = {'MHFighter': 'M_HFighter', 'FHFighter': 'F_HFighter', 'MHMagician': 'M_HMagician', 'FHMagician': 'F_HMagician', 'MElf': 'M_Elf', 'FElf': 'F_Elf',
+      'MOFighter': 'M_Orc_Fighter', 'FOFighter': 'F_Orc_Fighter', 'MDwarf': 'M_Dwarf', 'FDwarf': 'F_Dwarf', 'MDElf': 'M_DarkElf', 'FDElf': 'F_DarkElf'}
+EVENTOS_FM = [('cast', ['Shot', 'Throw']), ('fail', ['Notarget'])]
 import imageio_ffmpeg
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 
@@ -30,6 +34,14 @@ for cj in CONJUNTOS:
             nome = '%s_%d.ogg' % (ev, k)
             r = subprocess.run([FF, '-y', '-loglevel', 'error', '-i', os.path.join(pasta, arqs[n]), '-ac', '1', '-ar', '24000', '-c:a', 'libvorbis', '-q:a', '3', os.path.join(d, nome)])
             if r.returncode == 0: out.append(nome); total += 1
+        idx[cj][ev] = out
+    for ev, tipos in EVENTOS_FM:
+        out = []
+        for k, t in enumerate(tipos, 1):
+            fonte = os.path.join(pasta, '%s_%s.wav' % (FM[cj], t))
+            if not os.path.exists(fonte): continue
+            nome = '%s_%d.ogg' % (ev, k)
+            if subprocess.run([FF, '-y', '-loglevel', 'error', '-i', fonte, '-ac', '1', '-ar', '24000', '-c:a', 'libvorbis', '-q:a', '3', os.path.join(d, nome)]).returncode == 0: out.append(nome); total += 1
         idx[cj][ev] = out
     print(cj, {k: len(v) for k, v in idx[cj].items()})
 json.dump(idx, open(os.path.join(SAIDA, 'vozes.json'), 'w', encoding='utf-8'), indent=1)

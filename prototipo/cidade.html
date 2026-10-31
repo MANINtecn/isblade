@@ -1922,11 +1922,11 @@ var SFX=(function(){
 
 
 
-    hurt:function(){return smp(MU.hurt,1.0,1.0) || smp(F.sH,.95,1,0,{lp:3500});},
+    hurt:function(){return smp(F.sH,.8,1,0,{lp:3500});},      /* a voz de dor agora e a do L2 da raca (js/voz.js); o MU (voz humana masculina) saiu */
 
 
 
-    playerDie:function(){return smp(MU.die,1.0,1.0);},
+    playerDie:function(){return smp(F.lfe,.55,1);},      /* o grito de morte e a voz da raca (js/voz.js) */
 
 
 
@@ -15668,6 +15668,7 @@ function frame2(dt,T){
 
 
   if(!S.pdead)separate();
+  try{Voz.passo(dt,S.px,S.pz,{ar:((S.jy||0)>.12||(typeof Torre!=='undefined'&&Torre.on&&Torre.altura>.12)),rolando:S.rollT>=0,sup:(Math.hypot(S.px,S.pz)<22?'stone':(Math.hypot(S.px,S.pz)>80?'grass':'dirt'))});}catch(_){}/* [voz] passos */
 
 
 
