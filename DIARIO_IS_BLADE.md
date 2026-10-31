@@ -2129,3 +2129,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Testado (Chrome): o conjunto certo é escolhido por tipo (orc_f → FOFighter, darkelf_m → MDElf, human_fighter → MHFighter), 3 golpes e 2 skills no duelo chamaram a voz do personagem, sem erros. NÃO ouvido por uma pessoa (só verificado que o áudio é decodificado e tocado) e não testado no celular.
 - Fora desta rodada (existem no pacote): passos por tipo de chão (`Stone_Hard_*`, `Dirt_*`, `Grass_*`, `Wood_*`, `Water_*`), sons de mobs (`monsound*.uax`), sentar/levantar, risadas e emotes. Pendente decidir se entram.
 
+### [Claude] 31/10/2026 - Service worker só para assets pesados (o site nunca mais fica preso numa versão antiga)
+- Pedido do dono: o cache persistente deve valer só para os assets e coisas pesadas do jogo, não para o site. Causa do problema anterior: o `sw.js` guardava as PÁGINAS (rede-primeiro com cópia de reserva) e, sem DNS, o navegador mostrava a cópia antiga.
+- `prototipo/sw.js` reescrito (backup `sw_antes_soassets.js`): só intercepta arquivos pesados (glb, vrm, png/jpg, ogg/wav/mp3, bin, fontes...), cache-primeiro, chave pela URL completa com `?v=N`; HTML, JS, CSS e JSON não passam pelo service worker (vão direto à rede e ao cache HTTP normal). Sem pré-cache de páginas. Ao ativar, apaga os caches `is-*` antigos (código/páginas), mantém `is-assets-v1` (os ~66 MB já baixados não se perdem) e recarrega as abas abertas uma vez.
+- Consequência: sem internet o site NÃO abre mais pelo cache (não era um objetivo; o jogo é online). Não testado em aparelho com o service worker antigo instalado; testar: abrir o site uma vez com internet para o novo service worker assumir.
+
