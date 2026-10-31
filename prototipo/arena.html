@@ -1169,6 +1169,24 @@ var SFX=(function(){
 })();
 
 window.SFX = SFX;
+/* >>> CLAUDE [perf] qualidade da arena/torre (celular): sem luzes de ponto/holofote e materiais Lambert (como na cidade); roda a cada 4 s porque portais e modelos nascem depois */
+function aplicaQualidadeArena(){
+  if(QUAL.nivel==='alta'||typeof scene==='undefined')return;
+  scene.traverse(function(o){
+    if(o.isLight&&(o.isPointLight||o.isSpotLight)&&o!==boltFlashLight)o.visible=false;
+    if(QUAL.nivel==='baixa'&&o.isMesh&&o.material&&!o.isSkinnedMesh){
+      var ms=Array.isArray(o.material)?o.material:[o.material];
+      ms.forEach(function(mt,i){
+        if(!mt.isMeshStandardMaterial||mt.userData.lamb)return;
+        var L=new THREE.MeshLambertMaterial({map:mt.map,color:mt.color,side:mt.side,transparent:mt.transparent,opacity:mt.opacity,alphaTest:mt.alphaTest,depthWrite:mt.depthWrite,emissive:mt.emissive,emissiveMap:mt.emissiveMap,emissiveIntensity:mt.emissiveIntensity,fog:mt.fog,vertexColors:mt.vertexColors});
+        L.userData.lamb=1;if(Array.isArray(o.material))o.material[i]=L;else o.material=L;
+      });
+    }
+  });
+  if(QUAL.nivel==='baixa'&&camera.far>500){camera.far=450;camera.updateProjectionMatrix();}
+}
+setInterval(aplicaQualidadeArena,4000);
+/* <<< CLAUDE [perf] */
 (function(){var pl=SFX.play;SFX.play=function(n){var ok=false;try{if(n==='bossWind')ok=Voz.mob('baium','windup',0);else if(n==='roar')ok=Voz.mob('baium','atk',0);else if(n==='bossStrike'||n==='slam'||n==='smash'||n==='sweep')Voz.mob('baium','atk',0);}catch(_){}if(ok)return;return pl.apply(this,arguments);};})();/* [voz] Baium com os sons do proprio Baium do L2 */
 (function(){var l=SFX.levelup;if(l)SFX.levelup=function(){try{Voz.tocar('victory');}catch(_){}return l.apply(this,arguments);};})();/* [voz] vitoria/nivel */
 
@@ -3853,9 +3871,8 @@ function pontoMira(sk){
     if(NAV.mode==='dn'&&S.aimT&&!S.dead&&BOSS_ON){ax=S.ex;az=S.ez;}
     else if(NAV.mode==='dn'&&S.aimM&&!S.aimM.dead){ax=S.aimM.x;az=S.aimM.z;}
     else if(MOUSE.g){ax=MOUSE.g.x;az=MOUSE.g.z;}
-  }else{
-    var best=1e9;MOBS.forEach(function(m){if(m.dead)return;var dd=Math.hypot(m.x-S.px,m.z-S.pz);if(dd<best&&dd<=mx+2){best=dd;ax=m.x;az=m.z;}});
-    if(BOSS_ON&&!S.dead){var db=Math.hypot(S.ex-S.px,S.ez-S.pz);if(db<best&&db<=mx+4){best=db;ax=S.ex;az=S.ez;}}
+  }else{/* [toque] livre: na direcao do analogico, 7 m */
+    ax=S.px+Math.sin(S.face)*7;az=S.pz+Math.cos(S.face)*7;
   }
   if(ax===null){ax=S.px+Math.sin(S.face)*5.7;az=S.pz+Math.cos(S.face)*5.7;}
   var raw=Math.hypot(ax-S.px,az-S.pz),ang=raw>.05?Math.atan2(ax-S.px,az-S.pz):S.face,d=clamp(raw,mn,mx);
@@ -4179,9 +4196,9 @@ function moveVec(){
 
   var m=Math.min(1,l);ix/=l;iz/=l;
 
-  var sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);
-
-  return {x:-sy*iz+cy*ix,z:-cy*iz-sy*ix,m:m};
+  var sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw),rv={x:-sy*iz+cy*ix,z:-cy*iz-sy*ix,m:m};
+  if(m>.15)S.mdir=Math.atan2(rv.x,rv.z);/* [toque] ultima direcao do analogico */
+  return rv;
 
 }
 
@@ -4246,8 +4263,9 @@ function groundAt(cx,cy){
 var ORBIT=/[?&]orbit=1/.test(location.search);/* teste visual: camera orbita o personagem (?orbit=1&camyaw=..&camdist=..) */
 
 function aimAngle(){
-
   if(ORBIT)return Math.PI;
+  /* [toque] celular: o golpe e a skill vao para onde o ANALOGICO aponta (ou para a ultima direcao andada); sem travar no inimigo mais proximo */
+  if(MOUSE.touch){var mv=moveVec();if(mv.m>.15)return Math.atan2(mv.x,mv.z);return (S.mdir!==undefined)?S.mdir:S.face;}
 
   if(NAV.mode==='dn'){
 
@@ -4920,6 +4938,7 @@ function mob3dCarregar(tipos){
           if(!n.isMesh)return;n.frustumCulled=false;n.castShadow=false;
           (Array.isArray(n.material)?n.material:[n.material]).forEach(function(mt){
             mt.side=THREE.DoubleSide;if(mt.transparent){mt.transparent=false;mt.alphaTest=.45;mt.depthWrite=true;}
+            if(QUAL.nivel==='baixa'&&mt.isMeshStandardMaterial&&!Array.isArray(n.material)){var Lm=new THREE.MeshLambertMaterial({map:mt.map,color:mt.color,side:THREE.DoubleSide,alphaTest:mt.alphaTest,emissive:new THREE.Color(0xffffff),emissiveMap:mt.map});n.material=Lm;mt=Lm;}
             if(mt.emissive){mt.emissive.setHex(0xffffff);if(mt.map)mt.emissiveMap=mt.map;}mt.emissiveIntensity=.3;/* realce: as texturas do L2 sao escuras na torre */
           });
         });

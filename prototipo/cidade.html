@@ -2291,6 +2291,37 @@ var SFX=(function(){
 
 
 window.SFX = SFX;
+/* >>> CLAUDE [perf] qualidade grafica da cidade (QUAL de js/qualidade.js). baixa (celular): sem luzes de ponto/holofote, materiais Lambert, texturas <=512, sem o medalhao do chao,
+   neblina mais densa e camera mais curta, mar parado. media: texturas <=1024, sem luzes de ponto/holofote e sem medalhao. alta: como antes. */
+var TEXMAX=QUAL.nivel==='baixa'?256:(QUAL.nivel==='media'?512:0);/* cenario; personagens (malha com esqueleto) ficam em 512 */
+function reduzTex(t,mx){
+  mx=mx||TEXMAX;if(!mx||!t||!t.image||(t.userData&&t.userData.red))return;t.userData=t.userData||{};t.userData.red=1;
+  var im=t.image,w=im.width||im.naturalWidth,h=im.height||im.naturalHeight;if(!w||!h||Math.max(w,h)<=mx)return;
+  try{var k=mx/Math.max(w,h),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    t.image=c;t.needsUpdate=true;if(im.close)try{im.close();}catch(_){}}catch(_){}
+}
+function aplicaQualidade(){
+  if(QUAL.nivel==='alta')return;
+  scene.traverse(function(o){
+    if(o.isLight&&(o.isPointLight||o.isSpotLight))o.visible=false;
+    if(o.isMesh&&o.material){
+      var ms=Array.isArray(o.material)?o.material:[o.material];
+      ms.forEach(function(mt,i){
+        ['map','emissiveMap','roughnessMap','metalnessMap','normalMap','aoMap','alphaMap'].forEach(function(k){if(mt[k])reduzTex(mt[k],o.isSkinnedMesh?Math.max(TEXMAX,512):TEXMAX);});
+        if(QUAL.nivel==='baixa'&&mt.isMeshStandardMaterial&&!mt.userData.lamb&&!o.isSkinnedMesh){
+          var L=new THREE.MeshLambertMaterial({map:mt.map,color:mt.color,side:mt.side,transparent:mt.transparent,opacity:mt.opacity,alphaTest:mt.alphaTest,depthWrite:mt.depthWrite,emissive:mt.emissive,emissiveMap:mt.emissiveMap,emissiveIntensity:mt.emissiveIntensity,fog:mt.fog,vertexColors:mt.vertexColors});
+          L.userData.lamb=1;if(Array.isArray(o.material))o.material[i]=L;else o.material=L;
+        }
+      });
+    }
+  });
+  if(typeof duelFloor!=='undefined'&&duelFloor.material&&duelFloor.material.color)duelFloor.material.color.setHex(0x59647a);/* sem o brilho metalico o piso escuro ficava preto */
+  if(typeof duelLogo!=='undefined')duelLogo.visible=false;/* o medalhao de 25 m no chao e uma area grande transparente com material metalico */
+  if(QUAL.nivel==='baixa'){camera.far=450;camera.updateProjectionMatrix();if(scene.fog&&scene.fog.density!==undefined)scene.fog.density=.0045;if(typeof waterMesh!=='undefined')waterMesh.userData.parado=1;}
+}
+[2500,7000,14000].forEach(function(t){setTimeout(aplicaQualidade,t);});/* as casas chegam aos poucos: reaplica enquanto carrega */
+/* <<< CLAUDE [perf] */
+window.__perf=function(){var L={},M=0,P=0,Li=0,tri=0,vis=0,sk=0,tx={},sz=0,mt={},px=0,seen=new Set();scene.traverse(function(o){if(o.isLight&&o.visible){L[o.type]=(L[o.type]||0)+1;}if(o.isMesh&&o.material){(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){mt[m.type]=(mt[m.type]||0)+1;['map','emissiveMap','normalMap','roughnessMap'].forEach(function(k){var t=m[k];if(t&&t.image&&!seen.has(t)){seen.add(t);px+=(t.image.width||0)*(t.image.height||0);(window.__tx=window.__tx||[]).push([t.image.width,t.image.height,(t.image.src||'').split('/').pop()||t.name||t.image.constructor.name]);}});});}if(o.isMesh){M++;if(o.visible)vis++;if(o.isSkinnedMesh)sk++;}if(o.isPoints)P++;if(o.isLine||o.isLineSegments)Li++;});return {lights:L,materiais:mt,mpixTexturas:Math.round(px/1e5)/10,meshes:M,visibleMeshes:vis,skinned:sk,points:P,lines:Li,render:renderer.info.render,memory:renderer.info.memory,pr:renderer.getPixelRatio(),fog:!!scene.fog,far:camera.far};};/* [perf] diagnostico */
 (function(){var l=SFX.levelup;if(l)SFX.levelup=function(){try{Voz.tocar('victory');}catch(_){}return l.apply(this,arguments);};})();/* [voz] vitoria/nivel */
 
 
@@ -9453,11 +9484,9 @@ function moveVec(){
 
 
 
-  var sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);
-
-
-
-  return {x:-sy*iz+cy*ix,z:-cy*iz-sy*ix,m:m};
+  var sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw),rv={x:-sy*iz+cy*ix,z:-cy*iz-sy*ix,m:m};
+  if(m>.15)S.mdir=Math.atan2(rv.x,rv.z);/* [toque] ultima direcao do analogico */
+  return rv;
 
 
 
@@ -9582,10 +9611,9 @@ var ORBIT=/[?&]orbit=1/.test(location.search);/* teste visual: camera orbita o p
 
 
 function aimAngle(){
-
-
-
   if(ORBIT)return Math.PI;
+  /* [toque] celular: o golpe e a skill vao para onde o ANALOGICO aponta (ou para a ultima direcao andada); sem travar no inimigo mais proximo */
+  if(MOUSE.touch){var mv=moveVec();if(mv.m>.15)return Math.atan2(mv.x,mv.z);return (S.mdir!==undefined)?S.mdir:S.face;}
 
 
 
@@ -15018,7 +15046,7 @@ function frame2(dt,T){
 
 
 
-  if (waterPos && waterOrigY) {
+  if (waterPos && waterOrigY && !(typeof waterMesh!=='undefined'&&waterMesh.userData.parado)) {
 
 
 
@@ -15118,7 +15146,7 @@ function frame2(dt,T){
 
 
 
-  updateCityMinimap();
+  if(QUAL.nivel==='alta'||((window.__fc||0)%4)===0)updateCityMinimap();/* [perf] minimapa 15 vezes/s no celular */
 
 
 
