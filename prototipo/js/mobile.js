@@ -16,6 +16,7 @@
     '#mbgira i{font-size:64px;font-style:normal;display:block;animation:mbgira 2s ease-in-out infinite}@keyframes mbgira{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}' +
     '#mbgira small{color:#9fb0d0;font-weight:400;font-size:14px;max-width:280px}' +
     '@media (orientation:portrait){#mbgira{display:flex}}' +
+    'html,body{overscroll-behavior:none}' +
     '#mb{position:fixed;inset:0;z-index:60;display:none;pointer-events:none;user-select:none;-webkit-user-select:none;touch-action:none}' +
     'body.is-touch #mb{display:block}' +
     '#mb .b{position:absolute;pointer-events:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid rgba(120,196,255,.5);background:rgba(7,12,24,.42);color:#e8f3ff;font:700 11px system-ui,sans-serif;text-align:center;line-height:1.1;touch-action:none;-webkit-tap-highlight-color:transparent;overflow:hidden;opacity:.74}' +
@@ -65,6 +66,23 @@
     document.addEventListener('fullscreenchange', function(){ f.style.display = document.fullscreenElement ? 'none' : ''; });
     if(!(de.requestFullscreen || de.webkitRequestFullscreen)) f.style.display = 'none';          /* iPhone: sem tela cheia; instalar o app (PWA) resolve */
     document.body.appendChild(f);
+    /* ---- giro FORCADO: horizontal sempre, sem pedir; segura o celular em pe ou mexendo nao tira do jogo ---- */
+    function travaGiro(){ try { var pr = screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape'); if(pr && pr.catch) pr.catch(function(){}); } catch(e){} }
+    var ultFs = 0;
+    function forcaTelaCheia(){
+      var fs = document.fullscreenElement || document.webkitFullscreenElement, t = Date.now();
+      if(!fs && t - ultFs > 1500 && (de.requestFullscreen || de.webkitRequestFullscreen)){ ultFs = t;
+        try { var r = (de.requestFullscreen || de.webkitRequestFullscreen).call(de, { navigationUI: 'hide' }); if(r && r.then) r.then(travaGiro, travaGiro); else travaGiro(); } catch(e){ travaGiro(); } }
+      else travaGiro();
+    }
+    var luz = null;
+    function mantemTelaLigada(){ try { if(navigator.wakeLock && !luz && document.visibilityState === 'visible') navigator.wakeLock.request('screen').then(function(l){ luz = l; l.addEventListener('release', function(){ luz = null; }); }).catch(function(){}); } catch(e){} }
+    travaGiro();                                                    /* app instalado (PWA): trava na hora; no navegador exige tela cheia (primeiro toque) */
+    ['pointerdown', 'touchend'].forEach(function(ev){ document.addEventListener(ev, function(){ forcaTelaCheia(); mantemTelaLigada(); }, { capture: true, passive: true }); });
+    document.addEventListener('fullscreenchange', travaGiro);
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible'){ travaGiro(); mantemTelaLigada(); } });
+    window.addEventListener('orientationchange', travaGiro);
+    try { history.pushState({ g: 1 }, '', location.href); window.addEventListener('popstate', function(){ try { history.pushState({ g: 1 }, '', location.href); } catch(e){} }); } catch(e){}      /* gesto/botao voltar sem querer nao fecha o jogo */
     var bm = document.createElement('button'); bm.id = 'mbmap'; bm.type = 'button'; bm.textContent = '▦'; bm.title = 'Mapa'; bm.onclick = function(){ document.body.classList.toggle('mapa-aberto'); }; document.body.appendChild(bm);
     var bs = document.createElement('button'); bs.id = 'mbsys'; bs.type = 'button'; bs.textContent = '⚙'; bs.title = 'Menu'; bs.onclick = function(){ document.body.classList.toggle('sys-aberto'); }; document.body.appendChild(bs);
     if(pagina !== 'outra'){
