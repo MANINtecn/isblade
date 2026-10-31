@@ -3,7 +3,7 @@
    barras de HP/estamina por CSS (variavel --p no pai, preenchida pelo JS), 8 slots em fila, nome/nivel/EXP no centro, 5 botoes de sistema. */
 body.hud-clean{
   --hc-vidro:rgba(7,12,24,.58); --hc-vidro2:rgba(10,18,34,.72); --hc-linha:rgba(120,196,255,.40); --hc-linha2:rgba(190,228,255,.75);
-  --hc-azul:#5cc8ff; --hc-hp:#ff4d6d; --hc-hp2:#ff8aa0; --hc-st:#35d9ff; --hc-st2:#9cf0ff; --hc-xp:#9fc2ff; --hc-txt:#e8f3ff; --hc-dim:#8fa6c4;
+  --hc-azul:#5cc8ff; --hc-hp:#f03a2e; --hc-hp2:#ff7a63; --hc-st:#35d9ff; --hc-st2:#9cf0ff; --hc-xp:#9fc2ff; --hc-txt:#e8f3ff; --hc-dim:#8fa6c4;
   --hc-fonte:'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;
 }
 /* ---- recipiente: uma grade na base da tela, sem imagem de fundo e sem filtro ---- */
@@ -43,7 +43,7 @@ body.hud-clean .mu-bar-slot::before{
   content:""; position:absolute; left:2px; top:2px; bottom:2px; width:var(--p); max-width:calc(100% - 4px);
   border-radius:2px; transition:width .16s cubic-bezier(.2,.9,.3,1);
 }
-body.hud-clean .mu-bar-slot.hp::before{background:linear-gradient(180deg,var(--hc-hp2),var(--hc-hp) 55%,#c2203f); box-shadow:0 0 10px rgba(255,77,109,.55)}
+body.hud-clean .mu-bar-slot.hp::before{background:linear-gradient(180deg,var(--hc-hp2),var(--hc-hp) 55%,#b3201a); box-shadow:0 0 10px rgba(240,58,46,.55)}
 body.hud-clean .mu-bar-slot.mp::before{left:auto; right:2px; background:linear-gradient(180deg,var(--hc-st2),var(--hc-st) 55%,#1593b8); box-shadow:0 0 10px rgba(53,217,255,.5)}
 body.hud-clean .mu-bar-text{
   position:absolute; inset:0; display:flex; align-items:center; padding:0 14px!important; z-index:3; pointer-events:none;
@@ -78,7 +78,7 @@ body.hud-clean #top > .bar.mu-hp-bar{
   top:auto!important; bottom:0!important; left:0!important; width:100%!important; height:7px!important; --p:100%; border-radius:4px!important;
   background:var(--hc-vidro)!important; box-shadow:inset 0 0 0 1px var(--hc-linha)!important;
 }
-body.hud-clean #top > .bar.mu-hp-bar::before{content:""; position:absolute; left:1px; top:1px; bottom:1px; width:var(--p); max-width:calc(100% - 2px); border-radius:3px; background:linear-gradient(180deg,var(--hc-hp2),var(--hc-hp)); box-shadow:0 0 8px rgba(255,77,109,.6); transition:width .16s}
+body.hud-clean #top > .bar.mu-hp-bar::before{content:""; position:absolute; left:1px; top:1px; bottom:1px; width:var(--p); max-width:calc(100% - 2px); border-radius:3px; background:linear-gradient(180deg,var(--hc-hp2),var(--hc-hp)); box-shadow:0 0 8px rgba(240,58,46,.6); transition:width .16s}
 body.hud-clean #l2-target-name{top:auto!important; bottom:12px!important; transform:none!important; font:600 clamp(10px,1vw,12.5px)/1 var(--hc-fonte)!important; letter-spacing:.16em!important; color:var(--hc-txt)!important}
 /* ---- botoes do topo (menu, voltar) ---- */
 body.hud-clean #netBtn,body.hud-clean #btnReturnCity,body.hud-clean #btnFightBaiumDirect,body.hud-clean #mbfs{

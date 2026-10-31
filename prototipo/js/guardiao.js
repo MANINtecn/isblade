@@ -267,7 +267,8 @@ export const Guardiao = (function(){
         var S6 = ctx.getS(), o6 = shieldObj(), T6 = window.THREE, hp6 = o6 ? o6.getWorldPosition(new T6.Vector3()) : { x: S6.px, y: 1.3, z: S6.pz };
         if(!gc6){ return; }
         if(o6) o6.visible = false;
-        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: S6.face, dist: al6 ? al6.d : 5.7, tOut: al6 ? Math.min(.45, .3 * Math.sqrt(al6.d / 5.7)) : .3, tHold: .12, tBack: .55, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
+        var d6 = al6 ? Math.hypot(al6.x - S6.px, al6.z - S6.pz) : 5.7, f6 = al6 ? Math.atan2(al6.x - S6.px, al6.z - S6.pz) : S6.face;      /* o escudo vai ao PONTO travado no lancamento, mesmo que o jogador ja tenha virado/andado */
+        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: f6, dist: Math.max(2, d6), tOut: al6 ? Math.min(.45, .3 * Math.sqrt(Math.max(2, d6) / 5.7)) : .3, tHold: .12, tBack: .55, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
           getHand: function(){ var oo = shieldObj(); return oo ? oo.getWorldPosition(new T6.Vector3()) : null; }, onEnd: function(){ var oo = shieldObj(); if(oo) oo.visible = true; } });
         FX.trilha(function(){ return vo.obj ? vo.obj.position.clone() : null; }, { color: COR.fogo, hot: COR.quente, width: .55, life: 1.2, n: 30 });
         FX.seguir(function(){ return vo.obj; }, function(grp){ return FX.espetosGirando(grp, {}); }, 1.0, 0);

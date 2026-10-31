@@ -2179,3 +2179,11 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - **Sons**: o "som antigo" do boneco era o `roar` (rugido do chefe) tocado quando o espantalho é derrubado (stagger) ou derrotado em `cidade.html`: agora o espantalho não faz som (só o Baium real ruge). Ataque padrão: o estalo de soulshot do L2 agora toca em CADA golpe (antes só no último) junto com o "shing" e o impacto de arma/armadura, e as 6 skills do Guardião ganharam efeitos do L2 (swing/hit: `focus_sonic`, `shieldstun`, `power_strike`, `ground_smash`, `doublewind`, `battle_roar`, `dash`, `fatal_strike`, `energywave`) — antes `g_s*_swing/hit` não existiam e as skills ficavam sem efeito. Backups `*_antes_sons2.html`, `qualidade_antes_c13.js`, `mu_hud_antes_c13.js`.
 - NÃO testado: o balanço de volume (efeitos x voz), o desempenho no Redmi C13 de verdade, e o uso do botão contextual para baú/porta do Baium na torre.
 
+
+### [Claude] 31/10/2026 - Celular: leque de botões, editor de layout, Arremesso e vermelho
+- Botão ATACAR agora é um leque encostado nas bordas (canto inferior direito, acima da estamina); as 6 skills ficam em meia-lua ao redor dele. Esquivar, pular e bloquear ficaram maiores, na mesma coluna vertical.
+- Editor de botões: lápis no canto → arrastar cada botão → Salvar (fica em `isblade.mb_layout`) ou Padrão. Só tem custo enquanto está editando; as posições são aplicadas uma vez, não pesa no jogo.
+- Arremesso do Escudo: a volta (2ª parte) agora usa o ponto do mundo mirado, não a direção do analógico no momento — mexer o analógico na animação não desvia mais. `guardiao.js` v15.
+- HP: vermelho puro (`#f03a2e`) no lugar do que parecia rosa. `hud_clean.css` v4.
+- Testado (Playwright 800x360 toque): leque visível, ATACAR vermelho, arrastar+Salvar persiste após recarregar. NÃO testado: aparelho real (Redmi C13), a volta do Arremesso com analógico em movimento no navegador, nem o botão Padrão.
+- Backups: `mobile_antes_leque.js`, `guardiao_antes_dir.js`, `hud_clean_antes_cor.css`.
