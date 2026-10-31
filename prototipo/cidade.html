@@ -1309,7 +1309,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=14';
+import { Net } from './js/net.js?v=15';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -8346,10 +8346,10 @@ function hexCss(c){return '#'+('000000'+c.toString(16)).slice(-6);}
 var REMOTEFX=false;
 function skillFxRemoto(e,i,f){
   var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;
-  if(Math.hypot(e.x-S.px,e.z-S.pz)>45)return;
+  if(Math.hypot(e.x-S.px,e.z-S.pz)>80)return;
   var n=(sk.hits||[1]).length;
   for(var k=0;k<n;k++)(function(k){setTimeout(function(){
-    if(!e.rig||e.morto)return;
+    if(e.morto)return;
     var o={px:S.px,pz:S.pz,face:S.face,shake:S.shake,anim:S.anim,wpn:WPN};
     REMOTEFX=true;S.px=e.x;S.pz=e.z;S.face=f;WPN=e.arma;S.anim=null;
     try{skillSwingFx({skill:sk,part:k+1,parts:n});}catch(_){}
@@ -8357,6 +8357,18 @@ function skillFxRemoto(e,i,f){
   },350+k*260);})(k);
 }
 /* <<< CLAUDE [pvp-fx] */
+/* golpe basico do outro jogador (3 golpes do Guardiao ou arco/leque da espada) + impacto na vitima */
+function fxBasicoRemoto(e,id,f){
+  if(Math.hypot(e.x-S.px,e.z-S.pz)>80)return;
+  var mr=MRANGE[id],rng=mr?mr[0]:REACH,o={px:S.px,pz:S.pz,face:S.face,shake:S.shake,anim:S.anim,wpn:WPN};
+  REMOTEFX=true;S.px=e.x;S.pz=e.z;S.face=f;WPN=e.arma;S.anim=null;
+  try{
+    SFX.play('swing');
+    if(WPN==='shield')Guardiao.fxBasico({id:id});else{flashFan(id,rng);slashArc(S.px,S.pz,S.face,0xcfe6ff,clamp(rng*.38,1.1,2.2),1.4);}
+  }catch(er){console.warn('fxBasicoRemoto',er&&er.message);}
+  finally{REMOTEFX=false;S.px=o.px;S.pz=o.pz;S.face=o.face;S.shake=o.shake;S.anim=o.anim;WPN=o.wpn;}
+}
+function hitFxRemoto(x,z){if(Math.hypot(x-S.px,z-S.pz)>60)return;try{burst(x,1.2,z,7,0xff9a5a,2.2);spark(x,1.3,z,1.4,0xffe0b0,.2);}catch(_){}}
 function skillSwingFx(an){
 
 
@@ -17649,7 +17661,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},fxSkill:skillFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);
