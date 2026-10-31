@@ -30,7 +30,7 @@
     <div class="dica" id="dica"><small id="dn">Dica 1</small><p id="dt"></p></div>
     <div class="trilho"><i id="barra"></i></div>
     <div class="info"><span id="etapa">Preparando…</span><span><span id="info2"></span> &nbsp; <span id="pct">0%</span></span></div>
-    <p class="pula" id="pula">Demorando? <a href="selecao.html">Entrar mesmo assim</a> (o resto carrega durante o jogo).</p>
+    <p class="pula" id="pula">Demorando? <a href="selecao.html">Entrar mesmo assim</a> (o resto carrega durante o jogo) &nbsp;·&nbsp; <a href="#" id="limpa">Limpar o cache do jogo e tentar de novo</a><br><small id="diag"></small></p>
   </div>
 </main>
 <script src="js/conta.js?v=3"></script>
@@ -58,7 +58,14 @@
   var q = function(id){ return document.getElementById(id); }, di = Math.floor(Math.random() * DICAS.length);
   function dica(){ var d = q('dica'); d.style.opacity = 0; setTimeout(function(){ q('dn').textContent = 'Dica ' + (di % DICAS.length + 1) + ' de ' + DICAS.length; q('dt').textContent = DICAS[di % DICAS.length]; di++; d.style.opacity = 1; }, 450); }
   q('dn').textContent = 'Dica ' + (di + 1) + ' de ' + DICAS.length; q('dt').textContent = DICAS[di++ % DICAS.length]; setInterval(dica, 5500);
-  setTimeout(function(){ q('pula').style.display = 'block'; }, 25000);
+  setTimeout(function(){ q('pula').style.display = 'block'; }, 10000);
+  q('limpa').onclick = function(e){ e.preventDefault(); q('diag').textContent = 'Limpando…';      /* so o cache do aplicativo; seus personagens e a conta ficam */
+    var fs = []; try { if(navigator.serviceWorker) fs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); } catch(x){}
+    try { if(window.caches) fs.push(caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return k.indexOf('is-') === 0; }).map(function(k){ return caches.delete(k); })); })); } catch(x){}
+    Promise.all(fs).catch(function(){}).then(function(){ location.reload(); }); };
+  /* vigia: sem nenhum byte novo por 30 s, segue para o lobby (o resto carrega durante o jogo) em vez de ficar parado */
+  var visto = -1, parado = 0;
+  setInterval(function(){ if(fim) return; if(feito === visto){ parado += 1; q('diag').textContent = 'Sem progresso ha ' + parado * 5 + ' s…'; if(parado >= 6){ terminou(); } } else { visto = feito; parado = 0; q('diag').textContent = ''; } }, 5000);
 
   var ETAPAS = [['personagens', 'Preparando seus personagens…'], ['talking_island', 'Montando a Ilha de Talking…'], ['baium', 'Acordando o Baium…'], ['fx', 'Acendendo os efeitos…'], ['audio', 'Afinando os sons…'], ['l2_sounds', 'Afinando os sons…'], ['hud', 'Desenhando a interface…'], ['cenario', 'Erguendo as muralhas…']];
   function etapa(u){ for(var i = 0; i < ETAPAS.length; i++) if(u.indexOf('/' + ETAPAS[i][0]) >= 0) return ETAPAS[i][1]; return 'Baixando recursos do jogo…'; }
@@ -71,7 +78,8 @@
   }
   var baixado = 0, mbTot = 0;
   function mb(b){ return (b / 1e6).toFixed(b < 1e7 ? 1 : 0); }
-  fetch('assets/precarga.json', { cache: 'no-cache' }).then(function(r){ return r.json(); }).then(function(L){
+  var cj = ('AbortController' in window) ? new AbortController() : null, tj = setTimeout(function(){ if(cj) cj.abort(); }, 8000);          /* lista de arquivos: 8 s ou segue sem pre-carga */
+  fetch('assets/precarga.json', { cache: 'no-cache', signal: cj ? cj.signal : undefined }).then(function(r){ clearTimeout(tj); return r.json(); }).then(function(L){
     var itens = (L.itens || []).filter(function(i){ return i.e !== 0; });                 /* so o essencial (lobby e cidade); Baium e arena baixam quando forem usados */
     total = Math.max(1, itens.reduce(function(a, i){ return a + i.b; }, 0)); mbTot = total; var idx = 0, vivos = 0;
     function soma(n){ baixado += n; feito = baixado; pinta(); q('info2').textContent = mb(Math.min(baixado, mbTot)) + ' de ' + mb(mbTot) + ' MB'; }

@@ -21,8 +21,8 @@ self.addEventListener('fetch', function(e){
   if(EXT_ASSET.test(u.pathname)){
     e.respondWith(caches.open(ASSETS).then(function(c){ return c.match(r).then(function(hit){
       if(hit) return hit;
-      return fetch(r).then(function(res){ if(res && res.ok) c.put(r, res.clone()); return res; });
-    }); }));
+      return fetch(r).then(function(res){ if(res && res.ok){ try { c.put(r, res.clone()).catch(function(){}); } catch(x){} } return res; });      /* falha ao guardar (sem espaco) nao pode derrubar o download */
+    }); }).catch(function(){ return fetch(r); }));
     return;
   }
   e.respondWith(fetch(r).then(function(res){
