@@ -5,6 +5,13 @@
   var forcar = /[?&]pwa=1/.test(location.search); try { if(forcar) localStorage.setItem('isblade.pwa', '1'); } catch(e){}
   var ligado = !local || forcar || (function(){ try { return localStorage.getItem('isblade.pwa') === '1'; } catch(e){ return false; } })();
   var API = window.ISPWA = { pronto: false, instalavel: false, instalado: false, instalar: function(){ return Promise.resolve(false); } };
+  /* Atualizar: limpa o cache persistente (arquivos pesados guardados pelo service worker + caches do navegador) e baixa tudo de novo. NAO mexe em conta, personagens nem opcoes. */
+  API.atualizar = function(){
+    var fim = function(){ var u = location.pathname + location.search.replace(/([?&])_r=\d+&?/, '$1').replace(/[?&]$/, ''); location.replace(u + (u.indexOf('?') < 0 ? '?' : '&') + '_r=' + Date.now()); };
+    var p1 = ('serviceWorker' in navigator) ? navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); }).catch(function(){}) : Promise.resolve();
+    var p2 = window.caches ? caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }).catch(function(){}) : Promise.resolve();
+    Promise.all([p1, p2]).then(fim, fim); setTimeout(fim, 4000);
+  };
   if(!('serviceWorker' in navigator)) return;
   if(!ligado){ navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }); if(window.caches) caches.keys().then(function(ks){ ks.forEach(function(k){ if(k.indexOf('is-') === 0) caches.delete(k); }); }); return; }
   window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').then(function(){ API.pronto = true; }).catch(function(e){ console.warn('PWA: sw falhou', e); }); });
