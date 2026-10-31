@@ -2113,3 +2113,6 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Atenção: a própria imagem diz "L2 IKARUS — BY IS LABS" (a IS Labs aparece na arte) e o título da aba continua "IS BLADE" (nome provisório do jogo). Se "Ikarus" for o nome definitivo, falta trocar títulos e textos.
 - Testado (Chrome, PC 1280×720 e celular 390×844): botão JOGAR visível sem rolar no PC; as quatro páginas com a arte sem faixa preta aparente. Não testado em celular deitado nem em telas muito largas.
 
+### [Claude] 31/10/2026 - Ajuste: arte de capa so na pagina inicial; logo IS Labs volta no resto
+- Correcao do dono: a arte "L2 Ikarus" fica APENAS em `index.html`. Login, painel, carregamento, cabecalho do lobby e da criacao, e as telas de carregamento da cidade e da arena voltaram ao que estava (logo IS Labs), restaurados do commit `d55efe3`. Na pagina inicial continuam removidos a logo, o "IS Labs apresenta" e o "IS Labs ·" do rodape (a propria arte ja traz "BY IS LABS").
+
