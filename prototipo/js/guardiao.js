@@ -262,12 +262,12 @@ export const Guardiao = (function(){
       fimCanal(); canal.ph = 2; canal.lv = 0; canal.acc = 0; canal.t = 0; canal.dano = 0;               /* o escudo astral e o domo aparecem NA HORA do cast */
       canal.ctrl = FX.domo({ info: geoEscudo(ctx.getVrm()), getPos: function(){ var s = ctx.getS(); return { x: s.px, z: s.pz, face: s.face }; } });
     } else if(sk.pose === 'g_s6'){                                   /* o escudo do braco vira um disco de energia que voa ate 5,7 m, segura um instante e volta; o escudo real some do braco enquanto isso */
-      var gc6 = geoEscudo(ctx.getVrm()), ev6 = FX.add(null, .01, null, cfg.solta || 1.13);
+      var gc6 = geoEscudo(ctx.getVrm()), ev6 = FX.add(null, .01, null, cfg.solta || 1.13), al6 = (ctx.getS().anim && ctx.getS().anim.alvo) || null;      /* [mira] ponto mirado (se houver) */
       ev6.done = function(){
         var S6 = ctx.getS(), o6 = shieldObj(), T6 = window.THREE, hp6 = o6 ? o6.getWorldPosition(new T6.Vector3()) : { x: S6.px, y: 1.3, z: S6.pz };
         if(!gc6){ return; }
         if(o6) o6.visible = false;
-        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: S6.face, dist: 5.7, tOut: .3, tHold: .12, tBack: .55, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
+        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: S6.face, dist: al6 ? al6.d : 5.7, tOut: al6 ? Math.min(.45, .3 * Math.sqrt(al6.d / 5.7)) : .3, tHold: .12, tBack: .55, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
           getHand: function(){ var oo = shieldObj(); return oo ? oo.getWorldPosition(new T6.Vector3()) : null; }, onEnd: function(){ var oo = shieldObj(); if(oo) oo.visible = true; } });
         FX.trilha(function(){ return vo.obj ? vo.obj.position.clone() : null; }, { color: COR.fogo, hot: COR.quente, width: .55, life: 1.2, n: 30 });
         FX.seguir(function(){ return vo.obj; }, function(grp){ return FX.espetosGirando(grp, {}); }, 1.0, 0);
@@ -356,7 +356,7 @@ export const Guardiao = (function(){
       FX.anel(px + f[0] * 1.6, pz + f[1] * 1.6, { r0: .4, r1: 2.6, color: COR.brasa, life: .5 }); FX.espetos(px + f[0] * 1.2, .5, pz + f[1] * 1.2, { n: 10, seed: 81, size: 1.7, color: COR.fogo, life: .45 });
       FX.rachaduras(px + f[0] * 1.5, pz + f[1] * 1.5, { R: 3, seed: 91, n: 9, life: 3, hold: .6, color: COR.fogo }); FX.luz(px + f[0], 1, pz + f[1], { color: COR.fogo, intensity: 30, life: .4 });
     } else if(sk.pose === 'g_s6'){                                   /* arremesso: crava a 5,7 m, explode; ao voltar, destroi o local */
-      var tx = px + f[0] * 5.7, tz = pz + f[1] * 5.7, pt = an.part || 1, first = pt === 1;
+      var tx = an.alvo ? an.alvo.x : px + f[0] * 5.7, tz = an.alvo ? an.alvo.z : pz + f[1] * 5.7, pt = an.part || 1, first = pt === 1;      /* cai onde o jogador mirou (ate 10 m) */
       if(pt === 2 || pt === 3 || pt === 5 || pt === 6){                   /* golpes extras (3 na ida, 3 na volta): pulso curto no mesmo ponto */
         var volta = pt > 3, cp = volta ? COR.ouro : COR.fogo;
         FX.anel(tx, tz, { r0: .5, r1: volta ? 8 : 5.5, color: cp, life: .35 }); FX.espetos(tx, 1.2, tz, { n: 10, seed: 70 + pt, size: volta ? 4.6 : 3.4, bw: .028, color: cp, life: .4 });

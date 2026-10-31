@@ -666,7 +666,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js?v=13';
+import { Guardiao } from './js/guardiao.js?v=14';
 import { Net } from './js/net.js?v=7';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
@@ -3845,6 +3845,32 @@ function perform(id,q){
 
 }
 
+/* >>> CLAUDE [mira] skills com `mira` (shield.json: Arremesso do Escudo) caem ONDE O JOGADOR MIRA, limitadas a mira_min..mira_max (m); o dano e um circulo (360 graus) nesse ponto, com `raio[parte]`.
+   PC: ponto do chao sob a mira (ou o alvo sob a mira). Celular: inimigo mais proximo dentro do alcance. Sem nada: 5,7 m a frente (como antes). */
+function pontoMira(sk){
+  var mn=sk.mira_min||2,mx=sk.mira_max||10,ax=null,az=null;
+  if(!MOUSE.touch){
+    if(NAV.mode==='dn'&&S.aimT&&!S.dead&&BOSS_ON){ax=S.ex;az=S.ez;}
+    else if(NAV.mode==='dn'&&S.aimM&&!S.aimM.dead){ax=S.aimM.x;az=S.aimM.z;}
+    else if(MOUSE.g){ax=MOUSE.g.x;az=MOUSE.g.z;}
+  }else{
+    var best=1e9;MOBS.forEach(function(m){if(m.dead)return;var dd=Math.hypot(m.x-S.px,m.z-S.pz);if(dd<best&&dd<=mx+2){best=dd;ax=m.x;az=m.z;}});
+    if(BOSS_ON&&!S.dead){var db=Math.hypot(S.ex-S.px,S.ez-S.pz);if(db<best&&db<=mx+4){best=db;ax=S.ex;az=S.ez;}}
+  }
+  if(ax===null){ax=S.px+Math.sin(S.face)*5.7;az=S.pz+Math.cos(S.face)*5.7;}
+  var raw=Math.hypot(ax-S.px,az-S.pz),ang=raw>.05?Math.atan2(ax-S.px,az-S.pz):S.face,d=clamp(raw,mn,mx);
+  return {x:S.px+Math.sin(ang)*d,z:S.pz+Math.cos(ang)*d,d:d,ang:ang,fora:raw>mx};
+}
+function raioMira(an){var r=an.skill&&an.skill.raio;return (r&&r[Math.max(0,(an.part||1)-1)])||(r&&r[0])||5.5;}
+var miraAnel=new THREE.Mesh(new THREE.RingGeometry(.9,1,48),new THREE.MeshBasicMaterial({color:0xf5c451,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));
+miraAnel.rotation.x=-Math.PI/2;miraAnel.visible=false;scene.add(miraAnel);
+function miraAtualiza(){
+  var sk=(WPN==='shield'&&SK[5]&&SK[5].mira)?SK[5]:null;
+  if(!sk||S.pdead||S.cd[5]>0||DG.menu||MOUSE.touch||(S.dead&&!MOBS.length&&!DG.on)){miraAnel.visible=false;return;}
+  var p=pontoMira(sk);miraAnel.visible=true;miraAnel.position.set(p.x,.14,p.z);miraAnel.scale.setScalar(sk.raio[0]);
+  miraAnel.material.color.setHex(p.fora?0xff6a4a:0xf5c451);miraAnel.material.opacity=p.fora?.4:.55;
+}
+/* <<< CLAUDE [mira] */
 function castSkill(i){
 
   var sk=SK[i];
@@ -3866,14 +3892,14 @@ function castSkill(i){
   S.cd[i]=sk.cd;tgt=null;tmark.visible=false;
 
   S.face=aimAngle();
-
+  var alvoMira=sk.mira?pontoMira(sk):null;if(alvoMira)S.face=alvoMira.ang;/* [mira] */
   S.lastT=performance.now()/1000;/* a skill mantem a janela do combo viva */
 
   if(sk.ifr)S.ifr=sk.ifr;
 
   var dmg=Math.round(sk.dmg*(sk.hits?sk.hits.length:1)*(.92+Math.random()*.16));
 
-  S.anim=mkAnim(sk.pose,dmg,null,false,sk);
+  S.anim=mkAnim(sk.pose,dmg,null,false,sk);if(alvoMira)S.anim.alvo=alvoMira;/* [mira] */
   /* >>> CLAUDE [guardiao] 2026-10-27 — efeitos de antes do golpe (carga, voo do escudo) */ Guardiao.aoCastar(sk); /* <<< CLAUDE [guardiao] */
 
   if(sk.pose==='dash')spark(S.px,1.4,S.pz,2.6,0x5aa9ff,.3);
@@ -3924,7 +3950,8 @@ if(S.dead&&!MOBS.length)return;
   if(!BOSS_ON||S.dead){if(!mobsHit&&!an.noRange&&!MOBS.length)floatText('Errou','#7f8db0',16,'p');return;}/* sala sem chefe: so os mobs contam */
 
   var bossReach = Math.max(0, reach - 1.5);
-  if(!an.noRange&&(bossReach>rng||(half<3.1&&cone>half))){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
+  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-3)>raioMira(an)):(bossReach>rng||(half<3.1&&cone>half));/* [mira] circulo no ponto mirado */
+  if(!an.noRange&&foraBoss){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
 
   var E=S.en,dmg=an.dmg,tag='';
   /* >>> CLAUDE [guardiao] 2026-10-27 — dano causado no chefe marca combate */ Guardiao.tocar('dano causado'); /* <<< CLAUDE [guardiao] */
@@ -4987,9 +5014,10 @@ function hitMobs(an,rng,half){
 
     var dx=m.x-S.px,dz=m.z-S.pz,reach=Math.hypot(dx,dz)-m.r*.6;
 
+    if(an.alvo){if(Math.hypot(m.x-an.alvo.x,m.z-an.alvo.z)-m.r*.6>raioMira(an))return;}/* [mira] 360 graus ao redor do ponto */else{
     if(reach>rng)return;
 
-    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r,Math.max(reach,.5)))return;
+    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r,Math.max(reach,.5)))return;}
 
     damageMob(m,mobDmg(an),an);n++;
 
@@ -5771,7 +5799,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
@@ -7606,6 +7634,7 @@ function frame2(dt,T){
   if(!S.pdead)separate();
   try{Voz.passo(dt,S.px,S.pz,{ar:((S.jy||0)>.12||(typeof Torre!=='undefined'&&Torre.on&&Torre.altura>.12)),rolando:S.rollT>=0,sup:(typeof Torre!=='undefined'&&Torre.on)?'stone_hard':'stone'});}catch(_){}/* [voz] passos */
   torreTick(dt);/* [torre-dg] */
+  try{miraAtualiza();}catch(_){}/* [mira] anel do ponto mirado */
 
   pivot.rotation.x=S.cur.th;
 
