@@ -2104,3 +2104,12 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Recuperação de senha; botão para restaurar a cópia local (`Conta.recuperar()` existe, sem botão); repositório ainda **público** (assets do L2; dono vai deixar privado, a VPS então precisará de credencial de leitura).
 - Senha do Administrador da VPS apareceu em imagem no chat: **trocar**; depois recriar as tarefas agendadas com a nova senha.
 - Tela de criação preta no PC do dono (não reproduzida: Chrome limpo mostra tudo); suspeitas: cache antigo ou contexto WebGL perdido.
+
+
+### [Claude] 31/10/2026 - Arte de capa "L2 Ikarus" no site e logo da IS Labs removida por enquanto
+- Pedido do dono: usar a imagem de `Área de Trabalho\IS BLADE\imagens\L2 Ikarus_ Fantasia Sombria Épica.png` no site e tirar a IS Labs por enquanto.
+- Imagem convertida para `prototipo/icons/capa.jpg` (1400 px, 177 KB). Entrou como arte principal em `index.html`, e menor em `login.html`, `painel.html` e `carregando.html`. O fundo preto da imagem some no fundo da página (`mix-blend-mode: screen` + máscara radial em `css/portal.css` v=4). O texto "IS BLADE" ficou só como título invisível (leitores de tela/SEO).
+- Removidos: logo `icons/is-labs.png` e "IS Labs apresenta" (início), logo do login, do painel, do carregamento, do cabeçalho do lobby e da criação, logo "IS LABS" da tela de carregamento interna da cidade e da arena, e "IS Labs ·" do rodapé. NÃO mexido: medalhão da IS Labs desenhado no chão da cidade (dentro do mundo 3D). O arquivo `icons/is-labs.png` continua na pasta, sem uso.
+- Atenção: a própria imagem diz "L2 IKARUS — BY IS LABS" (a IS Labs aparece na arte) e o título da aba continua "IS BLADE" (nome provisório do jogo). Se "Ikarus" for o nome definitivo, falta trocar títulos e textos.
+- Testado (Chrome, PC 1280×720 e celular 390×844): botão JOGAR visível sem rolar no PC; as quatro páginas com a arte sem faixa preta aparente. Não testado em celular deitado nem em telas muito largas.
+

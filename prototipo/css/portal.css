@@ -39,3 +39,9 @@ h1{font-family:'Cinzel Decorative',serif;font-weight:900;font-size:clamp(44px,mi
 
 #cnt.cnt-inline h2{display:none}
 @media (max-height:520px){.sub,.selo{display:none}.btn.m{margin-top:12px;padding:12px 40px}.centro{justify-content:flex-start;padding-top:14px}.logo{width:70px}.chips{display:none}.status{margin-top:12px}.rodape{margin-top:14px}}
+
+/* arte de capa (L2 Ikarus): fundo preto da imagem some no fundo da pagina */
+.capa{display:block;width:min(1000px,94vw,calc(50vh * 1.78));height:auto;mix-blend-mode:screen;-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 60%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 60%,transparent 100%)}
+.capa.p{width:min(460px,86vw);margin:0 auto 4px}.capa.m{width:min(560px,90vw);margin:6px auto 0}
+.so-leitor{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-height:520px){.capa{width:min(430px,60vw)}}
