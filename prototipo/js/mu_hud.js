@@ -771,3 +771,5 @@ if (document.readyState === 'loading') {
 } else {
   MuHud.init();
 }
+
+window.MuHudRef = MuHud;   /* usado por js/mobile.js (botoes de skill no celular) */
