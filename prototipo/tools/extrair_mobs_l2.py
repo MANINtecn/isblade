@@ -1,6 +1,6 @@
 """Extrai os SONS DOS MONSTROS do Lineage 2 (pacotes monsound*.uax) para prototipo/assets/mobs/<mob>/<evento>_<n>.ogg + mobs.json.
 Uso (na pasta prototipo):  python tools/extrair_mobs_l2.py
-Mobs do jogo -> monstro do L2 (troque aqui para mudar):  shade=shadow (sombra), caster=black_magician, brute=ogre, mini_boss=DeathLord, baium=baium.
+Mobs do jogo -> monstro do L2 (troque na tabela MOBS abaixo).
 Eventos: atk (golpe/grito de ataque), windup (preparacao: AtkWait/Special), swish (golpe cortando o ar), dmg (levou dano), death, idle (rosnado/respiracao)."""
 import os, re, json, glob, subprocess, shutil
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -8,7 +8,10 @@ UMODEL = r"C:\TECX SOFTHOUSE\L2 IKARUS INTERCROW\ferramentas para l2\umodel_mate
 SONS = r"C:\TECX SOFTHOUSE\L2 IKARUS INTERCROW\L2 IKARUS PVP 300x\Cliente Interlud 300x\sounds"
 TMP = os.path.join(os.environ.get('TEMP', '.'), 'l2mob'); SAIDA = os.path.join(RAIZ, 'assets', 'mobs')
 PACOTES = ['monsound', 'monsound2', 'monsound3', 'monsound4', 'monsound5', 'MonSound6', 'monsound7']
-MOBS = {'shade': 'shadow', 'caster': 'black_magician', 'brute': 'ogre', 'mini_boss': 'DeathLord', 'baium': 'baium'}
+MOBS = {'shade': 'shadow', 'caster': 'black_magician', 'brute': 'ogre', 'mini_boss': 'DeathLord', 'baium': 'baium',
+        # dungeons da torre (ids de data/dungeon.json -> monstro do L2)
+        'fantasma': 'h_ghost', 'esqueleto': 'skeleton_k', 'vidente': 'black_magician', 'lamina': 'death_blader', 'cao': 'werewolf', 'guarda_real': 'skeleton_royal',
+        'cavaleiro': 'h_less_knight', 'erinia': 'succubus', 'comandante': 'DeathLord', 'anjo': 'apostle', 'xama': 'b_orc_sham', 'overlord': 'b_orc_over', 'arcanjo': 'apostle'}
 EVENTOS = [('atk', r'(atk|attack)(_\d+)?'), ('windup', r'(atkwait|spcialattack_\d+|special\w*|spatk\w*)'), ('swish', r'swish(_\d+)?'),
            ('dmg', r'(dmg|damage)_\d+'), ('death', r'death(_\d+)?'), ('idle', r'(wait(_\d+)?|idle_\d+|breathe|breath_\d+|noise\w*)')]
 import imageio_ffmpeg
@@ -19,7 +22,9 @@ if not glob.glob(os.path.join(TMP, '**', '*.wav'), recursive=True):
         subprocess.run([UMODEL, '-path=' + SONS, '-export', '-sounds', pk + '.uax', '-out=' + TMP], stdout=subprocess.DEVNULL)
 arqs = {}
 for p in glob.glob(os.path.join(TMP, '**', '*.wav'), recursive=True): arqs[os.path.splitext(os.path.basename(p))[0].lower()] = p
-if os.path.isdir(SAIDA): shutil.rmtree(SAIDA)
+os.makedirs(SAIDA, exist_ok=True)
+for _m in MOBS:                                                    # limpa so as pastas de som (a pasta 'modelos' com os GLB dos monstros NAO pode ser apagada)
+    if os.path.isdir(os.path.join(SAIDA, _m)): shutil.rmtree(os.path.join(SAIDA, _m))
 idx = {}; total = 0
 for mob, l2 in MOBS.items():
     d = os.path.join(SAIDA, mob); os.makedirs(d, exist_ok=True); idx[mob] = {}

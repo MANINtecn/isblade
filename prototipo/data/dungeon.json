@@ -60,6 +60,214 @@
       "armor": true,
       "aoe": true,
       "isMiniBoss": true
+    },
+    "fantasma": {
+      "name": "Fantasma da Torre",
+      "hp": 60,
+      "dmg": 5,
+      "speed": 4.0,
+      "range": 1.8,
+      "wind": 0.4,
+      "rec": 1.0,
+      "size": 0.94,
+      "altura": 1.7,
+      "css": "#9fb4ff",
+      "xp": 6,
+      "armor": false,
+      "modelo": "fantasma"
+    },
+    "esqueleto": {
+      "name": "Guerreiro Espectral",
+      "hp": 90,
+      "dmg": 7,
+      "speed": 3.2,
+      "range": 1.9,
+      "wind": 0.5,
+      "rec": 1.1,
+      "size": 1.03,
+      "altura": 1.85,
+      "css": "#c9b38a",
+      "xp": 8,
+      "armor": false,
+      "modelo": "esqueleto"
+    },
+    "vidente": {
+      "name": "Vidente de Hallate",
+      "hp": 70,
+      "dmg": 8,
+      "speed": 2.5,
+      "range": 14,
+      "wind": 0.75,
+      "rec": 1.7,
+      "size": 1.06,
+      "altura": 1.9,
+      "css": "#43d9ff",
+      "xp": 10,
+      "armor": false,
+      "modelo": "vidente",
+      "ranged": true,
+      "keep": 8,
+      "projSpeed": 10
+    },
+    "lamina": {
+      "name": "Lamina do Desespero",
+      "hp": 520,
+      "dmg": 16,
+      "speed": 2.6,
+      "range": 2.8,
+      "wind": 0.9,
+      "rec": 1.5,
+      "size": 1.33,
+      "altura": 2.4,
+      "css": "#ff6a4a",
+      "xp": 60,
+      "armor": true,
+      "modelo": "lamina",
+      "aoe": true,
+      "isMiniBoss": true
+    },
+    "cao": {
+      "name": "Cao de Hallate",
+      "hp": 95,
+      "dmg": 10,
+      "speed": 4.4,
+      "range": 1.8,
+      "wind": 0.4,
+      "rec": 0.9,
+      "size": 1.0,
+      "altura": 1.8,
+      "css": "#d98a4a",
+      "xp": 12,
+      "armor": false,
+      "modelo": "cao"
+    },
+    "guarda_real": {
+      "name": "Guarda Real de Hallate",
+      "hp": 150,
+      "dmg": 12,
+      "speed": 2.7,
+      "range": 2.2,
+      "wind": 0.6,
+      "rec": 1.2,
+      "size": 1.06,
+      "altura": 1.9,
+      "css": "#cfd6e6",
+      "xp": 16,
+      "armor": false,
+      "modelo": "guarda_real"
+    },
+    "cavaleiro": {
+      "name": "Cavaleiro de Hallate",
+      "hp": 210,
+      "dmg": 15,
+      "speed": 2.4,
+      "range": 2.5,
+      "wind": 0.8,
+      "rec": 1.4,
+      "size": 1.22,
+      "altura": 2.2,
+      "css": "#a58cff",
+      "xp": 22,
+      "armor": true,
+      "modelo": "cavaleiro"
+    },
+    "erinia": {
+      "name": "Erinia",
+      "hp": 130,
+      "dmg": 13,
+      "speed": 3.4,
+      "range": 2.0,
+      "wind": 0.55,
+      "rec": 1.1,
+      "size": 1.11,
+      "altura": 2.0,
+      "css": "#ff5a5a",
+      "xp": 18,
+      "armor": false,
+      "modelo": "erinia"
+    },
+    "comandante": {
+      "name": "Comandante de Hallate",
+      "hp": 800,
+      "dmg": 26,
+      "speed": 2.7,
+      "range": 3.1,
+      "wind": 1.0,
+      "rec": 1.6,
+      "size": 1.56,
+      "altura": 2.8,
+      "css": "#ff2a55",
+      "xp": 90,
+      "armor": true,
+      "modelo": "comandante",
+      "aoe": true,
+      "isMiniBoss": true
+    },
+    "anjo": {
+      "name": "Anjo Guardiao",
+      "hp": 260,
+      "dmg": 18,
+      "speed": 3.1,
+      "range": 2.3,
+      "wind": 0.55,
+      "rec": 1.1,
+      "size": 1.11,
+      "altura": 2.0,
+      "css": "#fff0b0",
+      "xp": 30,
+      "armor": false,
+      "modelo": "anjo"
+    },
+    "xama": {
+      "name": "Xama da Tribo de Platina",
+      "hp": 180,
+      "dmg": 20,
+      "speed": 2.5,
+      "range": 14,
+      "wind": 0.8,
+      "rec": 1.8,
+      "size": 1.33,
+      "altura": 2.4,
+      "css": "#7cf0ff",
+      "xp": 34,
+      "armor": false,
+      "modelo": "xama",
+      "ranged": true,
+      "keep": 9,
+      "projSpeed": 12
+    },
+    "overlord": {
+      "name": "Senhor da Tribo de Platina",
+      "hp": 560,
+      "dmg": 30,
+      "speed": 2.3,
+      "range": 3.0,
+      "wind": 0.95,
+      "rec": 1.5,
+      "size": 1.44,
+      "altura": 2.6,
+      "css": "#ffb347",
+      "xp": 55,
+      "armor": true,
+      "modelo": "overlord",
+      "aoe": true
+    },
+    "arcanjo": {
+      "name": "Arcanjo",
+      "hp": 950,
+      "dmg": 34,
+      "speed": 2.9,
+      "range": 3.4,
+      "wind": 1.0,
+      "rec": 1.6,
+      "size": 1.67,
+      "altura": 3.0,
+      "css": "#ffffff",
+      "xp": 130,
+      "armor": true,
+      "modelo": "arcanjo",
+      "aoe": true,
+      "isMiniBoss": true
     }
   },
   "rooms": [
@@ -309,85 +517,93 @@
     }
   },
   "torre": {
-    "_nota": "DG da Torre do Baium (portal -> dificuldade). Cada DG tem TEMPO (s): acabou, sai da DG. Mobs ressurgem a cada 'respawn' s ate 'meta' abates; matar a meta E todos os chefes (mini_boss) limpa e abre o portal de saida. andar 1 = normal/medio; andar 2 = hard (libera a porta do Baium). count de difficulties multiplica os mobs.",
+    "_nota": "DG da Torre do Baium (portal -> dificuldade). Cada DG tem TEMPO (s): acabou, sai da DG. Mobs ressurgem a cada 'respawn' s ate 'meta' abates; matar a meta E todos os chefes (mini_boss) limpa e abre o portal de saida. andar 1 = normal/medio; andar 2 = hard (libera a porta do Baium). count de difficulties multiplica os mobs. | Monstros por dificuldade (modelos e sons do L2, de andares da TOI): normal = 1o-2o andar (fantasma, esqueleto, vidente, Lamina do Desespero); medio = 3o-5o (Hallate); hard = 7o (anjos, Tribo de Platina, arcanjos). Cada tipo em `mobs` tem `modelo` (assets/mobs/modelos/<modelo>.glb), `altura` (m), `xp`, `isMiniBoss`.",
     "normal": {
       "andar": 1,
-      "nome": "Torre da Insolencia - 1o Andar",
+      "nome": "Torre da Insolencia - 1o Andar (Normal: fantasmas e espectros)",
       "mobs": [
         [
-          "shade",
-          8
+          "fantasma",
+          10
         ],
         [
-          "caster",
+          "esqueleto",
+          6
+        ],
+        [
+          "vidente",
           3
         ],
         [
-          "brute",
-          2
-        ],
-        [
-          "mini_boss",
+          "lamina",
           1
         ]
       ],
       "bau": "silver",
-      "meta": 25,
-      "tempo": 480,
-      "respawn": 3
+      "meta": 45,
+      "tempo": 540,
+      "respawn": 2.4
     },
     "medio": {
       "andar": 1,
-      "nome": "Torre da Insolencia - 1o Andar (Medio)",
+      "nome": "Torre da Insolencia - 1o Andar (Medio: o exercito de Hallate)",
       "mobs": [
         [
-          "shade",
-          8
+          "cao",
+          6
         ],
         [
-          "caster",
+          "guarda_real",
+          4
+        ],
+        [
+          "cavaleiro",
           3
         ],
         [
-          "brute",
+          "erinia",
+          3
+        ],
+        [
+          "vidente",
           2
         ],
         [
-          "mini_boss",
+          "comandante",
           1
         ]
       ],
       "bau": "silver",
-      "meta": 40,
-      "tempo": 540,
-      "respawn": 2.6
+      "meta": 45,
+      "tempo": 570,
+      "respawn": 2.4
     },
     "hard": {
       "andar": 2,
-      "nome": "Torre da Insolencia - 2o Andar (Hard)",
+      "nome": "Torre da Insolencia - 2o Andar (Hard: anjos e Tribo de Platina)",
       "mobs": [
         [
-          "shade",
-          8
+          "anjo",
+          5
         ],
         [
-          "caster",
-          4
-        ],
-        [
-          "brute",
+          "xama",
           3
         ],
         [
-          "mini_boss",
+          "overlord",
+          2
+        ],
+        [
+          "arcanjo",
           2
         ]
       ],
       "bau": "gold",
       "liberaPorta": true,
-      "meta": 55,
+      "meta": 45,
       "tempo": 600,
-      "respawn": 2.2
+      "respawn": 2.4
     }
   }
 }

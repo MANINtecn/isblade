@@ -122,5 +122,301 @@
    "idle_4.ogg",
    "idle_5.ogg"
   ]
+ },
+ "fantasma": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "esqueleto": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg",
+   "windup_2.ogg",
+   "windup_3.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "vidente": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg",
+   "death_2.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg",
+   "idle_3.ogg"
+  ]
+ },
+ "lamina": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg",
+   "windup_2.ogg"
+  ],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "cao": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "guarda_real": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "cavaleiro": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "erinia": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg",
+   "windup_2.ogg"
+  ],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg"
+  ]
+ },
+ "comandante": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg",
+   "atk_3.ogg",
+   "atk_4.ogg",
+   "atk_5.ogg",
+   "atk_6.ogg",
+   "atk_7.ogg"
+  ],
+  "windup": [],
+  "swish": [
+   "swish_1.ogg"
+  ],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg",
+   "dmg_4.ogg",
+   "dmg_5.ogg",
+   "dmg_6.ogg",
+   "dmg_7.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "anjo": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg",
+   "idle_3.ogg"
+  ]
+ },
+ "xama": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg",
+   "windup_2.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg"
+  ]
+ },
+ "overlord": {
+  "atk": [
+   "atk_1.ogg",
+   "atk_2.ogg"
+  ],
+  "windup": [
+   "windup_1.ogg",
+   "windup_2.ogg"
+  ],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg"
+  ]
+ },
+ "arcanjo": {
+  "atk": [
+   "atk_1.ogg"
+  ],
+  "windup": [],
+  "swish": [],
+  "dmg": [
+   "dmg_1.ogg",
+   "dmg_2.ogg",
+   "dmg_3.ogg"
+  ],
+  "death": [
+   "death_1.ogg"
+  ],
+  "idle": [
+   "idle_1.ogg",
+   "idle_2.ogg",
+   "idle_3.ogg"
+  ]
  }
 }

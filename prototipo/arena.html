@@ -4898,7 +4898,53 @@ function buildObstacles(list){
 
 /* ---- mobs ---- */
 
-function mkMob(type,x,z){
+/* >>> CLAUDE [mob3d] monstros com modelos 3D animados do L2 (assets/mobs/modelos/<modelo>.glb; gerados por tools/blender_mobs/exportar_mobs.py).
+   Cada tipo de data/dungeon.json -> mobs tem `modelo`, `altura` (m), `xp`, `isMiniBoss`. Sem o modelo carregado, cai no boneco antigo. Animacoes: wait, run, atkwait (preparo), atk (golpe), death. */
+var MOB3D={cache:{},pend:{}};
+function mob3dClone(src){
+  var a2b=new Map(),b2a=new Map(),clone=src.clone();
+  (function par(a,b){a2b.set(b,a);b2a.set(a,b);for(var i=0;i<a.children.length;i++)par(a.children[i],b.children[i]);})(src,clone);
+  clone.traverse(function(n){
+    if(!n.isSkinnedMesh)return;var sm=a2b.get(n),sk=sm.skeleton.clone();sk.bones=sm.skeleton.bones.map(function(b){return b2a.get(b);});
+    n.skeleton=sk;n.bindMatrix.copy(sm.bindMatrix);n.bind(sk,n.bindMatrix);
+  });
+  return clone;
+}
+function mob3dCarregar(tipos){
+  var ps=[];
+  (tipos||[]).forEach(function(t){
+    var T=DGD.mobs[t],md=T&&T.modelo;if(!md||MOB3D.cache[md])return;
+    if(!MOB3D.pend[md])MOB3D.pend[md]=new Promise(function(ok){
+      new THREE.GLTFLoader().load('assets/mobs/modelos/'+md+'.glb?v=1',function(g){
+        g.scene.traverse(function(n){
+          if(!n.isMesh)return;n.frustumCulled=false;n.castShadow=false;
+          (Array.isArray(n.material)?n.material:[n.material]).forEach(function(mt){
+            mt.side=THREE.DoubleSide;if(mt.transparent){mt.transparent=false;mt.alphaTest=.45;mt.depthWrite=true;}
+            if(mt.emissive){mt.emissive.setHex(0xffffff);if(mt.map)mt.emissiveMap=mt.map;}mt.emissiveIntensity=.3;/* realce: as texturas do L2 sao escuras na torre */
+          });
+        });
+        MOB3D.cache[md]={scene:g.scene,clips:g.animations};ok();
+      },undefined,function(){ok();});
+    });
+    ps.push(MOB3D.pend[md]);
+  });
+  return Promise.all(ps);
+}
+function mob3dTocar(m,nome,o){
+  o=o||{};var a=m.acoes&&m.acoes[nome];if(!a||(m.cur===nome&&!o.forcar))return;
+  var p=m.acoes[m.cur];a.reset();a.setLoop(o.uma?THREE.LoopOnce:THREE.LoopRepeat,Infinity);a.clampWhenFinished=!!o.uma;a.timeScale=o.vel||1;a.enabled=true;a.setEffectiveWeight(1);
+  if(p&&p!==a)a.crossFadeFrom(p,o.fade===undefined?.15:o.fade,false);a.play();m.cur=nome;
+}
+function mob3dAnim(m,dt){
+  var mv=Math.hypot(m.x-(m._px===undefined?m.x:m._px),m.z-(m._pz===undefined?m.z:m._pz))>dt*.4;m._px=m.x;m._pz=m.z;
+  var parado=m.stun>0||m.cc;
+  if(m.state==='windup')mob3dTocar(m,'atkwait');
+  else if(m.state==='recover'){if(m.cur!=='atk'){var cl=m.acoes.atk&&m.acoes.atk.getClip();mob3dTocar(m,'atk',{uma:true,fade:.08,vel:cl?clamp(cl.duration/Math.max(.5,m.T.rec*.85),1,2.6):1});}}
+  else mob3dTocar(m,parado?'wait':(mv?'run':'wait'),{vel:(mv&&!parado)?clamp(m.spd/2.6,.8,1.8):1});
+  var d=Math.hypot(m.x-S.px,m.z-S.pz);if(d<34)m.mixer.update(dt);/* longe: pose congelada (economiza no celular) */
+}
+/* <<< CLAUDE [mob3d] */
+function mkMobBoneco(type,x,z){
 
   var T=DGD.mobs[type],g=new THREE.Group(),col=parseInt(T.css.slice(1),16),sz=T.size;
 
@@ -4932,12 +4978,22 @@ function mkMob(type,x,z){
 
 }
 
+function mkMob(type,x,z){
+  var m=mkMobBoneco(type,x,z),T=m.T,src=T.modelo&&MOB3D.cache[T.modelo];
+  if(!src)return m;/* [mob3d] sem modelo: boneco */
+  m.g.children.slice().forEach(function(c){m.g.remove(c);c.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});});
+  var o=mob3dClone(src.scene);o.scale.setScalar(T.altura||1.8);m.g.add(o);
+  m.mats=[];o.traverse(function(n){if(n.isMesh&&n.material){n.material=n.material.clone();m.mats.push(n.material);}});
+  m.mixer=new THREE.AnimationMixer(o);m.acoes={};src.clips.forEach(function(c){m.acoes[c.name]=m.mixer.clipAction(c);});
+  m.mat={emissiveIntensity:0};m.modelo=o;mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);/* cada um comeca num ponto diferente */
+  return m;
+}
 function removeMob(m){
 
   scene.remove(m.g);scene.remove(m.bar);
 
-  m.g.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});
-
+  if(m.mixer){m.mixer.stopAllAction();m.mixer.uncacheRoot(m.modelo);(m.mats||[]).forEach(function(x){x.dispose();});}/* [mob3d] geometria e texturas sao compartilhadas */
+  else m.g.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});
   m.bar.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material)n.material.dispose();});
 
   var i=MOBS.indexOf(m);if(i>=0)MOBS.splice(i,1);
@@ -4988,13 +5044,13 @@ function damageMob(m,dmg,an){
 
 function killMob(m){
 
-  if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(25+(m.T.hp>300?40:0));
+  if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(m.T.xp||(25+(m.T.hp>300?40:0)));
 
   if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
 
   renderHud();
 
-  if(DG.torre&&!BOSS_ON){if(m.type!=='mini_boss')DG.kr++;torreCheck();}else if(!BOSS_ON&&mobsAlive()===0)dgClear();
+  if(DG.torre&&!BOSS_ON){if(!m.T.isMiniBoss)DG.kr++;torreCheck();}else if(!BOSS_ON&&mobsAlive()===0)dgClear();
 
 }
 
@@ -5021,7 +5077,7 @@ function hitMobs(an,rng,half){
 
     damageMob(m,mobDmg(an),an);n++;
 
-    if(an.skill&&an.skill.pull&&!m.dead&&m.type!=='mini_boss'){var pa=S.face+(Math.random()-.5)*.9;m.pull={t:0,dur:.4,tx:S.px+Math.sin(pa)*2.6,tz:S.pz+Math.cos(pa)*2.6};}/* [puxao] corrente puxa os mobs comuns ate a frente do escudo; chefe nunca */
+    if(an.skill&&an.skill.pull&&!m.dead&&!m.T.isMiniBoss){var pa=S.face+(Math.random()-.5)*.9;m.pull={t:0,dur:.4,tx:S.px+Math.sin(pa)*2.6,tz:S.pz+Math.cos(pa)*2.6};}/* [puxao] corrente puxa os mobs comuns ate a frente do escudo; chefe nunca */
 
   });
 
@@ -5124,6 +5180,9 @@ function updateMobs(dt){
 
     var m=MOBS[i],T=m.T;
 
+    if(m.dead&&m.mixer){/* [mob3d] morte com a animacao do L2 */
+      if(m.cur!=='death')mob3dTocar(m,'death',{uma:true,vel:3,fade:.08});m.deadT+=dt;m.mixer.update(dt);var k3=Math.min(1,m.deadT/1.6);
+      if(k3>.75)m.g.scale.setScalar(Math.max(.01,1-(k3-.75)/.25));m.bar.visible=false;if(k3>=1)removeMob(m);continue;}
     if(m.dead){m.deadT+=dt;var k=Math.min(1,m.deadT/.6);m.g.scale.setScalar(Math.max(.01,1-k));m.g.position.y=-k*.5;m.bar.visible=false;if(k>=1)removeMob(m);continue;}
 
     m.flash=Math.max(0,m.flash-dt*4);
@@ -5131,6 +5190,7 @@ function updateMobs(dt){
     if(m.pull){var PL=m.pull;PL.t+=dt;var pk=Math.min(1,dt*9);m.x+=(PL.tx-m.x)*pk;m.z+=(PL.tz-m.z)*pk;if(PL.t>=PL.dur)m.pull=null;}/* [puxao] */
 
     m.mat.emissiveIntensity=.15+m.flash*1.1+(m.state==='windup'?.45+.45*Math.sin(m.t*30):0);
+    if(m.mats){var ei=.3+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q2=0;q2<m.mats.length;q2++)m.mats[q2].emissiveIntensity=ei;}/* [mob3d] */
 
     if(!S.pdead){
 
@@ -5196,6 +5256,7 @@ function updateMobs(dt){
     m.g.position.set(m.x,0,m.z);m.g.rotation.y=m.face;m.g.rotation.x=m.cc?((m.cc.e==='derrubado'||m.cc.e==='lift')?-1.2:(m.cc.e==='stun'?.12*Math.sin(m.t*40):0)):0;
 
     m.bar.position.set(m.x,2.45*T.size,m.z);m.bar.quaternion.copy(camera.quaternion);
+    if(m.mixer)mob3dAnim(m,dt);/* [mob3d] */
 
   }
 
@@ -5725,7 +5786,8 @@ function torreDgStart(key){
   DGD.rooms=[{name:cfg.nome,mobs:cfg.mobs,chest:cfg.bau}];
   ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});
   Torre.liberarPorta(false);Torre.fecharPorta();
-  torreDgLoad(false);
+  banner('CARREGANDO MONSTROS...','Modelos do Lineage 2','#f5c451');
+  mob3dCarregar(cfg.mobs.map(function(x){return x[0];})).then(function(){torreDgLoad(false);});/* [mob3d] */
 }
 function torreDgLoad(retry){
   var cfg=DG.torre;if(!cfg)return;
@@ -5743,7 +5805,7 @@ function torreDgLoad(retry){
   resetFight();
   DG.total=0;DG.kr=0;DG.tLeft=cfg.tempo||0;DG.rsp=0;DG.nReg=0;DG.fim=false;
   cfg.mobs.forEach(function(mb){
-    var cnt=Math.max(1,Math.round(mb[1]*DIFF().count));DG.total+=cnt;if(mb[0]!=='mini_boss')DG.nReg+=cnt;
+    var cnt=Math.max(1,Math.round(mb[1]*DIFF().count));DG.total+=cnt;if(!(DGD.mobs[mb[0]]&&DGD.mobs[mb[0]].isMiniBoss))DG.nReg+=cnt;
     for(var n=0;n<cnt;n++){var p=Torre.pontoAleatorio(cfg.andar,16,46);var m=mkMob(mb[0],p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);}
   });
   DG.portalPos=Torre.pontoPortal(cfg.andar);
@@ -5759,11 +5821,11 @@ function torreTick(dt){
     DG._hu=(DG._hu||0)-dt;if(DG._hu<=0){DG._hu=.25;renderHud();}
     if(DG.tLeft<=0){DG.fim=true;banner('TEMPO ESGOTADO','Voce foi expulso da dungeon','#ff6b6b');setTimeout(function(){if(DG.torre)dgHub();},1800);return;}
   }
-  var vivos=0;MOBS.forEach(function(m){if(!m.dead&&m.type!=='mini_boss')vivos++;});
+  var vivos=0;MOBS.forEach(function(m){if(!m.dead&&!m.T.isMiniBoss)vivos++;});
   DG.rsp-=dt;
   if(DG.rsp<=0&&cfg.meta&&DG.kr+vivos<cfg.meta&&vivos<DG.nReg){
     DG.rsp=cfg.respawn||3;
-    var tipos=cfg.mobs.filter(function(mb){return mb[0]!=='mini_boss';}),tot=0;tipos.forEach(function(mb){tot+=mb[1];});
+    var tipos=cfg.mobs.filter(function(mb){return !(DGD.mobs[mb[0]]&&DGD.mobs[mb[0]].isMiniBoss);}),tot=0;tipos.forEach(function(mb){tot+=mb[1];});
     var r=Math.random()*tot,tp=tipos[0][0];for(var i=0;i<tipos.length;i++){r-=tipos[i][1];if(r<=0){tp=tipos[i][0];break;}}
     for(var k=0;k<8;k++){var p=Torre.pontoAleatorio(cfg.andar,16,46);if(Math.hypot(p[0]-S.px,p[1]-S.pz)<12&&k<7)continue;
       var m=mkMob(tp,p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);DG.total++;break;}
@@ -5771,7 +5833,7 @@ function torreTick(dt){
 }
 function torreCheck(){
   var cfg=DG.torre;if(!cfg||DG.cleared)return;
-  var boss=MOBS.some(function(m){return !m.dead&&m.type==='mini_boss';});
+  var boss=MOBS.some(function(m){return !m.dead&&m.T.isMiniBoss;});
   if(DG.kr>=(cfg.meta||0)&&!boss){MOBS.slice().forEach(function(m){if(!m.dead)removeMob(m);});torreClear();}
 }
 function torreClear(){
@@ -6076,7 +6138,7 @@ function renderHud(){
 
     $('#ehpfill').style.width=(tot?al/tot*100:0)+'%';
 
-    if(DG.torre&&DG.torre.meta){var tl=Math.max(0,Math.ceil(DG.tLeft||0)),bs=MOBS.filter(function(m){return !m.dead&&m.type==='mini_boss';}).length;
+    if(DG.torre&&DG.torre.meta){var tl=Math.max(0,Math.ceil(DG.tLeft||0)),bs=MOBS.filter(function(m){return !m.dead&&m.T.isMiniBoss;}).length;
       $('#ehpfill').style.width=(DG.cleared?0:Math.min(100,(1-DG.kr/DG.torre.meta)*100))+'%';
       $('#ehptxt').textContent=(DG.cleared?(DG.torre.liberaPorta?'ANDAR LIMPO - suba a escada, a porta do Baium vai abrir':'DG CONCLUIDA - entre no portal'):'Abates '+DG.kr+'/'+DG.torre.meta+(bs?'  -  Chefe: '+bs:'  -  Chefe derrotado')+'  -  Tempo '+Math.floor(tl/60)+':'+('0'+tl%60).slice(-2))+'  ['+DIFF().name+']';}
     else $('#ehptxt').textContent='Sala '+(DG.room+1)+'/'+DGD.rooms.length+'  -  '+rm.name+'  -  Inimigos: '+al+'  ['+DIFF().name+']';
