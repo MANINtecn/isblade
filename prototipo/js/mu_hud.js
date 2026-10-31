@@ -17,6 +17,9 @@ const RESERVED_KEYS = 'wasdmvbikxc123456'.split('');
 function perChar(k) { try { var id = localStorage.getItem('isblade_active_character_id'); return id ? k + '.' + id : k; } catch (_) { return k; } }
 function readPerChar(k) { try { var v = localStorage.getItem(perChar(k)); return v !== null ? v : localStorage.getItem(k); } catch (_) { return null; } }
 
+/* [hud-clean] a interface limpa desenha as barras por CSS (largura = variavel --p do pai); as imagens do HUD classico continuam existindo */
+function vp(el, pct) { if (el && el.parentNode) el.parentNode.style.setProperty('--p', pct.toFixed(1) + '%'); }
+
 export const MuHud = {
   initialized: false,
   slots: [null, null, null, null, null, null, null, null],
@@ -26,6 +29,7 @@ export const MuHud = {
 
   init: function() {
     if (this.initialized) return;
+    try { if (localStorage.getItem('isblade.hud') !== 'classica') document.body.classList.add('hud-clean'); } catch (_) { document.body.classList.add('hud-clean'); }
     this.loadSavedSlots();
     this.createDom();
     this.setupSystemButtons();
@@ -116,6 +120,7 @@ export const MuHud = {
         </div>
 
         <!-- OS 5 BOTÕES NATIVOS DO SISTEMA NO CANTO INFERIOR DIREITO (I, C, S, Q, O) -->
+        <div class="mu-sys-wrap">
         <button type="button" class="mu-sys-btn" data-sys="I" id="mu-btn-i" aria-label="Inventário">
           <span>Inventário (I)</span>
         </button>
@@ -131,6 +136,7 @@ export const MuHud = {
         <button type="button" class="mu-sys-btn" data-sys="O" id="mu-btn-o" aria-label="Opções">
           <span>Configurações (O)</span>
         </button>
+        </div>
       </div>
 
       <!-- SELETOR RÁPIDO PARA EQUIPAR SKILL OU ITEM EM UM SLOT (PC & MOBILE) -->
@@ -658,7 +664,7 @@ export const MuHud = {
           }
         }
         if (tgtLiq) {
-          tgtLiq.style.clipPath = 'inset(0 ' + (100 - tgtPct).toFixed(1) + '% 0 0)';
+          tgtLiq.style.clipPath = 'inset(0 ' + (100 - tgtPct).toFixed(1) + '% 0 0)'; vp(tgtLiq, tgtPct);
         }
       }
 
@@ -692,7 +698,7 @@ export const MuHud = {
 
     var liqHp = document.getElementById('mu-hp-liquid');
     var valHp = document.getElementById('mu-hp-val');
-    if (liqHp) liqHp.style.clipPath = 'inset(0 ' + (100 - hpPct).toFixed(1) + '% 0 0)';
+    if (liqHp) { liqHp.style.clipPath = 'inset(0 ' + (100 - hpPct).toFixed(1) + '% 0 0)'; vp(liqHp, hpPct); }
     if (valHp) valHp.textContent = 'HP  ' + php + ' / ' + pmax;
 
     // 2. Atualiza Cristal Direito: STAMINA
@@ -702,7 +708,7 @@ export const MuHud = {
 
     var liqMp = document.getElementById('mu-mp-liquid');
     var valMp = document.getElementById('mu-mp-val');
-    if (liqMp) liqMp.style.clipPath = 'inset(0 ' + (100 - stPct).toFixed(1) + '% 0 0)';
+    if (liqMp) { liqMp.style.clipPath = 'inset(0 ' + (100 - stPct).toFixed(1) + '% 0 0)'; vp(liqMp, stPct); }
     if (valMp) valMp.textContent = 'STAMINA  ' + st + ' / ' + stmax;
 
     // 3. Atualiza Nome, Classe e Level na faixa central
@@ -749,7 +755,7 @@ export const MuHud = {
         var pct = Math.max(0, Math.min(100, w));
         var liqMp = document.getElementById('mu-mp-liquid');
         var valMp = document.getElementById('mu-mp-val');
-        if (liqMp) liqMp.style.clipPath = 'inset(0 ' + (100 - pct).toFixed(1) + '% 0 0)';
+        if (liqMp) { liqMp.style.clipPath = 'inset(0 ' + (100 - pct).toFixed(1) + '% 0 0)'; vp(liqMp, pct); }
         if (valMp) valMp.textContent = 'STAMINA  ' + Math.round(pct) + ' / 100';
       });
       stObserver.observe(oldStFill, { attributes: true, attributeFilter: ['style'] });

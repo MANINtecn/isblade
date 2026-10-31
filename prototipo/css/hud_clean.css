@@ -1,0 +1,100 @@
+/* Interface LIMPA (estilo "janela do sistema" de Solo Leveling): vidro escuro translucido, linhas finas azul-gelo, sem dragoes, sem texturas pesadas.
+   Vale quando <body> tem a classe hud-clean (padrao; Opcoes -> Interface: Classica volta ao HUD de dragoes). Reaproveita a mesma estrutura de js/mu_hud.js:
+   barras de HP/estamina por CSS (variavel --p no pai, preenchida pelo JS), 8 slots em fila, nome/nivel/EXP no centro, 5 botoes de sistema. */
+body.hud-clean{
+  --hc-vidro:rgba(7,12,24,.58); --hc-vidro2:rgba(10,18,34,.72); --hc-linha:rgba(120,196,255,.40); --hc-linha2:rgba(190,228,255,.75);
+  --hc-azul:#5cc8ff; --hc-hp:#ff4d6d; --hc-hp2:#ff8aa0; --hc-st:#35d9ff; --hc-st2:#9cf0ff; --hc-xp:#9fc2ff; --hc-txt:#e8f3ff; --hc-dim:#8fa6c4;
+  --hc-fonte:'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+/* ---- recipiente: uma grade na base da tela, sem imagem de fundo e sem filtro ---- */
+body.hud-clean #mu-hud-bottom{
+  height:auto!important; filter:none!important; font-family:var(--hc-fonte);
+  display:grid; align-items:end; gap:4px clamp(8px,1.6vw,20px);
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  grid-template-areas:". nm sy" ". xp ." "hp hb mp";
+  padding:0 clamp(8px,2vw,24px) max(8px,env(safe-area-inset-bottom));
+}
+body.hud-clean .mu-hud-art{display:none!important}
+/* ---- nome, classe e nivel ---- */
+body.hud-clean .mu-hud-nameplate{
+  grid-area:nm; position:static!important; width:auto!important; height:auto!important; top:auto!important; left:auto!important; padding:0!important;
+  display:flex; justify-content:center; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.18em;
+}
+body.hud-clean .mu-player-name{font:600 clamp(10px,1vw,12.5px)/1 var(--hc-fonte); color:var(--hc-txt); letter-spacing:.16em; text-shadow:0 1px 3px #000}
+body.hud-clean .mu-player-sep{display:none}
+body.hud-clean .mu-player-class{font:500 clamp(9px,.9vw,11px)/1 var(--hc-fonte); color:var(--hc-dim); letter-spacing:.14em; text-shadow:0 1px 3px #000}
+body.hud-clean .mu-player-lvl{font:700 clamp(9px,.9vw,11px)/1 var(--hc-fonte); color:var(--hc-azul); background:var(--hc-vidro); border:1px solid var(--hc-linha); border-radius:5px; padding:3px 7px; letter-spacing:.1em; text-shadow:none}
+/* ---- EXP: fio fino ---- */
+body.hud-clean .mu-exp-strip{
+  grid-area:xp; position:static!important; width:100%!important; height:2px!important; top:auto!important; left:auto!important;
+  background:rgba(255,255,255,.14); border-radius:2px; overflow:hidden;
+}
+body.hud-clean #mu-xp-fill{background:linear-gradient(90deg,var(--hc-azul),#fff); box-shadow:0 0 8px rgba(92,200,255,.7)}
+/* ---- barras de HP (esquerda) e estamina (direita) ---- */
+body.hud-clean .mu-bar-slot{
+  position:relative!important; top:auto!important; left:auto!important; height:clamp(14px,1.7vw,19px)!important; width:min(100%,clamp(150px,26vw,380px))!important;
+  background:var(--hc-vidro); overflow:hidden; --p:100%; pointer-events:none;
+  box-shadow:inset 0 0 0 1px var(--hc-linha), 0 0 14px rgba(70,160,255,.12);
+}
+body.hud-clean .mu-bar-slot.hp{grid-area:hp; justify-self:start; border-radius:3px 12px 3px 3px; clip-path:polygon(0 0,calc(100% - 10px) 0,100% 100%,0 100%)}
+body.hud-clean .mu-bar-slot.mp{grid-area:mp; justify-self:end; border-radius:12px 3px 3px 3px; clip-path:polygon(10px 0,100% 0,100% 100%,0 100%)}
+body.hud-clean .mu-bar-crystal{display:none!important}
+body.hud-clean .mu-bar-slot::before{
+  content:""; position:absolute; left:2px; top:2px; bottom:2px; width:var(--p); max-width:calc(100% - 4px);
+  border-radius:2px; transition:width .16s cubic-bezier(.2,.9,.3,1);
+}
+body.hud-clean .mu-bar-slot.hp::before{background:linear-gradient(180deg,var(--hc-hp2),var(--hc-hp) 55%,#c2203f); box-shadow:0 0 10px rgba(255,77,109,.55)}
+body.hud-clean .mu-bar-slot.mp::before{left:auto; right:2px; background:linear-gradient(180deg,var(--hc-st2),var(--hc-st) 55%,#1593b8); box-shadow:0 0 10px rgba(53,217,255,.5)}
+body.hud-clean .mu-bar-text{
+  position:absolute; inset:0; display:flex; align-items:center; padding:0 14px!important; z-index:3; pointer-events:none;
+  font:600 clamp(8.5px,.82vw,10.5px)/1 var(--hc-fonte); letter-spacing:.14em; color:#fff; text-shadow:0 1px 3px #000, 0 0 6px #000; text-transform:uppercase;
+}
+body.hud-clean .mu-bar-slot.hp .mu-bar-text{justify-content:flex-start}
+body.hud-clean .mu-bar-slot.mp .mu-bar-text{justify-content:flex-end}
+/* ---- 8 slots em fila ---- */
+body.hud-clean #mu-hotbar-host{grid-area:hb; position:static!important; inset:auto!important; display:flex; gap:clamp(4px,.6vw,8px); pointer-events:none}
+body.hud-clean .mu-hotbar-slot{
+  position:relative!important; left:auto!important; top:auto!important; width:clamp(36px,4.2vw,52px)!important; height:clamp(36px,4.2vw,52px)!important;
+  background:var(--hc-vidro); border:0; border-radius:9px; box-shadow:inset 0 0 0 1px var(--hc-linha); overflow:hidden; padding:0; transition:box-shadow .14s, background .14s;
+}
+body.hud-clean .mu-hotbar-slot:hover,body.hud-clean .mu-hotbar-slot.drag-over{background:var(--hc-vidro2); box-shadow:inset 0 0 0 1px var(--hc-linha2), 0 0 14px rgba(92,200,255,.35)}
+body.hud-clean .mu-hotbar-slot .slot-icon{width:70%; height:70%; filter:none}
+body.hud-clean .mu-hotbar-slot .slot-key{right:auto; left:4px; top:3px; bottom:auto; font:700 clamp(8px,.75vw,10px)/1 var(--hc-fonte); color:var(--hc-azul); letter-spacing:.04em; text-shadow:0 1px 2px #000}
+body.hud-clean .mu-hotbar-slot .slot-cd-fill{background:rgba(2,6,14,.72)}
+body.hud-clean .mu-hotbar-slot .slot-cd-txt{font:700 clamp(11px,1.1vw,15px)/1 var(--hc-fonte); color:#fff; text-shadow:0 1px 3px #000}
+/* ---- botoes de sistema (I C S Q O) ---- */
+body.hud-clean .mu-sys-wrap{grid-area:sy; justify-self:end; display:flex; gap:clamp(4px,.5vw,6px); pointer-events:none}
+body.hud-clean .mu-sys-btn{
+  position:relative!important; left:auto!important; top:auto!important; width:clamp(26px,2.6vw,34px)!important; height:clamp(26px,2.6vw,34px)!important;
+  background:var(--hc-vidro); border:0; border-radius:8px; box-shadow:inset 0 0 0 1px var(--hc-linha); color:var(--hc-azul); font:700 11px/1 var(--hc-fonte);
+}
+body.hud-clean .mu-sys-btn::before{content:attr(data-sys); position:absolute; inset:0; display:flex; align-items:center; justify-content:center}
+body.hud-clean .mu-sys-btn:hover,body.hud-clean .mu-sys-btn.active{background:var(--hc-vidro2); box-shadow:inset 0 0 0 1px var(--hc-linha2), 0 0 12px rgba(92,200,255,.35)}
+body.hud-clean .mu-sys-btn span{border-color:var(--hc-linha); color:var(--hc-txt); background:var(--hc-vidro2)}
+/* ---- alvo (barra do inimigo, no topo) ---- */
+body.hud-clean #top{filter:none!important}
+body.hud-clean .mu-target-art,body.hud-clean .mu-target-crystal{display:none!important}
+body.hud-clean #top > .bar.mu-hp-bar{
+  top:auto!important; bottom:0!important; left:0!important; width:100%!important; height:7px!important; --p:100%; border-radius:4px!important;
+  background:var(--hc-vidro)!important; box-shadow:inset 0 0 0 1px var(--hc-linha)!important;
+}
+body.hud-clean #top > .bar.mu-hp-bar::before{content:""; position:absolute; left:1px; top:1px; bottom:1px; width:var(--p); max-width:calc(100% - 2px); border-radius:3px; background:linear-gradient(180deg,var(--hc-hp2),var(--hc-hp)); box-shadow:0 0 8px rgba(255,77,109,.6); transition:width .16s}
+body.hud-clean #l2-target-name{top:auto!important; bottom:12px!important; transform:none!important; font:600 clamp(10px,1vw,12.5px)/1 var(--hc-fonte)!important; letter-spacing:.16em!important; color:var(--hc-txt)!important}
+/* ---- botoes do topo (menu, voltar) ---- */
+body.hud-clean #netBtn,body.hud-clean #btnReturnCity,body.hud-clean #btnFightBaiumDirect,body.hud-clean #mbfs{
+  font-family:var(--hc-fonte)!important; font-weight:600!important; letter-spacing:.14em!important; text-transform:uppercase!important; font-size:11px!important;
+  background:var(--hc-vidro)!important; color:var(--hc-txt)!important; border:0!important; border-radius:8px!important; padding:8px 14px!important;
+  box-shadow:inset 0 0 0 1px var(--hc-linha)!important; backdrop-filter:none!important; -webkit-backdrop-filter:none!important;
+}
+body.hud-clean #netBtn:hover,body.hud-clean #btnReturnCity:hover{box-shadow:inset 0 0 0 1px var(--hc-linha2),0 0 12px rgba(92,200,255,.3)!important}
+/* ---- avisos ---- */
+body.hud-clean #lockhint{font-family:var(--hc-fonte)!important; border-color:var(--hc-linha)!important; border-radius:6px!important; background:var(--hc-vidro)!important; color:var(--hc-txt)!important; box-shadow:none!important; backdrop-filter:none!important; -webkit-backdrop-filter:none!important}
+body.hud-clean #mu-slot-picker{border:0; border-radius:12px; background:rgba(6,10,20,.94); box-shadow:inset 0 0 0 1px var(--hc-linha), 0 12px 30px rgba(0,0,0,.8)}
+body.hud-clean #mu-slot-picker .pk-hd{color:var(--hc-azul); font-family:var(--hc-fonte); border-bottom-color:var(--hc-linha)}
+/* ---- celular: um pouco menor, sem toques no que e so informacao ---- */
+@media (max-width:768px){
+  body.hud-clean #mu-hud-bottom{gap:3px 8px; padding:0 8px max(6px,env(safe-area-inset-bottom))}
+  body.hud-clean .mu-bar-slot{width:min(100%,clamp(110px,24vw,200px))!important}
+  body.hud-clean .mu-hotbar-slot{width:clamp(30px,5.4vw,40px)!important;height:clamp(30px,5.4vw,40px)!important}
+  body.hud-clean .mu-bar-text{padding:0 10px!important}
+}

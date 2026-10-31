@@ -23,6 +23,7 @@
 
 
 <link rel="stylesheet" href="css/mu_hud.css?v=15">
+<link rel="stylesheet" href="css/hud_clean.css?v=3">
 
 
 
@@ -774,7 +775,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=3"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=1"></script>
+<script src="js/mobile.js?v=2"></script>
 <script src="js/qualidade.js?v=1"></script>
 <script src="js/voz.js?v=1"></script>
 </head>
@@ -1190,6 +1191,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
   <label><input type="checkbox" id="cfgBloom"><span>Brilho nos efeitos (bloom)<small>Da o acabamento macio e luminoso das skills. Desligue se o jogo ficar pesado.</small></span></label>
+  <label><span>Interface (HUD)<small>Clean: vidro translúcido e linhas finas, mais leve. Clássica: o HUD de dragões. Recarrega a página.</small></span><select id="cfgHud" style="margin-left:10px;padding:6px;background:#050a18;color:#fff;border:1px solid #2b3a63;border-radius:6px"><option value="clean">Clean</option><option value="classica">Clássica</option></select></label>
   <label><span>Qualidade gráfica<small>Baixa é a mais leve (celular). A resolução também se ajusta sozinha quando o jogo trava. Recarrega a página.</small></span><select id="cfgQual" style="margin-left:10px;padding:6px;background:#050a18;color:#fff;border:1px solid #2b3a63;border-radius:6px"><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option></select></label>
 
 
@@ -1326,7 +1328,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=15';
+import { MuHud } from './js/mu_hud.js?v=16';
 
 
 
@@ -8858,7 +8860,7 @@ function perform(id,q){
 
 
 
-  if(broke)sysMsg('Combo interrompido. Recomece pelo primeiro golpe.');
+  /* [hud-clean] aviso 'Combo interrompido' removido: poluia a tela */
 
 
 
@@ -13327,6 +13329,7 @@ function buildPad(){
 
 
 
+  var ch=$('#cfgHud');if(ch){try{ch.value=localStorage.getItem('isblade.hud')==='classica'?'classica':'clean';}catch(_){}ch.addEventListener('change',function(){try{localStorage.setItem('isblade.hud',ch.value);}catch(_){}location.reload();});}/* [hud-clean] */
   var cq=$('#cfgQual');if(cq){cq.value=QUAL.nivel;cq.addEventListener('change',function(){QUAL.escolher(cq.value);});}/* [qualidade] */
   var cb2=$('#cfgBloom');cb2.checked=BLOOM.on;cb2.addEventListener('change',function(){BLOOM.on=cb2.checked;try{localStorage.setItem('isblade.bloom',BLOOM.on?'1':'0');}catch(_){}});
 

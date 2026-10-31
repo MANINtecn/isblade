@@ -12,16 +12,16 @@
     '#mbgira i{font-size:64px;font-style:normal;display:block;animation:mbgira 2s ease-in-out infinite}@keyframes mbgira{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}' +
     '#mbgira small{color:#9fb0d0;font-weight:400;font-size:14px;max-width:280px}' +
     '@media (orientation:portrait){#mbgira{display:flex}}' +
-    '#mb{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:76px;z-index:60;display:none;pointer-events:none;user-select:none;-webkit-user-select:none;touch-action:none}' +
+    '#mb{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:104px;z-index:60;display:none;pointer-events:none;user-select:none;-webkit-user-select:none;touch-action:none}' +
     'body.is-touch #mb{display:block}' +
-    '#mb .b{position:absolute;pointer-events:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;border:2px solid #b8923a;background:rgba(8,14,30,.72);color:#f5d27a;font:700 11px system-ui,sans-serif;text-align:center;line-height:1.1;touch-action:none;-webkit-tap-highlight-color:transparent;overflow:hidden}' +
-    '#mb .b:active,#mb .b.on{background:rgba(245,196,81,.45);transform:scale(.94)}' +
-    '#mb .atk{width:78px;height:78px;right:0;bottom:0;font-size:13px;border-color:#ff8a2a;color:#ffb066}' +
+    '#mb .b{position:absolute;pointer-events:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid rgba(120,196,255,.5);background:rgba(7,12,24,.5);color:#e8f3ff;font:700 11px system-ui,sans-serif;text-align:center;line-height:1.1;touch-action:none;-webkit-tap-highlight-color:transparent;overflow:hidden}' +
+    '#mb .b:active,#mb .b.on{background:rgba(92,200,255,.35);transform:scale(.94)}' +
+    '#mb .atk{width:78px;height:78px;right:0;bottom:0;font-size:13px;border-color:rgba(255,110,140,.75);color:#ffd0da}' +
     '#mb .pul{width:54px;height:54px;right:86px;bottom:4px;font-size:10px}#mb .esq{width:54px;height:54px;right:18px;bottom:88px;font-size:9px}#mb .blq{width:54px;height:54px;right:86px;bottom:62px;font-size:9px}' +
-    '#mb .sk{width:50px;height:50px;border-color:#4a6fb0;color:#cfe0ff}' +
+    '#mb .sk{width:50px;height:50px;border-color:rgba(120,196,255,.45);color:#cfe0ff}' +
     '#mb .sk svg{width:30px;height:30px}#mb .sk .k{position:absolute;right:4px;bottom:1px;font-size:9px;color:#9fb0d0}' +
     '#mb .sk .cd{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.6);height:0}#mb .sk .ct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;text-shadow:0 1px 3px #000}' +
-    '#mbfs{position:fixed;left:50%;transform:translateX(-50%);top:6px;z-index:70;padding:6px 12px;border:1px solid #2b3a63;border-radius:999px;background:rgba(5,10,24,.8);color:#cfe0ff;font:600 12px system-ui,sans-serif;display:none}' +
+    '#mbfs{position:fixed;left:12px;top:96px;z-index:70;padding:6px 12px;border:1px solid #2b3a63;border-radius:999px;background:rgba(5,10,24,.8);color:#cfe0ff;font:600 12px system-ui,sans-serif;display:none}' +
     'body.is-touch #mbfs{display:block}' +
     'body.is-touch #mu-hotbar-host{pointer-events:none}';          /* a barra desenhada fica so como status; os botoes grandes acima fazem o trabalho */
 
