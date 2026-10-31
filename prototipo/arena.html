@@ -3913,6 +3913,7 @@ function raioMira(an){var r=an.skill&&an.skill.raio;return (r&&r[Math.max(0,(an.
 var miraAnel=new THREE.Mesh(new THREE.RingGeometry(.9,1,48),new THREE.MeshBasicMaterial({color:0xf5c451,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));
 miraAnel.rotation.x=-Math.PI/2;miraAnel.visible=false;scene.add(miraAnel);
 function miraAtualiza(){
+  miraAnel.visible=false;return;/* anel dourado de mira removido (a mira por ponto continua valendo, so nao desenha o circulo) */
   var sk=(WPN==='shield'&&SK[5]&&SK[5].mira)?SK[5]:null;
   if(!sk||S.pdead||S.cd[5]>0||DG.menu||MOUSE.touch||(S.dead&&!MOBS.length&&!DG.on)){miraAnel.visible=false;return;}
   var p=pontoMira(sk);miraAnel.visible=true;miraAnel.position.set(p.x,.14,p.z);miraAnel.scale.setScalar(sk.raio[0]);
@@ -8725,6 +8726,10 @@ loadBaium(function(r){
 });
 
 if(DG.on)dgHub();
+/* >>> CLAUDE [duelo-toi] ?mode=duel (portal "Duelo com Baium" da cidade): vai direto para a casa dele (salao do 3o andar), instancia solo */
+(function(){if(DG.on||TORRE_MODE||/[?&]go=/.test(location.search))return;
+  var w=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready){clearInterval(w);startBaiumDirectFight();}},400);})();
+/* <<< CLAUDE [duelo-toi] */
 /* >>> CLAUDE [portal-cidade] ?go=normal|medio|hard|pvp: vem do portal da cidade e pula o santuario */
 (function(){var mm=location.search.match(/[?&]go=(\w+)/);if(!mm||!DG.on)return;var go=mm[1];
   var w=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready){clearInterval(w);if(go==='pvp')pvpStart();else if(DGD.difficulties[go])dgStart(go);}},400);})();

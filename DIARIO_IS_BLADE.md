@@ -2214,3 +2214,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Testado (local, Playwright): clique/`T` seleciona; convite pelo cartão e aceite formam o grupo nos dois lados; 2 contas no PvP; duelo do Baium no 3º andar (chefe visível, sem erros); XP pelo servidor (esqueleto, cão, boss → nível 2/28 XP, igual no servidor); HP/estamina centralizados em 800x360.
 - NÃO testado: clique do mouse no jogador (testei só `T`; o clique usa a mesma seleção), dano real entre jogadores no PvP livre, desempenho no Redmi C13. Ainda no navegador: dano a mobs/boss, drop e inventário (o servidor só valida XP/nível e o PvP). Próximo: mobs e chefe simulados no servidor.
 - Backups: `arena_antes_duelo_toi.html`, `js/net_antes_alvo.js`, `css/hud_clean_antes_centro.css`, `servidor/server_antes_ffa.js`, `servidor/contas_antes_prog.js`.
+
+### [Claude] 31/10/2026 - Duelo do Baium pelo portal da cidade vai para a casa dele; anel dourado de mira removido
+- Causa: o portal "Duelo com Baium" da cidade abre `arena.html?mode=duel`, que nunca chamava `startBaiumDirectFight` (o ajuste anterior só valia pelo botão dentro do santuário). Agora `?mode=duel` espera o jogo carregar e chama a função, que leva ao salão circular do 3º andar (instância solo).
+- Anel dourado do Arremesso do Escudo (`miraAnel`) não é mais desenhado; a mira por ponto (2 a 10 m) continua valendo.
+- Testado: `arena.html?mode=duel` → andar 3, Baium visível, sem pilares do santuário, sem erros. Backup `arena_antes_duelo_modo.html`.
