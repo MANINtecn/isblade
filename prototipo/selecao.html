@@ -402,6 +402,9 @@ function loadCharactersFromStorage(){
   }
 
   // Se nao houver nenhum personagem salvo, cria o primeiro automaticamente (Default Ícaro)
+  if((!characters || characters.length === 0) && window.Conta && Conta.logado()){      /* conta nova: sem personagem de brinde, vai direto criar o seu */
+    location.replace('criacao.html'); return;
+  }
   if(!characters || characters.length === 0){
     var defaultChar = {
       id: 'char_default_1',

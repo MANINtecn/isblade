@@ -2187,3 +2187,9 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - HP: vermelho puro (`#f03a2e`) no lugar do que parecia rosa. `hud_clean.css` v4.
 - Testado (Playwright 800x360 toque): leque visível, ATACAR vermelho, arrastar+Salvar persiste após recarregar. NÃO testado: aparelho real (Redmi C13), a volta do Arremesso com analógico em movimento no navegador, nem o botão Padrão.
 - Backups: `mobile_antes_leque.js`, `guardiao_antes_dir.js`, `hud_clean_antes_cor.css`.
+
+### [Claude] 31/10/2026 - Conta nova não ganha mais personagem "Ícaro" de brinde
+- Causa: `selecao.html` criava sozinho um personagem padrão (`char_default_1`, "Ícaro") quando a lista estava vazia; conta nova começa vazia, então ganhava esse herói.
+- Agora: com conta logada e sem personagem, a seleção manda direto para `criacao.html`. Convidado segue como antes (mantém o padrão).
+- Testado (Playwright): conta logada sem personagens → vai para a criação e não grava personagem; convidado → continua na seleção. NÃO testado: criar o personagem e voltar pelo fluxo completo com o servidor real; contas que já receberam o "Ícaro" continuam com ele (apagar na seleção se quiser).
+- Backup: `selecao_antes_semdefault.html`.
