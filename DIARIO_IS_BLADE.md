@@ -1,13 +1,13 @@
 # DIARIO IS BLADE
 
-Jogo de acao no navegador (Three.js). Foco atual: PC. Celular e tablet depois, com outra jogabilidade quando a tela for pequena.
+Jogo de acao no navegador (Three.js). PC e celular (botoes de toque desde 31/10/2026; nivel de qualidade grafica automatico no celular). No ar em https://isblade.vercel.app e https://isblade.tecx.pro, servidor de jogo na VPS (wss://play.isblade.tecx.pro).
 
 - PASTA UNICA DO PROJETO: `C:\TECX SOFTHOUSE\IS ONLINE\` (nome da pasta). O JOGO se chama IS BLADE. Dentro dela: `prototipo\` (o jogo), `DIARIO_IS_BLADE.md` e `ROADMAP_IS_BLADE.md`. A pasta `C:\TECX SOFTHOUSE\IS BLADE\` NAO existe mais (unificada em 22/10/2026); caminhos antigos "IS BLADE\..." nas entradas abaixo agora sao `IS ONLINE\...`.
 - Pasta do jogo: `C:\TECX SOFTHOUSE\IS ONLINE\prototipo\`
 - Arquivo principal: `arena.html` (arena de combate 3D)
 - Como abrir: `INICIAR.bat` (servidor na porta 8000) e depois `http://localhost:8000/arena.html`
 - Referencia de jogabilidade: Dragon Nest (mira no centro, skills com alcance, combate fluido)
-- Ultima atualizacao deste diario: 22/10/2026
+- Ultima atualizacao deste diario: 31/10/2026 (secao final "SESSAO 28-31/10"; o detalhe tecnico de cada mudanca do Claude esta em `REGISTRO_CLAUDE.md`, uma entrada por mudanca, com backups e o que foi/nao foi testado)
 
 ---
 
@@ -1620,3 +1620,38 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
          - Teste 2: Atravessar o portal de vitoria redireciona com sucesso para http://localhost:8000/cidade.html.
          - Teste 3: Atravessar o Portal Sul Branco Celestial redireciona com sucesso para http://localhost:8000/cidade.html.
          - Teste 4: Pressionar a tecla [B] redireciona com sucesso para http://localhost:8000/cidade.html.
+
+
+---
+
+## 📅 SESSÃO: 28/10 a 31/10/2026 — [Claude] DO PROTÓTIPO AO JOGO NO AR (TORRE DO BAIUM, CONTAS, VPS, CELULAR)
+
+> Resumo para quem chega agora. Cada item tem uma entrada detalhada em `REGISTRO_CLAUDE.md` (causa, arquivos, backups, testes, o que NÃO foi testado).
+
+### 🌐 No ar
+- **Jogo (arquivos)** na Vercel: `isblade.vercel.app` e `isblade.tecx.pro` (repo `github.com/MANINtecn/isblade`, branch `main`; push = publicação). **Servidor de jogo** (Node + `ws`) na **VPS Windows `51.79.41.62`**, com **Caddy** dando HTTPS em `play.isblade.tecx.pro` (registro A criado no painel do `tecx.pro`; o coringa `*` continua apontando para a Vercel). Tarefas agendadas `IS_Servidor`, `IS_Sync` (puxa o git a cada 5 min e reinicia só o node do jogo) e `IS_Caddy`. Verificado: `/status`, certificado e WebSocket (origem `isblade.vercel.app` entra; origem estranha leva 401). **Não** testado: dois jogadores reais se vendo.
+- **PWA / service worker** (`sw.js`): código em rede-primeiro, assets pesados em cache-primeiro (a URL com `?v=N` é a chave). Em 31/10 o cache de CÓDIGO passou para `v2` (assets continuam `v1`) porque o PC do dono mostrava a página inicial antiga.
+
+### 🧑‍🤝‍🧑 Contas e personagens
+- **Cadastro rápido**: usuário + senha (sem e-mail), `servidor/contas.js` (scrypt, token como hash, limites por IP) e `js/conta.js`. Personagens, inventário, skills, maestria, DGs feitas e barra de atalhos são **por personagem** e ficam salvos na conta (`/api/dados`). Sincronia por conta com **mescla** (nenhum personagem some). **Sem recuperação de senha** (não pedimos e-mail). Jogar sem conta continua possível (dados só no aparelho).
+- **Fluxo único PC + celular**: `index` (logo da IS Labs, "o único L2 hack and slash", JOGAR) → `login` → `painel` (botão enorme) → `carregando` (barra por bytes, 15 dicas, só o essencial ~66 MB) → `selecao` (lobby). Abrir qualquer página do jogo direto volta ao início (`Conta.fluxo()`; `?dev=1` libera para testes).
+
+### ⚔️ Combate e Guardião
+- **CC (controle de grupo) estilo Dragon Nest** em `js/cc.js` (estados, SA, mesma regra em PvE e PvP), guarda universal na tecla **C**, **pulo** (Espaço), **esquiva** (toque no Shift) e **corrida** (Shift segurado, gasta estamina, ×1,8). Bloqueio do Guardião gasta menos estamina.
+- **Skills do Guardião**: Fortaleza Égide (domo que gira, machuca e cura), Arremesso do Escudo com golpes múltiplos, Chuva de Escudos e Fortaleza ~2× mais rápidas, escudos caindo em pé, **Corrente de Puxão puxa mobs comuns (nunca o chefe)**, reflexo do Escudo de Energia com alcance 15 m, recargas menores e HP do Baium + recargas visíveis na HUD.
+- **Barra de atalhos livre**: arrastar skill/item para qualquer slot, tecla por slot configurável em Opções (padrão Q E R T F G; proibidas WASD, 1-6, M, V, B, C, I, K, X).
+
+### 🏯 Torre do Baium (mapa da comunidade "Mini Toi", montado e texturizado no Blender)
+- Mapa de colisão próprio (`mini_toi_walkgrid`), 3 andares, escadas e pulo. **1º andar** = DG normal/médio; **2º andar** = DG hard (limpar libera a porta); **3º andar** = **Baium (agora 3× maior)** lutando no **círculo gigante** (arena de ~62 m de raio), a porta abre sozinha ao se aproximar.
+- **DGs com tempo**: meta de abates, chefe, mobs que reaparecem, tempo esgotado = expulso, portal de saída ao concluir (no hard não há portal: sobe a escada).
+- **Portal da cidade** agora é o do santuário; [E] abre a escolha (Dungeon Normal/Médio/Hard, Duelo contra o Baium, PvP). O cenário gerado no TECX LABS 3D some dentro da torre.
+- **Cidade (Talking Island) reorganizada no Blender** (`assets/talking_island/vila_montagem.blend` + `EXPORTAR_VILA.bat`): 13 peças movidas pelo dono. **Pendente**: colisões da cidade não acompanham as casas movidas.
+
+### 📱 Celular
+- Botões de toque (atacar, pular, esquiva/correr, bloqueio, 6 skills da barra), aviso "gire o celular", tela cheia (Android). **Qualidade gráfica** baixa/média/alta (`js/qualidade.js`): celular começa em baixa (sem bloom, sem antialias, resolução dinâmica, corte de objetos longe). Foto do celular real mostrou travamento e imagem corrompida: primeira rodada de otimização feita, **ganho não medido em aparelho**; próximas ideias: texturas menores, baixar só o modelo do personagem escolhido, simplificar o portal da cidade.
+
+### ⚠️ Pendências e riscos conhecidos
+- Dois jogadores reais no servidor (nunca testado fora de bots/Chrome). PvP nos andares 2 e 3; dificuldade ULTRA e zona de x1 no 1º andar; CC no servidor (PvP).
+- Recuperação de senha; botão para restaurar a cópia local (`Conta.recuperar()` existe, sem botão); repositório ainda **público** (assets do L2; dono vai deixar privado, a VPS então precisará de credencial de leitura).
+- Senha do Administrador da VPS apareceu em imagem no chat: **trocar**; depois recriar as tarefas agendadas com a nova senha.
+- Tela de criação preta no PC do dono (não reproduzida: Chrome limpo mostra tudo); suspeitas: cache antigo ou contexto WebGL perdido.
