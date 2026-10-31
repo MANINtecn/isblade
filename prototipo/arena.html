@@ -440,8 +440,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=3"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=2"></script>
-<script src="js/qualidade.js?v=1"></script>
+<script src="js/mobile.js?v=4"></script>
+<script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 </head>
 
@@ -688,7 +688,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 import { Torre } from './js/torre.js?v=7';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=16';
+import { MuHud } from './js/mu_hud.js?v=17';
 
 window.THREE = THREE;
 
@@ -966,6 +966,20 @@ var SFX=(function(){
 
     /* Golpe normal da arma: shing metálico cortando o ar */
 
+    /* [sons-l2] efeitos das skills do Guardiao e estalo de soulshot a cada golpe do ataque padrao (amostras do cliente L2) */
+    g_s1_swing:function(){return smp('focus_sonic_shot',.9,1.0)||smp(F.ff,.7,1);},
+    g_s1_hit:function(){return (smp('shieldstun_shot',.9,1.0)&&smp(F.gH,.45,1))||smp(F.gH,.8,1);},
+    g_s2_swing:function(){return smp('power_strike_shot',.95,.9)||smp(F.pH,.8,.9);},
+    g_s2_hit:function(){return (smp('ground_smash',.8,1.0)&&smp('onehand_shot',.5,.9))||smp(F.pH,.9,.8);},
+    g_s3_swing:function(){return smp('doublewind_shot',.9,1.0)||smp(F.kn,.7,1);},
+    g_s3_hit:function(){return (smp(F.mH,.8,1.0)&&smp('onehand_shot',.55,1.1))||smp(F.mH,.9,1);},
+    g_s4_swing:function(){return smp('battle_roar_shot',1.0,.95)||smp(F.ff,.8,.7);},
+    g_s4_hit:function(){return false;},
+    g_s5_swing:function(){return smp('dash_shot',.9,1.1)||smp(F.dk,.7,1);},
+    g_s5_hit:function(){return (smp(L2.dagger,.9,1.0)&&smp(F.mL,.55,1.0))||smp(F.mL,.9,1);},
+    g_s6_swing:function(){return smp('fatal_strike_shot',1.0,1.0)||smp(F.pH,.9,1);},
+    g_s6_hit:function(){return (smp('energywave_shot',.8,1.0)&&smp(L2.swordGreat,.8,1.0))||smp(F.mH,.9,1);},
+    soulshot_hit:function(){return smp('soul_shot_shot',.5,1.04+Math.random()*.1);},
     swing:function(){return (smp(L2.shing,.85,1.0) || smp(L2.swordMid,.8,1.0)) || smp(F.kn,.5,1);},
 
     /* Impacto do golpe na armadura / alvo */
@@ -4029,7 +4043,7 @@ if(S.dead&&!MOBS.length)return;
 
   spark(hx,1.8,hz,big?3.6:2.2,tc,.38);burst(hx,1.8,hz,big?26:10,tc,big?4:2.4);
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else SFX.play(big?'hitBig':'hit');
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');SFX.play('soulshot_hit');}
 
   if(an.sk){
 
@@ -4962,7 +4976,7 @@ function mob3dAnim(m,dt){
   if(m.state==='windup')mob3dTocar(m,'atkwait');
   else if(m.state==='recover'){if(m.cur!=='atk'){var cl=m.acoes.atk&&m.acoes.atk.getClip();mob3dTocar(m,'atk',{uma:true,fade:.08,vel:cl?clamp(cl.duration/Math.max(.5,m.T.rec*.85),1,2.6):1});}}
   else mob3dTocar(m,parado?'wait':(mv?'run':'wait'),{vel:(mv&&!parado)?clamp(m.spd/2.6,.8,1.8):1});
-  var d=Math.hypot(m.x-S.px,m.z-S.pz);if(d<34)m.mixer.update(dt);/* longe: pose congelada (economiza no celular) */
+  var d=Math.hypot(m.x-S.px,m.z-S.pz);if(d<(QUAL.animRaio||34))m.mixer.update(dt);/* longe: pose congelada (economiza no celular) */
 }
 /* <<< CLAUDE [mob3d] */
 function mkMobBoneco(type,x,z){
@@ -5056,7 +5070,7 @@ function damageMob(m,dmg,an){
 
   spark(m.x,1.4*m.T.size,m.z,an.skill?3:2,0x8bc1ff,.3);burst(m.x,1.4*m.T.size,m.z,an.skill?18:8,0x8bc1ff,an.skill?3.5:2.2);
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else SFX.play('hit');
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');SFX.play('soulshot_hit');}
   try{if(m.hp>0)Voz.mob(m.type,'dmg',Math.hypot(m.x-S.px,m.z-S.pz));}catch(_){}/* [voz] gemido do monstro (L2) */
 
   if(m.hp<=0)killMob(m);
@@ -5826,7 +5840,7 @@ function torreDgLoad(retry){
   resetFight();
   DG.total=0;DG.kr=0;DG.tLeft=cfg.tempo||0;DG.rsp=0;DG.nReg=0;DG.fim=false;
   cfg.mobs.forEach(function(mb){
-    var cnt=Math.max(1,Math.round(mb[1]*DIFF().count));DG.total+=cnt;if(!(DGD.mobs[mb[0]]&&DGD.mobs[mb[0]].isMiniBoss))DG.nReg+=cnt;
+    var cnt=Math.max(1,Math.round(mb[1]*DIFF().count*(QUAL.mobMult||1)));DG.total+=cnt;if(!(DGD.mobs[mb[0]]&&DGD.mobs[mb[0]].isMiniBoss))DG.nReg+=cnt;
     for(var n=0;n<cnt;n++){var p=Torre.pontoAleatorio(cfg.andar,16,46);var m=mkMob(mb[0],p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);}
   });
   DG.portalPos=Torre.pontoPortal(cfg.andar);
@@ -7938,6 +7952,8 @@ var last=performance.now(),T=0,perf={on:false,n:0,t:0,max:0};
 
 function frame(nowMs){
 
+
+  if(QUAL.fpsMax){var _mn=1000/QUAL.fpsMax-2;if(window.__ult&&nowMs-window.__ult<_mn){requestAnimationFrame(frame);return;}window.__ult=nowMs;}/* [perf] limite de quadros/s do nivel de qualidade (baixa = 30) */
   try{frameBody(nowMs);}catch(err){if(!window.__ferr){window.__ferr=true;console.log('DBG FRAMEERR '+(err&&err.stack||err));}}
 
   requestAnimationFrame(frame);

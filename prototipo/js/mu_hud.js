@@ -690,6 +690,7 @@ export const MuHud = {
 
   update: function(S) {
     if (!S) return;
+    if (window.QUAL && QUAL.touch) { var _n = performance.now(); if (_n - (this._u || 0) < 110) return; this._u = _n; }      /* celular: barras e recargas ~9x por segundo */
 
     // 1. Atualiza Cristal Esquerdo: VIDA (HP)
     var php = (S.php !== undefined) ? Math.max(0, Math.round(S.php)) : 100;

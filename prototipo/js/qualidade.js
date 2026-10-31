@@ -6,16 +6,16 @@
   var touch = false;
   try { touch = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && navigator.maxTouchPoints > 1); } catch(e){}
   var NIVEIS = {
-    baixa: { ratio: 1,    aa: false, bloom: false, cull: true  },
-    media: { ratio: 1.25, aa: false, bloom: false, cull: true  },
-    alta:  { ratio: 2,    aa: true,  bloom: true,  cull: false }
+    baixa: { ratio: 1,    aa: false, bloom: false, cull: true,  fps: 30, mobs: .6, anim: 22 },        /* aparelho basico (ex.: Redmi C13): 30 quadros/s travados, 60% dos monstros, anima so ate 22 m */
+    media: { ratio: 1.25, aa: false, bloom: false, cull: true,  fps: 45, mobs: .85, anim: 30 },
+    alta:  { ratio: 2,    aa: true,  bloom: true,  cull: false, fps: 0,  mobs: 1,  anim: 40 }
   };
   var nome = null;
   try { var m = /[?&]q=(baixa|media|alta)/.exec(location.search); if(m){ nome = m[1]; localStorage.setItem('isblade.qualidade', nome); } } catch(e){}
   try { if(!nome) nome = localStorage.getItem('isblade.qualidade'); } catch(e){}
   if(!NIVEIS[nome]) nome = touch ? 'baixa' : 'alta';
   var base = NIVEIS[nome];
-  var Q = window.QUAL = { nivel: nome, touch: touch, ratio: base.ratio, max: base.ratio, aa: base.aa, bloom: base.bloom, cull: base.cull, fps: 0,
+  var Q = window.QUAL = { nivel: nome, touch: touch, ratio: base.ratio, max: base.ratio, aa: base.aa, bloom: base.bloom, cull: base.cull, fps: 0, fpsMax: base.fps, mobMult: base.mobs, animRaio: base.anim,
     escolher: function(n){ try { localStorage.setItem('isblade.qualidade', n); } catch(e){} location.reload(); } };
 
   /* resolucao dinamica: mede o intervalo medio dos quadros a cada 2 s */

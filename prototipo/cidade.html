@@ -775,8 +775,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=3"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=2"></script>
-<script src="js/qualidade.js?v=1"></script>
+<script src="js/mobile.js?v=4"></script>
+<script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 </head>
 
@@ -1328,7 +1328,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=16';
+import { MuHud } from './js/mu_hud.js?v=17';
 
 
 
@@ -1884,6 +1884,20 @@ var SFX=(function(){
 
 
 
+    /* [sons-l2] efeitos das skills do Guardiao e estalo de soulshot a cada golpe do ataque padrao (amostras do cliente L2) */
+    g_s1_swing:function(){return smp('focus_sonic_shot',.9,1.0)||smp(F.ff,.7,1);},
+    g_s1_hit:function(){return (smp('shieldstun_shot',.9,1.0)&&smp(F.gH,.45,1))||smp(F.gH,.8,1);},
+    g_s2_swing:function(){return smp('power_strike_shot',.95,.9)||smp(F.pH,.8,.9);},
+    g_s2_hit:function(){return (smp('ground_smash',.8,1.0)&&smp('onehand_shot',.5,.9))||smp(F.pH,.9,.8);},
+    g_s3_swing:function(){return smp('doublewind_shot',.9,1.0)||smp(F.kn,.7,1);},
+    g_s3_hit:function(){return (smp(F.mH,.8,1.0)&&smp('onehand_shot',.55,1.1))||smp(F.mH,.9,1);},
+    g_s4_swing:function(){return smp('battle_roar_shot',1.0,.95)||smp(F.ff,.8,.7);},
+    g_s4_hit:function(){return false;},
+    g_s5_swing:function(){return smp('dash_shot',.9,1.1)||smp(F.dk,.7,1);},
+    g_s5_hit:function(){return (smp(L2.dagger,.9,1.0)&&smp(F.mL,.55,1.0))||smp(F.mL,.9,1);},
+    g_s6_swing:function(){return smp('fatal_strike_shot',1.0,1.0)||smp(F.pH,.9,1);},
+    g_s6_hit:function(){return (smp('energywave_shot',.8,1.0)&&smp(L2.swordGreat,.8,1.0))||smp(F.mH,.9,1);},
+    soulshot_hit:function(){return smp('soul_shot_shot',.5,1.04+Math.random()*.1);},
     swing:function(){return (smp(L2.shing,.85,1.0) || smp(L2.swordMid,.8,1.0)) || smp(F.kn,.5,1);},
 
 
@@ -6414,7 +6428,7 @@ function bossOnState(state){
 
 
 
-    SFX.play('roar');
+    if(boss&&boss.isGltf)SFX.play('roar');/* [sons-l2] o espantalho de treino nao ruge */
 
 
 
@@ -9150,7 +9164,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else SFX.play(big?'hitBig':'hit');
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');SFX.play('soulshot_hit');}
 
 
 
@@ -9182,7 +9196,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-    SFX.play('roar');
+    if(boss&&boss.isGltf)SFX.play('roar');/* [sons-l2] o espantalho de treino nao ruge */
 
 
 
@@ -11054,7 +11068,7 @@ function damageMob(m,dmg,an){
 
 
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else SFX.play('hit');
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');SFX.play('soulshot_hit');}
 
 
 
@@ -16147,6 +16161,8 @@ function frame(nowMs){
 
 
 
+
+  if(QUAL.fpsMax){var _mn=1000/QUAL.fpsMax-2;if(window.__ult&&nowMs-window.__ult<_mn){requestAnimationFrame(frame);return;}window.__ult=nowMs;}/* [perf] limite de quadros/s do nivel de qualidade (baixa = 30) */
   try{frameBody(nowMs);}catch(err){if(!window.__ferr){window.S=S;window.TR=TR;window.req=req;window.__ferr=true;console.log('DBG FRAMEERR '+(err&&err.stack||err));}}
 
 
@@ -16168,7 +16184,7 @@ function frameBody(nowMs){
 
 
   window.__fc=(window.__fc||0)+1;
-  if(QUAL.cull&&(window.__fc%20===0)){var _cx=S.px,_cz=S.pz;villageGroup.children.forEach(function(o){var dx=o.position.x-_cx,dz=o.position.z-_cz,d2=dx*dx+dz*dz;o.visible=d2<(o.userData.arv?8100:36100);});}/* [qualidade] some o que esta longe (arvores 90 m, predios 190 m) */
+  if(QUAL.cull&&(window.__fc%20===0)){var _cx=S.px,_cz=S.pz;villageGroup.children.forEach(function(o){var dx=o.position.x-_cx,dz=o.position.z-_cz,d2=dx*dx+dz*dz;o.visible=d2<(QUAL.nivel==='baixa'?(o.userData.arv?3025:14400):(o.userData.arv?8100:36100));});}/* [qualidade] some o que esta longe (arvores 90 m, predios 190 m) */
 
 
 
