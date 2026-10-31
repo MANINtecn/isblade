@@ -1,417 +1,520 @@
 {
-"total": 102515150,
+"total": 66562047,
 "itens": [
 {
-"u": "assets/Talibrac.vrm",
-"b": 17763032
-},
-{
-"u": "assets/baium/baium_boss.glb",
-"b": 13522856
-},
-{
-"u": "assets/personagens/darkelf_f.glb?v=5",
-"b": 2343372
-},
-{
-"u": "assets/personagens/human_fighter_imperial.glb?v=7",
-"b": 2291880
-},
-{
-"u": "assets/personagens/darkelf_m.glb?v=5",
-"b": 2263236
-},
-{
-"u": "assets/personagens/magic_f.glb?v=7",
-"b": 2192284
-},
-{
-"u": "assets/personagens/dwarf_f.glb?v=7",
-"b": 2192016
-},
-{
-"u": "assets/personagens/guardian_anims.glb?v=5",
-"b": 2181508
-},
-{
-"u": "assets/personagens/magic_m.glb?v=7",
-"b": 2159908
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_fighter_hall.glb",
-"b": 1958112
-},
-{
-"u": "assets/personagens/elf_f.glb?v=7",
-"b": 1931328
-},
-{
-"u": "assets/personagens/orc_f.glb?v=7",
-"b": 1921892
-},
-{
-"u": "assets/personagens/human_fighter_female.glb?v=7",
-"b": 1905372
-},
-{
-"u": "assets/personagens/human_fighter.glb?v=7",
-"b": 1903040
-},
-{
-"u": "assets/personagens/dwarf_m.glb?v=7",
-"b": 1875896
-},
-{
-"u": "assets/personagens/dragon_slayer.glb",
-"b": 1834544
-},
-{
-"u": "assets/personagens/orc_m.glb?v=7",
-"b": 1833180
-},
-{
-"u": "assets/baium/baium_t00_sp.png",
-"b": 1756913
-},
-{
-"u": "assets/baium/baium_t01_sp.png",
-"b": 1755806
-},
-{
-"u": "assets/personagens/elf_m.glb?v=7",
-"b": 1686672
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_shop_02.glb",
-"b": 1621496
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_agit.glb",
-"b": 1524252
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_shop_01.glb",
-"b": 1452112
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_house_04.glb",
-"b": 1387256
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_house_01.glb",
-"b": 1371060
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_house_03.glb",
-"b": 1359804
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_lighthouse.glb",
-"b": 1236572
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_shop_03.glb",
-"b": 1210644
-},
-{
-"u": "assets/talking_island/textures/is_labs_duel_medallion.png?v=10",
-"b": 1173209
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_church.glb",
-"b": 1172372
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_house_02.glb",
-"b": 1084020
-},
-{
-"u": "assets/lobby_temple_bg.jpg",
-"b": 1023991
-},
-{
-"u": "assets/fx/portal_monolith_rune.png",
-"b": 953853
-},
-{
-"u": "assets/talking_island/loading_screen.jpg",
-"b": 923646
-},
-{
-"u": "assets/personagens/weapon_sword_is_0.glb",
-"b": 911860
-},
-{
-"u": "assets/fx/portal_monolith_rune_white.png",
-"b": 804902
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_wall_a.glb",
-"b": 764600
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_wall_c.glb",
-"b": 764440
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_wall_d.glb",
-"b": 763756
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_wall_b.glb",
-"b": 763088
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_gate.glb",
-"b": 715724
-},
-{
-"u": "assets/talking_island/textures/is_labs_logo_ui.png",
-"b": 694595
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_centertop.glb",
-"b": 691664
-},
-{
-"u": "assets/personagens/shield_is.glb?v=4",
-"b": 675248
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_tree_legend.glb",
-"b": 560424
-},
-{
-"u": "assets/hud/mu_dragon_hud_clean.png?v=6",
-"b": 549277
-},
-{
-"u": "assets/fx/portal_vortex_blue.png",
-"b": 504384
-},
-{
-"u": "assets/personagens/scarecrow.glb",
-"b": 449792
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_tree_01.glb",
-"b": 448600
-},
-{
-"u": "assets/audio/baium_earthquake_shot.wav",
-"b": 411148
-},
-{
-"u": "assets/l2_sounds/baium_earthquake_shot.wav",
-"b": 411148
-},
-{
-"u": "assets/l2_sounds/skillsound4/Sound/baium_earthquake_shot.wav",
-"b": 411148
-},
-{
-"u": "assets/audio/thunder_strike.wav",
-"b": 366756
-},
-{
-"u": "assets/baium/sounds/thunder_strike.wav",
-"b": 366756
-},
-{
-"u": "assets/cenario/env_arena_floor_01.glb",
-"b": 328460
-},
-{
-"u": "assets/fx/portal_vortex_white.png",
-"b": 324314
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_tree_02.glb",
-"b": 316020
-},
-{
-"u": "assets/audio/thunder_rumble.wav",
-"b": 299522
-},
-{
-"u": "assets/baium/sounds/thunder_rumble.wav",
-"b": 299522
-},
-{
-"u": "assets/cenario/env_arena_wall_01.glb",
-"b": 278504
-},
-{
-"u": "assets/fx/portal_event_horizon.png",
-"b": 241237
-},
-{
-"u": "assets/fx/portal_event_horizon_white.png",
-"b": 230973
-},
-{
-"u": "assets/fx/portal_floor_seal_white.png",
-"b": 207337
-},
-{
-"u": "assets/fx/portal_floor_seal.png",
-"b": 196901
-},
-{
-"u": "assets/audio/ground_smash.wav",
-"b": 196252
-},
-{
-"u": "assets/baium/sounds/ground_smash.wav",
-"b": 196252
-},
-{
-"u": "assets/talking_island/assembled_glb/ti_port_dock.glb",
-"b": 194384
-},
-{
-"u": "assets/audio/soul_shot_shot.wav",
-"b": 163628
-},
-{
-"u": "assets/l2_sounds/soul_shot_shot.wav",
-"b": 163628
-},
-{
-"u": "assets/l2_sounds/skillsound/Sound/soul_shot_shot.wav",
-"b": 163628
-},
-{
-"u": "assets/audio/lightning_bolt.wav",
-"b": 143524
-},
-{
-"u": "assets/baium/sounds/lightning_bolt.wav",
-"b": 143524
-},
-{
-"u": "assets/audio/dash_shot.wav",
-"b": 131260
-},
-{
-"u": "assets/l2_sounds/dash_shot.wav",
-"b": 131260
-},
-{
-"u": "assets/l2_sounds/skillsound4/Sound/dash_shot.wav",
-"b": 131260
-},
-{
-"u": "assets/talking_island/real_village/si_v_t/Texture/sp_floor02.png",
-"b": 125188
-},
-{
-"u": "assets/audio/power_strike_shot.wav",
-"b": 104250
-},
-{
-"u": "assets/l2_sounds/power_strike_shot.wav",
-"b": 104250
-},
-{
-"u": "assets/l2_sounds/skillsound/Sound/power_strike_shot.wav",
-"b": 104250
-},
-{
-"u": "assets/hud/mu_stamina_crystal_fill.png?v=6",
-"b": 56902
-},
-{
-"u": "assets/hud/mu_hp_crystal_fill.png?v=6",
-"b": 55241
-},
-{
-"u": "assets/audio/boss_roar.wav",
-"b": 50532
-},
-{
-"u": "assets/baium/sounds/boss_roar.wav",
-"b": 50532
-},
-{
-"u": "assets/personagens/composite_shield.glb",
-"b": 41628
-},
-{
-"u": "assets/audio/public_sword_shing_1.wav",
-"b": 40268
-},
-{
-"u": "assets/l2_sounds/public_sword_shing_1.wav",
-"b": 40268
-},
-{
-"u": "assets/l2_sounds/itemsound/Sound/public_sword_shing_1.wav",
-"b": 40268
-},
-{
-"u": "assets/fx/portal_mist_blue.png",
-"b": 39148
-},
-{
-"u": "assets/fx/portal_mist_white.png",
-"b": 37162
-},
-{
-"u": "assets/cenario/env_banner_pole_01.glb",
-"b": 35552
-},
-{
-"u": "assets/audio/earth_fissure.wav",
-"b": 34532
-},
-{
-"u": "assets/baium/sounds/earth_fissure.wav",
-"b": 34532
-},
-{
-"u": "assets/hud/mu_target_hp_fill.png?v=9",
-"b": 30273
-},
-{
-"u": "assets/talking_island/real_village/si_v_t/Texture/sp_v_floor.png",
-"b": 27604
-},
-{
-"u": "assets/audio/stomp_quake.wav",
-"b": 26148
-},
-{
-"u": "assets/baium/sounds/stomp_quake.wav",
-"b": 26148
-},
-{
-"u": "assets/hud/mu_target_frame_clean.png?v=9",
-"b": 24167
-},
-{
-"u": "assets/audio/punch_heavy.wav",
-"b": 22564
-},
-{
-"u": "assets/baium/sounds/punch_heavy.wav",
-"b": 22564
-},
-{
-"u": "assets/personagens/bastard_sword.glb",
-"b": 17304
+"u": "assets/audio/heavy_swing.wav",
+"b": 14666,
+"e": 1
 },
 {
 "u": "assets/cathedral_stone_floor.jpg",
-"b": 16709
+"b": 16709,
+"e": 1
 },
 {
-"u": "assets/audio/heavy_swing.wav",
-"b": 14666
+"u": "assets/personagens/bastard_sword.glb",
+"b": 17304,
+"e": 1
+},
+{
+"u": "assets/audio/punch_heavy.wav",
+"b": 22564,
+"e": 1
+},
+{
+"u": "assets/hud/mu_target_frame_clean.png?v=9",
+"b": 24167,
+"e": 1
+},
+{
+"u": "assets/audio/stomp_quake.wav",
+"b": 26148,
+"e": 1
+},
+{
+"u": "assets/talking_island/real_village/si_v_t/Texture/sp_v_floor.png",
+"b": 27604,
+"e": 1
+},
+{
+"u": "assets/hud/mu_target_hp_fill.png?v=9",
+"b": 30273,
+"e": 1
+},
+{
+"u": "assets/audio/earth_fissure.wav",
+"b": 34532,
+"e": 1
+},
+{
+"u": "assets/cenario/env_banner_pole_01.glb",
+"b": 35552,
+"e": 1
+},
+{
+"u": "assets/fx/portal_mist_white.png",
+"b": 37162,
+"e": 1
+},
+{
+"u": "assets/fx/portal_mist_blue.png",
+"b": 39148,
+"e": 1
+},
+{
+"u": "assets/audio/public_sword_shing_1.wav",
+"b": 40268,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/public_sword_shing_1.wav",
+"b": 40268,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/itemsound/Sound/public_sword_shing_1.wav",
+"b": 40268,
+"e": 1
+},
+{
+"u": "assets/personagens/composite_shield.glb",
+"b": 41628,
+"e": 1
+},
+{
+"u": "assets/audio/boss_roar.wav",
+"b": 50532,
+"e": 1
+},
+{
+"u": "assets/hud/mu_hp_crystal_fill.png?v=6",
+"b": 55241,
+"e": 1
+},
+{
+"u": "assets/hud/mu_stamina_crystal_fill.png?v=6",
+"b": 56902,
+"e": 1
+},
+{
+"u": "assets/audio/power_strike_shot.wav",
+"b": 104250,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/power_strike_shot.wav",
+"b": 104250,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/skillsound/Sound/power_strike_shot.wav",
+"b": 104250,
+"e": 1
+},
+{
+"u": "assets/talking_island/real_village/si_v_t/Texture/sp_floor02.png",
+"b": 125188,
+"e": 1
+},
+{
+"u": "assets/audio/dash_shot.wav",
+"b": 131260,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/dash_shot.wav",
+"b": 131260,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/skillsound4/Sound/dash_shot.wav",
+"b": 131260,
+"e": 1
+},
+{
+"u": "assets/audio/lightning_bolt.wav",
+"b": 143524,
+"e": 1
+},
+{
+"u": "assets/audio/soul_shot_shot.wav",
+"b": 163628,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/soul_shot_shot.wav",
+"b": 163628,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/skillsound/Sound/soul_shot_shot.wav",
+"b": 163628,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_port_dock.glb",
+"b": 194384,
+"e": 1
+},
+{
+"u": "assets/audio/ground_smash.wav",
+"b": 196252,
+"e": 1
+},
+{
+"u": "assets/fx/portal_floor_seal.png",
+"b": 196901,
+"e": 1
+},
+{
+"u": "assets/fx/portal_floor_seal_white.png",
+"b": 207337,
+"e": 1
+},
+{
+"u": "assets/fx/portal_event_horizon_white.png",
+"b": 230973,
+"e": 1
+},
+{
+"u": "assets/fx/portal_event_horizon.png",
+"b": 241237,
+"e": 1
+},
+{
+"u": "assets/cenario/env_arena_wall_01.glb",
+"b": 278504,
+"e": 1
+},
+{
+"u": "assets/audio/thunder_rumble.wav",
+"b": 299522,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_tree_02.glb",
+"b": 316020,
+"e": 1
+},
+{
+"u": "assets/fx/portal_vortex_white.png",
+"b": 324314,
+"e": 1
+},
+{
+"u": "assets/cenario/env_arena_floor_01.glb",
+"b": 328460,
+"e": 1
+},
+{
+"u": "assets/audio/thunder_strike.wav",
+"b": 366756,
+"e": 1
+},
+{
+"u": "assets/audio/baium_earthquake_shot.wav",
+"b": 411148,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/baium_earthquake_shot.wav",
+"b": 411148,
+"e": 1
+},
+{
+"u": "assets/l2_sounds/skillsound4/Sound/baium_earthquake_shot.wav",
+"b": 411148,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_tree_01.glb",
+"b": 448600,
+"e": 1
+},
+{
+"u": "assets/personagens/scarecrow.glb",
+"b": 449792,
+"e": 1
+},
+{
+"u": "assets/fx/portal_vortex_blue.png",
+"b": 504384,
+"e": 1
+},
+{
+"u": "assets/hud/mu_dragon_hud_clean.png?v=6",
+"b": 549277,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_tree_legend.glb",
+"b": 560424,
+"e": 1
+},
+{
+"u": "assets/personagens/shield_is.glb?v=4",
+"b": 675248,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_centertop.glb",
+"b": 691664,
+"e": 1
+},
+{
+"u": "assets/talking_island/textures/is_labs_logo_ui.png",
+"b": 694595,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_gate.glb",
+"b": 715724,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_wall_b.glb",
+"b": 763088,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_wall_d.glb",
+"b": 763756,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_wall_c.glb",
+"b": 764440,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_wall_a.glb",
+"b": 764600,
+"e": 1
+},
+{
+"u": "assets/fx/portal_monolith_rune_white.png",
+"b": 804902,
+"e": 1
+},
+{
+"u": "assets/personagens/weapon_sword_is_0.glb",
+"b": 911860,
+"e": 1
+},
+{
+"u": "assets/talking_island/loading_screen.jpg",
+"b": 923646,
+"e": 1
+},
+{
+"u": "assets/fx/portal_monolith_rune.png",
+"b": 953853,
+"e": 1
+},
+{
+"u": "assets/lobby_temple_bg.jpg",
+"b": 1023991,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_house_02.glb",
+"b": 1084020,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_church.glb",
+"b": 1172372,
+"e": 1
+},
+{
+"u": "assets/talking_island/textures/is_labs_duel_medallion.png?v=10",
+"b": 1173209,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_shop_03.glb",
+"b": 1210644,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_lighthouse.glb",
+"b": 1236572,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_house_03.glb",
+"b": 1359804,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_house_01.glb",
+"b": 1371060,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_house_04.glb",
+"b": 1387256,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_shop_01.glb",
+"b": 1452112,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_agit.glb",
+"b": 1524252,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_shop_02.glb",
+"b": 1621496,
+"e": 1
+},
+{
+"u": "assets/personagens/elf_m.glb?v=7",
+"b": 1686672,
+"e": 1
+},
+{
+"u": "assets/personagens/orc_m.glb?v=7",
+"b": 1833180,
+"e": 1
+},
+{
+"u": "assets/personagens/dragon_slayer.glb",
+"b": 1834544,
+"e": 1
+},
+{
+"u": "assets/personagens/dwarf_m.glb?v=7",
+"b": 1875896,
+"e": 1
+},
+{
+"u": "assets/personagens/human_fighter.glb?v=7",
+"b": 1903040,
+"e": 1
+},
+{
+"u": "assets/personagens/human_fighter_female.glb?v=7",
+"b": 1905372,
+"e": 1
+},
+{
+"u": "assets/personagens/orc_f.glb?v=7",
+"b": 1921892,
+"e": 1
+},
+{
+"u": "assets/personagens/elf_f.glb?v=7",
+"b": 1931328,
+"e": 1
+},
+{
+"u": "assets/talking_island/assembled_glb/ti_fighter_hall.glb",
+"b": 1958112,
+"e": 1
+},
+{
+"u": "assets/personagens/magic_m.glb?v=7",
+"b": 2159908,
+"e": 1
+},
+{
+"u": "assets/personagens/guardian_anims.glb?v=5",
+"b": 2181508,
+"e": 1
+},
+{
+"u": "assets/personagens/dwarf_f.glb?v=7",
+"b": 2192016,
+"e": 1
+},
+{
+"u": "assets/personagens/magic_f.glb?v=7",
+"b": 2192284,
+"e": 1
+},
+{
+"u": "assets/personagens/darkelf_m.glb?v=5",
+"b": 2263236,
+"e": 1
+},
+{
+"u": "assets/personagens/human_fighter_imperial.glb?v=7",
+"b": 2291880,
+"e": 1
+},
+{
+"u": "assets/personagens/darkelf_f.glb?v=5",
+"b": 2343372,
+"e": 1
 },
 {
 "u": "assets/baium/sounds/heavy_swing.wav",
-"b": 14666
+"b": 14666,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/punch_heavy.wav",
+"b": 22564,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/stomp_quake.wav",
+"b": 26148,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/earth_fissure.wav",
+"b": 34532,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/boss_roar.wav",
+"b": 50532,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/lightning_bolt.wav",
+"b": 143524,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/ground_smash.wav",
+"b": 196252,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/thunder_rumble.wav",
+"b": 299522,
+"e": 0
+},
+{
+"u": "assets/baium/sounds/thunder_strike.wav",
+"b": 366756,
+"e": 0
+},
+{
+"u": "assets/baium/baium_t01_sp.png",
+"b": 1755806,
+"e": 0
+},
+{
+"u": "assets/baium/baium_t00_sp.png",
+"b": 1756913,
+"e": 0
+},
+{
+"u": "assets/baium/baium_boss.glb",
+"b": 13522856,
+"e": 0
+},
+{
+"u": "assets/Talibrac.vrm",
+"b": 17763032,
+"e": 0
 }
 ]
 }

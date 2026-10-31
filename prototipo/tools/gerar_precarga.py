@@ -20,8 +20,9 @@ for dp, dn, fn in os.walk('assets'):
         ms = list(re.finditer(re.escape(n) + r'(\?[A-Za-z0-9=._&-]+)?', codigo)); m = next((x for x in ms if x.group(1)), ms[0] if ms else None)      # prefere a citacao com ?v=
         if not m: continue
         itens.append({'u': u + (m.group(1) or ''), 'b': os.path.getsize(u)})
-itens.sort(key=lambda x: -x['b'])
-tot = sum(i['b'] for i in itens)
+for i in itens: i['e'] = 0 if ('/baium/' in i['u'] or 'Talibrac' in i['u']) else 1      # e=1: essencial (lobby e cidade); e=0: so a dungeon/arena, baixa na hora
+itens.sort(key=lambda x: (-x['e'], x['b']))                                                  # essenciais primeiro, os menores antes (a barra anda logo)
+tot = sum(i['b'] for i in itens if i['e'])
 json.dump({'total': tot, 'itens': itens}, open('assets/precarga.json', 'w', encoding='utf-8'), indent=0)
 print(len(itens), 'arquivos', round(tot / 1e6, 1), 'MB')
 for i in itens[:12]: print(round(i['b'] / 1e6, 2), i['u'])

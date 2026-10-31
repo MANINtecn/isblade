@@ -29,7 +29,7 @@
   <div class="box">
     <div class="dica" id="dica"><small id="dn">Dica 1</small><p id="dt"></p></div>
     <div class="trilho"><i id="barra"></i></div>
-    <div class="info"><span id="etapa">Preparando…</span><span id="pct">0%</span></div>
+    <div class="info"><span id="etapa">Preparando…</span><span><span id="info2"></span> &nbsp; <span id="pct">0%</span></span></div>
     <p class="pula" id="pula">Demorando? <a href="selecao.html">Entrar mesmo assim</a> (o resto carrega durante o jogo).</p>
   </div>
 </main>
@@ -68,12 +68,22 @@
     if(fim) return; fim = true; feito = total; pinta(); q('etapa').textContent = 'Tudo pronto! Entrando no lobby…';
     pull.then(function(){ setTimeout(function(){ location.href = 'selecao.html'; }, Math.max(700, 3200 - (Date.now() - t0))); });       /* mostra pelo menos 3 s: da tempo de ler uma dica */
   }
+  var baixado = 0, mbTot = 0;
+  function mb(b){ return (b / 1e6).toFixed(b < 1e7 ? 1 : 0); }
   fetch('assets/precarga.json', { cache: 'no-cache' }).then(function(r){ return r.json(); }).then(function(L){
-    var itens = L.itens || []; total = Math.max(1, L.total || itens.reduce(function(a, i){ return a + i.b; }, 0)); var idx = 0, vivos = 0;
+    var itens = (L.itens || []).filter(function(i){ return i.e !== 0; });                 /* so o essencial (lobby e cidade); Baium e arena baixam quando forem usados */
+    total = Math.max(1, itens.reduce(function(a, i){ return a + i.b; }, 0)); mbTot = total; var idx = 0, vivos = 0;
+    function soma(n){ baixado += n; feito = baixado; pinta(); q('info2').textContent = mb(Math.min(baixado, mbTot)) + ' de ' + mb(mbTot) + ' MB'; }
     function proximo(){
       if(idx >= itens.length){ if(vivos === 0) terminou(); return; }
-      var it = itens[idx++]; vivos++; q('etapa').textContent = etapa(it.u);
-      fetch(it.u).then(function(r){ return r.arrayBuffer(); }).catch(function(){}).then(function(){ feito += it.b; pinta(); vivos--; proximo(); });
+      var it = itens[idx++], contou = 0; vivos++; q('etapa').textContent = etapa(it.u);
+      function fimItem(){ if(contou < it.b) soma(it.b - contou); vivos--; proximo(); }
+      var ctl = ('AbortController' in window) ? new AbortController() : null, to = setTimeout(function(){ if(ctl) ctl.abort(); }, 90000);       /* arquivo parado 90 s: pula (carrega depois no jogo) */
+      fetch(it.u, ctl ? { signal: ctl.signal } : {}).then(function(r){
+        if(!r.body || !r.body.getReader) return r.arrayBuffer();
+        var rd = r.body.getReader();
+        return (function le(){ return rd.read().then(function(x){ if(x.done) return; contou += x.value.length; soma(x.value.length); return le(); }); })();      /* a barra anda enquanto o arquivo desce */
+      }).catch(function(){}).then(function(){ clearTimeout(to); fimItem(); });
     }
     for(var k = 0; k < 4; k++) proximo();                             /* 4 downloads ao mesmo tempo; o service worker guarda cada arquivo para as proximas vezes */
   }).catch(function(){ terminou(); });
