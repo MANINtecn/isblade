@@ -37,3 +37,7 @@ test_orc_preview.py
 prototipo/assets/maps/baium_house/baium_house.glb
 prototipo/assets/maps/baium_house/baium_house_comunidade.glb
 prototipo/assets/maps/baium_house/*.json.bak
+
+# dados das contas dos jogadores (nunca vao para o git)
+servidor/dados/
+servidor/*.antes_*

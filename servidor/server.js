@@ -14,6 +14,7 @@ const PORT = +process.env.PORT || 8000, CAP = +process.env.CAP || 50, PVP_MULT =
 const SERVE_STATIC = process.env.STATIC !== '0', ORIGINS = (process.env.ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
 const casa = (p, o) => { if(!p.includes('*')) return p === o; const [a, b] = p.split('*'); return !!o && o.startsWith(a) && o.endsWith(b) && o.length > a.length + b.length && !o.slice(a.length, o.length - b.length).includes('.'); };   /* um '*' vale um trecho sem ponto (um nivel de subdominio) */
 const origemOk = o => !ORIGINS.length || ORIGINS.some(p => casa(p, o));
+const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), origemOk });      /* cadastro rapido + salvamento na nuvem (contas.js) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 14;                                                   /* m/s: corrida ~4,3, esquiva 4,6 m em 0,4 s = 11,5; folga de latencia */
 const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } } };
@@ -102,6 +103,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 const srv = http.createServer((req, res) => {
   let url; try { url = decodeURIComponent(req.url.split('?')[0]); } catch (e) { res.writeHead(400); return res.end(); }
   if(url === '/status'){ res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' }); return res.end(JSON.stringify({ cap: CAP, canais: todosCanais().map(c => ({ mapa: c.mapa, n: c.n, jogadores: c.jog.size })) })); }
+  if(url.startsWith('/api/')) return Contas.http(req, res, url);
   if(!SERVE_STATIC){ res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return res.end('servidor de jogo (sem arquivos). WebSocket em /ws, estado em /status'); }
   if(url === '/') url = '/index.html';              /* entrada do jogo (botao Start -> selecao.html) */
   const f = path.normalize(path.join(RAIZ, url)); if(!f.startsWith(RAIZ)) { res.writeHead(403); return res.end(); }
