@@ -36,9 +36,9 @@ export const Net = (function(){
   function atualizaHud(){
     if(!hudEl) return;
     if(!N.on){ hudEl.textContent = N.tentando ? 'Conectando...' : ''; return; }
-    var nome = N.mapa === 'pvp' ? 'Arena PvP' : 'Cidade', t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
+    var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
     var duelo = N.duelo ? '<br><span style="color:#ffd166">Duelo com ' + N.duelo.nome + (N.duelo.seg > 0 ? ' em ' + Math.ceil(N.duelo.seg) + '...' : '  (H desiste)') + '</span>' : '';
-    var ajuda = N.mapa === 'cidade' && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
+    if(N.mapa === 'masmorra'){ hudEl.innerHTML = ''; return; } var ajuda = N.mapa === 'cidade' && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
     hudEl.innerHTML = nome + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online' + t + duelo + ajuda;
   }
 
@@ -46,11 +46,12 @@ export const Net = (function(){
   function desenhaTag(e){
     if(!e.tag) return; var c = e.tag.cv, g = c.getContext('2d'); g.clearRect(0, 0, 256, 72);
     g.font = '700 26px system-ui,Arial,sans-serif'; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.85)';
-    var cor = e.morto ? '#9aa3b5' : (e.team ? COR_TIME[e.team] : '#f4fbff'); g.strokeText(e.nome, 128, 28); g.fillStyle = cor; g.fillText(e.nome, 128, 28);
+    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (N.mapa === 'pvp' ? '#ffb3a8' : (e.team ? COR_TIME[e.team] : '#f4fbff'))); g.strokeText(e.nome, 128, 28); g.fillStyle = cor; g.fillText(e.nome, 128, 28);
     var w = 150, x = 53, y = 42, k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
     g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(x - 2, y - 2, w + 4, 14); g.fillStyle = e.morto ? '#555' : (k > .5 ? '#5cd65c' : (k > .25 ? '#e6b422' : '#e54b4b')); g.fillRect(x, y, w * k, 10);
     e.tag.tex.needsUpdate = true; e.hpDes = e.hp;
   }
+  function noGrupo(id){ return !!(N.grupo && N.grupo.m && N.grupo.m.some(function(m){ return m.id === id; })); }
   function criaTag(e){
     var cv = document.createElement('canvas'); cv.width = 256; cv.height = 72;
     var tex = new THREE.CanvasTexture(cv), sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
@@ -64,7 +65,7 @@ export const Net = (function(){
   }
   function addRemoto(p){
     if(remotos.has(p.id)) return;
-    var e = { id: p.id, nome: p.nome, raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
+    var e = { id: p.id, lv: p.lv || 1, nome: p.nome, raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
     e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e);
     ctx.loadL2(heroUrl(p.raca), function(r){
       if(!remotos.has(e.id)){ return; }
@@ -102,7 +103,7 @@ export const Net = (function(){
   function msg(m){
     var e; if(m.t !== 's'){ N.hist.push(m.t + ' ' + JSON.stringify(m).slice(0, 90)); if(N.hist.length > 60) N.hist.shift(); }
     if(m.t === 'w'){
-      N.on = true; N.tentando = false; N.id = m.id; N.grupo = null; N.eu = m.eu; N.canal = m.canal; N.mapa = m.mapa; N.duelo = null; jaAvisou = false;
+      N.on = true; N.tentando = false; N.id = m.id; if(m.sid) N.sid = m.sid; if(m.prog && ctx.prog) ctx.prog(m.prog, true); N.grupo = null; N.eu = m.eu; N.canal = m.canal; N.mapa = m.mapa; N.duelo = null; jaAvisou = false;
       m.jog.forEach(addRemoto); ctx.onEntrou(m); atualizaHud(); ctx.sysMsg((m.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' - canal ' + m.canal + (m.eu.team ? ' - Time ' + (m.eu.team === 'A' ? 'Azul' : 'Vermelho') : ''));
     } else if(m.t === 's'){
       var vistos = {}; m.p.forEach(function(p){
@@ -111,6 +112,7 @@ export const Net = (function(){
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
     } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
+    } else if(m.t === 'prog'){ if(ctx.prog) ctx.prog(m);
     } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && m.k === 's' && e.vis && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f);
     } else if(m.t === 'j'){ addRemoto(m.p); atualizaHud();
     } else if(m.t === 'l'){ removeRemoto(m.id); atualizaHud();
@@ -142,7 +144,7 @@ export const Net = (function(){
   }
 
   /* ---------- MENU (tecla P ou botao): so CSS, sem nenhuma imagem. O que funciona fica em destaque; o resto aparece apagado ("em breve") ---------- */
-  var menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
+  var alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
   var ITENS = [{ k: 'duelo', nome: 'Duelo', ativo: true, dica: 'Desafie um jogador por perto' }, { k: 'grupo', nome: 'Grupo', ativo: true, dica: 'Party de até 6 jogadores' },
     { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'guilda', nome: 'Guilda', ativo: false },
     { k: 'msg', nome: 'Mensagem', ativo: false }, { k: 'rank', nome: 'Ranking', ativo: false }];
@@ -163,8 +165,14 @@ export const Net = (function(){
       '#netMenu .r button,#netMenu .bt{padding:5px 10px;border-radius:6px;border:1px solid #f5c24a;background:#2a2210;color:#ffe08a;font:600 11px system-ui,sans-serif;cursor:pointer}#netMenu .r button:disabled{opacity:.35;cursor:default}' +
       '#netMenu .bar{width:70px;height:7px;border-radius:4px;background:#222a40;overflow:hidden}#netMenu .bar b{display:block;height:100%;background:#5cd65c}' +
       '#netMenu .ped{border:1px solid #ffd166;background:#2a220c}#netMenu kbd{padding:1px 5px;border:1px solid #3a4260;border-radius:4px;background:#161b33;color:#cfe6ff;font:11px system-ui}' +
-      '#netParty{position:fixed;left:12px;top:98px;z-index:61;pointer-events:none;font:600 12px system-ui,sans-serif;color:#dbe6ff;text-shadow:0 1px 3px #000}' +
-      '#netParty .m{display:flex;align-items:center;gap:6px;margin:3px 0;padding:3px 8px;border-radius:6px;background:rgba(8,10,20,.72)}#netParty .bar{width:64px;height:6px;border-radius:3px;background:#222a40;overflow:hidden}#netParty .bar b{display:block;height:100%;background:#5cd65c}#netParty .off{opacity:.45}';
+      '#netParty{position:fixed;left:12px;top:8px;z-index:61;pointer-events:none;font:600 12px system-ui,sans-serif;color:#dbe6ff;text-shadow:0 1px 3px #000}' +
+      '#netParty .m{display:flex;align-items:center;gap:6px;margin:3px 0;padding:3px 8px;border-radius:6px;background:rgba(8,10,20,.72)}#netParty .bar{width:64px;height:6px;border-radius:3px;background:#222a40;overflow:hidden}#netParty .bar b{display:block;height:100%;background:#5cd65c}#netParty .off{opacity:.45}#netParty .m{padding:2px 7px;margin:2px 0;font-size:11px}#netParty .bar{width:56px;height:5px}' +
+      '#btnReturnCity,#netBtn,#mbfs,#btnFightBaiumDirect{margin-top:var(--party-h,0px)!important}' +
+      '#netAlvo{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:64;display:none;min-width:230px;max-width:92vw;padding:8px 10px;border-radius:10px;background:rgba(8,12,24,.88);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45),0 6px 20px rgba(0,0,0,.6);color:#e8f3ff;font:600 12px system-ui,sans-serif}' +
+      '#netAlvo .t{display:flex;align-items:center;gap:8px;margin-bottom:6px}#netAlvo .t b{flex:1;font-size:13px;letter-spacing:.06em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#netAlvo .t small{color:#8fa6c4;font-weight:500}#netAlvo .x{background:none;border:0;color:#8fa6c4;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}' +
+      '#netAlvo .hp{height:6px;border-radius:3px;background:#222a40;overflow:hidden;margin-bottom:7px}#netAlvo .hp b{display:block;height:100%;background:#f03a2e;transition:width .15s}' +
+      '#netAlvo .a{display:flex;gap:6px;flex-wrap:wrap}#netAlvo .a button{flex:1;min-width:64px;padding:8px 6px;border-radius:7px;border:1px solid rgba(120,196,255,.5);background:rgba(20,34,62,.9);color:#e8f3ff;font:700 11px system-ui,sans-serif;cursor:pointer;letter-spacing:.04em}' +
+      '#netAlvo .a button:disabled{opacity:.35;cursor:default}#netAlvo .a button:active{background:rgba(60,100,170,.9)}';
     document.head.appendChild(st);
   }
   function criaMenu(){
@@ -172,6 +180,16 @@ export const Net = (function(){
     btnEl = document.createElement('button'); btnEl.id = 'netBtn'; btnEl.type = 'button'; btnEl.textContent = '☰ MENU (P)'; btnEl.onclick = function(){ alterna(); }; document.body.appendChild(btnEl);
     menuEl = document.createElement('div'); menuEl.id = 'netMenu'; document.body.appendChild(menuEl);
     partyEl = document.createElement('div'); partyEl.id = 'netParty'; document.body.appendChild(partyEl);
+    alvoEl = document.createElement('div'); alvoEl.id = 'netAlvo'; document.body.appendChild(alvoEl);
+    alvoEl.addEventListener('click', function(e){
+      var el = e.target.closest ? e.target.closest('[data-a]') : null; if(!el || el.disabled) return; var a = el.getAttribute('data-a'), al = alvo();
+      if(a === 'x'){ selecionar(0); return; } if(!al){ selecionar(0); return; }
+      if(a === 'grupo') send({ t: 'pinvite', to: al.id }); else if(a === 'duelo') send({ t: 'duel', to: al.id });
+      else if(a === 'perfil') ctx.sysMsg(al.nome + ' · ' + bonito(al.raca) + ' · Nv ' + (al.lv || 1) + ' · ' + (al.arma === 'shield' ? 'Guardião' : 'Espadachim'));
+      else if(a === 'mais') ctx.sysMsg('Troca, amigo e cochicho: em breve');
+      desenhaAlvo();
+    });
+    anelAlvo = new THREE.Mesh(new THREE.RingGeometry(.85, 1.0, 40), new THREE.MeshBasicMaterial({ color: 0xf5c451, transparent: true, opacity: .85, side: THREE.DoubleSide, depthTest: false })); anelAlvo.rotation.x = -Math.PI / 2; anelAlvo.renderOrder = 998; anelAlvo.visible = false; ctx.scene.add(anelAlvo);
     menuEl.addEventListener('click', function(e){
       var el = e.target.closest ? e.target.closest('[data-a]') : null; if(!el || el.disabled) return; var a = el.getAttribute('data-a'), v = el.getAttribute('data-v');
       if(a === 'aba'){ var it = ITENS.filter(function(i){ return i.k === v; })[0]; if(it && it.ativo) aba = v; else ctx.sysMsg((it ? it.nome : 'Isso') + ': em breve'); }
@@ -208,7 +226,7 @@ export const Net = (function(){
     if(!N.on){ h += '<p>Sem conexão com o servidor. O jogo segue sozinho; duelo e grupo precisam do servidor online.</p>'; }
     else if(aba === 'duelo'){
       h += '<h4>DUELO</h4>'; if(pedDuelo && Date.now() < pedDuelo.ate) h += linhaPed('duelo', pedDuelo);
-      if(N.mapa !== 'cidade') h += '<p>Duelo só na cidade. Aqui é guerra de times.</p>';
+      if(N.mapa !== 'cidade') h += '<p>Duelo só na cidade. Aqui a arena é livre: todos contra todos.</p>';
       else if(N.duelo) h += '<p>Em duelo com <b>' + esc(N.duelo.nome) + '</b>. <kbd>H</kbd> desiste.</p>';
       else { var L = perto(40); if(!L.length) h += '<p>Ninguém por perto (até 40 m).</p>'; L.forEach(function(o){ h += '<div class="r"><span class="n">' + esc(o.e.nome) + ' <small>' + esc(bonito(o.e.raca)) + ' · ' + Math.round(o.d) + ' m</small></span><button data-a="duelar" data-v="' + o.e.id + '"' + (o.d > 20 ? ' disabled title="Chegue a 20 m"' : '') + '>Desafiar</button></div>'; }); h += '<p>O duelo não mata: quem chega a 1 de vida perde. Vida cheia ao fim.</p>'; }
     } else if(aba === 'grupo'){
@@ -218,17 +236,52 @@ export const Net = (function(){
       else h += '<p>Você não está em um grupo.</p>';
       if(!g || souLider){ var L2 = perto(60); h += '<h4>CONVIDAR</h4>'; if(!L2.length) h += '<p>Ninguém por perto (até 60 m).</p>'; L2.forEach(function(o){ var jaNoGrupo = g && g.m.some(function(m){ return m.id === o.e.id; }); h += '<div class="r"><span class="n">' + esc(o.e.nome) + ' <small>' + esc(bonito(o.e.raca)) + ' · ' + Math.round(o.d) + ' m</small></span><button data-a="convidar" data-v="' + o.e.id + '"' + (jaNoGrupo ? ' disabled' : '') + '>Convidar</button></div>'; }); }
       else h += '<p>Só o líder convida.</p>';
-      h += '<p>No mapa de PvP, quem está no mesmo grupo cai no mesmo time.</p>';
+      h += '<p>No PvP livre, quem está no mesmo grupo não se machuca.</p>';
     } else {
       h += '<h4>RESUMO</h4><p>' + (N.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online</p>' +
-        '<p><kbd>P</kbd> menu &nbsp; <kbd>J</kbd> duelo no mais próximo &nbsp; <kbd>U</kbd> aceita &nbsp; <kbd>N</kbd> recusa &nbsp; <kbd>H</kbd> desiste</p><p>Toque em <b>Duelo</b> ou <b>Grupo</b>. Os outros itens (apagados) chegam depois.</p>';
+        '<p><kbd>P</kbd> menu &nbsp; <kbd>J</kbd> duelo no mais próximo &nbsp; <kbd>U</kbd> aceita &nbsp; <kbd>N</kbd> recusa &nbsp; <kbd>H</kbd> desiste</p><p><b>Clique ou toque em um jogador</b> para selecioná-lo e abrir as ações (grupo, duelo, perfil). <kbd>T</kbd> seleciona o mais próximo.</p>';
     }
     h += '</div>'; if(menuEl._h === h) return; menuEl._h = h; menuEl.innerHTML = h;           /* so redesenha se mudou: senao o clique perde o elemento entre apertar e soltar */
   }
+  /* ---------- selecionar outro jogador (clique/toque) e menu de acoes ---------- */
+  function alvo(){ return N.alvo ? remotos.get(N.alvo) || null : null; }
+  function selecionar(id){ N.alvo = id || 0; if(!id && anelAlvo) anelAlvo.visible = false; desenhaAlvo(); }
+  function desenhaAlvo(){
+    if(!alvoEl) return; var e = alvo(); if(!e){ alvoEl.style.display = 'none'; alvoEl._h = ''; return; }
+    var g = N.grupo, souLider = !g || g.lider === N.sid, jaNoGrupo = noGrupo(e.id), k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
+    var h = '<div class="t"><b>' + esc(e.nome) + '</b><small>Nv ' + (e.lv || 1) + ' · ' + esc(bonito(e.raca)) + '</small><button class="x" data-a="x">×</button></div><div class="hp"><b style="width:' + Math.round(k * 100) + '%"></b></div><div class="a">' +
+      '<button data-a="grupo"' + ((jaNoGrupo || !souLider || e.party) ? ' disabled' : '') + '>' + (jaNoGrupo ? 'NO GRUPO' : 'GRUPO') + '</button>' +
+      '<button data-a="duelo"' + ((N.mapa !== 'cidade' || N.duelo) ? ' disabled' : '') + '>DUELO</button><button data-a="perfil">PERFIL</button><button data-a="mais">MAIS</button></div>';
+    if(alvoEl._h !== h){ alvoEl._h = h; alvoEl.innerHTML = h; } alvoEl.style.display = 'block';
+  }
+  function projeta(x, y, z){ var v = new THREE.Vector3(x, y, z).project(ctx.camera()); return { x: (v.x * .5 + .5) * innerWidth, y: (-v.y * .5 + .5) * innerHeight, ok: v.z < 1 }; }
+  function achaNaTela(px, py){
+    var melhor = null, bd = 1e9; if(!ctx.camera) return null;
+    remotos.forEach(function(e){
+      if(!e.vis || !e.rig) return; var a = projeta(e.x, .1, e.z), b = projeta(e.x, 2.1, e.z); if(!a.ok || !b.ok) return;
+      var vx = b.x - a.x, vy = b.y - a.y, l2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((px - a.x) * vx + (py - a.y) * vy) / l2)), dx = px - (a.x + vx * t), dy = py - (a.y + vy * t), d = Math.hypot(dx, dy), raio = Math.max(24, Math.sqrt(l2) * .3);
+      if(d <= raio && d < bd){ bd = d; melhor = e; }
+    });
+    return melhor;
+  }
+  function aoToque(ev){
+    if(!N.on || document.pointerLockElement || (ev.button && ev.button !== 0)) return;
+    var t = ev.target; if(t && t.closest && t.closest('#netMenu,#netAlvo,#netParty,#mb,#mbsys,#mbbar,#mbedit,#mbfs,#netBtn,#diff,.mu-hotbar-slot,.mu-sys-btn,#mu-slot-picker,button,input,select')) return;
+    var e = achaNaTela(ev.clientX, ev.clientY); if(!e) return;
+    ev.stopImmediatePropagation(); ev.preventDefault(); selecionar(e.id);
+  }
+  function selecionaMaisPerto(){ var S = ctx.getS(), melhor = null, bd = 40; remotos.forEach(function(e){ if(!e.vis || e.morto) return; var d = Math.hypot(e.x - S.px, e.z - S.pz); if(d < bd){ bd = d; melhor = e; } }); if(melhor) selecionar(melhor.id); else ctx.sysMsg('Ninguém por perto (até 40 m)'); }
+  function atualizaAlvo(){
+    var e = alvo(); if(N.alvo && !e){ selecionar(0); return; } if(!e){ return; }
+    var S = ctx.getS(); if(Math.hypot(e.x - S.px, e.z - S.pz) > 90 || !e.dentro){ selecionar(0); return; }
+    if(anelAlvo){ anelAlvo.visible = !!e.vis; anelAlvo.position.set(e.x, .15, e.z); var k = 1 + Math.sin(performance.now() / 220) * .06; anelAlvo.scale.set(k, k, k); }
+    if(--tAlvo <= 0){ tAlvo = 6; desenhaAlvo(); }
+  }
+  var tAlvo = 0;
   function renderParty(){
-    if(!partyEl) return; var g = N.grupo; if(!N.on || !g || g.m.length < 2){ partyEl.innerHTML = ''; return; } var S = ctx.getS(), h = '';
+    if(!partyEl) return; var g = N.grupo; if(!N.on || !g || g.m.length < 2){ partyEl.innerHTML = ''; document.body.style.setProperty('--party-h', '0px'); return; } var S = ctx.getS(), h = '';
     g.m.forEach(function(m){ var r = m.id === N.id ? S.php / Math.max(1, S.pmax) : (m.pmax ? m.hp / m.pmax : 0); h += '<div class="m' + (m.on ? '' : ' off') + '"><span>' + (m.sid === g.lider ? '★ ' : '') + esc(m.nome) + '</span><span class="bar"><b style="width:' + Math.round(Math.max(0, Math.min(1, r)) * 100) + '%"></b></span></div>'; });
-    partyEl.innerHTML = h;
+    partyEl.innerHTML = h; document.body.style.setProperty('--party-h', (partyEl.offsetHeight + 4) + 'px'); remotos.forEach(function(e){ e.hpDes = -1; });
   }
 
   /* ---------- conexao ---------- */
@@ -241,7 +294,7 @@ export const Net = (function(){
     };
     s.onmessage = function(ev){ try { msg(JSON.parse(ev.data)); } catch(e){ console.warn('net:', e); } };
     s.onclose = function(){
-      var estava = N.on; N.on = false; N.tentando = false; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; atualizaHud();
+      var estava = N.on; N.on = false; N.tentando = false; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; N.alvo = 0; desenhaAlvo(); atualizaHud();
       if(ws !== s) return; if(estava) ctx.sysMsg('Desconectado do servidor.'); else if(!jaAvisou){ jaAvisou = true; console.log('Net: sem servidor online (jogo segue sozinho).'); }
     };
     s.onerror = function(){};
@@ -249,9 +302,11 @@ export const Net = (function(){
   N.init = function(c){
     ctx = c; THREE = c.THREE; window.Net = N; try { desligado = /[?&]online=0/.test(location.search); } catch(e){}
     hud(); criaMenu();
+    window.addEventListener('pointerdown', aoToque, true);
     window.addEventListener('keydown', function(ev){
       if(ev.repeat) return; var t = ev.target && ev.target.tagName; if(t === 'INPUT' || t === 'TEXTAREA') return; var k = ev.key.toLowerCase();
-      if(k === 'p'){ alterna(); return; } if(k === 'escape' && menuAberto){ alterna(false); return; }
+      if(k === 't' && N.on){ selecionaMaisPerto(); return; }
+      if(k === 'p'){ alterna(); return; } if(k === 'escape' && menuAberto){ alterna(false); return; } if(k === 'escape' && N.alvo){ selecionar(0); return; }
       if(!N.on) return;
       if(k === 'j' && N.mapa === 'cidade' && !N.duelo){ var al = maisProximo(20); if(al) send({ t: 'duel', to: al.id }); else ctx.sysMsg('Ninguem por perto para desafiar (ate 20 m)'); }
       else if(k === 'u'){ var tp = (pedGrupo && Date.now() < pedGrupo.ate && (!pedDuelo || pedGrupo.ate >= pedDuelo.ate)) ? 'grupo' : ((pedDuelo && Date.now() < pedDuelo.ate) ? 'duelo' : ''); if(tp) aceitar(tp); }
@@ -270,7 +325,7 @@ export const Net = (function(){
     if(N.duelo && N.duelo.seg > 0){ N.duelo.seg = Math.max(0, (N.duelo.ini - Date.now()) / 1000); }
     if(pedido && Date.now() > pedido.ate) pedido = null;
     if(tHud > .5){ tHud = 0; atualizaHud(); renderParty(); if(menuAberto) renderMenu(); }
-    atualizaRemotos(dt);
+    atualizaRemotos(dt); atualizaAlvo();
   };
   /* chamados pelo jogo */
   N.atacou = function(an){
@@ -278,6 +333,7 @@ export const Net = (function(){
     if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; send({ t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }); }
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };
+  N.xp = function(tipo){ if(!N.on) return false; send({ t: 'xp', tipo: tipo }); return true; };               /* servidor decide o ganho */
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };

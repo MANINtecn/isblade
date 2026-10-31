@@ -18,8 +18,10 @@ const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__di
 const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 14;                                                   /* m/s: corrida ~4,3, esquiva 4,6 m em 0,4 s = 11,5; folga de latencia */
-const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } } };
-const SPAWN_TIME = { A: { x: -64.4, z: -53.85, f: Math.PI / 2 }, B: { x: 7.6, z: -53.85, f: -Math.PI / 2 } };    /* mapa de PvP = circulo gigante do Baium (3o andar da Torre, centro -28,4/-53,85, raio 62): cada time nasce num lado, 72 m de distancia */
+const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } } };     /* masmorra = instancia SOLO (dungeon, duelo com o Baium): um canal por jogador */
+const ARENA_PVP = { x: -28.4, z: -53.85, r: +process.env.PVP_R || 34 };               /* PvP livre: todos nascem em pontos aleatorios dentro deste raio (parte andavel do circulo do Baium) */
+const SPAWN_TIME = null;    /* mapa de PvP = circulo gigante do Baium (3o andar da Torre, centro -28,4/-53,85, raio 62): cada time nasce num lado, 72 m de distancia */
+const CAP_PVP = +process.env.CAP_PVP || 500;                        /* arena livre: entra quem quiser (limite so de seguranca) */
 const PARTY_MAX = 6, PARTY_GRACA = 90;                              /* grupo: ate 6; quem cai ou troca de pagina tem 90 s para voltar */
 const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
@@ -28,24 +30,37 @@ const SKILLS = {};                                                 /* arma -> [{
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
 
+/* ---- progresso (nivel/xp): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado ---- */
+const XP_MOB = {};
+try { const d = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'dungeon.json'), 'utf8')); for(const k in (d.mobs || {})) XP_MOB[k] = Math.max(1, d.mobs[k].xp | 0 || 25); } catch (e) { console.error('xp:', e.message); }
+const xpNeed = l => 120 + l * 90, LV_MAX = 100;
+function ganhaXp(J, v){
+  if(!J.pers) return; let p = J.pers; p.xp = (p.xp | 0) + v; let subiu = false;
+  while(p.level < LV_MAX && p.xp >= xpNeed(p.level)){ p.xp -= xpNeed(p.level); p.level++; subiu = true; }
+  if(p.level >= LV_MAX) p.xp = Math.min(p.xp, xpNeed(LV_MAX) - 1);
+  J.lv = p.level; Contas.grava(); envia(J, { t: 'prog', lvl: p.level, xp: p.xp, need: xpNeed(p.level), subiu: subiu ? 1 : 0, ganhou: v });
+}
+const pmaxMax = lv => 400 + lv * 20;                              /* vida maxima aceita: base + equipamento + nivel (o cliente nao pode declarar mais que isso) */
+
 /* ---- estado ---- */
-let proxId = 1; const canais = { cidade: [], pvp: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
+let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
 function canalLivre(mapa, pedido){
   const L = canais[mapa];
-  if(pedido && L[pedido - 1] && L[pedido - 1].jog.size < CAP) return L[pedido - 1];
-  for(const c of L) if(c.jog.size < CAP) return c;
+  const cap = mapa === 'pvp' ? CAP_PVP : (mapa === 'masmorra' ? 1 : CAP);
+  if(pedido && L[pedido - 1] && L[pedido - 1].jog.size < cap) return L[pedido - 1];
+  for(const c of L) if(c.jog.size < cap) return c;
   const c = { mapa, n: L.length + 1, jog: new Map() }; L.push(c); return c;
 }
-const todosCanais = () => [].concat(canais.cidade, canais.pvp);
+const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra);
 const r2 = v => Math.round(v * 100) / 100, agora = () => Date.now() / 1000;
 const angDif = (a, b) => { let d = a - b; while(d > Math.PI) d -= 2 * Math.PI; while(d < -Math.PI) d += 2 * Math.PI; return d; };
 function posSpawn(c, J){
-  if(c.mapa === 'pvp'){ const b = SPAWN_TIME[J.team], a = Math.random() * 6.283, r = Math.random() * 3; return { x: b.x + Math.sin(a) * r, z: b.z + Math.cos(a) * r }; }
+  if(c.mapa === 'pvp'){ const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * ARENA_PVP.r; return { x: ARENA_PVP.x + Math.sin(a) * r, z: ARENA_PVP.z + Math.cos(a) * r }; }
   const s = MAPAS.cidade.spawn, a = Math.random() * 6.283, r = Math.random() * s.r; return { x: s.x + Math.sin(a) * r, z: s.z + Math.cos(a) * r };
 }
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
-const info = J => ({ id: J.id, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
+const info = J => ({ id: J.id, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
 
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */
@@ -65,7 +80,7 @@ function colega(mapa, sid){                                         /* algum mem
 
 /* ---- quem pode ferir quem ---- */
 function podeFerir(c, A, V, t){
-  if(c.mapa === 'pvp') return A.team !== V.team;
+  if(c.mapa === 'pvp') return !(A.party && A.party === V.party);          /* PvP livre: todos contra todos; so o mesmo grupo nao se fere */
   const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim);   /* cidade: so no duelo ja comecado */
 }
 function fimDuelo(c, perdedor, vencedor, motivo){
@@ -95,7 +110,7 @@ function ataque(c, A, m){
     V.hp = Math.max(duelo ? 1 : 0, V.hp - dano);                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
     difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0 });
     if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
-    else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
+    else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; ganhaXp(A, 40 + (V.lv || 1) * 15); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
   }
 }
 
@@ -133,15 +148,14 @@ wss.on('connection', ws => {
         for(const cc of todosCanais()) for(const o of cc.jog.values()) if(o.cid === pers.id){ try { o.ws.send(JSON.stringify({ t: 'erro', m: 'Este personagem entrou em outro lugar.' })); } catch (e) {} o.ws.close(); }      /* um personagem, uma conexao */
         m.nome = pers.name; m.raca = pers.charType; m.cls = /magic/.test(pers.charType) ? 'magic' : 'fighter';
       }
-      const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); c = (mate && mate.canalRef && mate.canalRef.jog.size < CAP) ? mate.canalRef : canalLivre(mapa, m.canal | 0);
+      const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = pers ? pers.id : String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); c = (mapa !== 'masmorra' && mate && mate.canalRef && mate.canalRef.jog.size < (mapa === 'pvp' ? CAP_PVP : CAP)) ? mate.canalRef : canalLivre(mapa, mapa === 'masmorra' ? 0 : m.canal | 0);
       J = { id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
-            sid, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
-      if(mapa === 'pvp'){ if(mate && mate.canalRef === c) J.team = mate.team; else { let a = 0, b = 0; for(const o of c.jog.values()) o.team === 'A' ? a++ : b++; J.team = a <= b ? 'A' : 'B'; } }     /* times equilibrados */
-      const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = mapa === 'pvp' ? SPAWN_TIME[J.team].f : Math.PI;
+            sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers.level) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
+      const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = Math.PI;
       if(mapa === 'cidade' && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 600 && Math.abs(m.z) < 600){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
-      envia(J, { t: 'w', id: J.id, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
+      envia(J, { t: 'w', id: J.id, sid: J.sid, prog: pers ? { lvl: pers.level, xp: pers.xp | 0, need: xpNeed(pers.level) } : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
     if(!J) return;
@@ -154,6 +168,10 @@ wss.on('connection', ws => {
       if(typeof m.f === 'number') J.f = m.f; J.a = String(m.a || 'idle').slice(0, 24); J.ts = Math.max(.2, Math.min(5, +m.ts || 1)); J.guarda = !!m.g;
       if(SKILLS[m.w] && m.w !== J.arma && !J.morto){ J.arma = m.w; }
     } else if(m.t === 'atk') ataque(c, J, m);
+    else if(m.t === 'xp'){                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
+      const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
+      const tipo = String(m.tipo || '').slice(0, 24), v = !/^[a-z0-9_]{1,24}$/.test(tipo) ? 0 : (tipo === 'boss' ? 180 + (J.lv || 1) * 30 : (XP_MOB[tipo] || 25)); if(v) ganhaXp(J, v);
+    }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
     else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .8){ J.ultChat = t; difunde(c, { t: 'chat', n: J.nome, m: String(m.m || '').slice(0, 120), team: J.team }); } }
     else if(m.t === 'ping') envia(J, { t: 'pong', c: m.c });

@@ -11,7 +11,7 @@
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
 <link rel="stylesheet" href="css/mu_hud.css?v=15">
-<link rel="stylesheet" href="css/hud_clean.css?v=4">
+<link rel="stylesheet" href="css/hud_clean.css?v=7">
 
 <script>
 
@@ -439,8 +439,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
-<script src="js/conta.js?v=4"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=5"></script>
+<script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
+<script src="js/mobile.js?v=6"></script>
 <script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 </head>
@@ -669,7 +669,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=9';
+import { Net } from './js/net.js?v=11';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4070,7 +4070,7 @@ if(S.dead&&!MOBS.length)return;
 
   if(S.hp<=0){
 
-    S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();gainXp(180+S.lvl*30);S.kills++;dropLoot();
+    S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();gainXp(180+S.lvl*30,'boss');S.kills++;dropLoot();
 
     if(DG.on)dgBossDown();
     else dgBossDuelDefeated();
@@ -4137,7 +4137,9 @@ function rankFight(){
 
 function resetFight(){S.gauge=S.gmax;S.fightOn=false;S.fightT=0;S.maxCombo=0;S.dmgTaken=0;S.combo=0;S.air=false;S.ey=0;S.evy=0;}
 
-function gainXp(v){
+function gainXp(v,tipo){
+
+  if(tipo&&window.Net&&Net.xp(tipo))return;/* [servidor] online: o servidor decide o xp e devolve (prog) */
 
   S.xp+=v;var up=false;
 
@@ -5094,7 +5096,7 @@ function damageMob(m,dmg,an){
 
 function killMob(m){
 
-  if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(m.T.xp||(25+(m.T.hp>300?40:0)));
+  if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(m.T.xp||(25+(m.T.hp>300?40:0)),m.type);
 
   if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
 
@@ -5721,6 +5723,12 @@ function dgBossDuelDefeated(){
 window.dgBossDuelDefeated = dgBossDuelDefeated;
 
 function startBaiumDirectFight(){
+  /* [duelo-toi] o duelo com o Baium acontece na CASA DELE (salao circular do 3o andar da Torre, raio 62), numa instancia so sua: carrega o mapa na primeira vez */
+  if(!TORRE_MODE&&!Torre.pronto){
+    if(!Torre._carregando){Torre._carregando=true;banner('CARREGANDO A CASA DO BAIUM...','Primeira vez: baixando o mapa da torre','#f5c451');
+      Torre.carregar(THREE,scene).then(function(){Torre._carregando=false;startBaiumDirectFight();}).catch(function(e){Torre._carregando=false;console.error('torre',e);banner('ERRO','Nao consegui carregar a casa do Baium','#ff6b6b');});}
+    return;
+  }
   DG.on = false;
   BOSS_ON = true;
   DG.run = false;
@@ -5743,6 +5751,11 @@ function startBaiumDirectFight(){
   resetFight();
   var bDirect = document.getElementById('btnFightBaiumDirect');
   if(bDirect) bDirect.style.display = 'none';
+  if(!TORRE_MODE){/* [duelo-toi] posiciona na arena do 3o andar: Baium no centro-norte, jogador ao sul */
+    var _cx=-28.4,_cz=-53.85;
+    ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});DG.pvpTorre=true;Torre.fecharPorta();
+    Torre.ativar(S,3);Torre.teleporta(S,_cx,_cz+10,3);S.face=Math.PI;S.ex=_cx;S.ez=_cz-6;
+  }
   banner('TRONO DO IMPERADOR BAIUM','Raid Boss Lv 75 despertou!','#f5c451');
   renderHud();
 }
@@ -5953,11 +5966,11 @@ function pvpStart(){/* [pvp-torre] a arena de PvP e o circulo gigante do Baium (
   BOSS_ON=false;enemy.visible=false;S.dead=true;S.deadT=0;S.ex=0;S.ez=-500;setEnemy('idle');S.en.wait=1e9;
   S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;S.php=S.pmax;S.st=100;resetFight();
   var dif=$('#diff');if(dif)dif.classList.remove('open');
-  banner('ARENA PVP','Dois times. Derrote o time adversario!','#ff6b6b');pvpExitBtn(true);renderHud();
+  banner('ARENA PVP','Arena livre: todos contra todos. Clique num jogador para grupo/duelo.','#ff6b6b');pvpExitBtn(true);renderHud();
   ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';DG.pvpTorre=true;Torre.fecharPorta();Torre.ativar(S,3);S.face=Math.PI/2;
   Net.entrar('pvp');
 }
-function pvpSair(){Net.sair();DG.pvp=false;pvpExitBtn(false);dgHub();}window.pvpStart=pvpStart;window.pvpSair=pvpSair;
+function pvpSair(){Net.sair();DG.pvp=false;pvpExitBtn(false);dgHub();Net.entrar('masmorra');}window.pvpStart=pvpStart;window.pvpSair=pvpSair;
 /* <<< CLAUDE [net] */
 
 function openDiff(){
@@ -5984,7 +5997,7 @@ function openDiff(){
 
   h+='</div>';
 
-  var box=$('#diff');box.innerHTML=h;box.classList.add('open');/* >>> CLAUDE [net] carta do mapa de PvP */{var dc=box.querySelector('.dcards');if(dc){dc.insertAdjacentHTML('beforeend','<div class="dcard" data-k="__pvp" style="border-color:#ff6b6b"><b style="color:#ff6b6b">ARENA PVP</b><small>Guerra de times contra outros jogadores. Sem mobs nem chefe.</small><div class="row"><span>Modo</span><b>2 times</b></div><div class="row"><span>Fogo amigo</span><b>nao</b></div><div class="row"><span>Reaparece em</span><b>4 s</b></div></div>');}}/* <<< CLAUDE [net] */
+  var box=$('#diff');box.innerHTML=h;box.classList.add('open');/* >>> CLAUDE [net] carta do mapa de PvP */{var dc=box.querySelector('.dcards');if(dc){dc.insertAdjacentHTML('beforeend','<div class="dcard" data-k="__pvp" style="border-color:#ff6b6b"><b style="color:#ff6b6b">ARENA PVP</b><small>Arena livre no salao do Baium: entre quando quiser, quantos quiserem, e troque dano com todos. Sem mobs nem chefe.</small><div class="row"><span>Modo</span><b>Livre (todos contra todos)</b></div><div class="row"><span>Limite de jogadores</span><b>nenhum</b></div><div class="row"><span>Reaparece em</span><b>4 s</b></div></div>');}}/* <<< CLAUDE [net] */
 
   Array.prototype.forEach.call(box.querySelectorAll('.dcard'),function(el){el.addEventListener('click',function(){SFX.play('ui');var k=el.getAttribute('data-k');if(k==='__pvp')pvpStart();else dgStart(k);});});
 
@@ -8730,11 +8743,11 @@ Guardiao.init({
 /* <<< CLAUDE [guardiao] */
 /* >>> CLAUDE [net] 2026-10-28 — liga o cliente de rede (multiplayer) ao jogo */
 Net.init({
-  THREE:THREE,scene:scene,getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
+  THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},fxSkill:skillFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);
@@ -8748,6 +8761,7 @@ Net.init({
   onEntrou:function(m){if(m.mapa==='pvp'){S.px=m.eu.x;S.pz=m.eu.z;S.face=m.eu.f;if(DG.pvpTorre&&Torre.on)Torre.teleporta(S,m.eu.x,m.eu.z,3);S.vx=0;S.vz=0;S.anim=null;S.pdead=false;S.php=S.pmax;renderHud();}}
 });
 /* <<< CLAUDE [net] */
+if(!/[?&]go=pvp/.test(location.search))Net.entrar('masmorra');/* [servidor] instancia solo da masmorra/duelo: o servidor guarda nivel e xp */
 requestAnimationFrame(frame);
 })();
 

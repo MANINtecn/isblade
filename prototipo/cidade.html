@@ -23,7 +23,7 @@
 
 
 <link rel="stylesheet" href="css/mu_hud.css?v=15">
-<link rel="stylesheet" href="css/hud_clean.css?v=4">
+<link rel="stylesheet" href="css/hud_clean.css?v=7">
 
 
 
@@ -774,8 +774,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
-<script src="js/conta.js?v=4"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=5"></script>
+<script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
+<script src="js/mobile.js?v=6"></script>
 <script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 </head>
@@ -1309,7 +1309,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=9';
+import { Net } from './js/net.js?v=11';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -17630,7 +17630,7 @@ Guardiao.init({
 
 /* >>> CLAUDE [net] 2026-10-28 — liga o cliente de rede (multiplayer) ao jogo */
 Net.init({
-  THREE:THREE,scene:scene,getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
+  THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},

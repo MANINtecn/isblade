@@ -30,7 +30,7 @@
     var out = {}, k; for(k in remoto) out[k] = remoto[k]; for(k in local) out[k] = local[k];
     try {                                                          /* MMO: a LISTA de personagens e do servidor (so ele cria/apaga); do aparelho so entra progresso dos ids que a conta tem */
       var a = JSON.parse(local.isblade_characters || '[]'), b = JSON.parse(remoto.isblade_characters || '[]'), ids = {};
-      b.forEach(function(c){ ids[c.id] = c; var l = a.filter(function(x){ return x && x.id === c.id; })[0]; if(l && (l.level | 0) > (c.level | 0)) c.level = l.level | 0; });
+      b.forEach(function(c){ ids[c.id] = c; });                 /* nivel e xp: so o servidor decide */
       out.isblade_characters = JSON.stringify(b);
       for(k in out){ var mm = /^isblade\.(inv|skillSel|mastery|dgbest|custom_slots_v5|hotbar_keys|hotbar_init)\.(.+)$/.exec(k); if(mm && !ids[mm[2]]) delete out[k]; }
     } catch(e){}

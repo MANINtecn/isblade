@@ -36,7 +36,7 @@
     'body.is-touch #mu-hotbar-host,body.is-touch .mu-hud-nameplate,body.is-touch .mu-exp-strip{display:none!important}' +
     'body.is-touch .mu-sys-wrap{display:none!important;position:fixed!important;right:52px;top:48px;gap:6px;z-index:75;pointer-events:auto}body.is-touch.sys-aberto .mu-sys-wrap{display:flex!important}' +
     'body.is-touch #mu-hud-bottom{grid-template-areas:"hp hb mp"!important;grid-template-rows:auto!important;padding-bottom:max(4px,env(safe-area-inset-bottom))!important}' +
-    'body.is-touch .mu-bar-slot{height:12px!important;width:min(100%,clamp(100px,26vw,170px))!important}body.is-touch .mu-bar-text{font-size:8px!important;padding:0 8px!important}' +
+    'body.is-touch .mu-bar-slot{height:16px!important;width:clamp(120px,24vw,200px)!important}body.is-touch #netHud{display:none}body.is-touch .mu-bar-text{font-size:8px!important;padding:0 8px!important}' +
     'body.is-touch #minimap-wrap,body.is-touch #map-panel .atmo-bar-box,body.is-touch #teleport-bar{display:none!important}body.is-touch.mapa-aberto #minimap-wrap{display:block!important;width:96px!important;height:96px!important}body.is-touch #map-panel{top:48px!important;right:10px!important}' +
     'body.is-touch #netBtn,body.is-touch #btnReturnCity{padding:5px 9px!important;font-size:9.5px!important;letter-spacing:.08em!important}body.is-touch #btnReturnCity{top:10px!important;left:10px!important}body.is-touch #netBtn{top:46px!important;left:10px!important}';
   var I = {

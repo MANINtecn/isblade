@@ -90,7 +90,7 @@ module.exports = function(opts){
   function limpaPers(x){
     const id = /^char_[A-Za-z0-9_]{1,40}$/.test(x.id) ? x.id : 'char_' + crypto.randomBytes(6).toString('hex'), tok = (v, d) => (/^[a-z0-9_]{1,30}$/.test(String(v || '')) ? String(v) : d);
     return { id, name: String(x.name).trim().slice(0, 16), race: tok(x.race, 'human_fighter'), charType: tok(x.charType, tok(x.race, 'human_fighter')), set: tok(x.set, 'starter'), weapon: /^(none|shield|sword)$/.test(x.weapon) ? x.weapon : 'sword',
-      hairStyle: tok(x.hairStyle, 'both'), hairColor: /^#[0-9a-fA-F]{6}$/.test(x.hairColor || '') ? x.hairColor : '#ffffff', level: Math.max(1, Math.min(100, x.level | 0 || 1)), location: String(x.location || 'Talking Island').slice(0, 30), createdAt: String(x.createdAt || new Date().toLocaleDateString('pt-BR')).slice(0, 20) };
+      hairStyle: tok(x.hairStyle, 'both'), hairColor: /^#[0-9a-fA-F]{6}$/.test(x.hairColor || '') ? x.hairColor : '#ffffff', level: Math.max(1, Math.min(100, x.level | 0 || 1)), location: String(x.location || 'Talking Island').slice(0, 30), xp: Math.max(0, x.xp | 0), createdAt: String(x.createdAt || new Date().toLocaleDateString('pt-BR')).slice(0, 20) };
   }
   function chavesDaConta(c){                                        /* o que o cliente recebe: lista de personagens do servidor + progresso so dos ids que a conta possui */
     migra(c); const ids = new Set(c.pers.map(p => p.id)), out = {}, ch = c.dados.chaves || {};
@@ -99,7 +99,7 @@ module.exports = function(opts){
   }
   function guardaChaves(c, ch){                                      /* PUT: personagem so muda nivel/local; criar/apagar so pelas rotas */
     migra(c); let inc = []; try { inc = JSON.parse(ch.isblade_characters || '[]'); } catch(e){}
-    for(const x of inc){ const p = c.pers.find(q => q.id === (x && x.id)); if(p){ p.level = Math.max(1, Math.min(100, x.level | 0 || p.level)); if(typeof x.location === 'string') p.location = x.location.slice(0, 30); } }
+    for(const x of inc){ const p = c.pers.find(q => q.id === (x && x.id)); if(p){ if(typeof x.location === 'string') p.location = x.location.slice(0, 30); }                /* nivel e xp: so o servidor decide */ }
     const ids = new Set(c.pers.map(p => p.id)), out = {};
     for(const k in ch){ if(k === 'isblade_characters') continue; const dono = PROG.find(pf => k.startsWith(pf)); if(dono && !ids.has(k.slice(dono.length))) continue; out[k] = ch[k]; }
     return out;
@@ -165,5 +165,6 @@ module.exports = function(opts){
     } catch(e){ return resp(res, e.message === 'grande' ? 413 : 400, { erro: 'Pedido invalido.' }); }
     return resp(res, 404, { erro: 'nao encontrado' });
   }
-  return { http, validaToken, total: () => Object.keys(DB.contas).length };
+  const persPorId = id => { for(const u in DB.contas){ const p = (DB.contas[u].pers || []).find(q => q.id === id); if(p) return p; } return null; };
+  return { http, validaToken, persPorId, grava, total: () => Object.keys(DB.contas).length };
 };

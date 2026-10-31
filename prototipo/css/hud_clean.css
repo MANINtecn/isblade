@@ -98,3 +98,7 @@ body.hud-clean #mu-slot-picker .pk-hd{color:var(--hc-azul); font-family:var(--hc
   body.hud-clean .mu-hotbar-slot{width:clamp(30px,5.4vw,40px)!important;height:clamp(30px,5.4vw,40px)!important}
   body.hud-clean .mu-bar-text{padding:0 10px!important}
 }
+/* ---- celular (toque): HP e estamina juntos no CENTRO da base, longe dos polegares (os dedos escondiam a perda de vida nos cantos) ---- */
+@media all{
+  body.hud-clean.is-touch #mu-hud-bottom{display:flex!important; justify-content:center; align-items:flex-end; padding-bottom:max(6px,env(safe-area-inset-bottom)); gap:8px}
+  }
