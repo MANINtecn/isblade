@@ -670,7 +670,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=16';
+import { Net } from './js/net.js?v=17';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4064,7 +4064,8 @@ if(S.dead&&!MOBS.length)return;
 
   var big=!!an.sk||(an.skill&&an.skill.intr>=1),color=an.skill?an.skill.css:(an.sk?(an.sk.secret?'#b79cff':'#f5c451'):(an.perfect?'#f5c451':'#e8f0ff'));
 
-  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
+  if(DG.grp==='guest')Net.dg({k:'bhit',d:dmg});else S.hp=Math.max(0,S.hp-dmg);/* [dg-grupo] */
+  /* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=(an.grp)?0:Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
 
   floatText(tag+(an.perfect?'PERFEITO ':'')+dmg,color,big?30:(an.perfect?24:20));
 
@@ -4082,8 +4083,7 @@ if(S.dead&&!MOBS.length)return;
 
   }
 
-  if(S.hp<=0){
-
+  if(S.hp<=0&&DG.grp!=='guest'){
     S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();gainXp(180+S.lvl*30,'boss');S.kills++;dropLoot();
 
     if(DG.on)dgBossDown();
@@ -4104,8 +4104,7 @@ if(S.dead&&!MOBS.length)return;
 /* guarda do chefe: golpes comuns so arranham; quando zera, ele e atordoado e pode ser lancado */
 
 function hitGauge(gd,launch){
-
-  var E=S.en;
+  var E=S.en;if(DG.grp==='guest')return;
 
   S.gT=3;
 
@@ -4432,8 +4431,8 @@ function startAttack(d){
 }
 
 function enemyThink(dt){
-
-  var E=S.en;if(S.dead||S.pdead)return;
+  var E=S.en;if(DG.grp==='guest')return;/* [dg-grupo] o chefe e do lider */
+  if(S.dead||S.pdead)return;
 
   if(Torre.on&&!Torre.chefeAtivo())return;/* o Baium so acorda no 3o andar */
 
@@ -5010,6 +5009,7 @@ function mob3dAnim(m,dt){
   var d=Math.hypot(m.x-S.px,m.z-S.pz);if(d<(QUAL.animRaio||34))m.mixer.update(dt);/* longe: pose congelada (economiza no celular) */
 }
 /* <<< CLAUDE [mob3d] */
+var MOB_NID=0;
 function mkMobBoneco(type,x,z){
 
   var T=DGD.mobs[type],g=new THREE.Group(),col=parseInt(T.css.slice(1),16),sz=T.size;
@@ -5040,7 +5040,7 @@ function mkMobBoneco(type,x,z){
 
   var D=DG.run?DIFF():DGD.difficulties.normal,hpS=Math.round(T.hp*D.hp);
 
-  return {type:type,T:T,spd:T.speed*D.speed,g:g,mat:mat,bar:bar,fg:fg,x:x,z:z,face:Math.PI,hp:hpS,max:hpS,state:'chase',t:0,wait:.3+Math.random()*.8,r:.55*sz,flash:0,dead:false,deadT:0,stun:0,sdir:Math.random()<.5?1:-1};
+  return {nid:++MOB_NID,type:type,T:T,spd:T.speed*D.speed,g:g,mat:mat,bar:bar,fg:fg,x:x,z:z,face:Math.PI,hp:hpS,max:hpS,state:'chase',t:0,wait:.3+Math.random()*.8,r:.55*sz,flash:0,dead:false,deadT:0,stun:0,sdir:Math.random()<.5?1:-1};
 
 }
 
@@ -5074,17 +5074,73 @@ function domoDano(x,z,r,dmg){
   if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)-1.5<=r)applyHit({id:'dome',dmg:mobDmg({dmg:dmg}),sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1});
 }
 /* <<< CLAUDE [guardiao] */
+/* >>> CLAUDE [dg-grupo] DUNGEON EM GRUPO (modelo A): o LIDER e o dono dos mobs e do chefe (IA, vida, tempo, metas); os outros recebem o estado ~10x/s e mandam o dano que causam.
+   O servidor so repassa dentro do canal do grupo e divide o XP; o solo nao muda (DG.grp vazio). */
+DG.grp='';
+function r1(v){return Math.round(v*10)/10;}
+function mobPorId(id){for(var i=0;i<MOBS.length;i++)if(MOBS[i].nid===id)return MOBS[i];return null;}
+function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do grupo mais perto */
+  var best=null,bd=1e9;
+  if(!S.pdead){bd=Math.hypot(S.px-m.x,S.pz-m.z);best={x:S.px,z:S.pz,id:0,self:true};}
+  if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto)return;var d=Math.hypot(a.x-m.x,a.z-m.z);if(d<bd){bd=d;best={x:a.x,z:a.z,id:a.id,self:false};}});
+  return best;
+}
+function grpTick(dt){/* chamado todo quadro (torreTick): o lider envia o estado */
+  if(DG.grp!=='host'||!DG.torre||!window.Net)return;
+  DG._sn=(DG._sn||0)-dt;if(DG._sn>0)return;DG._sn=.1;
+  var ms=[];MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0]);});
+  Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});
+  if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,dead:S.dead?1:0});
+}
+function grpSnap(sn){/* convidado: aplica o estado dos mobs */
+  if(!DG._pronto)return;
+  var vistos={};
+  sn.m.forEach(function(a){
+    var id=a[0],m=mobPorId(id);vistos[id]=1;
+    if(!m){if(a[8]||!DGD.mobs[a[1]])return;m=mkMob(a[1],a[2],a[3]);m.nid=id;m.net=true;m.x=a[2];m.z=a[3];MOBS.push(m);}
+    m.tx=a[2];m.tz=a[3];m.tf=a[4];m.hp=a[5];m.max=a[6];m.state=a[7]===1?'windup':(a[7]===2?'recover':'chase');m.stun=a[9]?1:0;
+    m.fg.scale.x=Math.max(.001,m.hp/(m.max||1));
+    if(a[8]&&!m.dead){/* morreu no lider: efeito + loot proprio (XP o servidor ja deu) */
+      if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;lootMob(m);renderHud();
+    }
+  });
+  MOBS.slice().forEach(function(m){if(m.net&&!vistos[m.nid]&&!m.dead)removeMob(m);});
+  DG.kr=sn.kr;DG.total=sn.tot;DG.tLeft=sn.tl;DG.nReg=sn.nr;
+}
+function grpBossSnap(b){/* convidado: espelha o chefe */
+  if(!BOSS_ON)return;
+  S.ex=b.ex;S.ez=b.ez;S.eh=b.eh;S.maxhp=b.mx;S.hp=b.hp;
+  if(S.en.state!==b.st)setEnemy(b.st,b.st==='stagger'?2.6:0);
+  if(b.dead&&!S.dead){S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();S.kills++;dropLoot();if(DG.on)dgBossDown();SFX.play('roar');
+    setTimeout(function(){SFX.play('smash');S.shake=Math.max(S.shake,.6);burst(S.ex,1.2,S.ez,55,0xff5500,5);burst(S.ex,1.5,S.ez,40,0x110522,4.0);},1800);
+    if(boss&&boss.drv)playClip(boss,'death',{once:true,speed:1.0,fade:.1,hold:99999});}
+}
+function grpRecebe(m){
+  var k=m.k;
+  if(k==='start'){if(DG.grp||DG.run)return;DG.grp='guest';banner('O LIDER INICIOU A DUNGEON','Entrando junto com o grupo...','#7fe08a');torreDgStart(m.key);}
+  else if(k==='snap'&&DG.grp==='guest')grpSnap(m);
+  else if(k==='bsnap'&&DG.grp==='guest')grpBossSnap(m);
+  else if(k==='clear'&&DG.grp==='guest'){if(!DG.cleared)torreClear();}
+  else if(k==='boss'&&DG.grp==='guest'){try{Torre.abrirPorta();}catch(_){}torreAcordaBaium();}
+  else if(k==='end'&&DG.grp==='guest'){banner('DUNGEON ENCERRADA','O lider saiu da dungeon','#ff6b6b');setTimeout(function(){dgHub();},900);}
+  else if(k==='hit'&&DG.grp==='host'){var mm=mobPorId(m.id);if(mm&&!mm.dead){GRPHIT=true;try{damageMob(mm,m.d,{dome:true,part:1,parts:1,noRange:true});}finally{GRPHIT=false;}}}
+  else if(k==='bhit'&&DG.grp==='host'&&BOSS_ON&&!S.dead){GRPHIT=true;try{applyHit({id:'dome',dmg:m.d,sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1,grp:true});}finally{GRPHIT=false;}}
+  else if(k==='mdmg'){playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
+  else if(k==='proj'&&DG.grp==='guest'){var pm=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),new THREE.MeshBasicMaterial({color:parseInt(m.css.slice(1),16)}));pm.position.set(m.x,1.3,m.z);scene.add(pm);EPROJ.push({m:pm,x:m.x,z:m.z,dx:m.dx,dz:m.dz,v:m.v,dmg:0,life:m.life,vis:true});}
+}
+/* <<< CLAUDE [dg-grupo] */
 function mobDmg(an){var d=an.dmg;if(S.focus>0)d*=1.3;if(ST.dano)d*=1+ST.dano/100;return Math.round(d);}
 
+var GRPHIT=false;
 function damageMob(m,dmg,an){
-
   if(m.dead)return;
+  if(m.net&&window.Net)Net.dg({k:'hit',id:m.nid,d:dmg});/* [dg-grupo] a vida do mob e do lider */
 
   if(m.stun>0)dmg=Math.round(dmg*1.35);
 
   if(TRAIN.on)trainLog(dmg);
 
-  m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
+  if(!m.net)m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=GRPHIT?0:Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
 
   var f=fwd(Math.atan2(m.x-S.px,m.z-S.pz)),kb=m.T.armor?.12:.45;if(an.skill&&an.skill.burst)kb=m.T.armor?.6:1.8;
 
@@ -5104,18 +5160,20 @@ function damageMob(m,dmg,an){
   if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');SFX.play('soulshot_hit');}
   try{if(m.hp>0)Voz.mob(m.type,'dmg',Math.hypot(m.x-S.px,m.z-S.pz));}catch(_){}/* [voz] gemido do monstro (L2) */
 
-  if(m.hp<=0)killMob(m);
-
+  if(!m.net&&m.hp<=0)killMob(m);
 }
-
+function lootMob(m){
+  if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
+}
 function killMob(m){
 
   if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(m.T.xp||(25+(m.T.hp>300?40:0)),m.type);
 
-  if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
+  lootMob(m);
 
   renderHud();
 
+  if(DG.grp==='guest')return;
   if(DG.torre&&!BOSS_ON){if(!m.T.isMiniBoss)DG.kr++;torreCheck();}else if(!BOSS_ON&&mobsAlive()===0)dgClear();
 
 }
@@ -5204,9 +5262,9 @@ function playerTakeHit(h){
 
 }
 
-function mobStrike(m){
-
-  var T=m.T,dx=S.px-m.x,dz=S.pz-m.z,d=Math.hypot(dx,dz);
+function mobStrike(m,TG){
+  TG=TG||{x:S.px,z:S.pz,id:0,self:true};
+  var T=m.T,dx=TG.x-m.x,dz=TG.z-m.z,d=Math.hypot(dx,dz);
 
   if(T.ranged){
 
@@ -5217,6 +5275,7 @@ function mobStrike(m){
     pm.position.set(m.x+f[0]*.7,1.3,m.z+f[1]*.7);scene.add(pm);
 
     EPROJ.push({m:pm,x:pm.position.x,z:pm.position.z,dx:f[0],dz:f[1],v:T.projSpeed,dmg:T.dmg,life:3,src:m});
+    if(DG.grp==='host')Net.dg({k:'proj',x:pm.position.x,z:pm.position.z,dx:f[0],dz:f[1],v:T.projSpeed,life:3,css:T.css});
 
     SFX.play('swing');return;
 
@@ -5232,6 +5291,7 @@ function mobStrike(m){
 
   if(!inRange)return;
 
+  if(!TG.self){Net.dg({k:'mdmg',to:TG.id,dmg:T.dmg,cost:T.armor?42:24,parry:!T.aoe,aoe:!!T.aoe,interrupt:!!T.interrupt,stun:T.stun||0});return;}/* [dg-grupo] o golpe e do jogador do grupo */
   playerTakeHit({dmg:T.dmg,cost:T.armor?42:24,parry:!T.aoe,aoe:!!T.aoe,interrupt:!!T.interrupt,stun:T.stun||0,onParry:function(){m.stun=1.6;m.state='chase';m.t=0;m.flash=1;}});
 
 }
@@ -5255,14 +5315,14 @@ function updateMobs(dt){
 
     if(m.pull){var PL=m.pull;PL.t+=dt;var pk=Math.min(1,dt*9);m.x+=(PL.tx-m.x)*pk;m.z+=(PL.tz-m.z)*pk;if(PL.t>=PL.dur)m.pull=null;}/* [puxao] */
 
+    if(m.net){var kn=Math.min(1,dt*12);m.x+=(m.tx-m.x)*kn;m.z+=(m.tz-m.z)*kn;m.face+=angDiff(m.face,m.tf)*kn;m.t+=dt;}/* [dg-grupo] proxy: segue o estado do lider */
     m.mat.emissiveIntensity=.15+m.flash*1.1+(m.state==='windup'?.45+.45*Math.sin(m.t*30):0);
     if(m.mats){var ei=.3+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q2=0;q2<m.mats.length;q2++)m.mats[q2].emissiveIntensity=ei;}/* [mob3d] */
 
-    if(!S.pdead){
-
+    var TG=m.net?null:mobAlvo(m);/* [dg-grupo] */
+    if(TG){
       m.t+=dt;
-
-      var dx=S.px-m.x,dz=S.pz-m.z,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(m.face),sp=m.spd;
+      var dx=TG.x-m.x,dz=TG.z-m.z,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(m.face),sp=m.spd;
       if(m.state==='chase'&&d<26&&Math.random()<dt*.06)Voz.mob(m.type,'idle',d);/* [voz] rosnado de vez em quando */
 
       var ccOn=CC.tick(m,dt);if(m.stun>0||ccOn){if(m.stun>0)m.stun-=dt;}
@@ -5295,7 +5355,7 @@ function updateMobs(dt){
 
         }else if(m.state==='windup'){
 
-          if(m.t>=T.wind){mobStrike(m);m.state='recover';m.t=0;}
+          if(m.t>=T.wind){mobStrike(m,TG);m.state='recover';m.t=0;}
 
         }else if(m.state==='recover'){
 
@@ -5311,7 +5371,7 @@ function updateMobs(dt){
 
       for(var j=0;j<MOBS.length;j++){var o=MOBS[j];if(o===m||o.dead)continue;var ox=m.x-o.x,oz=m.z-o.z,od=Math.hypot(ox,oz),mm=m.r+o.r;if(od<mm&&od>1e-4){m.x+=ox/od*(mm-od)*.5;m.z+=oz/od*(mm-od)*.5;}}
 
-      var pd=Math.hypot(m.x-S.px,m.z-S.pz),pm=m.r+.45;if(pd<pm&&pd>1e-4){m.x=S.px+(m.x-S.px)/pd*pm;m.z=S.pz+(m.z-S.pz)/pd*pm;}
+      var pd=Math.hypot(m.x-TG.x,m.z-TG.z),pm=m.r+.45;if(pd<pm&&pd>1e-4){m.x=TG.x+(m.x-TG.x)/pd*pm;m.z=TG.z+(m.z-TG.z)/pd*pm;}
 
       var rr=Math.hypot(m.x,m.z);if(rr>ARENA-.6){m.x*=(ARENA-.6)/rr;m.z*=(ARENA-.6)/rr;}
 
@@ -5336,8 +5396,8 @@ function updateEProj(dt){
 
     var hit=false,gone=p.life<=0||obstAt(p.x,p.z,.2)||Math.hypot(p.x,p.z)>ARENA+2;
 
-    if(!gone&&!S.pdead&&Math.hypot(p.x-S.px,p.z-S.pz)<.75){
-
+    if(!gone&&!p.vis&&DG.grp==='host'&&window.Net)Net.alvos().forEach(function(a){if(!hit&&!a.morto&&Math.hypot(p.x-a.x,p.z-a.z)<.75){hit=true;Net.dg({k:'mdmg',to:a.id,dmg:p.dmg,cost:20,parry:true});}});/* [dg-grupo] */
+    if(!gone&&!hit&&!p.vis&&!S.pdead&&Math.hypot(p.x-S.px,p.z-S.pz)<.75){
       hit=true;playerTakeHit({dmg:p.dmg,cost:20,parry:true,aoe:false,interrupt:false,onParry:function(){}});
 
     }
@@ -5808,6 +5868,7 @@ function removeCityPortal(){
 
 function dgHub(){
 
+  if(DG.grp==='host'&&window.Net)Net.dg({k:'end'});DG.grp='';DG._pronto=false;/* [dg-grupo] */
   torreSair();/* [torre-dg] */
 
   MOBS.slice().forEach(removeMob);
@@ -5849,6 +5910,8 @@ function dgHub(){
 /* >>> CLAUDE [torre-dg] DG na Torre do Baium: andar 1 = normal/medio, andar 2 = hard (limpar libera a porta do Baium no 3o). Dados: data/dungeon.json -> "torre". */
 function portalPos(){return DG.portalPos||[0,-9];}
 function torreDgStart(key){
+  if(!DG.grp&&window.Net&&Net.soyHost()){DG.grp='host';Net.dg({k:'start',key:key});}/* [dg-grupo] */
+  DG._pronto=false;
   var cfg=DGD.torre&&DGD.torre[key];
   if(!cfg){banner('EM BREVE','Essa dificuldade ainda nao existe na torre','#ff6b6b');$('#diff').classList.remove('open');return;}
   if(!Torre.pronto){
@@ -5881,17 +5944,19 @@ function torreDgLoad(retry){
   BOSS_ON=false;enemy.visible=false;S.dead=true;S.deadT=0;S.ex=0;S.ez=-500;setEnemy('idle');S.en.wait=1e9;
   resetFight();
   DG.total=0;DG.kr=0;DG.tLeft=cfg.tempo||0;DG.rsp=0;DG.nReg=0;DG.fim=false;
-  cfg.mobs.forEach(function(mb){
+  (DG.grp==='guest'?[]:cfg.mobs).forEach(function(mb){/* [dg-grupo] convidado: os mobs vem do lider */
     var cnt=Math.max(1,Math.round(mb[1]*DIFF().count*(QUAL.mobMult||1)));DG.total+=cnt;if(!(DGD.mobs[mb[0]]&&DGD.mobs[mb[0]].isMiniBoss))DG.nReg+=cnt;
     for(var n=0;n<cnt;n++){var p=Torre.pontoAleatorio(cfg.andar,16,46);var m=mkMob(mb[0],p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);}
   });
   DG.portalPos=Torre.pontoPortal(cfg.andar);
+  DG._pronto=true;
   banner(cfg.nome.toUpperCase(),(retry?'De novo! ':'')+'Elimine todos os inimigos - '+DIFF().name,DIFF().css);
   renderHud();
 }
 /* [torre-dg] tempo + ressurgimento: chamado todo quadro */
 function torreTick(dt){
-  if(DG.torre&&Torre.on&&Torre.porta.liberada&&!BOSS_ON&&!S.pdead&&Torre.pertoDaPorta()){Torre.abrirPorta();S.shake=Math.max(S.shake,.5);SFX.play('smash');torreAcordaBaium();return;}/* porta liberada abre sozinha ao chegar */
+  grpTick(dt);if(DG.grp==='guest')return;/* [dg-grupo] o convidado nao decide tempo, porta nem ressurgimento */
+if(DG.torre&&Torre.on&&Torre.porta.liberada&&!BOSS_ON&&!S.pdead&&Torre.pertoDaPorta()){Torre.abrirPorta();S.shake=Math.max(S.shake,.5);SFX.play('smash');torreAcordaBaium();return;}/* porta liberada abre sozinha ao chegar */
   var cfg=DG.torre;if(!cfg||DG.cleared||!DG.run||DG.fim||S.pdead)return;
   if(cfg.tempo){
     DG.tLeft-=dt;
@@ -5909,12 +5974,13 @@ function torreTick(dt){
   }
 }
 function torreCheck(){
-  var cfg=DG.torre;if(!cfg||DG.cleared)return;
+  var cfg=DG.torre;if(!cfg||DG.cleared||DG.grp==='guest')return;
   var boss=MOBS.some(function(m){return !m.dead&&m.T.isMiniBoss;});
   if(DG.kr>=(cfg.meta||0)&&!boss){MOBS.slice().forEach(function(m){if(!m.dead)removeMob(m);});torreClear();}
 }
 function torreClear(){
   var cfg=DG.torre;DG.cleared=true;SFX.levelup();
+  if(DG.grp==='host')Net.dg({k:'clear'});
   var f=Torre.andares[cfg.andar-1],msg='Abra o Bau [E] e atravesse o portal para sair';
   spawnChest(cfg.bau||'silver',f.sx+3,f.sz);
   if(cfg.liberaPorta){Torre.liberarPorta(true);msg='A porta do Baium foi LIBERADA: suba ao 3o andar';}
@@ -5924,6 +5990,7 @@ function torreClear(){
 }
 function torreAcordaBaium(){
   if(!DG.torre||BOSS_ON)return;
+  if(DG.grp==='host')Net.dg({k:'boss'});
   var p=Torre.posChefe();S.ex=p[0];S.ez=p[1];S.eh=0;
   BOSS_ON=true;enemy.visible=true;S.dead=false;S.hp=S.maxhp;enemy.rotation.x=0;enemy.position.y=0;
   if(boss&&boss.drv){boss.drv.hold=0;playClip(boss,'boss_idle',{fade:.1});}
@@ -5938,7 +6005,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
@@ -8765,7 +8832,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},dg:grpRecebe,prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);

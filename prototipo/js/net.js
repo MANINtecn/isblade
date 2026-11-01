@@ -51,6 +51,30 @@ export const Net = (function(){
     g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(x - 2, y - 2, w + 4, 14); g.fillStyle = e.morto ? '#555' : (k > .5 ? '#5cd65c' : (k > .25 ? '#e6b422' : '#e54b4b')); g.fillRect(x, y, w * k, 10);
     e.tag.tex.needsUpdate = true; e.hpDes = e.hp;
   }
+  /* coroa dourada em cima do lider do grupo (sprite desenhado em canvas) */
+  var coroaTex = null, coroaEu = null;
+  function coroaMat(){
+    if(!coroaTex){
+      var cv = document.createElement('canvas'); cv.width = 128; cv.height = 96; var g = cv.getContext('2d');
+      g.fillStyle = '#f5c451'; g.strokeStyle = '#7a5410'; g.lineWidth = 5; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(14, 78); g.lineTo(8, 24); g.lineTo(38, 50); g.lineTo(64, 12); g.lineTo(90, 50); g.lineTo(120, 24); g.lineTo(114, 78); g.closePath(); g.fill(); g.stroke();
+      g.fillStyle = '#ffe9a6'; g.fillRect(18, 66, 92, 10);
+      [[8, 24], [64, 12], [120, 24]].forEach(function(p){ g.beginPath(); g.arc(p[0], p[1], 7, 0, 6.2832); g.fillStyle = '#fff3c4'; g.fill(); g.stroke(); });
+      g.fillStyle = '#e0453a'; g.beginPath(); g.arc(64, 58, 6, 0, 6.2832); g.fill();
+      coroaTex = new THREE.CanvasTexture(cv);
+    }
+    return new THREE.SpriteMaterial({ map: coroaTex, transparent: true, depthTest: false, depthWrite: false });
+  }
+  function novaCoroa(){ var sp = new THREE.Sprite(coroaMat()); sp.scale.set(.85, .64, 1); sp.renderOrder = 1000; sp.visible = false; return sp; }
+  function atualizaCoroas(){
+    var g = N.grupo, ativo = !!(N.on && g && g.m && g.m.length > 1);
+    remotos.forEach(function(e){
+      if(!e.coroa){ e.coroa = novaCoroa(); e.coroa.position.y = 3.72; e.grp.add(e.coroa); }
+      e.coroa.visible = ativo && g.lider === e.sid && !e.morto;
+    });
+    if(!coroaEu){ coroaEu = novaCoroa(); ctx.scene.add(coroaEu); }
+    var S = ctx.getS(); coroaEu.visible = ativo && g.lider === N.sid && !S.pdead; if(coroaEu.visible) coroaEu.position.set(S.px, 2.75, S.pz);
+  }
   function noGrupo(id){ return !!(N.grupo && N.grupo.m && N.grupo.m.some(function(m){ return m.id === id; })); }
   function criaTag(e){
     var cv = document.createElement('canvas'); cv.width = 256; cv.height = 72;
@@ -65,7 +89,7 @@ export const Net = (function(){
   }
   function addRemoto(p){
     if(remotos.has(p.id)) return;
-    var e = { id: p.id, lv: p.lv || 1, nome: p.nome, raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
+    var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
     e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e);
     ctx.loadL2(heroUrl(p.raca), function(r){
       if(!remotos.has(e.id)){ return; }
@@ -112,6 +136,8 @@ export const Net = (function(){
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
     } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
+    } else if(m.t === 'dg'){ if(ctx.dg) ctx.dg(m);
+    } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
     } else if(m.t === 'prog'){ if(ctx.prog) ctx.prog(m);
     } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && !e.morto){ if(m.k === 's' && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f); else if(m.k === 'b' && ctx.fxBasico) ctx.fxBasico(e, m.v, m.f); }
     } else if(m.t === 'j'){ addRemoto(m.p); atualizaHud();
@@ -348,12 +374,12 @@ export const Net = (function(){
     if(!ctx || !N.on) return; tEnv += dt; tHud += dt;
     if(tEnv >= 1 / 12){
       tEnv = 0; var S = ctx.getS(), v = ctx.getVrm(), d = v && v.drv;
-      send({ t: 'st', x: r2(S.px), z: r2(S.pz), f: r2(S.face), a: d ? d.curName : 'idle', ts: d && d.cur ? r2(d.cur.timeScale || 1) : 1, g: S.guard ? 1 : 0, w: ctx.getWPN() });
+      send({ t: 'st', x: r2(S.px), z: r2(S.pz), f: r2(S.face), h: Math.round(S.php), a: d ? d.curName : 'idle', ts: d && d.cur ? r2(d.cur.timeScale || 1) : 1, g: S.guard ? 1 : 0, w: ctx.getWPN() });
     }
     if(N.duelo && N.duelo.seg > 0){ N.duelo.seg = Math.max(0, (N.duelo.ini - Date.now()) / 1000); }
     if(pedido && Date.now() > pedido.ate) pedido = null;
     if(tHud > .5){ tHud = 0; atualizaHud(); renderParty(); if(menuAberto) renderMenu(); }
-    atualizaRemotos(dt); atualizaAlvo();
+    atualizaRemotos(dt); atualizaAlvo(); atualizaCoroas();
   };
   /* chamados pelo jogo */
   N.atacou = function(an){
@@ -361,6 +387,12 @@ export const Net = (function(){
     if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; send({ t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }); }
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };
+  /* ---- dungeon em grupo ---- */
+  N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
+  N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto }); }); return l; };
+  N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
+  N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && remotos.size > 0 && N.grupo.m.some(function(m){ return m.id !== N.id && m.on && m.mapa === 'masmorra' && m.canal === N.canal; })); };
+  N.soyConvidado = function(){ return !!(N.on && N.mapa === 'masmorra' && N.grupo && !N.soyLider() && remotos.size > 0); };
   N.xp = function(tipo){ if(!N.on) return false; send({ t: 'xp', tipo: tipo }); return true; };               /* servidor decide o ganho */
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */

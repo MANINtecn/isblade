@@ -52,6 +52,13 @@ function canalLivre(mapa, pedido){
   for(const c of L) if(c.jog.size < cap) return c;
   const c = { mapa, n: L.length + 1, jog: new Map() }; L.push(c); return c;
 }
+/* masmorra: solo = 1 jogador por canal; em GRUPO = um canal para o grupo inteiro (mesmo mundo, mesmos monstros) */
+function canalMasmorra(gid){
+  const L = canais.masmorra;
+  if(gid){ for(const c of L) if(c.gid === gid && c.jog.size < PARTY_MAX) return c; }
+  for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; return c; }
+  const c = { mapa: 'masmorra', n: L.length + 1, jog: new Map(), gid: gid || 0 }; L.push(c); return c;
+}
 const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra);
 const r2 = v => Math.round(v * 100) / 100, agora = () => Date.now() / 1000;
 const angDif = (a, b) => { let d = a - b; while(d > Math.PI) d -= 2 * Math.PI; while(d < -Math.PI) d += 2 * Math.PI; return d; };
@@ -61,12 +68,13 @@ function posSpawn(c, J){
 }
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
-const info = J => ({ id: J.id, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
+const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
 
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */
 const grupoDe = J => (J.party ? grupos.get(J.party) : null);
 function estadoGrupo(g){ return { t: 'party', id: g.id, lider: g.lider, m: [...g.membros].map(([sid, m]) => ({ sid, nome: m.nome, id: m.J ? m.J.id : 0, hp: m.J ? m.J.hp : 0, pmax: m.J ? m.J.pmax : 0, on: !!m.J, mapa: m.J ? m.J.mapa : '', canal: m.J ? m.J.canal : 0 })) }; }
+function juntaNaMasmorra(g){ for(const m of g.membros.values()) if(m.J && m.J.canalRef && m.J.mapa === 'masmorra' && m.J.canalRef.gid !== g.id) envia(m.J, { t: 'recanal' }); }
 function envieGrupo(g){ const o = estadoGrupo(g); for(const m of g.membros.values()) if(m.J) envia(m.J, o); }
 function tiraDoGrupo(sid, J, motivo){
   const g = J && J.party ? grupos.get(J.party) : [...grupos.values()].find(x => x.membros.has(sid)); if(!g) return; if(J) J.party = 0;
@@ -134,7 +142,7 @@ const srv = http.createServer((req, res) => {
 });
 
 /* ---- WebSocket ---- */
-const wss = new WebSocketServer({ server: srv, path: '/ws', maxPayload: 4096, verifyClient: info => origemOk(info.origin) });
+const wss = new WebSocketServer({ server: srv, path: '/ws', maxPayload: 16384, verifyClient: info => origemOk(info.origin) });
 wss.on('connection', ws => {
   let J = null, c = null, msgs = 0;
   const lim = setInterval(() => { msgs = 0; }, 1000);
@@ -149,7 +157,8 @@ wss.on('connection', ws => {
         for(const cc of todosCanais()) for(const o of cc.jog.values()) if(o.cid === pers.id){ try { o.ws.send(JSON.stringify({ t: 'erro', m: 'Este personagem entrou em outro lugar.' })); } catch (e) {} o.ws.close(); }      /* um personagem, uma conexao */
         m.nome = pers.name; m.raca = pers.charType; m.cls = /magic/.test(pers.charType) ? 'magic' : 'fighter';
       }
-      const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = pers ? pers.id : String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); c = (mapa !== 'masmorra' && mate && mate.canalRef && mate.canalRef.jog.size < (mapa === 'pvp' ? CAP_PVP : CAP)) ? mate.canalRef : canalLivre(mapa, mapa === 'masmorra' ? 0 : m.canal | 0);
+      const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = pers ? pers.id : String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); const gJoin = [...grupos.values()].find(x => x.membros.has(sid));
+      c = mapa === 'masmorra' ? canalMasmorra(gJoin ? gJoin.id : 0) : (mate && mate.canalRef && mate.canalRef.jog.size < (mapa === 'pvp' ? CAP_PVP : CAP)) ? mate.canalRef : canalLivre(mapa, m.canal | 0);
       J = { id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
             sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers.level) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
       const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = Math.PI;
@@ -166,12 +175,24 @@ wss.on('connection', ws => {
         const dx = m.x - J.x, dz = m.z - J.z, d = Math.hypot(dx, dz), max = VMAX * dt + .5;
         if(d > max){ J.x += dx / d * max; J.z += dz / d * max; } else { J.x = m.x; J.z = m.z; }          /* limita a velocidade; se andou demais, so chega mais devagar */
       }
+      if(c.mapa === 'masmorra' && typeof m.h === 'number') J.hp = Math.max(0, Math.min(J.pmax, m.h | 0));      /* so para a barra do grupo: na masmorra o combate e do jogo */
       if(typeof m.f === 'number') J.f = m.f; J.a = String(m.a || 'idle').slice(0, 24); J.ts = Math.max(.2, Math.min(5, +m.ts || 1)); J.guarda = !!m.g;
       if(SKILLS[m.w] && m.w !== J.arma && !J.morto){ J.arma = m.w; }
     } else if(m.t === 'atk') ataque(c, J, m);
     else if(m.t === 'xp'){                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
       const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
-      const tipo = String(m.tipo || '').slice(0, 24), v = !/^[a-z0-9_]{1,24}$/.test(tipo) ? 0 : (tipo === 'boss' ? 180 + (J.lv || 1) * 30 : (XP_MOB[tipo] || 25)); if(v) ganhaXp(J, v);
+      const tipo = String(m.tipo || '').slice(0, 24), v = !/^[a-z0-9_]{1,24}$/.test(tipo) ? 0 : (tipo === 'boss' ? 180 + (J.lv || 1) * 30 : (XP_MOB[tipo] || 25)); if(v){ if(c.mapa === 'masmorra' && c.gid){ for(const o of c.jog.values()) ganhaXp(o, v); } else ganhaXp(J, v); }      /* grupo: todo mundo ganha */
+    }
+    else if(m.t === 'dg' && c.mapa === 'masmorra' && c.gid){            /* sincronia da dungeon em grupo: o LIDER manda o estado, os outros mandam o que fizeram */
+      const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });
+      if(souLider){
+        if(!/^(start|snap|clear|end|boss|mdmg|proj|bsnap|room)$/.test(k)) return;
+        if(k === 'mdmg'){ o.dmg = Math.max(0, Math.min(800, +m.dmg || 0)); const V = c.jog.get(m.to | 0); if(V) envia(V, o); return; }
+        difunde(c, o, J);
+      } else {
+        if(!/^(hit|bhit)$/.test(k)) return; o.d = Math.max(0, Math.min(5000, +m.d || 0));
+        const L = [...c.jog.values()].find(x => x.sid === g.lider); if(L) envia(L, o);
+      }
     }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
     else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .8){ J.ultChat = t; difunde(c, { t: 'chat', n: J.nome, m: String(m.m || '').slice(0, 120), team: J.team }); } }
@@ -191,7 +212,7 @@ wss.on('connection', ws => {
     } else if(m.t === 'pok'){
       const A = J.pInv && agora() < J.pInv.ate ? c.jog.get(J.pInv.de) : null; J.pInv = null; if(!A || J.party) return;
       let g = grupoDe(A); if(!g){ g = { id: proxGrupo++, lider: A.sid, membros: new Map([[A.sid, { nome: A.nome, J: A, ausente: 0 }]]) }; grupos.set(g.id, g); A.party = g.id; }
-      if(g.membros.size >= PARTY_MAX) return; g.membros.set(J.sid, { nome: J.nome, J, ausente: 0 }); J.party = g.id; envieGrupo(g);
+      if(g.membros.size >= PARTY_MAX) return; g.membros.set(J.sid, { nome: J.nome, J, ausente: 0 }); J.party = g.id; envieGrupo(g); juntaNaMasmorra(g);
     } else if(m.t === 'pno'){ const A = J.pInv ? c.jog.get(J.pInv.de) : null; J.pInv = null; if(A) envia(A, { t: 'prec', nome: J.nome }); }
     else if(m.t === 'pleave'){ tiraDoGrupo(J.sid, J, 'saiu'); }
     else if(m.t === 'pkick'){ const g = grupoDe(J); if(g && g.lider === J.sid){ const alvo = [...g.membros].find(([sid, mm]) => mm.J && mm.J.id === (m.to | 0)); if(alvo && alvo[0] !== J.sid) tiraDoGrupo(alvo[0], alvo[1].J, 'expulso'); } }
