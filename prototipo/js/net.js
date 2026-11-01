@@ -75,6 +75,13 @@ export const Net = (function(){
     if(!coroaEu){ coroaEu = novaCoroa(); ctx.scene.add(coroaEu); }
     var S = ctx.getS(); coroaEu.visible = ativo && g.lider === N.sid && !S.pdead; if(coroaEu.visible) coroaEu.position.set(S.px, 2.75, S.pz);
   }
+  /* o lider entrou na dungeon: leva este membro JUNTO, na hora (uma vez por dungeon; a mensagem pode chegar 2x: direta e pelo estado do grupo) */
+  function puxar(key, id, canal){
+    if(!key || !ctx.irDg) return; if(N.mapa === 'masmorra' && canal && N.canal === canal) return;
+    var ult = ''; try { ult = localStorage.getItem('isblade.dgid.' + N.sid) || ''; } catch(e){} if(ult === String(id)) return;
+    try { localStorage.setItem('isblade.dgid.' + N.sid, String(id)); } catch(e){}
+    ctx.banner('O LIDER ENTROU NA DUNGEON', 'Voce esta sendo levado junto...', '#7fe08a'); ctx.irDg(key);
+  }
   function noGrupo(id){ return !!(N.grupo && N.grupo.m && N.grupo.m.some(function(m){ return m.id === id; })); }
   function criaTag(e){
     var cv = document.createElement('canvas'); cv.width = 256; cv.height = 72;
@@ -127,7 +134,7 @@ export const Net = (function(){
   function msg(m){
     var e; if(m.t !== 's'){ N.hist.push(m.t + ' ' + JSON.stringify(m).slice(0, 90)); if(N.hist.length > 60) N.hist.shift(); }
     if(m.t === 'w'){
-      N.on = true; N.tentando = false; N.id = m.id; if(m.sid) N.sid = m.sid; if(m.prog && ctx.prog) ctx.prog(m.prog, true); N.grupo = null; N.eu = m.eu; N.canal = m.canal; N.mapa = m.mapa; N.duelo = null; jaAvisou = false;
+      N.on = true; N.tentando = false; N.id = m.id; if(m.sid) N.sid = m.sid; if(m.prog && ctx.prog) ctx.prog(m.prog, true); N.grupo = m.grp || null; N.eu = m.eu; N.canal = m.canal; N.mapa = m.mapa; N.duelo = null; jaAvisou = false;
       m.jog.forEach(addRemoto); ctx.onEntrou(m); atualizaHud(); ctx.sysMsg((m.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' - canal ' + m.canal + (m.eu.team ? ' - Time ' + (m.eu.team === 'A' ? 'Azul' : 'Vermelho') : ''));
     } else if(m.t === 's'){
       var vistos = {}; m.p.forEach(function(p){
@@ -137,7 +144,7 @@ export const Net = (function(){
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
     } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
     } else if(m.t === 'dg'){ if(ctx.dg) ctx.dg(m);
-    } else if(m.t === 'dgconvite'){ ctx.banner('O LIDER ENTROU NA DUNGEON', 'Voce sera levado junto...', '#7fe08a'); setTimeout(function(){ if(ctx.irDg) ctx.irDg(m.key); }, 1800);
+    } else if(m.t === 'dgconvite'){ puxar(m.key, m.id);
     } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
     } else if(m.t === 'prog'){ if(ctx.prog) ctx.prog(m);
     } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && !e.morto){ if(m.k === 's' && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f); else if(m.k === 'b' && ctx.fxBasico) ctx.fxBasico(e, m.v, m.f); }
@@ -165,7 +172,7 @@ export const Net = (function(){
     } else if(m.t === 'preq'){ pedGrupo = { de: m.de, nome: m.nome, ate: Date.now() + 20000 }; ctx.banner('CONVITE DE GRUPO', m.nome + ' convida você', '#7fd2ff'); desenhaPed();
     } else if(m.t === 'psent'){ ctx.sysMsg('Convite de grupo enviado para ' + m.nome);
     } else if(m.t === 'prec'){ ctx.sysMsg(m.nome + ' recusou o convite de grupo');
-    } else if(m.t === 'party'){ var tinha = N.grupo; N.grupo = m; if(!tinha) ctx.sysMsg('Você entrou no grupo (' + m.m.length + ' membros)'); renderParty(); renderMenu();
+    } else if(m.t === 'party'){ var tinha = N.grupo; N.grupo = m; if(m.dg && m.lider !== N.sid) puxar(m.dg.key, m.dg.id, m.dg.canal); if(!tinha) ctx.sysMsg('Você entrou no grupo (' + m.m.length + ' membros)'); renderParty(); renderMenu();
     } else if(m.t === 'partyfim'){ N.grupo = null; ctx.sysMsg(m.m === 'expulso' ? 'Você foi expulso do grupo' : (m.m === 'dissolvido' ? 'O grupo foi desfeito' : 'Você saiu do grupo')); renderParty(); renderMenu();
     } else if(m.t === 'chat'){ ctx.sysMsg(m.n + ': ' + m.m); }
   }
@@ -343,7 +350,7 @@ export const Net = (function(){
     };
     s.onmessage = function(ev){ try { msg(JSON.parse(ev.data)); } catch(e){ console.warn('net:', e); } };
     s.onclose = function(){
-      var estava = N.on; N.on = false; N.tentando = false; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; N.alvo = 0; desenhaAlvo(); atualizaHud();
+      var estava = N.on; N.on = false; N.tentando = false; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; N.alvo = 0; N.grupo = null; desenhaAlvo(); atualizaHud();
       if(ws !== s) return; if(estava) ctx.sysMsg('Desconectado do servidor.'); else if(!jaAvisou){ jaAvisou = true; console.log('Net: sem servidor online (jogo segue sozinho).'); }
     };
     s.onerror = function(){};

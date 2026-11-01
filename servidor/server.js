@@ -73,7 +73,8 @@ const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */
 const grupoDe = J => (J.party ? grupos.get(J.party) : null);
-function estadoGrupo(g){ return { t: 'party', id: g.id, lider: g.lider, m: [...g.membros].map(([sid, m]) => ({ sid, nome: m.nome, id: m.J ? m.J.id : 0, hp: m.J ? m.J.hp : 0, pmax: m.J ? m.J.pmax : 0, on: !!m.J, mapa: m.J ? m.J.mapa : '', canal: m.J ? m.J.canal : 0 })) }; }
+let dgSeq = 0;
+function estadoGrupo(g){ return { t: 'party', id: g.id, lider: g.lider, dg: g.dg || null, m: [...g.membros].map(([sid, m]) => ({ sid, nome: m.nome, id: m.J ? m.J.id : 0, hp: m.J ? m.J.hp : 0, pmax: m.J ? m.J.pmax : 0, on: !!m.J, mapa: m.J ? m.J.mapa : '', canal: m.J ? m.J.canal : 0 })) }; }
 function juntaNaMasmorra(g){ for(const m of g.membros.values()) if(m.J && m.J.canalRef && m.J.mapa === 'masmorra' && m.J.canalRef.gid !== g.id) envia(m.J, { t: 'recanal' }); }
 function envieGrupo(g){ const o = estadoGrupo(g); for(const m of g.membros.values()) if(m.J) envia(m.J, o); }
 function tiraDoGrupo(sid, J, motivo){
@@ -166,7 +167,7 @@ wss.on('connection', ws => {
       if(mapa === 'cidade' && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 600 && Math.abs(m.z) < 600){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
-      envia(J, { t: 'w', id: J.id, sid: J.sid, prog: pers ? { lvl: pers.level, xp: pers.xp | 0, need: xpNeed(pers.level) } : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
+      envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? { lvl: pers.level, xp: pers.xp | 0, need: xpNeed(pers.level) } : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
@@ -188,9 +189,9 @@ wss.on('connection', ws => {
     else if(m.t === 'dg' && c.mapa === 'masmorra' && c.gid){            /* sincronia da dungeon em grupo: o LIDER manda o estado, os outros mandam o que fizeram */
       const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });
       if(souLider){
-        if(!/^(start|snap|clear|end|boss|mdmg|proj|bsnap|room)$/.test(k)) return;
-        if(k === 'start'){ c.dg = { key: String(m.key || '').slice(0, 12) }; for(const mm of g.membros.values()) if(mm.J && mm.J !== J && mm.J.canalRef !== c) envia(mm.J, { t: 'dgconvite', key: c.dg.key, nome: J.nome }); }
-        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end') c.dg = null;
+        if(!/^(start|snap|clear|end|boss|mdmg|proj|bsnap|room|bolt)$/.test(k)) return;
+        if(k === 'start'){ c.dg = { key: String(m.key || '').slice(0, 12), id: ++dgSeq }; g.dg = { key: c.dg.key, id: c.dg.id, canal: c.n }; for(const mm of g.membros.values()) if(mm.J && mm.J !== J && mm.J.canalRef !== c) envia(mm.J, { t: 'dgconvite', key: c.dg.key, id: c.dg.id, nome: J.nome }); envieGrupo(g); }      /* puxa os membros AGORA; o estado do grupo repete (reforco) */
+        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end'){ c.dg = null; g.dg = null; envieGrupo(g); }
         if(k === 'mdmg'){ o.dmg = Math.max(0, Math.min(800, +m.dmg || 0)); const V = c.jog.get(m.to | 0); if(V) envia(V, o); return; }
         difunde(c, o, J);
       } else {
@@ -227,7 +228,7 @@ wss.on('connection', ws => {
     if(J && c){
       if(J.duelo && !J.duelo.fim){ const V = c.jog.get(J.duelo.com); fimDuelo(c, J, V, 'saiu'); if(V) V.duelo = null; }
       const gg = grupoDe(J); if(gg){ const mm = gg.membros.get(J.sid); if(mm && mm.J === J){ mm.J = null; mm.ausente = agora(); envieGrupo(gg); } }          /* grupo guarda o lugar por 90 s */
-      if(c.mapa === 'masmorra' && c.dg){ const gg = c.gid && grupos.get(c.gid); if(!gg || gg.lider === J.sid){ difunde(c, { t: 'dg', k: 'end', de: J.id }, J); c.dg = null; } }      /* o lider saiu: a dungeon acaba para todos */
+      if(c.mapa === 'masmorra' && c.dg){ const gg = c.gid && grupos.get(c.gid); if(!gg || gg.lider === J.sid){ difunde(c, { t: 'dg', k: 'end', de: J.id }, J); c.dg = null; if(gg){ gg.dg = null; envieGrupo(gg); } } }      /* o lider saiu: a dungeon acaba para todos */
       c.jog.delete(J.id); difunde(c, { t: 'l', id: J.id }); console.log(`- ${J.nome} ${c.mapa} canal ${c.n} [${c.jog.size}/${CAP}]`);
     }
   });

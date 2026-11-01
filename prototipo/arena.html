@@ -670,7 +670,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=19';
+import { Net } from './js/net.js?v=21';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4431,8 +4431,9 @@ function startAttack(d){
 }
 
 function enemyThink(dt){
-  var E=S.en;if(DG.grp==='guest')return;/* [dg-grupo] o chefe e do lider */
-  if(S.dead||S.pdead)return;
+  var E=S.en;if(DG.grp==='guest'){E.t+=dt;return;}/* [dg-grupo] o chefe e do lider; no convidado so o relogio dos avisos no chao */
+  if(S.dead)return;
+  var TGB=bossAlvo();if(!TGB)return;
 
   if(Torre.on&&!Torre.chefeAtivo())return;/* o Baium so acorda no 3o andar */
 
@@ -4448,8 +4449,7 @@ function enemyThink(dt){
 
   }
 
-  var dx=S.px-S.ex,dz=S.pz-S.ez,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(S.eh);
-
+  var dx=TGB.x-S.ex,dz=TGB.z-S.ez,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(S.eh);
   if(E.state==='idle'){
 
     turnTo(want,3.6,dt);
@@ -4504,9 +4504,15 @@ function enemyThink(dt){
 
 }
 
-function inAtk(atk){
-
-  var rx=S.px-S.ex,rz=S.pz-S.ez,h=fwd(S.eh);
+function bossAlvo(){/* [dg-grupo] o chefe mira quem estiver mais perto, no grupo todo */
+  var best=null,bd=1e9;
+  if(!S.pdead){bd=Math.hypot(S.px-S.ex,S.pz-S.ez);best={x:S.px,z:S.pz,id:0,self:true};}
+  if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto)return;var d=Math.hypot(a.x-S.ex,a.z-S.ez);if(d<bd){bd=d;best={x:a.x,z:a.z,id:a.id,self:false};}});
+  return best;
+}
+function inAtk(atk){return inAtkXY(atk,S.px,S.pz);}
+function inAtkXY(atk,px,pz){
+  var rx=px-S.ex,rz=pz-S.ez,h=fwd(S.eh);
 
   if(atk.type==='circ')return Math.hypot(rx,rz)<atk.rad;
 
@@ -4516,7 +4522,7 @@ function inAtk(atk){
 
 }
 
-function spawnBaiumBolt(x,z){
+function spawnBaiumBolt(x,z,so_visual){
 
   // 1. Círculo Rúnico de Aviso Mágico (Lineage 2 Oficial)
 
@@ -4592,9 +4598,9 @@ function spawnBaiumBolt(x,z){
 
       
 
+      if(!so_visual&&DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(!a.morto&&Math.hypot(a.x-x,a.z-z)<2.0)Net.dg({k:'mdmg',to:a.id,dmg:Math.round(20+Math.random()*8),cost:0,parry:false,aoe:true,interrupt:false,stun:.3});});
       var pdist=Math.hypot(S.px-x,S.pz-z);
-
-      if(pdist<2.0&&!S.pdead){
+      if(!so_visual&&pdist<2.0&&!S.pdead){
 
         if(!((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0)){
 
@@ -4673,31 +4679,24 @@ function spawnBaiumBolt(x,z){
 }
 
 function triggerBaiumThunderStorm(){
-
   S.shake=Math.max(S.shake,.55);
-
+  if(DG.grp==='guest')return;/* os raios vem do lider (mensagem 'bolt') */
+  var ps=[];if(!S.pdead)ps.push({x:S.px,z:S.pz});
+  if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(!a.morto)ps.push({x:a.x,z:a.z});});
+  if(!ps.length)ps.push({x:S.px,z:S.pz});
+  function alvoP(i){return ps[i%ps.length];}
   var strikes=[
-
-    [S.px,S.pz,100],
-
-    [S.px+(Math.random()-.5)*4,S.pz+(Math.random()-.5)*4,350],
-
+    [alvoP(0).x,alvoP(0).z,100],
+    [alvoP(1).x+(Math.random()-.5)*4,alvoP(1).z+(Math.random()-.5)*4,350],
     [S.ex+(Math.random()-.5)*5,S.ez+(Math.random()-.5)*5,550],
-
-    [S.px+(Math.random()-.5)*6,S.pz+(Math.random()-.5)*6,750],
-
+    [alvoP(2).x+(Math.random()-.5)*6,alvoP(2).z+(Math.random()-.5)*6,750],
     [S.ex+(Math.random()-.5)*8,S.ez+(Math.random()-.5)*8,950],
-
-    [S.px+(Math.random()-.5)*3,S.pz+(Math.random()-.5)*3,1150]
-
+    [alvoP(3).x+(Math.random()-.5)*3,alvoP(3).z+(Math.random()-.5)*3,1150]
   ];
-
   strikes.forEach(function(s){
-
+    if(DG.grp==='host'&&window.Net)Net.dg({k:'bolt',x:r1(s[0]),z:r1(s[1]),t:s[2]});
     setTimeout(function(){spawnBaiumBolt(s[0],s[1]);},s[2]);
-
   });
-
 }
 
 function resolveEnemyHit(atk){
@@ -4770,6 +4769,8 @@ function resolveEnemyHit(atk){
 
   }
 
+  if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto||!inAtkXY(atk,a.x,a.z))return;Net.dg({k:'mdmg',to:a.id,dmg:atk.dmg,cost:atk.cost||30,parry:!!atk.parry,aoe:atk.type==='circ',interrupt:false,stun:.45});});/* [dg-grupo] o chefe acerta o grupo todo */
+  if(DG.grp==='guest'||S.pdead)return;/* convidado: so o efeito; o dano chega como mdmg */
   if(!inAtk(atk)){floatText('Errou','#7f8db0',16,'p');return;}
 
   if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){
@@ -5092,7 +5093,7 @@ function grpTick(dt){/* chamado todo quadro (torreTick): o lider envia o estado 
   DG._sn=(DG._sn||0)-dt;if(DG._sn>0)return;DG._sn=.1;
   var ms=[];MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0]);});
   Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});
-  if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,dead:S.dead?1:0});
+  if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,ak:(S.en.atk&&S.en.atk.key)||'',dead:S.dead?1:0});
 }
 function grpSnap(sn){/* convidado: aplica o estado dos mobs */
   if(!DG._pronto)return;
@@ -5112,7 +5113,12 @@ function grpSnap(sn){/* convidado: aplica o estado dos mobs */
 function grpBossSnap(b){/* convidado: espelha o chefe */
   if(!BOSS_ON)return;
   S.ex=b.ex;S.ez=b.ez;S.eh=b.eh;S.maxhp=b.mx;S.hp=b.hp;
-  if(S.en.state!==b.st)setEnemy(b.st,b.st==='stagger'?2.6:0);
+  var A0=ATK[b.ak]||null;
+  if(S.en.state!==b.st){
+    if(A0)S.en.atk=A0;
+    setEnemy(b.st,b.st==='stagger'?2.6:(b.st==='windup'&&A0?A0.wind:(b.st==='strike'&&A0?(A0.dash?.32:.2):(b.st==='recover'&&A0?A0.rec:0))));
+    if(b.st==='strike'&&A0){try{resolveEnemyHit(A0);}catch(_){}}/* efeito do golpe (o dano chega como mdmg) */
+  }
   if(b.dead&&!S.dead){S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();S.kills++;dropLoot();if(DG.on)dgBossDown();SFX.play('roar');
     setTimeout(function(){SFX.play('smash');S.shake=Math.max(S.shake,.6);burst(S.ex,1.2,S.ez,55,0xff5500,5);burst(S.ex,1.5,S.ez,40,0x110522,4.0);},1800);
     if(boss&&boss.drv)playClip(boss,'death',{once:true,speed:1.0,fade:.1,hold:99999});}
@@ -5128,6 +5134,7 @@ function grpRecebe(m){
   else if(k==='end'&&DG.grp==='guest'){banner('DUNGEON ENCERRADA','O lider saiu da dungeon','#ff6b6b');setTimeout(function(){sairDg();},900);}
   else if(k==='hit'&&DG.grp==='host'){var mm=mobPorId(m.id);if(mm&&!mm.dead){GRPHIT=true;try{damageMob(mm,m.d,{dome:true,part:1,parts:1,noRange:true});}finally{GRPHIT=false;}}}
   else if(k==='bhit'&&DG.grp==='host'&&BOSS_ON&&!S.dead){GRPHIT=true;try{applyHit({id:'dome',dmg:m.d,sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1,grp:true});}finally{GRPHIT=false;}}
+  else if(k==='bolt'&&DG.grp==='guest'){setTimeout(function(){spawnBaiumBolt(m.x,m.z,true);},m.t||0);}
   else if(k==='mdmg'){playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
   else if(k==='proj'&&DG.grp==='guest'){var pm=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),new THREE.MeshBasicMaterial({color:parseInt(m.css.slice(1),16)}));pm.position.set(m.x,1.3,m.z);scene.add(pm);EPROJ.push({m:pm,x:m.x,z:m.z,dx:m.dx,dz:m.dz,v:m.v,dmg:0,life:m.life,vis:true});}
 }
@@ -6009,7 +6016,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
@@ -8831,7 +8838,7 @@ if(DG.on)dgHub();
     var on=!!(window.Net&&Net.on);if(on&&!tOn)tOn=Date.now();
     var g=on?Net.grupo:null,emGrupo=!!(g&&g.m&&g.m.length>1);
     if(!on){msg('Conectando ao servidor...');if(el>25000){iniciou=true;dgStart(go);}return;}
-    if(!emGrupo){msg('Entrando...');if(Date.now()-tOn>1800){iniciou=true;dgStart(go);}return;}/* sem grupo: solo */
+    if(!emGrupo){msg('Entrando...');iniciou=true;dgStart(go);return;}/* sem grupo: solo */
     if(Net.soyLider()){msg('Iniciando a dungeon do grupo...');iniciou=true;dgStart(go);return;}
     msg('Entrando na dungeon do lider...');
     if(Date.now()-tOn>6000){iniciou=true;clearInterval(w);banner('APENAS O LIDER ENTRA','So o lider inicia a dungeon do grupo e leva voce junto','#ff6b6b');setTimeout(function(){returnToCity();},2200);}
