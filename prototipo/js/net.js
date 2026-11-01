@@ -278,7 +278,7 @@ export const Net = (function(){
       h += '<p>No PvP livre, quem está no mesmo grupo não se machuca.</p>';
     } else {
       h += '<h4>RESUMO</h4><p>' + (N.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online</p>' +
-        '<p><kbd>P</kbd> menu &nbsp; <kbd>J</kbd> duelo no mais próximo &nbsp; <kbd>U</kbd> aceita &nbsp; <kbd>N</kbd> recusa &nbsp; <kbd>H</kbd> desiste</p><p><b>Clique ou toque em um jogador</b> para selecioná-lo e abrir as ações (grupo, duelo, perfil). <kbd>T</kbd> seleciona o mais próximo.</p>';
+        '<p><kbd>P</kbd> menu &nbsp; <kbd>J</kbd> duelo no mais próximo &nbsp; <kbd>U</kbd> aceita &nbsp; <kbd>N</kbd> recusa &nbsp; <kbd>H</kbd> desiste</p><p><b>Clique ou toque em um jogador</b> para selecioná-lo e abrir as ações (grupo, duelo, perfil). <kbd>Tab</kbd> seleciona o mais próximo.</p>';
     }
     h += '</div>'; if(menuEl._h === h) return; menuEl._h = h; menuEl.innerHTML = h;           /* so redesenha se mudou: senao o clique perde o elemento entre apertar e soltar */
   }
@@ -353,7 +353,7 @@ export const Net = (function(){
     window.addEventListener('pointerdown', aoToque, true); setInterval(desenhaPed, 500);
     window.addEventListener('keydown', function(ev){
       if(ev.repeat) return; var t = ev.target && ev.target.tagName; if(t === 'INPUT' || t === 'TEXTAREA') return; var k = ev.key.toLowerCase();
-      if(k === 't' && N.on){ selecionaMaisPerto(); return; }
+      if(k === 'tab'){ ev.preventDefault(); if(N.on) selecionaMaisPerto(); return; }      /* Tab: o T e skill (slot 4) */
       if(k === 'p'){ alterna(); return; } if(k === 'escape' && menuAberto){ alterna(false); return; } if(k === 'escape' && N.alvo){ selecionar(0); return; }
       if(!N.on) return;
       if(k === 'j' && N.mapa === 'cidade' && !N.duelo){ var al = maisProximo(20); if(al) send({ t: 'duel', to: al.id }); else ctx.sysMsg('Ninguem por perto para desafiar (ate 20 m)'); }
