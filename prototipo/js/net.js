@@ -137,6 +137,7 @@ export const Net = (function(){
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
     } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
     } else if(m.t === 'dg'){ if(ctx.dg) ctx.dg(m);
+    } else if(m.t === 'dgconvite'){ ctx.banner('O LIDER ENTROU NA DUNGEON', 'Voce sera levado junto...', '#7fe08a'); setTimeout(function(){ if(ctx.irDg) ctx.irDg(m.key); }, 1800);
     } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
     } else if(m.t === 'prog'){ if(ctx.prog) ctx.prog(m);
     } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && !e.morto){ if(m.k === 's' && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f); else if(m.k === 'b' && ctx.fxBasico) ctx.fxBasico(e, m.v, m.f); }
@@ -170,7 +171,7 @@ export const Net = (function(){
   }
 
   /* ---------- MENU (tecla P ou botao): so CSS, sem nenhuma imagem. O que funciona fica em destaque; o resto aparece apagado ("em breve") ---------- */
-  var pedEl = null, alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
+  var pedDg = null, pedEl = null, alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
   var ITENS = [{ k: 'duelo', nome: 'Duelo', ativo: true, dica: 'Desafie um jogador por perto' }, { k: 'grupo', nome: 'Grupo', ativo: true, dica: 'Party de até 6 jogadores' },
     { k: 'canal', nome: 'Canal', ativo: true, dica: 'Escolha em qual canal jogar' }, { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'guilda', nome: 'Guilda', ativo: false },
     { k: 'msg', nome: 'Mensagem', ativo: false }, { k: 'rank', nome: 'Ranking', ativo: false }];
@@ -240,10 +241,10 @@ export const Net = (function(){
     if(menuAberto){ try { document.exitPointerLock(); } catch(e){} renderMenu(); }
   }
   function aceitar(tipo){
-    if(tipo === 'duelo' && pedDuelo){ send({ t: 'duelok' }); pedDuelo = null; } else if(tipo === 'grupo' && pedGrupo){ send({ t: 'pok' }); pedGrupo = null; }
+    if(tipo === 'duelo' && pedDuelo){ send({ t: 'duelok' }); pedDuelo = null; } else if(tipo === 'grupo' && pedGrupo){ send({ t: 'pok' }); pedGrupo = null; } else if(tipo === 'dg' && pedDg){ var kd = pedDg.key; pedDg = null; if(ctx.irDg) ctx.irDg(kd); }
   }
   function recusar(tipo){
-    if(tipo === 'duelo' && pedDuelo){ send({ t: 'duelno' }); pedDuelo = null; } else if(tipo === 'grupo' && pedGrupo){ send({ t: 'pno' }); pedGrupo = null; }
+    if(tipo === 'duelo' && pedDuelo){ send({ t: 'duelno' }); pedDuelo = null; } else if(tipo === 'grupo' && pedGrupo){ send({ t: 'pno' }); pedGrupo = null; } else if(tipo === 'dg'){ pedDg = null; }
   }
   function perto(maxD){
     var S = ctx.getS(), l = []; remotos.forEach(function(e){ var d = Math.hypot(e.x - S.px, e.z - S.pz); if(d <= maxD && !e.morto) l.push({ e: e, d: d }); }); l.sort(function(a, b){ return a.d - b.d; }); return l.slice(0, 12);
@@ -313,9 +314,9 @@ export const Net = (function(){
   /* convite de grupo/duelo: cartao com Aceitar/Recusar enquanto valer (no celular nao ha tecla U/N) */
   function desenhaPed(){
     if(!pedEl) return; var t = Date.now(), tipo = '', p = null;
-    if(pedGrupo && t < pedGrupo.ate){ tipo = 'grupo'; p = pedGrupo; } else if(pedDuelo && t < pedDuelo.ate){ tipo = 'duelo'; p = pedDuelo; }
+    if(pedGrupo && t < pedGrupo.ate){ tipo = 'grupo'; p = pedGrupo; } else if(pedDuelo && t < pedDuelo.ate){ tipo = 'duelo'; p = pedDuelo; } else if(pedDg && t < pedDg.ate){ tipo = 'dg'; p = pedDg; }
     if(!p){ pedEl.style.display = 'none'; pedEl._h = ''; return; }
-    var seg = Math.max(0, Math.ceil((p.ate - t) / 1000)), h = '<b>' + esc(p.nome) + '</b> ' + (tipo === 'grupo' ? 'convidou você para o <b>grupo</b>' : 'desafiou você para um <b>duelo</b>') + '<small>expira em <span id="netPedS"></span> s</small><div class="a"><button class="ok" data-a="sim" data-v="' + tipo + '">ACEITAR</button><button class="no" data-a="nao" data-v="' + tipo + '">RECUSAR</button></div>';
+    var seg = Math.max(0, Math.ceil((p.ate - t) / 1000)), h = '<b>' + esc(p.nome) + '</b> ' + (tipo === 'grupo' ? 'convidou você para o <b>grupo</b>' : (tipo === 'dg' ? 'entrou na <b>dungeon</b>: entre junto com o grupo?' : 'desafiou você para um <b>duelo</b>')) + '<small>expira em <span id="netPedS"></span> s</small><div class="a"><button class="ok" data-a="sim" data-v="' + tipo + '">' + (tipo === 'dg' ? 'ENTRAR' : 'ACEITAR') + '</button><button class="no" data-a="nao" data-v="' + tipo + '">' + (tipo === 'dg' ? 'DEPOIS' : 'RECUSAR') + '</button></div>';
     if(pedEl._h !== h){ pedEl._h = h; pedEl.innerHTML = h; } pedEl.style.display = 'block'; var sp = document.getElementById('netPedS'); if(sp) sp.textContent = seg;
   }
   function atualizaAlvo(){
@@ -391,7 +392,7 @@ export const Net = (function(){
   N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
   N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto }); }); return l; };
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
-  N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && remotos.size > 0 && N.grupo.m.some(function(m){ return m.id !== N.id && m.on && m.mapa === 'masmorra' && m.canal === N.canal; })); };
+  N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && N.grupo.m.length > 1); };      /* lider de um grupo: dono da dungeon mesmo que os outros ainda estejam entrando */
   N.soyConvidado = function(){ return !!(N.on && N.mapa === 'masmorra' && N.grupo && !N.soyLider() && remotos.size > 0); };
   N.xp = function(tipo){ if(!N.on) return false; send({ t: 'xp', tipo: tipo }); return true; };               /* servidor decide o ganho */
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };

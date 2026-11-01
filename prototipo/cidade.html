@@ -1311,7 +1311,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=18';
+import { Net } from './js/net.js?v=19';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4469,6 +4469,7 @@ function openPortalMenu(){
   var box=document.getElementById('diff');box.innerHTML=h;box.classList.add('open');
   Array.prototype.forEach.call(box.querySelectorAll('.dcard'),function(el){el.addEventListener('click',function(){
     var g=el.getAttribute('data-go');
+    if(g!=='__duel'&&g!=='__pvp'&&window.Net&&Net.on&&Net.grupo&&Net.grupo.m&&Net.grupo.m.length>1&&!Net.soyLider()){banner('APENAS O LIDER ENTRA','Peca ao lider do grupo para iniciar a dungeon: ele leva voce junto','#ff6b6b');return;}/* [dg-grupo] membro nao entra sozinho */
     window.location.href=g==='__duel'?'arena.html?mode=duel':'arena.html?mode=dungeon&go='+(g==='__pvp'?'pvp':g);});});
   document.getElementById('diffX').addEventListener('click',closePortalMenu);
 }
@@ -17663,7 +17664,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},irDg:function(k){location.href='arena.html?mode=dungeon&go='+k;},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);

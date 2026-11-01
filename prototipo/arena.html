@@ -670,7 +670,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=18';
+import { Net } from './js/net.js?v=19';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4859,7 +4859,7 @@ function hurtPlayer(d,soft,quiet){
 function resetDuel(){
   if(DG.cleared){
     if(!DG.on) returnToCity();
-    else dgHub();
+    else sairDg();
     return;
   }
   if(DG.on){/* dungeon: morreu = recomeca a sala atual com a vida cheia */
@@ -5076,7 +5076,9 @@ function domoDano(x,z,r,dmg){
 /* <<< CLAUDE [guardiao] */
 /* >>> CLAUDE [dg-grupo] DUNGEON EM GRUPO (modelo A): o LIDER e o dono dos mobs e do chefe (IA, vida, tempo, metas); os outros recebem o estado ~10x/s e mandam o dano que causam.
    O servidor so repassa dentro do canal do grupo e divide o XP; o solo nao muda (DG.grp vazio). */
-DG.grp='';
+DG.grp='';DG._pend={};
+/* quem entrou pelo portal da cidade volta para a cidade (sem santuario no meio) */
+function sairDg(){if(DG.grp==='host'&&window.Net)Net.dg({k:'end'});if(DG.deCidade)returnToCity();else dgHub();}
 function r1(v){return Math.round(v*10)/10;}
 function mobPorId(id){for(var i=0;i<MOBS.length;i++)if(MOBS[i].nid===id)return MOBS[i];return null;}
 function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do grupo mais perto */
@@ -5120,9 +5122,10 @@ function grpRecebe(m){
   if(k==='start'){if(DG.grp||DG.run)return;DG.grp='guest';banner('O LIDER INICIOU A DUNGEON','Entrando junto com o grupo...','#7fe08a');torreDgStart(m.key);}
   else if(k==='snap'&&DG.grp==='guest')grpSnap(m);
   else if(k==='bsnap'&&DG.grp==='guest')grpBossSnap(m);
+  else if((k==='clear'||k==='boss')&&DG.grp==='guest'&&!DG._pronto){DG._pend[k]=1;}/* entrou no meio: aplica quando carregar */
   else if(k==='clear'&&DG.grp==='guest'){if(!DG.cleared)torreClear();}
   else if(k==='boss'&&DG.grp==='guest'){try{Torre.abrirPorta();}catch(_){}torreAcordaBaium();}
-  else if(k==='end'&&DG.grp==='guest'){banner('DUNGEON ENCERRADA','O lider saiu da dungeon','#ff6b6b');setTimeout(function(){dgHub();},900);}
+  else if(k==='end'&&DG.grp==='guest'){banner('DUNGEON ENCERRADA','O lider saiu da dungeon','#ff6b6b');setTimeout(function(){sairDg();},900);}
   else if(k==='hit'&&DG.grp==='host'){var mm=mobPorId(m.id);if(mm&&!mm.dead){GRPHIT=true;try{damageMob(mm,m.d,{dome:true,part:1,parts:1,noRange:true});}finally{GRPHIT=false;}}}
   else if(k==='bhit'&&DG.grp==='host'&&BOSS_ON&&!S.dead){GRPHIT=true;try{applyHit({id:'dome',dmg:m.d,sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1,grp:true});}finally{GRPHIT=false;}}
   else if(k==='mdmg'){playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
@@ -5950,6 +5953,7 @@ function torreDgLoad(retry){
   });
   DG.portalPos=Torre.pontoPortal(cfg.andar);
   DG._pronto=true;
+  if(DG.grp==='guest'){var pe=DG._pend||{};DG._pend={};if(pe.clear&&!DG.cleared)torreClear();if(pe.boss){try{Torre.abrirPorta();}catch(_){}torreAcordaBaium();}}
   banner(cfg.nome.toUpperCase(),(retry?'De novo! ':'')+'Elimine todos os inimigos - '+DIFF().name,DIFF().css);
   renderHud();
 }
@@ -5961,7 +5965,7 @@ if(DG.torre&&Torre.on&&Torre.porta.liberada&&!BOSS_ON&&!S.pdead&&Torre.pertoDaPo
   if(cfg.tempo){
     DG.tLeft-=dt;
     DG._hu=(DG._hu||0)-dt;if(DG._hu<=0){DG._hu=.25;renderHud();}
-    if(DG.tLeft<=0){DG.fim=true;banner('TEMPO ESGOTADO','Voce foi expulso da dungeon','#ff6b6b');setTimeout(function(){if(DG.torre)dgHub();},1800);return;}
+    if(DG.tLeft<=0){DG.fim=true;banner('TEMPO ESGOTADO','Voce foi expulso da dungeon','#ff6b6b');setTimeout(function(){if(DG.torre)sairDg();},1800);return;}
   }
   var vivos=0;MOBS.forEach(function(m){if(!m.dead&&!m.T.isMiniBoss)vivos++;});
   DG.rsp-=dt;
@@ -6051,7 +6055,7 @@ function pvpStart(){/* [pvp-torre] a arena de PvP e o circulo gigante do Baium (
   ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';DG.pvpTorre=true;Torre.fecharPorta();Torre.ativar(S,3);S.face=Math.PI/2;
   Net.entrar('pvp');
 }
-function pvpSair(){Net.sair();DG.pvp=false;pvpExitBtn(false);dgHub();Net.entrar('masmorra');}window.pvpStart=pvpStart;window.pvpSair=pvpSair;
+function pvpSair(){Net.sair();DG.pvp=false;pvpExitBtn(false);if(DG.deCidade){returnToCity();return;}dgHub();Net.entrar('masmorra');}window.pvpStart=pvpStart;window.pvpSair=pvpSair;
 /* <<< CLAUDE [net] */
 
 function openDiff(){
@@ -6223,7 +6227,7 @@ function updatePortal(dt){
       DG.portal.visible=false;DG.portal=null;DG.portalData=null;
       if(lab==='exit'){
         if(!DG.on) returnToCity();
-        else dgHub();
+        else sairDg();
       }else{
         dgLoadRoom(DG.room+1,false);
       }
@@ -7170,7 +7174,7 @@ window.addEventListener('keydown',function(e){
     }
     if(DG.portal && Math.hypot(S.px - portalPos()[0], S.pz - portalPos()[1]) < 4.5){
       if(DG.portalLabel==='enter'){ if(!DG.menu) openDiff(); }
-      else if(DG.portalLabel==='exit'){ if(!DG.on) returnToCity(); else dgHub(); }
+      else if(DG.portalLabel==='exit'){ if(!DG.on) returnToCity(); else sairDg(); }
       else { dgLoadRoom(DG.room+1,false); }
       return;
     }
@@ -8810,9 +8814,28 @@ if(DG.on)dgHub();
 (function(){if(DG.on||TORRE_MODE||/[?&]go=/.test(location.search))return;
   var w=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready){clearInterval(w);startBaiumDirectFight();}},400);})();
 /* <<< CLAUDE [duelo-toi] */
-/* >>> CLAUDE [portal-cidade] ?go=normal|medio|hard|pvp: vem do portal da cidade e pula o santuario */
-(function(){var mm=location.search.match(/[?&]go=(\w+)/);if(!mm||!DG.on)return;var go=mm[1];
-  var w=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready){clearInterval(w);if(go==='pvp')pvpStart();else if(DGD.difficulties[go])dgStart(go);}},400);})();
+/* >>> CLAUDE [portal-cidade] ?go=normal|medio|hard|pvp: vem do portal da cidade e vai DIRETO (sem santuario). Em grupo: o lider inicia; quem entra depois cai na mesma dungeon. */
+(function(){var mm=location.search.match(/[?&]go=(\w+)/);if(!mm||!DG.on)return;var go=mm[1];DG.deCidade=true;
+  var ov=document.createElement('div');ov.id='dgEntrar';ov.style.cssText='position:fixed;inset:0;z-index:99998;background:#05060d;color:#cfe6ff;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 18px system-ui,sans-serif;letter-spacing:.12em';
+  ov.innerHTML='<div>'+(go==='pvp'?'ENTRANDO NA ARENA...':'ENTRANDO NA DUNGEON...')+'</div><small id="dgEntrarTxt" style="opacity:.7;margin-top:8px;font-weight:500;letter-spacing:.04em">Carregando</small>';document.body.appendChild(ov);
+  function msg(t){var e=document.getElementById('dgEntrarTxt');if(e)e.textContent=t;}
+  function fecha(){var e=document.getElementById('dgEntrar');if(e)e.remove();}
+  var t0=Date.now(),tOn=0,iniciou=false;
+  var w=setInterval(function(){
+    var el=Date.now()-t0;
+    if(el>60000){clearInterval(w);fecha();return;}
+    if(!(boss&&vrm&&typeof MX!=='undefined'&&MX.ready))return;
+    if(go==='pvp'){clearInterval(w);fecha();pvpStart();return;}
+    if(DG.run){if(DG._pronto){clearInterval(w);setTimeout(fecha,300);}return;}/* ja entrou (inclusive como convidado do lider) */
+    if(iniciou)return;
+    var on=!!(window.Net&&Net.on);if(on&&!tOn)tOn=Date.now();
+    var g=on?Net.grupo:null,emGrupo=!!(g&&g.m&&g.m.length>1);
+    if(!on){msg('Conectando ao servidor...');if(el>25000){iniciou=true;dgStart(go);}return;}
+    if(!emGrupo){msg('Entrando...');if(Date.now()-tOn>1800){iniciou=true;dgStart(go);}return;}/* sem grupo: solo */
+    if(Net.soyLider()){msg('Iniciando a dungeon do grupo...');iniciou=true;dgStart(go);return;}
+    msg('Entrando na dungeon do lider...');
+    if(Date.now()-tOn>6000){iniciou=true;clearInterval(w);banner('APENAS O LIDER ENTRA','So o lider inicia a dungeon do grupo e leva voce junto','#ff6b6b');setTimeout(function(){returnToCity();},2200);}
+  },300);})();
 /* <<< CLAUDE [portal-cidade] */
 
 if(/[?&]dbg=1/.test(location.search))console.log('DBG INIT_DONE');
@@ -8832,7 +8855,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},dg:grpRecebe,prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},dg:grpRecebe,irDg:function(k){if(DG.run||DG.pvp)return;location.href='arena.html?mode=dungeon&go='+k;},prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);

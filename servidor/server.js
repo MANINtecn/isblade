@@ -56,7 +56,7 @@ function canalLivre(mapa, pedido){
 function canalMasmorra(gid){
   const L = canais.masmorra;
   if(gid){ for(const c of L) if(c.gid === gid && c.jog.size < PARTY_MAX) return c; }
-  for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; return c; }
+  for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; c.dg = null; return c; }
   const c = { mapa: 'masmorra', n: L.length + 1, jog: new Map(), gid: gid || 0 }; L.push(c); return c;
 }
 const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra);
@@ -147,7 +147,8 @@ wss.on('connection', ws => {
   let J = null, c = null, msgs = 0;
   const lim = setInterval(() => { msgs = 0; }, 1000);
   ws.isAlive = true; ws.on('pong', () => { ws.isAlive = true; });
-  ws.on('message', buf => {
+  ws.on('message', buf => { try { tratar(buf); } catch (e) { console.error('ERRO em mensagem', e && e.stack || e); try { ws.close(); } catch (x) {} } });
+  const tratar = buf => {
     if(++msgs > 80) return; let m; try { m = JSON.parse(buf); } catch (e) { return; }
     if(m.t === 'join' && !J){
       let pers = null, conta = null;
@@ -166,6 +167,7 @@ wss.on('connection', ws => {
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
       envia(J, { t: 'w', id: J.id, sid: J.sid, prog: pers ? { lvl: pers.level, xp: pers.xp | 0, need: xpNeed(pers.level) } : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
+      if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
     if(!J) return;
@@ -187,6 +189,8 @@ wss.on('connection', ws => {
       const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });
       if(souLider){
         if(!/^(start|snap|clear|end|boss|mdmg|proj|bsnap|room)$/.test(k)) return;
+        if(k === 'start'){ c.dg = { key: String(m.key || '').slice(0, 12) }; for(const mm of g.membros.values()) if(mm.J && mm.J !== J && mm.J.canalRef !== c) envia(mm.J, { t: 'dgconvite', key: c.dg.key, nome: J.nome }); }
+        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end') c.dg = null;
         if(k === 'mdmg'){ o.dmg = Math.max(0, Math.min(800, +m.dmg || 0)); const V = c.jog.get(m.to | 0); if(V) envia(V, o); return; }
         difunde(c, o, J);
       } else {
@@ -217,12 +221,13 @@ wss.on('connection', ws => {
     else if(m.t === 'pleave'){ tiraDoGrupo(J.sid, J, 'saiu'); }
     else if(m.t === 'pkick'){ const g = grupoDe(J); if(g && g.lider === J.sid){ const alvo = [...g.membros].find(([sid, mm]) => mm.J && mm.J.id === (m.to | 0)); if(alvo && alvo[0] !== J.sid) tiraDoGrupo(alvo[0], alvo[1].J, 'expulso'); } }
     else if(m.t === 'dueldesiste' && J.duelo && !J.duelo.fim){ const V = c.jog.get(J.duelo.com); fimDuelo(c, J, V, 'desistiu'); }
-  });
+  };
   ws.on('close', () => {
     clearInterval(lim);
     if(J && c){
       if(J.duelo && !J.duelo.fim){ const V = c.jog.get(J.duelo.com); fimDuelo(c, J, V, 'saiu'); if(V) V.duelo = null; }
       const gg = grupoDe(J); if(gg){ const mm = gg.membros.get(J.sid); if(mm && mm.J === J){ mm.J = null; mm.ausente = agora(); envieGrupo(gg); } }          /* grupo guarda o lugar por 90 s */
+      if(c.mapa === 'masmorra' && c.dg){ const gg = c.gid && grupos.get(c.gid); if(!gg || gg.lider === J.sid){ difunde(c, { t: 'dg', k: 'end', de: J.id }, J); c.dg = null; } }      /* o lider saiu: a dungeon acaba para todos */
       c.jog.delete(J.id); difunde(c, { t: 'l', id: J.id }); console.log(`- ${J.nome} ${c.mapa} canal ${c.n} [${c.jog.size}/${CAP}]`);
     }
   });
