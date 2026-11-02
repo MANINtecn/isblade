@@ -6,16 +6,18 @@
   var touch = false;
   try { touch = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && navigator.maxTouchPoints > 1); } catch(e){}
   var NIVEIS = {
-    baixa: { ratio: 1,    aa: false, bloom: false, cull: true,  fps: 30, mobs: .6, anim: 22 },        /* aparelho basico (ex.: Redmi C13): 30 quadros/s travados, 60% dos monstros, anima so ate 22 m */
-    media: { ratio: 1.25, aa: false, bloom: false, cull: true,  fps: 45, mobs: .85, anim: 30 },
-    alta:  { ratio: 2,    aa: true,  bloom: true,  cull: false, fps: 0,  mobs: 1,  anim: 40 }
+    baixa: { ratio: 1,    aa: false, bloom: false, cull: true,  fps: 30, mobs: .6, anim: 28, nevoa: [38, 95] },        /* aparelho basico (ex.: Redmi C13): 30 quadros/s travados, 60% dos monstros, anima so ate 28 m */
+    media: { ratio: 1.5,  aa: false, bloom: false, cull: true,  fps: 45, mobs: .85, anim: 36, nevoa: [48, 120] },
+    alta:  { ratio: 2,    aa: true,  bloom: true,  cull: false, fps: 0,  mobs: 1,  anim: 44, nevoa: [60, 150] }   /* nevoa = [inicio, fim] em metros (arena/DG); antes era 22-62 e escondia mobs */
   };
   var nome = null;
   try { var m = /[?&]q=(baixa|media|alta)/.exec(location.search); if(m){ nome = m[1]; localStorage.setItem('isblade.qualidade', nome); } } catch(e){}
   try { if(!nome) nome = localStorage.getItem('isblade.qualidade'); } catch(e){}
-  if(!NIVEIS[nome]) nome = touch ? 'baixa' : 'alta';
+  /* celular: aparelho com folga (6+ nucleos e 4+ GB) ja comeca em MEDIA; a resolucao dinamica abaixo derruba se nao der */
+  var forte = false; try { forte = (navigator.hardwareConcurrency || 0) >= 6 && (navigator.deviceMemory || 4) >= 4; } catch(e){}
+  if(!NIVEIS[nome]) nome = touch ? (forte ? 'media' : 'baixa') : 'alta';
   var base = NIVEIS[nome];
-  var Q = window.QUAL = { nivel: nome, touch: touch, ratio: base.ratio, max: base.ratio, aa: base.aa, bloom: base.bloom, cull: base.cull, fps: 0, fpsMax: base.fps, mobMult: base.mobs, animRaio: base.anim,
+  var Q = window.QUAL = { nivel: nome, touch: touch, ratio: base.ratio, max: base.ratio, aa: base.aa, bloom: base.bloom, cull: base.cull, fps: 0, fpsMax: base.fps, mobMult: base.mobs, animRaio: base.anim, nevoa: base.nevoa,
     escolher: function(n){ try { localStorage.setItem('isblade.qualidade', n); } catch(e){} location.reload(); } };
 
   /* resolucao dinamica: mede o intervalo medio dos quadros a cada 2 s */

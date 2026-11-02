@@ -776,12 +776,13 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
 <script src="js/mobile.js?v=7"></script>
-<script src="js/qualidade.js?v=2"></script>
+<script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=2"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 <script src="js/l2_npcs.js"></script>
+<script src="js/horizonte.js?v=1"></script>
 </head>
 
 
@@ -4470,8 +4471,28 @@ function createSoloLevelingGate(opts){
     }
     if(pd.light) pd.light.intensity = 5.2 + Math.sin(pd.time * 6.5) * 1.5;
   }
-var CITY_GATE=createSoloLevelingGate({x:-13.5,y:2.7,z:-13.0,rotY:0.65,theme:'blue',runeColor:0x00d5ff});
-scene.add(CITY_GATE.group);
+/* >>> CLAUDE [portais-saidas] 02/11/2026: cada saida (portao) da vila tem um portal para um mapa; no horizonte da saida aparece o mapa (js/horizonte.js) */
+var SAIDAS=[
+  {id:'toi',      nome:'Torre do Baium',    gx:48.3,  gz:-50.1, cor:0xffc933, css:'#f5c451', url:null},
+  {id:'blazing',  nome:'Pantano Flamejante',gx:51.1,  gz:43.4,  cor:0xff5a1f, css:'#ff7a3a', url:'arena.html?mapa=blazing_swamp'},
+  {id:'fortress', nome:'Fortaleza',         gx:-51.0, gz:51.5,  cor:0xcfd8e8, css:'#cfd8e8', url:'arena.html?mapa=fortress'},
+  {id:'curuma',   nome:'Torre de Curuma',   gx:-53.7, gz:-42.7, cor:0x40ffa0, css:'#40ffa0', url:'arena.html?mapa=curuma'}
+];
+SAIDAS.forEach(function(s){
+  var L=Math.hypot(s.gx,s.gz), dx=s.gx/L, dz=s.gz/L;
+  s.px=s.gx+dx*7; s.pz=s.gz+dz*7;                      /* 7 un depois do portao, olhando para a vila */
+  s.gate=createSoloLevelingGate({x:s.px,y:getGroundHeight(s.px,s.pz)+2.7,z:s.pz,rotY:Math.atan2(-dx,-dz),theme:'blue',runeColor:s.cor});
+  scene.add(s.gate.group);
+  if(s.gate.data&&s.gate.data.light) s.gate.data.light.distance=14;
+});
+var CITY_GATE=SAIDAS[0].gate;
+function saidaPerto(){for(var i=0;i<SAIDAS.length;i++){if(Math.hypot(S.px-SAIDAS[i].px,S.pz-SAIDAS[i].pz)<5.0)return SAIDAS[i];}return null;}
+function entrarSaida(sa){
+  if(!sa.url){openPortalMenu();return;}                 /* Torre: escolha dungeon / duelo / PvP */
+  if(window.L2Teleport) L2Teleport.teleportTo(sa.nome, sa.url); else window.location.href=sa.url;
+}
+if(window.Horizonte) setTimeout(function(){Horizonte.init(THREE,scene,camera,SAIDAS);},1800);
+/* <<< CLAUDE [portais-saidas] */
 var PORTAL_MENU=false;
 function openPortalMenu(){
   PORTAL_MENU=true;try{document.exitPointerLock();}catch(_){}
@@ -13493,7 +13514,7 @@ function buildPad(){
 
 
 
-  window.__dbg={scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},dgHub:dgHub,dgStart:dgStart,killMob:killMob,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,mast:function(){return {lv:mastLevel(),xp:mastXp()};}};/* so localhost: permite testes automaticos ler/alterar o estado */
+  window.__dbg={renderer:renderer,SAIDAS:SAIDAS,cam:cam,camera:camera,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},dgHub:dgHub,dgStart:dgStart,killMob:killMob,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,mast:function(){return {lv:mastLevel(),xp:mastXp()};}};/* so localhost: permite testes automaticos ler/alterar o estado */
 
 
 
@@ -13857,7 +13878,7 @@ function updateCityMinimap() {
 
 
 
-  miniCtx.fillStyle = '#00d4ff'; miniCtx.beginPath(); miniCtx.arc(cx + (-13.5 * scale), cy + (-13.0 * scale), 4.5, 0, Math.PI * 2); miniCtx.fill();
+  SAIDAS.forEach(function(_s){ miniCtx.fillStyle = _s.css; miniCtx.beginPath(); miniCtx.arc(cx + (_s.px * scale), cy + (_s.pz * scale), 4.5, 0, Math.PI * 2); miniCtx.fill(); });/* [portais-saidas] */
 
 
 
@@ -14087,7 +14108,7 @@ function teleportTo(location) {
 
 
 
-  else if (location === 'portal') { S.px = -10.5; S.pz = -10.5; cam.yaw = 0.65 + Math.PI; }
+  else if (location === 'portal') { var _t=SAIDAS[0], _l=Math.hypot(_t.px,_t.pz); S.px = _t.px - _t.px/_l*5; S.pz = _t.pz - _t.pz/_l*5; cam.yaw = Math.atan2(_t.px,_t.pz) + Math.PI; }
 
 
 
@@ -14158,7 +14179,7 @@ window.addEventListener('keydown',function(e){
   if(PORTAL_MENU){if(k==='escape'||k==='e')closePortalMenu();return;}/* [portal-cidade] */
   if(k==='e'){
     if(window.L2Npcs && window.L2Npcs.handleInteractKey()){ e.preventDefault(); return; }
-    if(Math.hypot(S.px - (-13.5), S.pz - (-13.0)) < 5.0){ openPortalMenu(); return; }
+    var _sa=saidaPerto(); if(_sa){ entrarSaida(_sa); return; }/* [portais-saidas] */
   }
 
 
@@ -14944,7 +14965,7 @@ function frame2(dt,T){
 
 
 
-  animateGateData(CITY_GATE.data,dt);/* [portal-cidade] */
+  SAIDAS.forEach(function(_s){animateGateData(_s.gate.data,dt);});if(window.Horizonte)Horizonte.tick();/* [portal-cidade] [portais-saidas] */
   // Animação do Portal da Dungeon
 
 
@@ -15033,19 +15054,10 @@ function frame2(dt,T){
 
 
 
-  var distToPortal = Math.hypot(S.px - (-13.5), S.pz - (-13.0));
-
-
-
+  var _saP = saidaPerto();
   var pPrompt = document.getElementById('portal-prompt');
-
-
-
-  if (distToPortal < 5.0 && !PORTAL_MENU) {
-
-
-
-    if (pPrompt) pPrompt.style.display = 'block';
+  if (_saP && !PORTAL_MENU) {
+    if (pPrompt){ pPrompt.innerHTML = 'Pressione <b>[E]</b> para entrar: <b style="color:' + _saP.css + '">' + _saP.nome + '</b>' + (_saP.url ? '' : ' (Dungeon / Duelo / PvP)'); pPrompt.style.display = 'block'; }
 
 
 

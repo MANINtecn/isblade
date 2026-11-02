@@ -19,9 +19,14 @@ def _sair_do_modo_edicao():
             bpy.ops.object.mode_set(mode='OBJECT')
             print('saiu do modo de edicao:', ob.name)
 _sair_do_modo_edicao()
-EXCLUIR = ('Terreno',)           # terreno aproximado nao entra (so os andares)
+import os
+ABERTO = os.environ.get('WALK_TERRENO') == '1'      # mapa aberto (Fortress, Blazing Swamp, Curuma): o terreno E o chao; arvores sem colisao
+EXCLUIR = () if ABERTO else ('Terreno',)           # na torre o terreno aproximado nao entra (so os andares)
 for o in list(bpy.data.objects):
     if o.name.startswith(EXCLUIR): o.hide_viewport = True; o.hide_render = True
+if ABERTO:
+    _col = bpy.data.collections.get('Arvores')
+    for o in (list(_col.objects) if _col else []): o.hide_viewport = True; o.hide_render = True
 import os
 _rj = os.path.join(os.path.dirname(OUT), 'mini_toi_regioes.json')          # folhas da porta de entrada: a colisao delas e dinamica (o jogo bloqueia enquanto fechada)
 if os.path.exists(_rj):

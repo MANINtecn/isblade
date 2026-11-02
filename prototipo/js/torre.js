@@ -5,6 +5,7 @@
 export const Torre = (function(){
   var T = { andarInicial: 2, on: false, pronto: false, y: -62, vy: 0, chao: true, baseY: -62, altura: 0, lx: 0, lz: 0, bx: 0, bz: 0, andares: [{ n: 1, y: -62.0 }, { n: 2, y: -33.8 }, { n: 3, y: -3.8 }] };
   var REG = null, PORTA = { aberta: false, abrindo: false, liberada: true, t: 0, nos: [], y0: [], H: 11 };
+  var CHAO_MIN = -1e9, ABERTO = null;      /* mapa aberto (Fortaleza, Pantano, Curuma): CHAO_MIN = nivel do mar; abaixo dele e agua = parede */
   var ALTURA = 2.0, RAIO = .5, PASSO = 1.04, GRAV = 34, PULO = 12, G = null, offs = null, dv = null, grupo = null, t0 = 0;
 
   function camadas(ix, iz){
@@ -20,6 +21,7 @@ export const Torre = (function(){
     var melhor = null, bloq = false;
     for(var i = 0; i < L.length; i++){
       var q = L[i];
+      if(q.h < CHAO_MIN){ if(q.h > y - 3) bloq = true; continue; }      /* agua/vazio do mapa aberto */
       if(q.h > y + PASSO){ if(q.h < y + ALTURA) bloq = true; continue; }
       if(q.l >= ALTURA){ if(melhor === null || q.h > melhor) melhor = q.h; } else if(q.h > y - .35) bloq = true;
     }
@@ -77,19 +79,41 @@ export const Torre = (function(){
     return [cx, cz];
   }
 
-  T.carregar = function(THREE, scene, base){
-    base = base || 'assets/maps/baium_house/';
+  /* mapa aberto: ponto livre (area de 2 un em volta) mais perto de (cx,cz), no chao acima do mar; devolve [x, z, altura] */
+  function achaAberto(cx, cz){
+    for(var r = 0; r < 120; r += 1){
+      var n = r ? Math.ceil(r * 6.3) : 1;
+      for(var a = 0; a < n; a++){
+        var ang = r ? a / n * 6.283 : 0, x = cx + Math.cos(ang) * r, z = cz + Math.sin(ang) * r;
+        var c = celula(x, z), L = camadas(c[0], c[1]); if(!L) continue;
+        for(var i = 0; i < L.length; i++){
+          var h = L[i].h; if(h < CHAO_MIN + .5 || L[i].l < ALTURA) continue;
+          if(ABERTO && ABERTO.spawn[2] !== undefined && Math.abs(h - ABERTO.spawn[2]) > 6) continue;      /* altura esperada do chao (evita nascer em cima de telhado/estrutura) */
+          var ok = true;
+          for(var k = 0; k < 9 && ok; k++){ var q = sonda(x + (k % 3 - 1) * 2, z + (Math.floor(k / 3) - 1) * 2, h + .6); if(q.bloq || q.chao === null || Math.abs(q.chao - h) > .7) ok = false; }
+          if(ok) return [x, z, h];
+        }
+      }
+    }
+    return [cx, cz, 0];
+  }
+  /* cfg (mapa aberto): { glb, grid, spawn: [x, z], chao_min }; sem cfg = Torre do Baium (Mini Toi) */
+  T.carregar = function(THREE, scene, base, cfg){
+    base = base || (cfg ? 'assets/maps/' + cfg.pasta + '/' : 'assets/maps/baium_house/');
+    var GRID = cfg ? cfg.grid : 'mini_toi_walkgrid', GLB = cfg ? cfg.glb : 'mini_toi.glb';
+    ABERTO = cfg || null; CHAO_MIN = cfg ? cfg.chao_min : -1e9;
     /* o service worker guarda .glb/.bin pela URL (cache primeiro): o json (sempre da rede) traz a versao e entra na URL dos arquivos pesados */
-    return fetch(base + 'mini_toi_walkgrid.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
+    return fetch(base + GRID + '.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
       var v = '?v=' + (j.versao || 0);
-      return Promise.all([fetch(base + 'mini_toi_walkgrid.bin' + v).then(function(r){ return r.arrayBuffer(); }), fetch(base + 'mini_toi_regioes.json' + v).then(function(r){ return r.json(); }).catch(function(){ return null; })]).then(function(q){ REG = q[1]; if(REG && REG.arena){ var A = REG.arena; A.poligono = []; for(var i = 0; i < 48; i++){ var an = i / 48 * Math.PI * 2; A.poligono.push([A.centro[0] + Math.cos(an) * A.raio, A.centro[1] + Math.sin(an) * A.raio]); } } return [j, q[0], v]; });
+      return Promise.all([fetch(base + GRID + '.bin' + v).then(function(r){ return r.arrayBuffer(); }), cfg ? Promise.resolve(null) : fetch(base + 'mini_toi_regioes.json' + v).then(function(r){ return r.json(); }).catch(function(){ return null; })]).then(function(q){ REG = q[1]; if(REG && REG.arena){ var A = REG.arena; A.poligono = []; for(var i = 0; i < 48; i++){ var an = i / 48 * Math.PI * 2; A.poligono.push([A.centro[0] + Math.cos(an) * A.raio, A.centro[1] + Math.sin(an) * A.raio]); } } return [j, q[0], v]; });
     }).then(function(r){
       var j = r[0], bin = r[1], VER = r[2];
       G = { n: j.n, cel: j.celula, x0: j.x0, y0: j.y0, hs: j.altura_escala, ls: j.livre_escala, base: 4 * (j.n * j.n + 1), stride: j.bytes_por_camada || 3 };
       offs = new Uint32Array(bin, 0, j.n * j.n + 1); dv = new DataView(bin);
-      T.andares.forEach(function(f){ var s = achaSpawn(f.y); f.sx = s[0]; f.sz = s[1]; });
+      if(cfg){ var sp = achaAberto(cfg.spawn[0], cfg.spawn[1]); T.andares = [{ n: 1, y: sp[2], sx: sp[0], sz: sp[1] }]; T.andarInicial = 1; T.y = sp[2]; T.baseY = sp[2]; }
+      else T.andares.forEach(function(f){ var s = achaSpawn(f.y); f.sx = s[0]; f.sz = s[1]; });
       return new Promise(function(ok, falha){
-        new THREE.GLTFLoader().load(base + 'mini_toi.glb' + VER, function(g){
+        new THREE.GLTFLoader().load(base + GLB + VER, function(g){
           g.scene.traverse(function(o){ if(o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ m.side = THREE.DoubleSide; }); });
           grupo = new THREE.Group(); grupo.add(g.scene); grupo.visible = false; scene.add(grupo); T.grupo = grupo; T.pronto = true;
           if(REG){ PORTA.nos = []; PORTA.y0 = []; REG.porta_entrada.objetos.forEach(function(n){ var o = grupo.getObjectByName(n); if(o){ PORTA.nos.push(o); PORTA.y0.push(o.position.y); } }); PORTA.H = REG.porta_entrada.z_max - REG.porta_entrada.z_min + .6; }
@@ -149,7 +173,7 @@ export const Torre = (function(){
     var ch = sonda(S.px, S.pz, T.y).chao;
     if(ch !== null && T.vy <= 0 && T.y <= ch + .08){ if(ch > T.y) T.y += Math.min(ch - T.y, dt * 20 + .2); else T.y = ch; if(T.y >= ch - .01){ T.y = ch; T.vy = 0; T.chao = true; } }
     else { T.chao = false; T.vy -= GRAV * dt; T.y += T.vy * dt; if(ch !== null && T.vy <= 0 && T.y <= ch){ T.y = ch; T.vy = 0; T.chao = true; } }
-    if(T.y < -130) T.nasce(S, T.andarInicial);
+    if(T.y < (ABERTO ? CHAO_MIN - 60 : -130)) T.nasce(S, T.andarInicial);
     /* o mapa acompanha o chao (suavizado nos degraus); o que sobra e a altura do pulo: o jogador sobe de verdade, a camera acompanha */
     if(T.chao) T.baseY += (T.y - T.baseY) * Math.min(1, dt * 12); else if(T.y < T.baseY) T.baseY = T.y;
     T.altura = Math.max(0, T.y - T.baseY);

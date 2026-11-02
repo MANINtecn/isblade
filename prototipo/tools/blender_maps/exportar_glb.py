@@ -1,8 +1,11 @@
 """Exporta o .blend editado para GLB leve (texturas <=512 px; opacas em JPEG).
-Rodar:  blender -b <montagem.blend> --python exportar_glb.py -- <saida.glb>
+Rodar:  blender -b <montagem.blend> --python exportar_glb.py -- <saida.glb> [max_px=512] [qualidade_jpeg=80]
 Usa todos os objetos MESH da cena. As malhas ja estao corrigidas (espelho em Y) dentro do .blend."""
 import bpy, sys, numpy as np
-OUT = sys.argv[sys.argv.index('--') + 1]
+_a = sys.argv[sys.argv.index('--') + 1:]
+OUT = _a[0]
+MAXPX = int(_a[1]) if len(_a) > 1 else 512
+QJPG = int(_a[2]) if len(_a) > 2 else 80
 
 def _sair_do_modo_edicao():
     """O .blend pode ter sido salvo com uma peca em modo de edicao (Tab): as ferramentas nao conseguem ler/gravar a malha assim."""
@@ -27,11 +30,11 @@ for o in objs:
             m.node_tree.links.new(tn.outputs['Alpha'], bsdf.inputs['Alpha']); alpha.add(im)
 for im in used:
     w, h = im.size
-    if max(w, h) > 512: k = 512 / max(w, h); im.scale(max(1, int(w * k)), max(1, int(h * k)))
+    if max(w, h) > MAXPX: k = MAXPX / max(w, h); im.scale(max(1, int(w * k)), max(1, int(h * k)))
     im.file_format = 'PNG' if im in alpha else 'JPEG'
 for o in bpy.context.view_layer.objects: o.select_set(False)
 for o in objs: o.select_set(True)
 bpy.context.view_layer.objects.active = objs[0]
 bpy.ops.export_scene.gltf(filepath=OUT, export_format='GLB', use_selection=True, export_image_format='AUTO',
-                          export_jpeg_quality=80, export_cameras=False, export_lights=False, export_yup=True)
+                          export_jpeg_quality=QJPG, export_cameras=False, export_lights=False, export_yup=True)
 print('EXPORTADO', OUT, len(objs), 'objetos')

@@ -700,8 +700,8 @@ function ckGet(k){
 function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 /* <<< CLAUDE [perchar] */
 
-import { Torre } from './js/torre.js?v=7';
-var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
+import { Torre } from './js/torre.js?v=9';
+var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
 import { MuHud } from './js/mu_hud.js?v=17';
 
@@ -1715,13 +1715,13 @@ for(i=0;i<18;i++){
 
 }
 
-if(TORRE_MODE)ARENA=1e6;/* sem a parede invisivel da arena: quem limita e o mapa da torre */
+if(TORRE_MODE||MAPA_ABERTO)ARENA=1e6;/* sem a parede invisivel da arena: quem limita e o mapa da torre */
 
 /* cenario gerado no TECX LABS 3D (?cenario=0 desliga) */
 
 /* pecas modulares (metros, Y para cima, base em y=0): piso 30x30 (topo em 0,25), muralha (raio interno 13,8, entrada em +Z, 3,1 m), mastro de bandeira (8,4 m de altura real) */
 
-if(!/[?&]cenario=0/.test(location.search)){
+if(!/[?&]cenario=0/.test(location.search)&&!MAPA_ABERTO){
 
   var cenLoader=new THREE.GLTFLoader();
 
@@ -5994,8 +5994,9 @@ function spawnCityPortal(){
 }
 
 function removeCityPortal(){
-  if(DG.cityPortal){scene.remove(DG.cityPortal);DG.cityPortal=null;DG.cityPortalData=null;}
+  if(DG.cityPortal){if(DG.cityPortal.parent)DG.cityPortal.parent.remove(DG.cityPortal);DG.cityPortal=null;DG.cityPortalData=null;}DG.cpPos=null;
 }
+function cpPos(){return DG.cpPos||{x:0,z:11.5};}/* [mapas-abertos] o portal de volta fica no ponto de nascimento do mapa aberto */
 
 /* santuario: arena calma com o portal da dungeon; entrar abre a escolha de dificuldade */
 
@@ -6382,7 +6383,7 @@ function updatePortal(dt){
   if(DG.cityPortal){
     animateGateData(DG.cityPortalData);
 
-    var dCity = Math.hypot(S.px, S.pz - 11.5);
+    var dCity = Math.hypot(S.px - cpPos().x, S.pz - cpPos().z);
     if(!S.pdead && dCity < 3.2){
       returnToCity();
       return;
@@ -7282,7 +7283,7 @@ window.addEventListener('keydown',function(e){
   if(k==='e'){
     if(Torre.on&&Torre.pertoDaPorta()){if(!Torre.porta.liberada){banner('PORTA SELADA','Limpe o 2o andar (Hard) para libera-la','#ff6b6b');return;}Torre.abrirPorta();S.shake=Math.max(S.shake,.5);SFX.play('smash');if(DG.torre)torreAcordaBaium();else banner('A PORTA DE BAIUM SE ABRE','O Imperador despertou','#f5c451');return;}/* [torre] */
     if(interactChest()) return;
-    if(DG.cityPortal && Math.hypot(S.px, S.pz - 11.5) < 4.5){
+    if(DG.cityPortal && Math.hypot(S.px - cpPos().x, S.pz - cpPos().z) < 4.5){
       returnToCity();
       return;
     }
@@ -8913,6 +8914,33 @@ function torreStart(){
   Torre.ativar(S);
   banner('TORRE DO BAIUM','Suba os 3 andares ate o Baium','#f5c451');
 }
+/* >>> CLAUDE [mapas-abertos] 02/11/2026: ?mapa=fortress|blazing_swamp|curuma (portais da cidade). Exploracao livre no mapa (mesmo motor de chao da torre), sem chefe nem mobs por enquanto; portal branco leva de volta a cidade. */
+var MAPAS_ABERTOS={
+  fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd},
+  blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060},
+  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CURUMA',ceu:0x9fbdd3}
+};
+window.__dbgA={scene:scene,camera:camera};/* debug */
+function mapaAbertoStart(){
+  var C=MAPAS_ABERTOS[MAPA_ABERTO];
+  dgHub();                                             /* estado de santuario: sem chefe, sem mobs */
+  if(DG.portal){scene.remove(DG.portal);DG.portal=null;}
+  removeCityPortal();
+  ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});
+  Torre.ativar(S,1);
+  /* luz e ceu de dia (o arena e noturno); cada mapa com seu clima */
+  var cor=C.ceu||0x9ab8d0;scene.background=new THREE.Color(cor);if(scene.fog)scene.fog.color.set(cor);
+  var _hl=new THREE.HemisphereLight(C.luzCeu||0xdfe8ff,C.luzChao||0x6a5f50,C.luzInt||1.7);scene.add(_hl);
+  var _dl=new THREE.DirectionalLight(C.sol||0xfff2dd,C.solInt||1.6);_dl.position.set(120,200,80);scene.add(_dl);
+  scene.traverse(function(o){if(o.isPoints&&o.parent===scene)o.visible=false;});/* estrelas do arena */
+  var sp=Torre.andares[0],gx=sp.sx+6,gz=sp.sz;
+  var gate=createSoloLevelingGate({x:gx,y:sp.y+2.7,z:gz,rotY:-Math.PI/2,runeColor:0xffffff,theme:'white'});
+  Torre.grupo.add(gate.group);DG.cityPortal=gate.group;DG.cityPortalData=gate.data;DG.cpPos={x:gx,z:gz};
+  var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';
+  banner(C.nome,'Mapa em construcao: exploracao livre (sem monstros ainda)','#f5c451');
+}
+if(MAPA_ABERTO){var _tmab=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready&&Torre.pronto){clearInterval(_tmab);mapaAbertoStart();}},400);Torre.carregar(THREE,scene,null,MAPAS_ABERTOS[MAPA_ABERTO]).catch(function(e){console.error('mapa aberto',e);});}
+/* <<< CLAUDE [mapas-abertos] */
 if(TORRE_MODE){var _tw=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready&&Torre.pronto){clearInterval(_tw);torreStart();}},400);Torre.carregar(THREE,scene).catch(function(e){console.error('torre',e);});}
 /* <<< CLAUDE [torre] */
 loadBaium(function(r){
