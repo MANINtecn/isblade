@@ -181,6 +181,16 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
   .left-actions { gap:6px; }
 }
 /* <<< CLAUDE [lobby-mobile] */
+/* >>> CLAUDE [lobby-limpo] 02/11/2026 - tela de toque no modelo, chip da conta no topo, lixeira so na lista, nomes sem corte */
+#canvas-wrap, #webgl { touch-action:none; }
+#cntchip { bottom:auto !important; top:12px !important; left:auto !important; right:14px !important; }
+.slot-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-height:520px) and (orientation:landscape) {
+  .right-panel { width:252px; }
+  .slot-name { font-size:12px; letter-spacing:0; }
+  .slot-action-btn.del { border-color:rgba(239,68,68,.45); }
+}
+/* <<< CLAUDE [lobby-limpo] */
 </style>
   <!-- >>> CLAUDE [pwa] 2026-10-28 -->
   <link rel="manifest" href="manifest.json">
@@ -302,7 +312,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
     <div class="left-actions">
       <a href="criacao.html" class="btn-secondary">➕ <span class="txt-d">Criar Novo Personagem</span><span class="txt-m">Novo</span></a>
       <button class="btn-secondary mobile-only" onclick="document.body.classList.toggle('ficha-open')">📋 <span class="txt-m">Ficha</span></button>
-      <button class="btn-secondary btn-danger" onclick="openDeleteModal()" title="Excluir personagem">🗑️ <span class="txt-d">Excluir Personagem</span></button>
     </div>
     <div>
       <button class="enter-btn" onclick="enterGame()">
@@ -781,7 +790,7 @@ function init3D(){
   scene.fog = new THREE.FogExp2(0x090e1c, 0.012);
 
   camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
-  camera.position.set(0, 1.25, 3.8);
+  enquadra();
 
   clock = new THREE.Clock();
 
@@ -1240,15 +1249,15 @@ var isDragging = false, dragMoved = false, prevX = 0, prevY = 0;
 function setupControls(){
   var canvas = document.getElementById('webgl');
 
-  window.addEventListener('mousedown', function(e){
-    if(e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('.header') || e.target.closest('.footer-bar') || e.target.closest('#modal-backdrop') || e.target.closest('#rename-modal-backdrop')) return;
+  window.addEventListener('pointerdown', function(e){
+    if(e.target.closest('button') || e.target.closest('a') || e.target.closest('#cntchip') || e.target.closest('.left-panel') || e.target.closest('.right-panel') || e.target.closest('.header') || e.target.closest('.footer-bar') || e.target.closest('#modal-backdrop') || e.target.closest('#rename-modal-backdrop')) return;
     isDragging = true;
     dragMoved = false;
     prevX = e.clientX;
     prevY = e.clientY;
   });
 
-  window.addEventListener('mousemove', function(e){
+  window.addEventListener('pointermove', function(e){
     if(!isDragging || !activeHeroGroup) return;
     var dx = e.clientX - prevX;
     var dy = e.clientY - prevY;
@@ -1259,7 +1268,8 @@ function setupControls(){
     prevY = e.clientY;
   });
 
-  window.addEventListener('mouseup', function(e){
+  window.addEventListener('pointercancel', function(){ isDragging = false; });
+  window.addEventListener('pointerup', function(e){
     if(isDragging && !dragMoved && bgCharactersGroup){
       // Detecta clique em personagem do fundo via Raycasting
       mouse.x = (e.clientX / innerWidth) * 2 - 1;
@@ -1282,11 +1292,17 @@ function setupControls(){
   });
 
   window.addEventListener('wheel', function(e){
-    camera.position.z = Math.max(2.2, Math.min(6.0, camera.position.z + e.deltaY * 0.003));
+    camera.position.z = Math.max(2.6, Math.min(7.0, camera.position.z + e.deltaY * 0.003));
   }, { passive:true });
 }
 
+/* [lobby-limpo] camera afastada: personagem inteiro visivel, mais ainda em tela larga e baixa (celular deitado) */
+function enquadra(){
+  var asp = innerWidth / Math.max(1, innerHeight), baixa = innerHeight < 520;
+  camera.position.set(0, baixa ? 1.05 : 1.25, baixa ? 6.2 : (asp > 1.5 ? 5.7 : 4.6));
+}
 function onResize(){
+  enquadra();
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
