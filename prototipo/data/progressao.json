@@ -1,7 +1,7 @@
 {
   "_nota": "Fonte unica da progressao (classes, nivel, pontos). O servidor (contas.js) e o cliente leem este arquivo; mudar aqui muda o balanceamento.",
   "nivelMax": 400,
-  "nivelInicial": 20,
+  "nivelInicial": 1,
   "pontosPorNivel": 2,
   "resetPontos": {
     "gratis": true

@@ -102,3 +102,5 @@ body.hud-clean #mu-slot-picker .pk-hd{color:var(--hc-azul); font-family:var(--hc
 @media all{
   body.hud-clean.is-touch #mu-hud-bottom{display:flex!important; justify-content:center; align-items:flex-end; padding-bottom:max(6px,env(safe-area-inset-bottom)); gap:8px}
   }
+/* [skills-prontas] skill bloqueada por nivel ou ainda nao feita some da barra */
+body .mu-hotbar-slot.mu-oculto{visibility:hidden!important}

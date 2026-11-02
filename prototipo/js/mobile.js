@@ -34,7 +34,12 @@
     '#mbbar{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;display:none;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(7,12,24,.82);box-shadow:inset 0 0 0 1px rgba(255,214,102,.7);color:#ffe9b0;font:600 12px system-ui,sans-serif}' +
     '#mbbar button{font:700 12px system-ui,sans-serif;padding:6px 10px;border-radius:7px;border:0;background:rgba(120,196,255,.25);color:#fff}body.mb-edit #mbbar{display:flex}' +
     /* HUD no toque: so as barras; os botoes I C S Q O abrem pela engrenagem; minimapa recolhido */
-    'body.is-touch #mu-hotbar-host,body.is-touch .mu-hud-nameplate,body.is-touch .mu-exp-strip{display:none!important}' +
+    'body.is-touch #mu-hotbar-host{display:none!important}' +
+    /* nome + nivel entre as barras de vida e estamina, com o fio de XP embaixo (antes ficavam escondidos: no celular nao se via o nivel) */
+    'body.is-touch .mu-hud-nameplate{grid-area:hb!important;justify-self:center!important;align-self:center!important;display:flex!important;gap:6px!important;align-items:center!important;white-space:nowrap}' +
+    'body.is-touch .mu-player-class{display:none!important}body.is-touch .mu-player-name{font-size:9px!important;letter-spacing:.1em!important;max-width:30vw;overflow:hidden;text-overflow:ellipsis}' +
+    'body.is-touch .mu-player-lvl{font-size:10px!important;padding:2px 6px!important}' +
+    'body.is-touch .mu-exp-strip{grid-area:hb!important;align-self:end!important;justify-self:center!important;display:block!important;width:min(100%,190px)!important;height:3px!important}' +
     'body.is-touch .mu-sys-wrap{display:none!important;position:fixed!important;right:52px;top:48px;gap:6px;z-index:75;pointer-events:auto}body.is-touch.sys-aberto .mu-sys-wrap{display:flex!important}' +
     'body.is-touch #mu-hud-bottom{grid-template-areas:"hp hb mp"!important;grid-template-rows:auto!important;padding-bottom:max(4px,env(safe-area-inset-bottom))!important}' +
     'body.is-touch .mu-bar-slot{height:16px!important;width:clamp(120px,24vw,200px)!important}body.is-touch #netHud{display:none}body.is-touch .mu-bar-text{font-size:8px!important;padding:0 8px!important}' +

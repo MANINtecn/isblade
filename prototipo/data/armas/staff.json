@@ -28,6 +28,7 @@
       "hitk": 0.9,
       "css": "#7fd1ff",
       "unlock": 5,
+      "pronta": false,
       "desc": "Passo arcano curto."
     },
     {
@@ -67,6 +68,7 @@
       "css": "#8b7bff",
       "launch": true,
       "unlock": 10,
+      "pronta": false,
       "desc": "Pulso arcano em cone: lanca o alvo."
     },
     {
@@ -90,6 +92,7 @@
       "armor": true,
       "launch": true,
       "unlock": 30,
+      "pronta": false,
       "desc": "Chuva de golpes com armadura."
     },
     {
@@ -113,6 +116,7 @@
       "armor": true,
       "launch": true,
       "unlock": 25,
+      "pronta": false,
       "desc": "Tormenta de varios golpes."
     },
     {
@@ -133,6 +137,7 @@
         "pierce": true
       },
       "unlock": 20,
+      "pronta": false,
       "desc": "Orbe largo que atravessa o alvo."
     }
   ],

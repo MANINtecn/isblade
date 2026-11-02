@@ -35,6 +35,16 @@ function updateArenaLoading(msg){
   }
 }
 
+/* [sem-santuario] teleporte direto: nos modos mapa aberto / torre / duelo a tela de carregamento fica ate o destino estar pronto (o santuario nunca aparece) */
+var arenaHold = /[?&](mapa=(fortress|blazing_swamp|curuma|torre)|mode=duel)/.test(location.search);
+function arenaSoltaLoading(){
+  arenaHold = false;
+  if(!arenaLoadingFinished) return;
+  var screen = document.getElementById('l2LoadingScreen');
+  if(screen){ screen.style.opacity = '0'; screen.style.pointerEvents = 'none'; setTimeout(function(){ screen.style.display = 'none'; }, 850); }
+}
+window.arenaSoltaLoading = arenaSoltaLoading;
+setTimeout(function(){ arenaSoltaLoading(); }, 90000);      /* seguranca: se o destino nao carregar, nao trava a tela */
 function finishArenaLoading(){
   if(arenaLoadingFinished) return;
   arenaLoadingFinished = true;
@@ -43,8 +53,9 @@ function finishArenaLoading(){
   var status = document.getElementById('l2LoadingStatus');
   if(fill) fill.style.width = '100%';
   if(txt) txt.textContent = '100%';
-  if(status) status.textContent = 'Mundo pronto! Entrando no Santuário...';
+  if(status) status.textContent = arenaHold ? 'Carregando o destino...' : 'Mundo pronto! Entrando no Santuário...';
 
+  if(arenaHold) return;
   setTimeout(function(){
     var screen = document.getElementById('l2LoadingScreen');
     if(screen){
@@ -4026,6 +4037,7 @@ function castSkill(i){
 
   if(!sk)return 'no';
 
+  if(sk.pronta===false)return 'no';/* [skills-prontas] skill ainda nao feita nao dispara */
   if((sk.unlock||0)>mastLevel()){gestMsg(sk.name+' bloqueada: nivel '+sk.unlock);return 'no';}
 
   if(S.pdead)return 'no';
@@ -5965,6 +5977,7 @@ function startBaiumDirectFight(){
   }
   banner('TRONO DO IMPERADOR BAIUM','Raid Boss Lv 75 despertou!','#f5c451');
   renderHud();
+  setTimeout(function(){if(window.arenaSoltaLoading)arenaSoltaLoading();},700);/* [sem-santuario] */
 }
 window.startBaiumDirectFight = startBaiumDirectFight;
 
@@ -6761,6 +6774,7 @@ function selectSkill(slot,idx){
 
   var c=skillCands(slot),s=c[idx];if(!s)return;
 
+  if(s.pronta===false)return;
   if((s.unlock||0)>mastLevel()){gestMsg(s.name+' exige nivel '+s.unlock);return;}
 
   SEL[WPN]=SEL[WPN]||{};SEL[WPN][slot]=idx;
@@ -6787,7 +6801,7 @@ function renderSk(){
 
     cs.forEach(function(s,idx){
 
-      var lock=(s.unlock||0)>ml,on=(s===cur);
+      var lock=(s.unlock||0)>ml||s.pronta===false,on=(s===cur);
 
       h+='<div class="card'+(on?' on':'')+(lock?' lock':'')+'" data-slot="'+i+'" data-idx="'+idx+'" style="border-color:'+(on?'#f5c451':s.css)+'"><div class="sk-icon-k">'+skillIconSVG(s,34)+'</div><div class="sk-info"><b style="color:'+s.css+'">'+s.name+(on?' ✓':'')+'</b><small>'+skStats(s)+'</small><small class="ds">'+(s.desc||'')+'</small>'+(lock?'<small class="lk">Maestria Nv '+s.unlock+'</small>':'')+'</div></div>';
 
@@ -6978,7 +6992,7 @@ function buildSkills(){
 
     var lock=(s.unlock||0)>ml;
 
-    return '<button data-i="'+i+'"'+(lock?' class="lock"':'')+'><em></em><div class="sk-icon">'+skillIconSVG(s,32)+'</div><strong>'+s.name+'</strong>'+(s.proj?'<small>alc '+s.range+'</small>':'')+'<b>'+s.key+'</b><u></u>'+(lock?'<i class="lk">Nv '+s.unlock+'</i>':'')+'</button>';
+    return '<button data-i="'+i+'"'+(s.pronta===false?' class="lock oculta"':(lock?' class="lock"':''))+'><em></em><div class="sk-icon">'+skillIconSVG(s,32)+'</div><strong>'+s.name+'</strong>'+(s.proj?'<small>alc '+s.range+'</small>':'')+'<b>'+s.key+'</b><u></u>'+(lock?'<i class="lk">Nv '+s.unlock+'</i>':'')+'</button>';
 
   }).join('');
 
@@ -7515,6 +7529,17 @@ gc.addEventListener('pointerup',pointerEnd);
 gc.addEventListener('pointercancel',pointerEnd);
 
 gc.addEventListener('wheel',function(e){e.preventDefault();if(NAV.mode==='dn'&&!MOUSE.touch){NAV.tpDist=clamp(NAV.tpDist+e.deltaY*.01,3.5,14);cam.dist=NAV.tpDist;}else cam.dist=clamp(cam.dist+e.deltaY*.02,8,30);},{passive:false});
+/* >>> CLAUDE [zoom-toque] celular: camera mais afastada por padrao (campo de visao maior) e pinca com 2 dedos no lado direito para aproximar/afastar */
+(function(){
+  var lim=[6,24];
+  if(window.QUAL&&QUAL.touch){NAV.tpDist=12;cam.dist=12;}
+  var P={},d0=0;
+  function dd(){var k=Object.keys(P);if(k.length<2)return 0;var a=P[k[0]],b=P[k[1]];return Math.hypot(a[0]-b[0],a[1]-b[1]);}
+  gc.addEventListener('pointerdown',function(e){if(e.pointerType!=='touch'||e.clientX<innerWidth*.4)return;P[e.pointerId]=[e.clientX,e.clientY];if(Object.keys(P).length===2){d0=dd();clickDrag=null;}});
+  gc.addEventListener('pointermove',function(e){if(!P[e.pointerId])return;P[e.pointerId]=[e.clientX,e.clientY];if(Object.keys(P).length<2||!d0)return;var d=dd();if(d<10)return;var f=d0/d;d0=d;NAV.tpDist=clamp(NAV.tpDist*f,lim[0],lim[1]);cam.dist=NAV.tpDist;});
+  ['pointerup','pointercancel'].forEach(function(n){gc.addEventListener(n,function(e){delete P[e.pointerId];d0=Object.keys(P).length===2?dd():0;});});
+})();
+/* <<< CLAUDE [zoom-toque] */
 
 function endStroke(){
 
@@ -8913,6 +8938,7 @@ function torreStart(){
   var p=Torre.posChefe();S.ex=p[0];S.ez=p[1];
   Torre.ativar(S);
   banner('TORRE DO BAIUM','Suba os 3 andares ate o Baium','#f5c451');
+  setTimeout(function(){if(window.arenaSoltaLoading)arenaSoltaLoading();},700);/* [sem-santuario] */
 }
 /* >>> CLAUDE [mapas-abertos] 02/11/2026: ?mapa=fortress|blazing_swamp|curuma (portais da cidade). Exploracao livre no mapa (mesmo motor de chao da torre), sem chefe nem mobs por enquanto; portal branco leva de volta a cidade. */
 var MAPAS_ABERTOS={
@@ -8938,6 +8964,7 @@ function mapaAbertoStart(){
   Torre.grupo.add(gate.group);DG.cityPortal=gate.group;DG.cityPortalData=gate.data;DG.cpPos={x:gx,z:gz};
   var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';
   banner(C.nome,'Mapa em construcao: exploracao livre (sem monstros ainda)','#f5c451');
+  setTimeout(function(){if(window.arenaSoltaLoading)arenaSoltaLoading();},700);/* [sem-santuario] */
 }
 if(MAPA_ABERTO){var _tmab=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready&&Torre.pronto){clearInterval(_tmab);mapaAbertoStart();}},400);Torre.carregar(THREE,scene,null,MAPAS_ABERTOS[MAPA_ABERTO]).catch(function(e){console.error('mapa aberto',e);});}
 /* <<< CLAUDE [mapas-abertos] */

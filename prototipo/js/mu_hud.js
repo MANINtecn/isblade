@@ -181,6 +181,13 @@ export const MuHud = {
 
       if (data.type === 'skill') {
         var skBtn = origSkillBtns[data.skillSlot];
+        if (skBtn && skBtn.classList.contains('lock')) {          /* bloqueada por nivel ou ainda nao feita: nao aparece na barra */
+          iconEl.innerHTML = ''; btn.classList.add('mu-oculto');
+          if (cdFill) cdFill.style.height = '0%'; if (cdTxt) cdTxt.textContent = '';
+          if (keyEl) keyEl.textContent = ''; if (tipEl) tipEl.textContent = '';
+          return;
+        }
+        btn.classList.remove('mu-oculto');
         if (skBtn) {
           var skIcon = skBtn.querySelector('.sk-icon');
           var skName = skBtn.querySelector('strong');

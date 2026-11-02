@@ -2027,6 +2027,10 @@ var SFX=(function(){
 
 
     storm_hit:function(){return (smp('focus_sonic_shot',.95,1.05) && smp(L2.swordBig,.9,1.0)) || smp(F.mM,.6,1.05);},
+    mb_cast:function(){return smp('doublewind_shot',.3,1.7)||smp(F.las,.12,1.9);},
+    mb_c1:function(){return smp('energywave_shot',.4,1.8)||smp(F.gL,.25,1.8);},
+    mb_c2:function(){return smp('energywave_shot',.5,1.55)||smp(F.gL,.3,1.6);},
+    mb_c3:function(){return (smp('energywave_shot',.7,1.15) && smp(L2.swordGreat,.35,1.35)) || smp(F.gL,.45,1.2);},
 
 
 
@@ -2199,6 +2203,10 @@ var SFX=(function(){
 
 
     storm_hit:function(){tone(220,90,.15,'triangle',.4);},
+    mb_cast:function(){tone(1500,700,.12,'sine',.1);},
+    mb_c1:function(){tone(1200,500,.1,'triangle',.18);},
+    mb_c2:function(){tone(1100,420,.12,'triangle',.2);},
+    mb_c3:function(){tone(900,300,.2,'triangle',.28);},
 
 
 
@@ -6152,6 +6160,7 @@ function getClipConfig(pose){
 
 
     /* [mago] skill 1: clipe CastShort da propria raca (Guardiao.anexarCast) */ if(pose==='m_s1'&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1)return vrm.mCast;
+    /* [mago] ataque padrao: o CastShort da propria raca nos 3 golpes (efeito: MagoFX.brisa/aviso/cristais) */ if((pose==='sweep'||pose==='thrust'||pose==='spin')&&window.MagoFX&&MagoFX.basico&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1){var _mh=vrm.mCast.hit;return {c:'m_cast1',sp:1.5,hit:_mh,cut:Math.min(1,_mh+.12),lg:0};}
 
     var staffCM={
 
@@ -8856,6 +8865,37 @@ function canCancel(an){if(an){var gc=Guardiao.podeCancelar(an);if(gc!==null)retu
 
 
 
+/* [mago] ataque padrao do cajado: 3 niveis, cristais que brotam ONDE ELE MIRA (ate 10 m). Numeros em data/armas/staff.json -> basico (o servidor le o mesmo). */
+var MAGO_B_PAD={sweep:{n:1,raio:1.4,mul:.8},thrust:{n:2,raio:2.0,mul:1.0},spin:{n:3,raio:1.9,mul:1.25,guarda:.3}};
+function magoBasicoCfg(id){var w=DATA.armas&&DATA.armas.staff,b=w&&w.basico&&w.basico.niveis&&w.basico.niveis[id];return b||MAGO_B_PAD[id];}
+function magoBasicoIni(id){
+  var b=magoBasicoCfg(id),w=(DATA.armas.staff&&DATA.armas.staff.basico)||{},an=S.anim,pm=pontoMira({mira_min:w.minimo||2,mira_max:w.alcance||10});
+  S.face=pm.ang;an.alvo={x:pm.x,z:pm.z,d:pm.d,ang:pm.ang};an.raioM=b.raio;an.magoB=b;an.dmg=Math.round(an.dmg*(b.mul||1));
+  try{MagoFX.brisa(S.px,S.pz,b.n);MagoFX.aviso(pm.x,pm.z,b.n,an.hitT);SFX.play('mb_cast');}catch(_){}
+  Net.mago(an.id,pm.x,pm.z,pm.ang,an.hitT);
+}
+function magoBasicoHit(an){
+  var b=an.magoB,al=an.alvo;
+  try{MagoFX.cristais(al.x,al.z,al.ang,b.n);SFX.play('mb_c'+b.n);Voz.tocar('atk');}catch(_){}
+  if(b.guarda&&BOSS_ON&&!S.dead&&DG.grp!=='guest'&&Math.random()<b.guarda&&Math.max(0,Math.hypot(S.ex-al.x,S.ez-al.z)-3)<=b.raio)
+    setTimeout(function(){if(S.dead)return;setEnemy('stagger',1.8);SFX.play('guardBreak');floatText('GUARDA QUEBRADA!','#f5c451',30);S.shake=Math.max(S.shake,.4);},0);
+}
+
+function pontoMira(sk){
+  var mn=sk.mira_min||2,mx=sk.mira_max||10,ax=null,az=null;
+  if(!MOUSE.touch){
+    if(NAV.mode==='dn'&&S.aimT&&!S.dead&&BOSS_ON){ax=S.ex;az=S.ez;}
+    else if(NAV.mode==='dn'&&S.aimM&&!S.aimM.dead){ax=S.aimM.x;az=S.aimM.z;}
+    else if(MOUSE.g){ax=MOUSE.g.x;az=MOUSE.g.z;}
+  }else{/* [toque] livre: na direcao do analogico, 7 m */
+    ax=S.px+Math.sin(S.face)*7;az=S.pz+Math.cos(S.face)*7;
+  }
+  if(ax===null){ax=S.px+Math.sin(S.face)*5.7;az=S.pz+Math.cos(S.face)*5.7;}
+  var raw=Math.hypot(ax-S.px,az-S.pz),ang=raw>.05?Math.atan2(ax-S.px,az-S.pz):S.face,d=clamp(raw,mn,mx);
+  return {x:S.px+Math.sin(ang)*d,z:S.pz+Math.cos(ang)*d,d:d,ang:ang,fora:raw>mx};
+}
+function raioMira(an){if(an.raioM)return an.raioM;var r=an.skill&&an.skill.raio;return (r&&r[Math.max(0,(an.part||1)-1)])||(r&&r[0])||5.5;}
+
 function perform(id,q){
 
 
@@ -8956,7 +8996,9 @@ function perform(id,q){
 
 
 
-  S.anim=mkAnim(id,dmg,sk,perfect,null); /* >>> CLAUDE [guardiao] 2026-10-28 */ if(WPN==='shield')Guardiao.aoAtacar(S.anim); /* <<< CLAUDE [guardiao] */
+  S.anim=mkAnim(id,dmg,sk,perfect,null);
+  if(WPN==='staff'&&window.MagoFX&&MagoFX.basico&&S.anim.clipMode&&(id==='sweep'||id==='thrust'||id==='spin')&&vrm&&vrm.mCast)magoBasicoIni(id);/* [mago] */
+  /* >>> CLAUDE [guardiao] 2026-10-28 */ if(WPN==='shield')Guardiao.aoAtacar(S.anim); /* <<< CLAUDE [guardiao] */
 
 
 
@@ -8992,6 +9034,7 @@ function castSkill(i){
 
 
 
+  if(sk.pronta===false)return 'no';/* [skills-prontas] skill ainda nao feita nao dispara */
   if((sk.unlock||0)>mastLevel()){gestMsg(sk.name+' bloqueada: nivel '+sk.unlock);return 'no';}
 
 
@@ -9090,7 +9133,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-    if(!an.skill){
+    if(!an.skill&&!an.magoB){
 
 
 
@@ -9106,7 +9149,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-     /* >>> CLAUDE [guardiao] 2026-10-28 */ if(WPN==='shield'&&!an.skill){Guardiao.fxBasico(an);}else{ /* <<< CLAUDE [guardiao] */flashFan(an.skill?an.skill.pose:an.id,rng);
+     /* >>> CLAUDE [guardiao] 2026-10-28 */ if(an.magoB){magoBasicoHit(an);}else if(WPN==='shield'&&!an.skill){Guardiao.fxBasico(an);}else{ /* <<< CLAUDE [guardiao] */flashFan(an.skill?an.skill.pose:an.id,rng);
 
 
 
@@ -9132,7 +9175,8 @@ function applyHit(an){Net.atacou(an);
 
 
 
-  if(!an.noRange&&(reach>rng||(half<3.1&&cone>half))){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
+  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-1.2)>raioMira(an)):(reach>rng||(half<3.1&&cone>half));/* [mago] circulo no ponto mirado */
+  if(!an.noRange&&foraBoss){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
 
 
 
@@ -12766,6 +12810,7 @@ function selectSkill(slot,idx){
 
 
 
+  if(s.pronta===false)return;
   if((s.unlock||0)>mastLevel()){gestMsg(s.name+' exige nivel '+s.unlock);return;}
 
 
@@ -12818,7 +12863,7 @@ function renderSk(){
 
 
 
-      var lock=(s.unlock||0)>ml,on=(s===cur);
+      var lock=(s.unlock||0)>ml||s.pronta===false,on=(s===cur);
 
 
 
@@ -13169,7 +13214,7 @@ function buildSkills(){
 
 
 
-    return '<button data-i="'+i+'"'+(lock?' class="lock"':'')+'><em></em><div class="sk-icon">'+skillIconSVG(s,32)+'</div><strong>'+s.name+'</strong>'+(s.proj?'<small>alc '+s.range+'</small>':'')+'<b>'+s.key+'</b><u></u>'+(lock?'<i class="lk">Nv '+s.unlock+'</i>':'')+'</button>';
+    return '<button data-i="'+i+'"'+(s.pronta===false?' class="lock oculta"':(lock?' class="lock"':''))+'><em></em><div class="sk-icon">'+skillIconSVG(s,32)+'</div><strong>'+s.name+'</strong>'+(s.proj?'<small>alc '+s.range+'</small>':'')+'<b>'+s.key+'</b><u></u>'+(lock?'<i class="lk">Nv '+s.unlock+'</i>':'')+'</button>';
 
 
 
@@ -14604,6 +14649,17 @@ gc.addEventListener('pointercancel',pointerEnd);
 
 
 gc.addEventListener('wheel',function(e){e.preventDefault();if(NAV.mode==='dn'&&!MOUSE.touch){NAV.tpDist=clamp(NAV.tpDist+e.deltaY*.01,3.5,14);cam.dist=NAV.tpDist;}else cam.dist=clamp(cam.dist+e.deltaY*.02,8,30);},{passive:false});
+/* >>> CLAUDE [zoom-toque] celular: camera mais afastada por padrao (campo de visao maior) e pinca com 2 dedos no lado direito para aproximar/afastar */
+(function(){
+  var lim=[6,24];
+  if(window.QUAL&&QUAL.touch){NAV.tpDist=12;cam.dist=12;}
+  var P={},d0=0;
+  function dd(){var k=Object.keys(P);if(k.length<2)return 0;var a=P[k[0]],b=P[k[1]];return Math.hypot(a[0]-b[0],a[1]-b[1]);}
+  gc.addEventListener('pointerdown',function(e){if(e.pointerType!=='touch'||e.clientX<innerWidth*.4)return;P[e.pointerId]=[e.clientX,e.clientY];if(Object.keys(P).length===2){d0=dd();clickDrag=null;}});
+  gc.addEventListener('pointermove',function(e){if(!P[e.pointerId])return;P[e.pointerId]=[e.clientX,e.clientY];if(Object.keys(P).length<2||!d0)return;var d=dd();if(d<10)return;var f=d0/d;d0=d;NAV.tpDist=clamp(NAV.tpDist*f,lim[0],lim[1]);cam.dist=NAV.tpDist;});
+  ['pointerup','pointercancel'].forEach(function(n){gc.addEventListener(n,function(e){delete P[e.pointerId];d0=Object.keys(P).length===2?dd():0;});});
+})();
+/* <<< CLAUDE [zoom-toque] */
 
 
 
