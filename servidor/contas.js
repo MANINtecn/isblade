@@ -4,7 +4,7 @@
                   PUT  /api/dados  {chaves}                                -> {rev}
                   POST /api/conta/sair                                      -> {ok}
                   GET  /api/personagens                                     -> {pers}
-                  POST /api/personagens {name,race,charType,set,weapon,hairStyle,hairColor} -> {pers, char}   (cria; nome unico no servidor; ate PERS_MAX por conta)
+                  POST /api/personagens {name,race,charType,set,classe,hairStyle,hairColor} (classe define a arma) -> {pers, char}   (cria; nome unico no servidor; ate PERS_MAX por conta)
                   POST /api/personagens/renomear {id,name} | /api/personagens/apagar {id}  -> {pers}
    O SERVIDOR e o dono dos personagens: a lista vem sempre de c.pers; o cliente nao consegue criar, apagar nem inventar personagem pelo /api/dados (so atualiza nivel/local
    dos que ja sao da conta, e guarda o progresso (inv, skills...) de ids que a conta possui).
@@ -73,6 +73,20 @@ module.exports = function(opts){
 
   /* ---- personagens (dono: o servidor) ---- */
   const PROG = ['isblade.inv.', 'isblade.skillSel.', 'isblade.mastery.', 'isblade.dgbest.', 'isblade.custom_slots_v5.', 'isblade.hotbar_keys.', 'isblade.hotbar_init.'];
+  /* ZERAR PERSONAGENS (uma vez por id): se existir servidor/reset_personagens.json {"id":"..."} e esse id ainda nao foi aplicado, apaga os personagens de TODAS as contas
+     (mantem usuario/senha) e o progresso deles (inventario, skills, hotbar...). Antes grava a copia contas.antes_reset_<id>.json. Registrado em DB.meta.resets, entao nao repete. */
+  (function aplicaReset(){
+    let id = ''; try { id = String(JSON.parse(fs.readFileSync(path.join(__dirname, 'reset_personagens.json'), 'utf8')).id || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40); } catch(e){ return; }
+    if(!id) return; DB.meta = DB.meta || {}; DB.meta.resets = DB.meta.resets || []; if(DB.meta.resets.includes(id)) return;
+    try { fs.writeFileSync(path.join(DIR, 'contas.antes_reset_' + id + '.json'), JSON.stringify(DB)); } catch(e){ console.error('contas: reset cancelado (sem backup)', e.message); return; }
+    let nc = 0, np = 0;
+    for(const u in DB.contas){
+      const c = DB.contas[u]; nc++; np += (c.pers || []).length; c.pers = [];
+      const ch = (c.dados && c.dados.chaves) || {}; for(const k in ch){ if(k === 'isblade_characters' || PROG.some(pf => k.startsWith(pf))) delete ch[k]; }
+      c.dados = { rev: ((c.dados && c.dados.rev) | 0) + 1, chaves: ch };
+    }
+    DB.meta.resets.push(id); grava(); console.log('contas: reset "' + id + '" aplicado: ' + np + ' personagens apagados em ' + nc + ' contas (copia em contas.antes_reset_' + id + '.json)');
+  })();
   const chaveNome = n => String(n).trim().toLowerCase();
   function nomeLivre(n, exceto){ const k = chaveNome(n); for(const u in DB.contas) for(const p of (DB.contas[u].pers || [])) if(p.id !== exceto && chaveNome(p.name) === k) return false; return true; }
   function migra(c){                                                /* contas antigas: os personagens que estavam no blob viram personagens do servidor (sem o "Icaro" de brinde) */
@@ -87,10 +101,12 @@ module.exports = function(opts){
       }
     } catch(e){}
   }
+  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword' };   /* classe define a arma (data/progressao.json); cleric ainda indisponivel */
+  function classeDe(x){ if(ARMA_CLASSE[x.classe]) return x.classe; return x.weapon === 'shield' || x.weapon === 'swordshield' ? 'guardiao' : x.weapon === 'staff' ? 'mago' : 'guerreiro'; }   /* personagens antigos: classe pela arma */
   function limpaPers(x){
     const id = /^char_[A-Za-z0-9_]{1,40}$/.test(x.id) ? x.id : 'char_' + crypto.randomBytes(6).toString('hex'), tok = (v, d) => (/^[a-z0-9_]{1,30}$/.test(String(v || '')) ? String(v) : d);
-    return { id, name: String(x.name).trim().slice(0, 16), race: tok(x.race, 'human_fighter'), charType: tok(x.charType, tok(x.race, 'human_fighter')), set: tok(x.set, 'starter'), weapon: /^(none|shield|sword)$/.test(x.weapon) ? x.weapon : 'sword',
-      hairStyle: tok(x.hairStyle, 'both'), hairColor: /^#[0-9a-fA-F]{6}$/.test(x.hairColor || '') ? x.hairColor : '#ffffff', level: Math.max(1, Math.min(100, x.level | 0 || 1)), location: String(x.location || 'Talking Island').slice(0, 30), xp: Math.max(0, x.xp | 0), createdAt: String(x.createdAt || new Date().toLocaleDateString('pt-BR')).slice(0, 20) };
+    return { id, name: String(x.name).trim().slice(0, 16), race: tok(x.race, 'human_fighter'), charType: tok(x.charType, tok(x.race, 'human_fighter')), set: tok(x.set, 'starter'), weapon: ARMA_CLASSE[classeDe(x)], classe: classeDe(x),
+      hairStyle: tok(x.hairStyle, 'both'), hairColor: /^#[0-9a-fA-F]{6}$/.test(x.hairColor || '') ? x.hairColor : '#ffffff', level: Math.max(1, Math.min(NIVEL_MAX, x.level | 0 || 1)), location: String(x.location || 'Talking Island').slice(0, 30), xp: Math.max(0, x.xp | 0), createdAt: String(x.createdAt || new Date().toLocaleDateString('pt-BR')).slice(0, 20) };
   }
   function chavesDaConta(c){                                        /* o que o cliente recebe: lista de personagens do servidor + progresso so dos ids que a conta possui */
     migra(c); const ids = new Set(c.pers.map(p => p.id)), out = {}, ch = c.dados.chaves || {};

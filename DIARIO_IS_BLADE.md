@@ -2386,3 +2386,53 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 
 ### [Claude] 02/11/2026 - Pedido do dono: tirar o rastro longo da shuriken
 - Dono: "remova o rastro, quando tiver muitos magos vai pesar; deixa apenas a shuriken e seus efeitos". Feito no jogo (js/mago_fx.js v2): removidas as fitas de vento (rastro); ficam estrela, nucleo, halo, disco, aura, anel e o impacto. Blender (mage_skills.blend) nao foi mexido. Testado: 1 mago na arena, media, sem erro. Dono pediu push para a Vercel para testar.
+
+### [Claude] 02/11/2026 - PEDIDO DO DONO: classe obrigatoria + nivel ate 400 + pontos de status (estilo MU)
+- Pedido (palavras do dono): "os personagens sao meros visuais, mas vamos forcar o jogador a escolher uma classe; escolheu a classe, o up de lvl, e status para definir quase igual o MU, a cada lvl ganha pontos para distribuir, lvl maximo 400 por enquanto, e dificuldade no up como num verdadeiro MMORPG. Quero um plano e atacar ele (as skills ele pensa em outro chat)."
+- Isso MUDA a decisao de 22/10 ("sem nivel de personagem, so maestria por arma, estilo Albion"). Hoje existe `S.lvl`/`gainXp`/`rankOf` (Cacador Rank) herdado em `arena.html`, maestria por arma (`isblade.mastery`) e status so por item (raridade). Progresso da conta sincroniza por `js/conta.js` + `servidor/contas.js` (chaves do localStorage).
+- Plano apresentado ao dono (so plano, nada alterado no jogo): fases 0 dados (`data/progressao.json`), 1 classe na selecao, 2 motor de XP/nivel, 3 pontos e tela de status, 4 fontes de XP/dificuldade, 5 servidor autoritativo, 6 simulador de balanceamento. Perguntas abertas: lista de classes, skills por nivel x maestria, pontos por nivel, reset.
+
+
+### [Gemini] 02/11/2026 - Resolução do Item 2: NPCs com Diálogo no Onboarding, Soft-Lock no Celular e Transições Suaves
+- **Objetivo**: Corrigir as 3 frentes de Quebra de Fluxo (UX & Gameplay) apontadas na auditoria:
+  1. **NPCs Autênticos de Talking Island (`js/l2_npcs.js`)**:
+     - **Gatekeeper Clarissa** (`elf_f.glb`): Posicionada em frente ao Portal Dimensional (`x: -11.5, z: -11.5`), com pedestal e círculo rúnico azul/dourado com emissão de partículas. Diálogo interativo com opções de teleporte para a Torre da Insolência (Normal, Médio, Hard), Duelo com Baium, PvP livre e pontos de Talking Island (Porto, Guilda, Igreja, Farol).
+     - **Ferreiro Altran** (`dwarf_m.glb`): Posicionado na praça leste (`x: 11.5, z: -8.5`), acompanhado de bigorna 3D de ferro forjado sobre cepo de madeira, martelo e forja incandescente com luz pulsante. Diálogo com prévia de receitas de criação (Crafting) e **Simulador de Encantamento Sagrado (+1 a +16)** com som autêntico do L2, taxa de sucesso real (seguro até +3, 66% depois), brilho progressivo na arma (azul, ciano, vermelho) e quebra em cristais!
+     - **Mercador dos Selos Mammon** (`magic_m.glb`): Posicionado no recanto místico (`x: -16.0, z: 12.0`), com baús de tesouro dourados, tapete cerimonial dos Sete Selos e runas arcanas roxas. Diálogo sobre Ancient Adena, remoção de selos de armaduras S-Grade e a profecia de Shilen.
+     - Interface de diálogo estilo Lineage 2 com insígnia do NPC, efeito sonoro e teclas de atalho (`E` para interagir, `Esc` para fechar).
+  2. **Soft-Lock Inteligente no Celular (Mobile Aim Assist)**:
+     - Em `cidade.html` e `arena.html`, a função `aimAngle()` agora possui `getMobileSoftLockAngle()`.
+     - Ao tocar nos botões de ataque ou skills no celular, o sistema busca automaticamente o alvo vivo mais próximo dentro de um cone frontal de 140° (até 12-14 metros) e alinha o golpe ao alvo. Elimina a sobrecarga motora de ter que mirar com o analógico e apertar as skills simultaneamente no touch.
+  3. **Transição Suave e Tela de Teleporte (`js/l2_teleport.js`)**:
+     - Implementado o overlay de preloader dimensional `#l2-tp-screen` com anéis rúnicos concêntricos girando, som de teleporte, barra de progresso suave e dicas aleatórias de combate e lore.
+     - Adeus à tela branca e quedas bruscas ao transicionar entre Cidade, Masmorras, Baium e PvP.
+- **Backups criados**: `cidade_antes_npcs_fluxo.html` e `arena_antes_softlock.html`.
+- **Servidor ativo**: `http://localhost:8000/cidade.html`.
+
+### [Claude] 02/11/2026 - Progressao: decisoes do dono + Fases 0 e 1 (classe obrigatoria)
+- Decisoes do dono: classes = Guardiao (so escudo), Mago (cajado), Guerreiro (espada longa 2 maos), Clerigo (livro astral); skills por NIVEL DE PERSONAGEM e a maestria por arma SAI; pontos por nivel = 2 (ele confirmou os 4 atributos FOR/INT/AGI/VIT); reset de pontos SEMPRE gratis.
+- Feito: `prototipo/data/progressao.json` (nivelMax 400, 2 pontos/nivel, curva de XP 80*L^2.6, 4 atributos, 4 classes com inicial e crescimento; Clerigo `disponivel:false` ate haver modelo/animacoes/skills). `criacao.html`: o bloco "Arma" virou "CLASSE" (Guardiao/Mago/Guerreiro; Clerigo apagado "em breve"); a classe define a arma. `selecao.html`: rotulo e arma pela classe (inclui cajado). `servidor/contas.js`: personagem tem `classe`; a arma vem SEMPRE da classe (cliente nao escolhe); personagens antigos recebem classe pela arma (sem arma valida = Guerreiro); teto de nivel 100 -> 400. Backups `*.antes_classe`.
+- Testado: servidor temporario (porta 8123, pasta de dados no scratchpad): guardiao/mago/guerreiro criam com a arma certa, mesmo mandando arma errada; clerigo cai em guerreiro; so arma 'staff' vira mago. NAO testado no navegador (tela de criacao/selecao vistas so no codigo) nem na VPS. Previa do mago na criacao fica sem cajado na mao (nao ha GLB do cajado; no jogo ele e procedural).
+- Proximo: Fase 2 (motor de XP/nivel no servidor, tirar Cacador Rank e maestria), Fase 3 (pontos, tecla C, reset gratis).
+
+### [Claude] 02/11/2026 - Lobby no celular (selecao.html) + conferencia do trabalho de NPCs do Gemini
+- Pedidos do dono: "deleta todos os personagens", "melhorar o lobby no mobile, ta tudo apertado" e "verifica se vc mandou o trabalho que o gemini fez de npcs".
+- NPCs do Gemini: NAO foram enviados. `prototipo/js/l2_npcs.js` e `l2_teleport.js` estao sem commit (arquivos novos) e `cidade.html` modificado (carrega os dois, chama `L2Npcs.init`, `L2Teleport.teleportTo` e traz um soft-lock de mira no toque) tambem sem commit. `main` == `origin/main`. Aguardando o dono mandar commitar/dar push.
+- Lobby: o jogo so roda DEITADO (`js/mobile.js` mostra "Gire o celular" em pe), entao o lobby foi tratado so em paisagem. Antes nao havia nenhuma regra `@media`. Agora (bloco `[lobby-mobile]` no CSS de `selecao.html`): modelo 3D livre no centro, lista de personagens compacta a direita (nome inteiro, icones de toque 30-34 px), ficha com atributos vira folha aberta pelo novo botao "Ficha", botoes de rodape de toque (min 42-46 px), chip da conta e "tela cheia" sobem para o topo (antes cobriam painel e botoes). Cobre alturas ate 520 px e larguras ate 667 px.
+- Testado: Edge headless com toque emulado em 844x390, 740x360 e 667x375, com 3 personagens, sem erro de pagina. NAO testado: celular real, safe-area de notch, `criacao.html` (mesma tela apertada; nao mexi).
+- Personagens: no PC nao ha dados (`servidor/dados` nao existe); os reais ficam na VPS (`play.isblade.tecx.pro`), fora do meu alcance. NADA foi apagado.
+
+### [Claude] 02/11/2026 - Giro automatico em todas as telas, lobby mais limpo, revisao do soft-lock, commit dos NPCs e reset dos personagens
+- Pedidos do dono: (1) o celular deve ser forcado para horizontal AUTOMATICAMENTE ao acessar, sem depender do usuario; (2) lobby ainda poluido; (3) revisar o soft-lock inteligente do Gemini e trazer o que esta certo/errado; (4) commitar os NPCs do Gemini (conteudo dos NPCs fica para depois); (5) apagar os personagens CRIADOS PELOS USUARIOS no servidor (nao os NPCs) para recomecar com classe, nivel e skills por nivel.
+- Giro: `js/mobile.js` ja travava horizontal mas so era carregado em arena/cidade/selecao. Novo `js/giro.js` carregado tambem em index, login, painel, carregando e criacao: tenta `screen.orientation.lock('landscape')` ao abrir (PWA instalado) e no 1o toque entra em tela cheia + trava (regra do Android no navegador); aviso "Gire o celular" so como reserva (iPhone nao tem trava; manifest ja tem `orientation: landscape`). NAO testado em celular real.
+- Lobby (selecao.html): na paisagem esconde botoes de mapa/menu/tela cheia do jogo, rodape vira [+ Novo][Ficha][lixeira] + ENTRAR NO MUNDO, lista de personagens compacta, ficha por botao. Testado em Edge emulado 844x390, 740x360, 667x375.
+- Commit 27320ff: `l2_npcs.js`, `l2_teleport.js` e os trechos de teleporte/NPC em cidade.html e arena.html, SEM o soft-lock (separado por hunks). NAO enviado ao remoto.
+- Revisao do soft-lock de toque (cidade.html e arena.html, `getMobileSoftLockAngle`) — ainda NAO commitado, fica na copia de trabalho:
+  - ERRADO: na arena usa `DG.mobs` e `miniBoss`, que nao existem; os mobs reais sao `MOBS` (campo `dead`). So o chefe (`S.ex/S.ez`) trava de verdade.
+  - ERRADO: usa `Net.outros`, que nao existe; a API certa e `Net.alvos()`. Jogadores nunca entram (PvP no celular fica sem trava; na cidade tambem nao deve travar em jogador, zona segura).
+  - ERRADO (cidade): usa `dummyGroup.position` (0,0 local do grupo), nao a posicao do boneco (`S.ex/S.ez`); a mira vai para a origem do mundo.
+  - ERRADO: o cone e centrado em `S.face` (corpo) e nao no analogico; como `S.face` vira para o alvo, trava sozinho e nao da para mirar outro; alem disso `d<4.5` aceita alvo ATRAS. A intencao do jogador (analogico) deveria ter prioridade.
+  - ERRADO: sem histerese (dois alvos com pontuacao parecida ficam alternando e o corpo treme); sem desligar quando o analogico aponta claramente para longe.
+  - CERTO: ideia de assistencia suave so no toque, separada da mira do PC; raio, pontuacao distancia+angulo, nao mirar em morto, nao quebrar a mira do PC (ramo `MOUSE.touch`).
+  - Proposta de correcao: centro do cone = direcao do analogico (ou ultima `S.mdir`), alvos de `MOBS`/chefe/`Net.alvos()` (jogador so em arena PvP), alvo travado mantido ate sair do cone/alcance (histerese), analogico forte para longe cancela. Aguardando o dono.
+- Reset de personagens: `servidor/contas.js` (+ `servidor/reset_personagens.json` com id `2026-11-02-classes`): no proximo inicio do servidor apaga os personagens e o progresso (inventario, skills, hotbar) de TODAS as contas, mantem usuario e senha, grava antes `contas.antes_reset_<id>.json` e marca em `DB.meta.resets` (roda uma vez). Testado com banco falso: 4 personagens/2 contas apagados, volume mantido, backup criado, segunda execucao nao repete. NAO aplicado na VPS: so vale depois do deploy (push); a VPS reinicia o node no sync.

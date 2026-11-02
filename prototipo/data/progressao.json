@@ -1,0 +1,43 @@
+{
+  "_nota": "Fonte unica da progressao (classes, nivel, pontos). O servidor (contas.js) e o cliente leem este arquivo; mudar aqui muda o balanceamento.",
+  "nivelMax": 400,
+  "pontosPorNivel": 2,
+  "resetPontos": { "gratis": true },
+  "curvaXp": { "base": 80, "expoente": 2.6, "_nota": "xp para sair do nivel L = base * L^expoente (arredondado). Ajustar com o simulador (fase 6)." },
+  "atributos": {
+    "for": { "nome": "Forca", "desc": "Dano fisico" },
+    "int": { "nome": "Inteligencia", "desc": "Dano magico e de cura" },
+    "agi": { "nome": "Agilidade", "desc": "Velocidade de ataque, critico e esquiva" },
+    "vit": { "nome": "Vitalidade", "desc": "Vida, defesa e estamina" }
+  },
+  "classes": {
+    "guardiao": {
+      "nome": "Guardião", "arma": "shield", "armaNome": "Escudo", "disponivel": true,
+      "papel": "Defensor: segura o inimigo e protege o grupo.",
+      "inicial": { "for": 10, "int": 4, "agi": 8, "vit": 18 },
+      "porNivel": { "for": 1, "int": 0, "agi": 0, "vit": 1 },
+      "principal": "vit"
+    },
+    "mago": {
+      "nome": "Mago", "arma": "staff", "armaNome": "Cajado", "disponivel": true,
+      "papel": "Dano mágico a distância com habilidades de área.",
+      "inicial": { "for": 4, "int": 20, "agi": 8, "vit": 8 },
+      "porNivel": { "for": 0, "int": 1, "agi": 1, "vit": 0 },
+      "principal": "int"
+    },
+    "guerreiro": {
+      "nome": "Guerreiro", "arma": "sword", "armaNome": "Espada longa (2 mãos)", "disponivel": true,
+      "papel": "Dano físico corpo a corpo, combos rápidos.",
+      "inicial": { "for": 18, "int": 4, "agi": 12, "vit": 10 },
+      "porNivel": { "for": 1, "int": 0, "agi": 1, "vit": 0 },
+      "principal": "for"
+    },
+    "clerico": {
+      "nome": "Clérigo", "arma": "book", "armaNome": "Livro Astral", "disponivel": false,
+      "papel": "Suporte: cura e proteção. (em breve: faltam modelo, animações e skills)",
+      "inicial": { "for": 4, "int": 18, "agi": 8, "vit": 12 },
+      "porNivel": { "for": 0, "int": 1, "agi": 0, "vit": 1 },
+      "principal": "int"
+    }
+  }
+}

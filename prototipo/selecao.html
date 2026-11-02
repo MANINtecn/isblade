@@ -127,6 +127,60 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
 
 /* Flash transition */
 #transition-overlay { position:fixed; inset:0; background:#fff; z-index:9999; opacity:0; pointer-events:none; transition:opacity .5s ease; }
+
+/* >>> CLAUDE [lobby-mobile] 02/11/2026 — celular (o jogo so roda deitado, js/mobile.js mostra "Gire o celular" em pe): modelo 3D livre no centro, so a lista de personagens fixa; ficha vira folha pelo botao Ficha; botoes de toque; chip da conta e tela cheia sobem para o topo */
+.mobile-only, .txt-m { display:none !important; }
+@media (max-height:520px) and (orientation:landscape) {
+  .ui-layer { padding:calc(6px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left)); }
+  .logo-title { font-size:15px; letter-spacing:.08em; }
+  .logo-title img { height:24px !important; margin-right:8px !important; }
+  .logo-sub > span:first-child, .drag-hint { display:none; }
+  .mobile-only { display:inline-flex !important; align-items:center; justify-content:center; }
+  .txt-d { display:none !important; } .txt-m { display:inline !important; }
+  .mobile-only .txt-m { display:inline !important; }
+  /* lobby limpo: sem botoes de mapa/menu/tela cheia do jogo (a tela cheia entra no 1o toque, js/giro.js), sem tags 3D flutuando atras dos paineis */
+  #mbmap, #mbsys, #mbedit, #mbfs, #mbbar { display:none !important; }
+  .btn-danger { padding-left:14px; padding-right:14px; }
+  .main-content { margin:4px 0; align-items:stretch; justify-content:flex-end; }
+  .right-panel { width:230px; padding:10px; max-height:none; border-radius:10px; }
+  .right-panel .section-title { margin:0 0 8px; }
+  /* ficha do heroi: folha sobre o modelo, aberta pelo botao Ficha */
+  .left-panel { display:none; position:fixed; left:calc(12px + env(safe-area-inset-left)); top:52px; bottom:64px; z-index:30; width:270px; max-height:none; padding:12px; border-radius:10px; }
+  body.ficha-open .left-panel { display:flex; }
+  .left-panel .lore-text, .left-panel .section-title:last-of-type { display:none; }
+  .hero-name { font-size:18px; }
+  .hero-meta { padding-bottom:6px; flex-wrap:wrap; gap:6px; }
+  .section-title { margin:8px 0 6px; }
+  .stat-bar { margin-bottom:4px; }
+  .slot-list { gap:6px; }
+  .slot-card { padding:8px 8px; gap:8px; }
+  .slot-card:hover, .slot-card.active { transform:none; }
+  .slot-icon { width:32px; height:32px; font-size:15px; }
+  .slot-name { font-size:13px; }
+  .slot-class { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10.5px; }
+  .slot-tag { display:none; }
+  .slot-empty { display:none; }   /* o botao Criar Novo Personagem do rodape ja faz isso */
+  .slot-actions { gap:4px !important; }
+  .slot-action-btn { padding:0; font-size:13px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
+  .footer-bar { padding-top:4px; }
+  .left-actions { gap:8px; }
+  .btn-secondary { padding:8px 12px; font-size:10.5px; letter-spacing:0; min-height:42px; line-height:1.15; white-space:nowrap; }
+  .enter-btn { padding:12px 28px; font-size:13px; letter-spacing:.1em; min-height:46px; white-space:nowrap; }
+  /* itens que o jogo coloca por cima (conta e tela cheia) saem de cima dos paineis e botoes */
+  #cntchip { bottom:auto !important; top:calc(8px + env(safe-area-inset-top)) !important; left:auto !important; right:calc(190px + env(safe-area-inset-right)) !important; }
+  #mbfs { left:auto !important; top:calc(8px + env(safe-area-inset-top)) !important; right:calc(96px + env(safe-area-inset-right)) !important; }
+}
+@media (max-height:520px) and (orientation:landscape) and (max-width:700px) {
+  .right-panel { width:214px; padding:8px; }
+  .right-panel .section-title { font-size:9.5px; letter-spacing:.05em; white-space:nowrap; }
+  .slot-icon { width:28px; height:28px; font-size:13px; }
+  .slot-action-btn { width:30px; height:30px; font-size:12px; }
+  .slot-card { gap:6px; padding:7px; }
+  .btn-secondary { padding:8px 9px; font-size:10px; }
+  .enter-btn { padding:10px 18px; font-size:12px; }
+  .left-actions { gap:6px; }
+}
+/* <<< CLAUDE [lobby-mobile] */
 </style>
   <!-- >>> CLAUDE [pwa] 2026-10-28 -->
   <link rel="manifest" href="manifest.json">
@@ -251,8 +305,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
   <!-- Footer Actions -->
   <footer class="footer-bar">
     <div class="left-actions">
-      <a href="criacao.html" class="btn-secondary">➕ Criar Novo Personagem</a>
-      <button class="btn-secondary btn-danger" onclick="openDeleteModal()">🗑️ Excluir Personagem</button>
+      <a href="criacao.html" class="btn-secondary">➕ <span class="txt-d">Criar Novo Personagem</span><span class="txt-m">Novo</span></a>
+      <button class="btn-secondary mobile-only" onclick="document.body.classList.toggle('ficha-open')">📋 <span class="txt-m">Ficha</span></button>
+      <button class="btn-secondary btn-danger" onclick="openDeleteModal()" title="Excluir personagem">🗑️ <span class="txt-d">Excluir Personagem</span></button>
     </div>
     <div>
       <button class="enter-btn" onclick="enterGame()">
@@ -617,9 +672,9 @@ function updateHeroCard(){
   document.getElementById('bar-men').style.width = (s.men / 50 * 100) + '%';
 
   // Weapon label
-  var wLabel = '⚔️ Dragon Slayer (Espada 2M)';
-  if(c.weapon === 'swordshield' || c.weapon === 'shield') wLabel = '🛡️ Escudo (Guardião)';/* CLAUDE [guardiao]: personagens antigos com swordshield tambem viram Guardiao */
-  else if(c.weapon === 'none') wLabel = '🥊 Desarmado (Punhos Livres)';
+  var wLabel = '⚔️ Guerreiro · Espada longa (2 mãos)';
+  if(c.weapon === 'swordshield' || c.weapon === 'shield') wLabel = '🛡️ Guardião · Escudo';
+  else if(c.weapon === 'staff') wLabel = '🔮 Mago · Cajado';
   document.getElementById('gearWeapon').textContent = wLabel;
 
   var sLabel = (c.charType === 'imperial' || c.set === 'imperial') ? '👑 Imperial Crusader S-Grade' : '🛡️ Traje Trainee de Iniciante';
@@ -682,7 +737,7 @@ window.enterGame = function(){
   localStorage.setItem('isblade.player_name', c.name);
   localStorage.setItem('isblade.char_type', c.charType || c.race);
   localStorage.setItem('isblade.char_race', c.race);
-  localStorage.setItem('isblade.weapon', c.weapon === 'none' ? 'none' : ((c.weapon === 'swordshield' || c.weapon === 'shield') ? 'shield' : 'sword')/* CLAUDE [guardiao] */);
+  localStorage.setItem('isblade.weapon', (c.weapon === 'swordshield' || c.weapon === 'shield') ? 'shield' : (c.weapon === 'staff' ? 'staff' : 'sword')/* classe */);
   localStorage.setItem('isblade.hair_style', c.hairStyle || 'both');
   localStorage.setItem('isblade.hair_color', c.hairColor || '#ffffff');
 

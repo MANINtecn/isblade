@@ -108,6 +108,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script><script>Conta.exigir();</script>
+<script src="js/giro.js?v=1"></script>
 </head>
 <body>
 
@@ -240,24 +241,28 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
         </div>
       </div>
 
-      <!-- Arma -->
+      <!-- Classe (define a arma; raca e visual sao livres) -->
       <div>
-        <div class="section-title">ARMA EM PUNHO <small>Arsenal</small></div>
+        <div class="section-title">CLASSE <small>Obrigat&oacute;ria</small></div>
         <div class="opt-grid">
-          <div class="opt-card active" id="wpn-ds" onclick="selectWeapon('dragon_slayer')">
-            <span class="opt-name">Dragon Slayer</span>
-            <span class="opt-sub">Espada Gigante (2 Mãos)</span>
+          <div class="opt-card" id="cls-guardiao" onclick="selectClasse('guardiao')">
+            <span class="opt-name">Guardi&atilde;o</span>
+            <span class="opt-sub">Escudo &middot; defensor</span>
           </div>
-          <!-- >>> CLAUDE [guardiao] 2026-10-27 — Guardiao agora usa so escudo (arma shield) -->
-          <div class="opt-card" id="wpn-1h" onclick="selectWeapon('shield')">
-            <span class="opt-name">Escudo</span>
-            <span class="opt-sub">Guardião &middot; só escudo</span><!-- <<< CLAUDE [guardiao] -->
+          <div class="opt-card" id="cls-mago" onclick="selectClasse('mago')">
+            <span class="opt-name">Mago</span>
+            <span class="opt-sub">Cajado &middot; dano m&aacute;gico</span>
           </div>
-          <div class="opt-card" id="wpn-none" onclick="selectWeapon('none')">
-            <span class="opt-name">Desarmado</span>
-            <span class="opt-sub">Punhos Livres</span>
+          <div class="opt-card active" id="cls-guerreiro" onclick="selectClasse('guerreiro')">
+            <span class="opt-name">Guerreiro</span>
+            <span class="opt-sub">Espada longa (2 m&atilde;os)</span>
+          </div>
+          <div class="opt-card" id="cls-clerico" onclick="selectClasse('clerico')" style="opacity:.45;cursor:not-allowed" title="Em breve">
+            <span class="opt-name">Cl&eacute;rigo</span>
+            <span class="opt-sub">Livro Astral &middot; em breve</span>
           </div>
         </div>
+        <div id="clsInfo" style="margin-top:8px;font-size:12px;opacity:.85;line-height:1.5"></div>
       </div>
 
       <!-- Teste de Ações -->
@@ -943,16 +948,28 @@ window.selectHairColor = function(hex){
   applyHair(currentModel, currentHairStyle, currentHairColor);
 };
 
-window.selectWeapon = function(wpn){
-  currentWeapon = wpn;
-  try { localStorage.setItem('isblade.weapon', wpn === 'none' ? 'none' : (wpn === 'shield' ? 'shield' : 'sword'));/* CLAUDE [guardiao] */ } catch(_){}
-  document.getElementById('wpn-ds').classList.toggle('active', wpn === 'dragon_slayer');
-  var el1h = document.getElementById('wpn-1h');
-  if(el1h) el1h.classList.toggle('active', wpn === 'shield');/* CLAUDE [guardiao] */
-  document.getElementById('wpn-none').classList.toggle('active', wpn === 'none');
-  attachWeapon();
-  playAction(wpn === 'none' ? 'idle_hand' : 'idle');
+var CLASSES = {
+  guardiao:  { nome: 'Guardião',  wpn: 'shield',        save: 'shield', papel: 'Defensor: segura o inimigo e protege o grupo.' },
+  mago:      { nome: 'Mago',          wpn: 'staff',         save: 'staff',  papel: 'Dano mágico à distância com habilidades de área.' },
+  guerreiro: { nome: 'Guerreiro',     wpn: 'dragon_slayer', save: 'sword',  papel: 'Dano físico corpo a corpo, combos rápidos.' }
 };
+var currentClasse = 'guerreiro';
+try { document.getElementById('clsInfo').textContent = CLASSES.guerreiro.papel; localStorage.setItem('isblade.weapon', 'sword'); } catch(_){}
+window.selectClasse = function(id){
+  var c = CLASSES[id];
+  if(!c){ alert('O Clérigo (Livro Astral) ainda não está disponível.'); return; }
+  currentClasse = id;
+  currentWeapon = c.wpn;
+  try { localStorage.setItem('isblade.weapon', c.save); } catch(_){}
+  Object.keys(CLASSES).concat(['clerico']).forEach(function(k){
+    var el = document.getElementById('cls-' + k); if(el) el.classList.toggle('active', k === id);
+  });
+  var inf = document.getElementById('clsInfo'); if(inf) inf.textContent = c.papel;
+  attachWeapon();
+  playAction('idle');
+};
+window.selectWeapon = function(wpn){ selectClasse(wpn === 'shield' ? 'guardiao' : 'guerreiro'); };
+
 
 window.selectDest = function(dest){
   currentDest = dest;
@@ -1019,6 +1036,7 @@ function setupNameValidation(){
   updateStatus();
 }
 
+
 window.enterWorld = function(){
   var nameEl = document.getElementById('charName');
   var pName = (nameEl && nameEl.value.trim()) || '';
@@ -1030,11 +1048,11 @@ window.enterWorld = function(){
   }
 
   var saveType = (currentRace === 'human_fighter' && currentSet === 'imperial') ? 'imperial' : currentRace;
-  var saveWpn = (currentWeapon === 'none' ? 'none' : (currentWeapon === 'shield' ? 'shield' : 'sword')/* CLAUDE [guardiao] */);
+  var saveWpn = CLASSES[currentClasse].save;
 
   /* MMO: quem cria o personagem e o SERVIDOR (nome unico, limite de slots); aqui so se pede e se guarda a copia devolvida */
   if(window._criando) return; window._criando = true;
-  var corpoCria = { name: pName, race: currentRace, charType: saveType, set: currentSet, weapon: saveWpn, hairStyle: currentHairStyle, hairColor: currentHairColor };
+  var corpoCria = { name: pName, race: currentRace, charType: saveType, set: currentSet, weapon: saveWpn, classe: currentClasse, hairStyle: currentHairStyle, hairColor: currentHairColor };
   Conta.api('POST', '/api/personagens', corpoCria, function(cod, j){
     window._criando = false;
     if(cod !== 200 || !j || !j.char){
