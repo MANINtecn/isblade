@@ -7,7 +7,7 @@ Jogo de acao no navegador (Three.js). PC e celular (botoes de toque desde 31/10/
 - Arquivo principal: `arena.html` (arena de combate 3D)
 - Como abrir: `INICIAR.bat` (servidor na porta 8000) e depois `http://localhost:8000/arena.html`
 - Referencia de jogabilidade: Dragon Nest (mira no centro, skills com alcance, combate fluido)
-- Ultima atualizacao deste diario: 31/10/2026 (secao final "SESSAO 28-31/10"; o detalhe tecnico de cada mudanca do Claude esta em `REGISTRO_CLAUDE.md`, uma entrada por mudanca, com backups e o que foi/nao foi testado)
+- Ultima atualizacao deste diario: 01/11/2026 (Auditoria Geral de Ecossistema de MMORPG pelo Gemini; detalhes tecnicos do Claude em `REGISTRO_CLAUDE.md`)
 
 ---
 
@@ -2282,3 +2282,54 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - **Miolo de massa (octógono) trocado por um buraco negro**: núcleo esférico preto, halo de borda brilhante (fresnel), disco de acreção em espiral (branco-quente → jade) que gira ao contrário e aro de aço fino ligando as 4 lâminas. Lâminas agora saem do aro (`blade_mesh(..., miolo=False)`).
 - **Giro no próprio eixo** só em Z (sem balanço), **43° por quadro** (≈ 2064°/s a 48 fps). Limite: com 4 lâminas o olho/render lê movimento correto até 45° por quadro; acima disso o giro parece voltar (efeito de roda de carroça). Aura do L2 e disco do buraco negro giram em sentido contrário e mais rápido para dar sensação de velocidade.
 - Visto em quadros do EEVEE (corpo isolado em 4 ângulos + sequência com câmera de perto e lateral); não visto em movimento nem no jogo. Fraco ainda: o disco do buraco negro lê como névoa (não como espiral), o halo branco está grosso e o impacto continua com cortes pálidos/poeira de bolinhas. Script `prototipo/tools/blender_fx/mago_skill1_shuriken.py` (`.v1`/`.v2` são cópias locais, ignoradas).
+
+
+### [Gemini] 01/11/2026 - Auditoria Geral: Pontos Fracos, Quebras de Fluxo e Ecossistema de MMORPG
+- **Objetivo**: Auditoria técnica profunda solicitada pelo dono para levantar vulnerabilidades de segurança, arquitetura, quebras de fluxo de jogador e ausência de pilares fundamentais que um ecossistema de MMORPG exige.
+
+#### 1. Falhas Críticas de Segurança e Arquitetura (Servidor vs Cliente)
+- **1.1. Inventário e Equipamento 100% no Cliente (Vulnerabilidade F12)**:
+  - *Diagnóstico*: Em `servidor/contas.js` (linhas 75 e 100), o endpoint `PUT /api/dados` aceita payloads brutos do `localStorage` contendo chaves como `isblade.inv.*`, `isblade.mastery.*` e configurações.
+  - *Vulnerabilidade*: Qualquer usuário via Console do Navegador (F12) pode manipular o `localStorage` inserindo armas +20 com dano astronômico, itens lendários forjados ou maestrias inexistentes. O servidor persiste isso cegamente em `contas.json`.
+  - *Ação necessária*: Mover a autoridade total de geração, guarda e modificação de itens para o servidor. O cliente só deve receber do servidor a lista somente-leitura do que possui.
+- **1.2. Masmorra / DG Simulada no Cliente Líder ("Host Client-Side")**:
+  - *Diagnóstico*: Em `arena.html` e `server.js` (linha 189), o loop de IA, vida dos monstros, spawn de projéteis e vitória da DG rodam na máquina do Líder do Grupo.
+  - *Risco*: Lag do líder afeta todos os convidados; queda do líder mata a dungeon de todos; adulteração de memória no navegador do líder permite matar todos os mobs e chefes instantaneamente (`dg: clear`).
+  - *Ação necessária*: Migrar o loop de simulação e colisão de mobs/dungeons para o Node.js na VPS.
+- **1.3. Código Monolítico de 300KB+ em Arquivo Único**:
+  - *Diagnóstico*: `arena.html` (327 KB) e `cidade.html` (310 KB) concentram mais de 8.000 linhas cada, duplicando lógica de combate, shaders, rede e UI.
+  - *Risco*: Manutenção frágil; consertos aplicados na cidade frequentemente não refletem na arena; alto risco de regressões.
+
+#### 2. Quebra de Fluxos (Flow Breaks & Experiência do Jogador)
+- **2.1. Quebra de Sessão por Redirecionamento Total (`window.location.href`)**:
+  - A troca de mapa Cidade ↔ Arena ↔ Torre recarrega a página web inteira.
+  - Destrói o contexto Three.js/WebGL, força nova limpeza de memória pela GPU, derruba a conexão WebSocket (exigindo re-handshake, revalidação de token, reingresso de grupo e reconexão de canais).
+  - *Solução*: Estruturar o cliente como SPA (Single Page Application), transicionando zonas de forma assíncrona sem derrubar o WebSocket.
+- **2.2. Choque de Paradigmas (Dragon Nest vs Lineage 2 no Mobile)**:
+  - No PC, a mira central no retículo (Action Combat fluido estilo Dragon Nest) funciona perfeitamente.
+  - No Celular com tela touch de 6", tentar controlar analógico de movimento + girar câmera + leque de 6 skills + esquiva/pulo/bloqueio gera sobrecarga motora severa.
+  - *Solução*: Implementar sistema de *Soft-Lock inteligente* para toque/mobile (ataques buscam automaticamente o arco do alvo em cone frontal).
+- **2.3. Onboarding Vazio (Praça Deserta)**:
+  - O jogador cria o personagem e surge na praça da Ilha de Talking sem orientação, sem NPC de introdução e sem missões iniciais.
+  - Risco de alta evasão no primeiro minuto de jogo.
+
+#### 3. Quebra do Ecossistema Fundamental de MMORPG
+- **3.1. Economia Inexistente (Zero Circulação)**:
+  - Não há moeda corrente oficial (Adena/Gold) controlada pelo servidor.
+  - Não há sistema de trocas entre jogadores (Trade) nem Casa de Leilão (Market).
+  - Não há sumidouros econômicos (*gold sinks*): reparo de equipamentos, taxas de mercado, consumíveis essenciais (Soulshots, poções de vida/mana, pergaminhos de teleporte).
+- **3.2. Ausência da Trindade Sagrada e Dinâmica de Grupo**:
+  - Todas as classes atuais operam apenas como DPS Solo.
+  - Não há mecânica de geração de Ameaça/Agro no chefe para o Guardião (Tank), nem classe Suporte/Healer com buffs e curas.
+  - Grupos atualmente apenas juntam pessoas batendo no mesmo alvo ("zerg"), sem dependência mútua nem estratégia tática.
+- **3.3. Progressão Unidimensional**:
+  - Subir de nível hoje apenas aumenta ligeiramente o limite máximo de HP (`pmaxMax`).
+  - Faltam: Atributos clássicos distribuíveis (STR, DEX, CON, INT, MEN), árvores de talentos e sistema de encantamento (+1 até +16 com brilho de arma e risco de quebra estilo Lineage 2).
+- **3.4. Motivação Social e End-Game**:
+  - Falta sistema de Clãs/Guildas (evolução de clã, emblema sobre o personagem, chat de guilda, alianças).
+  - Falta PvP em mundo aberto com regras de Karma/PK e disputa por spots de farm.
+
+### [Claude] 01/11/2026 - Shuriken de Vento v3: voo mais lento (20 m em ~1,1 s)
+- O voo estava rápido demais (20 m em 30 quadros, ~32 m/s). Agora **20 m em 54 quadros = 1,125 s a 48 fps (~17,8 m/s)**; impacto no quadro 55, some no 75 (`F_HIT=55`, `F_FIM=75`, `N_VOO`). O giro continua em **43° por quadro** (2322° no voo), agora constante (interpolação linear); aura, anel, rastro e disco do buraco negro giram proporcionalmente.
+- Feito ao vivo pelo MCP na janela `mage_skills` (retemporizei as 618 chaves e salvei o arquivo), conferido por renderização de quadros na própria sessão (quadros 10-66 de perto e 14-54 da lateral). Script `mago_skill1_shuriken.py` atualizado com os mesmos valores.
+- Para o jogo: velocidade do projétil sugerida ~18 m/s, alcance 20 m (a ligar em `data/armas/staff.json`, slot 1, ainda não feito).

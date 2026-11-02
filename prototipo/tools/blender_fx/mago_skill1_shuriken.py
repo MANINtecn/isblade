@@ -1,6 +1,6 @@
 """Mago - skill 1: SHURIKEN DE VENTO (rapida, na mira). Monta tudo no Blender: corpo 3D da estrela, aura (malha de redemoinho do L2), rastro em helice e impacto.
 Uso:  blender -b -P mago_skill1_shuriken.py        -> salva prototipo/assets/personagens/mage_skills.blend  (PREVIA=<pasta> tambem renderiza quadros)
-48 fps. Voo: frames 1-30 (a estrela anda 20 m no eixo +Y, ~32 m/s); impacto: frame 30 em diante (sumindo ate 50).
+48 fps. Voo: frames 1-30 (a estrela anda 20 m no eixo +Y, ~17,8 m/s); impacto: frame 55 em diante (sumindo ate 75).
 Paleta: nucleo branco-quente, jade palido, aco azulado, poeira cinza-areia. Sem rosa/lilas."""
 import bpy, bmesh, math, os, random
 from mathutils import Vector, Matrix
@@ -9,8 +9,9 @@ RAIZ = r"C:/TECX SOFTHOUSE/IS ONLINE/"
 SAIDA = RAIZ + "prototipo/assets/personagens/mage_skills.blend"
 L2MESH = RAIZ + "trabalho_l2fx/export_bruto/LineageEffectsStaticmeshes/StaticMesh/"
 L2TEX = RAIZ + "trabalho_l2fx/export_bruto/LineageEffectsTextures/Texture/"
-F0, F_HIT, F_FIM = 1, 30, 50
+F0, F_HIT, F_FIM = 1, 55, 75        # voo de 20 m em 54 quadros = 1,125 s a 48 fps (~17,8 m/s)
 DIST = 20.0
+N_VOO = F_HIT - F0
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 try: bpy.ops.preferences.addon_enable(module="bl_ext.user_default.io_scene_psk_psa")
@@ -277,11 +278,11 @@ for fc in raiz.animation_data.action.layers[0].strips[0].channelbags[0].fcurves 
     for p in fc.keyframe_points: p.interpolation = "LINEAR"
 # giro da estrela (rapido, 2 voltas por 24 frames) + oscilacao leve
 estrela.rotation_euler = (0, 0, 0); estrela.keyframe_insert("rotation_euler", frame=F0)
-estrela.rotation_euler = (0, 0, math.radians(43 * (F_HIT - F0))); estrela.keyframe_insert("rotation_euler", frame=F_HIT)
-aura.rotation_euler = (0, 0, 0); aura.keyframe_insert("rotation_euler", frame=F0); aura.rotation_euler = (0, 0, math.radians(-1300)); aura.keyframe_insert("rotation_euler", frame=F_HIT)
-anel.rotation_euler = (math.radians(90), 0, 0); anel.keyframe_insert("rotation_euler", frame=F0); anel.rotation_euler = (math.radians(90), math.radians(700), 0); anel.keyframe_insert("rotation_euler", frame=F_HIT)
-grupo_rastro.rotation_euler = (0, 0, 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F0); grupo_rastro.rotation_euler = (0, math.radians(-1700), 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F_HIT)
-dsc = bpy.data.objects[estrela['disco']]; dsc.rotation_euler = (0, 0, 0); dsc.keyframe_insert('rotation_euler', frame=F0); dsc.rotation_euler = (0, 0, math.radians(-2400)); dsc.keyframe_insert('rotation_euler', frame=F_HIT)
+estrela.rotation_euler = (0, 0, math.radians(43 * N_VOO)); estrela.keyframe_insert("rotation_euler", frame=F_HIT)
+aura.rotation_euler = (0, 0, 0); aura.keyframe_insert("rotation_euler", frame=F0); aura.rotation_euler = (0, 0, math.radians(-40 * N_VOO)); aura.keyframe_insert("rotation_euler", frame=F_HIT)
+anel.rotation_euler = (math.radians(90), 0, 0); anel.keyframe_insert("rotation_euler", frame=F0); anel.rotation_euler = (math.radians(90), math.radians(24 * N_VOO), 0); anel.keyframe_insert("rotation_euler", frame=F_HIT)
+grupo_rastro.rotation_euler = (0, 0, 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F0); grupo_rastro.rotation_euler = (0, math.radians(-58 * N_VOO), 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F_HIT)
+dsc = bpy.data.objects[estrela['disco']]; dsc.rotation_euler = (0, 0, 0); dsc.keyframe_insert('rotation_euler', frame=F0); dsc.rotation_euler = (0, 0, math.radians(-80 * N_VOO)); dsc.keyframe_insert('rotation_euler', frame=F_HIT)
 # depois do impacto: estrela/aura/rastro encolhem e somem
 for o, esc in ((estrela, 0.78), (aura, aura.scale[0]), (anel, anel.scale[0])):
     o.scale = (esc,) * 3; o.keyframe_insert("scale", frame=F_HIT); o.scale = (0.001,) * 3; o.keyframe_insert("scale", frame=F_HIT + 3)
@@ -323,7 +324,7 @@ if pasta:
     os.makedirs(pasta, exist_ok=True)
     for nome_cam, c in (("voo", cam), ("perto", cam2)):
         sc.camera = c
-        for f in (4, 12, 20, 28, 31, 34, 40, 48):
+        for f in (6, 20, 34, 48, 56, 60, 68, 76):
             sc.frame_set(f); sc.render.filepath = os.path.join(pasta, "s1_%s_f%02d.png" % (nome_cam, f)); bpy.ops.render.render(write_still=True)
 
 if os.environ.get("MODELO"):
