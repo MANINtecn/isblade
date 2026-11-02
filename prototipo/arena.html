@@ -452,9 +452,9 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
 <script src="js/mobile.js?v=7"></script>
-<script src="js/qualidade.js?v=2"></script>
+<script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script>
-<script src="js/mago_fx.js?v=2"></script>
+<script src="js/mago_fx.js?v=3"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
@@ -684,7 +684,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=23';
+import { Net } from './js/net.js?v=24';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -1058,6 +1058,14 @@ var SFX=(function(){
 
     storm_hit:function(){return (smp('focus_sonic_shot',.95,1.05) && smp(L2.swordBig,.9,1.0)) || smp(F.mM,.6,1.05);},
 
+    mb_cast:function(){return smp('doublewind_shot',.3,1.7)||smp(F.las,.12,1.9);},
+
+    mb_c1:function(){return smp('energywave_shot',.4,1.8)||smp(F.gL,.25,1.8);},
+
+    mb_c2:function(){return smp('energywave_shot',.5,1.55)||smp(F.gL,.3,1.6);},
+
+    mb_c3:function(){return (smp('energywave_shot',.7,1.15) && smp(L2.swordGreat,.35,1.35)) || smp(F.gL,.45,1.2);},
+
     m_s1_swing:function(){return (smp('doublewind_shot',.8,1.25) && smp(L2.shing,.5,1.4)) || smp(F.las,.28,1.6);},
 
     m_s1_hit:function(){return (smp('energywave_shot',.7,1.3) && smp(L2.shing,.45,1.2)) || smp(F.gL,.4,1.2);},
@@ -1145,6 +1153,14 @@ var SFX=(function(){
     storm_swing:function(){noise(.35,.9,'bandpass',500,2400,0,1.5);},
 
     storm_hit:function(){tone(220,90,.15,'triangle',.4);},
+
+    mb_cast:function(){tone(1500,700,.12,'sine',.1);},
+
+    mb_c1:function(){tone(1200,500,.1,'triangle',.18);},
+
+    mb_c2:function(){tone(1100,420,.12,'triangle',.2);},
+
+    mb_c3:function(){tone(900,300,.2,'triangle',.28);},
 
     m_s1_swing:function(){tone(1700,500,.3,'sine',.16);},
 
@@ -1594,7 +1610,7 @@ var scene=new THREE.Scene();
 
 scene.background=new THREE.Color(0x05060d);
 
-scene.fog=new THREE.Fog(0x05060d,22,62);
+scene.fog=new THREE.Fog(0x05060d,QUAL.nevoa[0],QUAL.nevoa[1]);/* [nevoa] por qualidade (antes 22-62 m: mobs sumiam no escuro) */
 
 var camera=new THREE.PerspectiveCamera(46,1,.1,200);
 
@@ -2515,6 +2531,8 @@ function getClipConfig(pose){
   if(WPN==='staff'){
 
     /* [mago] skill 1: clipe CastShort da propria raca (Guardiao.anexarCast) */ if(pose==='m_s1'&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1)return vrm.mCast;
+
+    /* [mago] ataque padrao: o CastShort da propria raca nos 3 golpes (efeito: MagoFX.brisa/aviso/cristais) */ if((pose==='sweep'||pose==='thrust'||pose==='spin')&&window.MagoFX&&MagoFX.basico&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1){var _mh=vrm.mCast.hit;return {c:'m_cast1',sp:1.5,hit:_mh,cut:Math.min(1,_mh+.12),lg:0};}
 
     var staffCM={
 
@@ -3665,8 +3683,14 @@ function skillFxRemoto(e,i,f){
 }
 /* <<< CLAUDE [pvp-fx] */
 /* golpe basico do outro jogador (3 golpes do Guardiao ou arco/leque da espada) + impacto na vitima */
-function fxBasicoRemoto(e,id,f){
+function fxBasicoRemoto(e,id,f,m){
   if(Math.hypot(e.x-S.px,e.z-S.pz)>80)return;
+  if(e.arma==='staff'&&m&&m.x!==undefined&&window.MagoFX&&MagoFX.basico){/* [mago] ataque padrao do outro mago: brisa nele, aviso no ponto mirado e os cristais brotam apos o aviso */
+    var b=(DATA.armas&&DATA.armas.staff&&DATA.armas.staff.basico&&DATA.armas.staff.basico.niveis&&DATA.armas.staff.basico.niveis[id])||MAGO_B_PAD[id]||MAGO_B_PAD.sweep,d=Math.max(.08,m.d||.2),ang=Math.atan2(m.x-e.x,m.z-e.z);
+    try{MagoFX.brisa(e.x,e.z,b.n);MagoFX.aviso(m.x,m.z,b.n,d);}catch(_){}
+    setTimeout(function(){try{MagoFX.cristais(m.x,m.z,ang,b.n);SFX.play('mb_c'+b.n);}catch(_){}},d*1000);
+    return;
+  }
   var mr=MRANGE[id],rng=mr?mr[0]:REACH,o={px:S.px,pz:S.pz,face:S.face,shake:S.shake,anim:S.anim,wpn:WPN};
   REMOTEFX=true;S.px=e.x;S.pz=e.z;S.face=f;WPN=e.arma;S.anim=null;
   try{
@@ -3891,6 +3915,21 @@ function canCancel(an){if(an){var gc=Guardiao.podeCancelar(an);if(gc!==null)retu
 
 /* devolve 'ok' (executou), 'busy' (ocupado: vale guardar no buffer) ou 'no' */
 
+/* [mago] ataque padrao do cajado: 3 niveis, cristais que brotam ONDE ELE MIRA (ate 10 m). Numeros em data/armas/staff.json -> basico (o servidor le o mesmo). */
+var MAGO_B_PAD={sweep:{n:1,raio:1.4,mul:.8},thrust:{n:2,raio:2.0,mul:1.0},spin:{n:3,raio:1.9,mul:1.25,guarda:.3}};
+function magoBasicoCfg(id){var w=DATA.armas&&DATA.armas.staff,b=w&&w.basico&&w.basico.niveis&&w.basico.niveis[id];return b||MAGO_B_PAD[id];}
+function magoBasicoIni(id){
+  var b=magoBasicoCfg(id),w=(DATA.armas.staff&&DATA.armas.staff.basico)||{},an=S.anim,pm=pontoMira({mira_min:w.minimo||2,mira_max:w.alcance||10});
+  S.face=pm.ang;an.alvo={x:pm.x,z:pm.z,d:pm.d,ang:pm.ang};an.raioM=b.raio;an.magoB=b;an.dmg=Math.round(an.dmg*(b.mul||1));
+  try{MagoFX.brisa(S.px,S.pz,b.n);MagoFX.aviso(pm.x,pm.z,b.n,an.hitT);SFX.play('mb_cast');}catch(_){}
+  Net.mago(an.id,pm.x,pm.z,pm.ang,an.hitT);
+}
+function magoBasicoHit(an){
+  var b=an.magoB,al=an.alvo;
+  try{MagoFX.cristais(al.x,al.z,al.ang,b.n);SFX.play('mb_c'+b.n);Voz.tocar('atk');}catch(_){}
+  if(b.guarda&&BOSS_ON&&!S.dead&&DG.grp!=='guest'&&Math.random()<b.guarda&&Math.max(0,Math.hypot(S.ex-al.x,S.ez-al.z)-3)<=b.raio)
+    setTimeout(function(){if(S.dead)return;setEnemy('stagger',1.8);SFX.play('guardBreak');floatText('GUARDA QUEBRADA!','#f5c451',30);S.shake=Math.max(S.shake,.4);},0);
+}
 function perform(id,q){
 
   if(S.pdead)return 'no';
@@ -3942,6 +3981,7 @@ function perform(id,q){
   dmg=Math.round(dmg*(.92+Math.random()*.16)*3);
 
   S.anim=mkAnim(id,dmg,sk,perfect,null);
+  if(WPN==='staff'&&window.MagoFX&&MagoFX.basico&&S.anim.clipMode&&(id==='sweep'||id==='thrust'||id==='spin')&&vrm&&vrm.mCast)magoBasicoIni(id);/* [mago] */
   /* >>> CLAUDE [guardiao] 2026-10-28 — efeitos de antes do golpe do ataque padrao (rastro, poeira) */ if(WPN==='shield')Guardiao.aoAtacar(S.anim); /* <<< CLAUDE [guardiao] */
 
   /* [hud-clean] aviso 'Combo interrompido' removido: poluia a tela */
@@ -3969,7 +4009,7 @@ function pontoMira(sk){
   var raw=Math.hypot(ax-S.px,az-S.pz),ang=raw>.05?Math.atan2(ax-S.px,az-S.pz):S.face,d=clamp(raw,mn,mx);
   return {x:S.px+Math.sin(ang)*d,z:S.pz+Math.cos(ang)*d,d:d,ang:ang,fora:raw>mx};
 }
-function raioMira(an){var r=an.skill&&an.skill.raio;return (r&&r[Math.max(0,(an.part||1)-1)])||(r&&r[0])||5.5;}
+function raioMira(an){if(an.raioM)return an.raioM;var r=an.skill&&an.skill.raio;return (r&&r[Math.max(0,(an.part||1)-1)])||(r&&r[0])||5.5;}
 var miraAnel=new THREE.Mesh(new THREE.RingGeometry(.9,1,48),new THREE.MeshBasicMaterial({color:0xf5c451,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));
 miraAnel.rotation.x=-Math.PI/2;miraAnel.visible=false;scene.add(miraAnel);
 function miraAtualiza(){
@@ -4034,7 +4074,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&an.skill.proj&&!an.noRange))return;/* [mago
 
   if(!an.noRange){
 
-    if(!an.skill){
+    if(!an.skill&&!an.magoB){
 
       SFX.play('swing');try{Voz.tocar('atk');}catch(_){}
 
@@ -4043,7 +4083,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&an.skill.proj&&!an.noRange))return;/* [mago
     }
 
     /* >>> CLAUDE [guardiao] 2026-10-28 — ataque padrao do Guardiao tem efeitos proprios (3D, texturizados): sem o leque/arco genericos de espada */
-    if(WPN==='shield'&&!an.skill){Guardiao.fxBasico(an);}else{
+    if(an.magoB){magoBasicoHit(an);}else if(WPN==='shield'&&!an.skill){Guardiao.fxBasico(an);}else{
     flashFan(an.skill?an.skill.pose:an.id,rng);
 
     slashArc(S.px,S.pz,S.face,an.skill?parseInt(an.skill.css.slice(1),16):0xcfe6ff,clamp(rng*.38,1.1,2.2),1.4);}
@@ -4355,10 +4395,46 @@ function groundAt(cx,cy){
 
 var ORBIT=/[?&]orbit=1/.test(location.search);/* teste visual: camera orbita o personagem (?orbit=1&camyaw=..&camdist=..) */
 
+function getMobileSoftLockAngle(){
+  var candidates = [];
+  if(BOSS_ON && !S.dead && (typeof BOSS_ALIVE === 'undefined' || BOSS_ALIVE)){
+    candidates.push({ x: S.ex, z: S.ez });
+  }
+  if(typeof DG !== 'undefined' && DG.mobs && DG.mobs.length){
+    for(var m = 0; m < DG.mobs.length; m++){
+      var mob = DG.mobs[m];
+      if(mob && !mob.dead && !mob.dying) candidates.push({ x: mob.x, z: mob.z });
+    }
+  }
+  if(typeof miniBoss !== 'undefined' && miniBoss && !miniBoss.dead){
+    candidates.push({ x: miniBoss.x, z: miniBoss.z });
+  }
+  if(window.Net && Net.outros){
+    Net.outros.forEach(function(o){ if(o && !o.morto) candidates.push({ x: o.x, z: o.z }); });
+  }
+  var bestAng = null, bestScore = 999;
+  for(var i = 0; i < candidates.length; i++){
+    var c = candidates[i];
+    var dx = c.x - S.px, dz = c.z - S.pz, d = Math.hypot(dx, dz);
+    if(d > 14.0) continue;
+    var ang = Math.atan2(dx, dz);
+    var diff = Math.abs(angDiff(S.face, ang));
+    if(d < 4.5 || diff < 1.35){
+      var score = d + diff * 2.5;
+      if(score < bestScore){ bestScore = score; bestAng = ang; }
+    }
+  }
+  return bestAng;
+}
+
 function aimAngle(){
   if(ORBIT)return Math.PI;
-  /* [toque] celular: o golpe e a skill vao para onde o ANALOGICO aponta (ou para a ultima direcao andada); sem travar no inimigo mais proximo */
-  if(MOUSE.touch){var mv=moveVec();if(mv.m>.15)return Math.atan2(mv.x,mv.z);return (S.mdir!==undefined)?S.mdir:S.face;}
+  /* [toque] celular: com Soft-Lock inteligente (busca automaticamente alvo proximo em cone frontal) */
+  if(MOUSE.touch){
+    var softAng = getMobileSoftLockAngle();
+    if(softAng !== null) return softAng;
+    var mv=moveVec();if(mv.m>.15)return Math.atan2(mv.x,mv.z);return (S.mdir!==undefined)?S.mdir:S.face;
+  }
 
   if(NAV.mode==='dn'){
 
@@ -6063,7 +6139,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{perform:perform,rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;

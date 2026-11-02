@@ -199,5 +199,33 @@
       "unlock": 18,
       "tipo": 2
     }
-  ]
+  ],
+  "basico": {
+    "_nota": "Ataque padrao do mago (3 niveis, cristais que brotam onde mira). Fonte unica: cliente (arena.html) e servidor (server.js) leem daqui. dmg = dano no PvP (servidor); mul = multiplicador do dano do PvE sobre o golpe base; guarda = chance de quebrar a guarda/interromper o chefe (nivel 3).",
+    "alcance": 10,
+    "minimo": 2,
+    "delay_min": 0.08,
+    "delay_max": 0.7,
+    "niveis": {
+      "sweep": {
+        "n": 1,
+        "raio": 1.4,
+        "mul": 0.8,
+        "dmg": 15
+      },
+      "thrust": {
+        "n": 2,
+        "raio": 2.0,
+        "mul": 1.0,
+        "dmg": 24
+      },
+      "spin": {
+        "n": 3,
+        "raio": 1.9,
+        "mul": 1.25,
+        "dmg": 34,
+        "guarda": 0.3
+      }
+    }
+  }
 }

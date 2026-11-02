@@ -123,6 +123,91 @@
       if(u >= 1){ cena.remove(g); geos.forEach(function(x){ x.dispose(); }); mC.dispose(); anel.material.dispose(); return true; }
       return false; } });
   };
+  /* ---------------- ATAQUE PADRAO DO MAGO: cristais que brotam onde ele mira (desenho do dono, cena MAGO_ATAQUE do Blender) ----------------
+     Formas so angulares (sem esfera/anel/disco). 3 niveis: 1 = 1 cristal; 2 = 5 cristais (um pouco maiores); 3 = 3 cristais do mesmo tamanho (chance de quebrar a guarda, no jogo).
+     brisa(x,z,nivel): laminas de vento ao redor do mago; aviso(x,z,nivel,dur): linhas retas no chao antes do golpe; cristais(x,z,face,nivel): brotam e se partem em estilhacos.
+     Geometrias e materiais compartilhados (leve com muitos magos), sem rastro. */
+  M.basico = true;
+  var BG = null;
+  function geoCristal(L, r){
+    var a = [[0, 0.8 * r], [0.22 * L, r], [0.78 * L, 0.6 * r], [L, 0]], n = 6, v = [], k, i, p = function(h, rr, j, tw){ var ang = 6.2832 * j / n + tw; return [Math.cos(ang) * rr, h, Math.sin(ang) * rr]; };
+    function tri(A, B, C){ v.push(A[0], A[1], A[2], B[0], B[1], B[2], C[0], C[1], C[2]); }
+    for(k = 0; k < n; k++){
+      var k2 = (k + 1) % n;
+      for(i = 0; i < 2; i++){ var P0 = p(a[i][0], a[i][1], k, 0.2 * i), P1 = p(a[i][0], a[i][1], k2, 0.2 * i), Q0 = p(a[i + 1][0], a[i + 1][1], k, 0.2 * (i + 1)), Q1 = p(a[i + 1][0], a[i + 1][1], k2, 0.2 * (i + 1)); tri(P0, Q1, P1); tri(P0, Q0, Q1); }
+      var R0 = p(a[2][0], a[2][1], k, 0.4), R1 = p(a[2][0], a[2][1], k2, 0.4); tri(R0, [0, L, 0], R1);
+      tri([0, 0, 0], p(0, a[0][1], k2, 0), p(0, a[0][1], k, 0));
+    }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(v, 3)); g.computeVertexNormals(); return g;
+  }
+  function geoLamina(L, w){
+    var s = new T.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(w * 0.15, L * 0.7); s.lineTo(0, L); s.lineTo(-w * 0.15, L * 0.7); s.closePath(); return new T.ShapeGeometry(s);
+  }
+  function bg(){
+    if(BG) return BG;
+    var Cls = leve() ? T.MeshLambertMaterial : T.MeshStandardMaterial;
+    var mc = new Cls({ color: 0xcfeaff, emissive: 0x2670d8, emissiveIntensity: 0.7, flatShading: true });
+    if(!leve()){ mc.metalness = 0.2; mc.roughness = 0.3; }
+    BG = { cris: mc, vento: new T.MeshBasicMaterial({ color: 0xb8ffe2, transparent: true, opacity: 0.85, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }), geo: {} };
+    return BG;
+  }
+  function gC(L, r){ var B = bg(), k = L + '_' + r; return B.geo[k] || (B.geo[k] = geoCristal(L, r)); }
+  function gL(L, w){ var B = bg(), k = 'l' + L + '_' + w; return B.geo[k] || (B.geo[k] = geoLamina(L, w)); }
+  function ease(u){ return 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), 3); }
+
+  M.brisa = function(x, z, nivel){
+    if(!T || !cena) return; var B = bg(), g = new T.Group(), n = (nivel === 3 ? 9 : 7) - (leve() ? 3 : 0), i; g.position.set(x, 0, z); cena.add(g);
+    var bl = [];
+    for(i = 0; i < n; i++){
+      var a = 6.2832 * i / n, r = 0.5 + alea() * 0.3, h0 = 0.15 + alea() * 0.75, L = 0.55 + alea() * 0.4, m = new T.Mesh(gL(Math.round(L * 20) / 20, 0.1), B.vento);
+      m.position.set(Math.cos(a) * r, h0, Math.sin(a) * r); m.rotation.set(0.17, -a + Math.PI / 2, 0); m.scale.setScalar(0.05); m.frustumCulled = false; g.add(m); bl.push({ o: m, h0: h0 });
+    }
+    var t0 = 0, vida = 0.5;
+    vivos.push({ tick: function(dt){
+      t0 += dt; var u = Math.min(1, t0 / vida), s = u < 0.3 ? u / 0.3 : Math.max(0.05, 1 - (u - 0.3) / 0.7); g.rotation.y = 3.5 * u;
+      bl.forEach(function(b){ b.o.scale.setScalar(Math.max(0.05, s)); b.o.position.y = b.h0 + 0.7 * u; });
+      if(u >= 1){ cena.remove(g); return true; } return false; } });
+  };
+  M.aviso = function(x, z, nivel, dur){
+    if(!T || !cena) return; var B = bg(), g = new T.Group(), n = nivel === 3 ? 9 : (nivel === 2 ? 7 : 5), R = nivel === 3 ? 1.7 : (nivel === 2 ? 1.1 : 0.7), i; g.position.set(x, 0.04, z); cena.add(g);
+    var ls = [];
+    for(i = 0; i < n; i++){ var a = 6.2832 * i / n + (alea() - 0.5) * 0.4, p = new T.Group(); p.rotation.y = a; var m = new T.Mesh(gL(Math.round(R * (0.6 + alea() * 0.4) * 20) / 20, 0.07), B.vento); m.rotation.x = -Math.PI / 2; m.frustumCulled = false; p.add(m); g.add(p); ls.push(p); }
+    var t0 = 0, sobe = Math.max(0.08, dur || 0.2), vida = sobe + 0.3;
+    vivos.push({ tick: function(dt){
+      t0 += dt; var s = t0 < sobe ? 0.05 + 0.95 * ease(t0 / sobe) : Math.max(0.05, 1 - (t0 - sobe) / 0.3);
+      ls.forEach(function(p){ p.scale.setScalar(s); }); if(t0 >= vida){ cena.remove(g); return true; } return false; } });
+  };
+  var NIV = {
+    1: [{ s: 0, f: 0, L: 0.9, r: 0.13, yaw: 0.35, lean: -0.14 }],
+    2: [{ s: 0, f: 0, L: 1.35, r: 0.15, yaw: 0.17, lean: -0.1 }, { s: -0.55, f: 0.25, L: 1.0, r: 0.15, yaw: 0.7, lean: -0.2 }, { s: 0.55, f: 0.2, L: 1.05, r: 0.15, yaw: 1.4, lean: -0.2 },
+        { s: -0.2, f: -0.5, L: 0.8, r: 0.15, yaw: 2.1, lean: -0.24 }, { s: 0.25, f: -0.45, L: 0.85, r: 0.15, yaw: 2.8, lean: -0.24 }],
+    3: [{ s: 0, f: 0.45, L: 1.7, r: 0.26, yaw: 0.35, lean: -0.14 }, { s: -0.55, f: -0.35, L: 1.7, r: 0.26, yaw: 1.75, lean: -0.18 }, { s: 0.55, f: -0.35, L: 1.7, r: 0.26, yaw: 3.5, lean: -0.18 }]
+  };
+  M.cristais = function(x, z, face, nivel){
+    if(!T || !cena) return; var B = bg(), cfg = NIV[nivel] || NIV[1], sf = Math.sin(face || 0), cf = Math.cos(face || 0), hold = nivel === 3 ? 0.5 : 0.42;
+    cfg.forEach(function(c, idx){
+      var m = new T.Mesh(gC(c.L, c.r), B.cris); m.rotation.order = 'YXZ'; m.rotation.set(c.lean, (face || 0) + c.yaw, 0);
+      var px = x + c.s * cf + c.f * sf, pz = z - c.s * sf + c.f * cf; m.position.set(px, 0, pz); m.scale.set(0.6, 0.02, 0.6); m.frustumCulled = false; cena.add(m);
+      var t0 = -idx * 0.02, partido = false, cacos = [], ns = (leve() ? 3 : (nivel === 3 ? 5 : (nivel === 2 ? 3 : 6))), tq = 0;
+      vivos.push({ tick: function(dt){
+        t0 += dt; if(t0 < 0) return false;
+        if(!partido){
+          var u = ease(t0 / 0.09); m.scale.set(0.6 + 0.4 * u, 0.02 + 0.98 * u, 0.6 + 0.4 * u);
+          if(t0 >= hold){
+            partido = true; cena.remove(m);
+            for(var i = 0; i < ns; i++){
+              var s = new T.Mesh(gC(Math.round(0.3 * c.L * (0.6 + alea() * 0.7) * 20) / 20, Math.round(0.05 * c.L / 0.9 * 20) / 20 || 0.05), B.cris), a = alea() * 6.2832, v = 2.2 + alea() * 2.2;
+              s.position.set(px, 0.2 * c.L, pz); s.rotation.set(alea() * 6, alea() * 6, alea() * 6); s.frustumCulled = false; cena.add(s); cacos.push({ o: s, vx: Math.cos(a) * v, vy: 2.5 + alea() * 3, vz: Math.sin(a) * v, rx: alea() * 14 - 7, rz: alea() * 14 - 7 });
+            }
+          }
+          return false;
+        }
+        tq += dt; var q = tq / 0.3;
+        cacos.forEach(function(k){ k.vy -= 14 * dt; k.o.position.x += k.vx * dt; k.o.position.y = Math.max(0, k.o.position.y + k.vy * dt); k.o.position.z += k.vz * dt; k.o.rotation.x += k.rx * dt; k.o.rotation.z += k.rz * dt; k.o.scale.setScalar(Math.max(0.05, 1 - q)); });
+        if(q >= 1){ cacos.forEach(function(k){ cena.remove(k.o); }); return true; } return false; } });
+    });
+  };
+
   M._cena = function(){ return cena; };                                          /* so para depuracao/testes */
   M.tick = function(dt){ for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i].tick(dt)) vivos.splice(i, 1); };
 })();

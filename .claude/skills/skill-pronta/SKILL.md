@@ -62,3 +62,10 @@ O dono define a **animação e o visual no Blender**; esta rotina leva tudo para
 
 ## Quando algo desta rotina estiver desatualizado
 Corrija este arquivo (`.claude/skills/skill-pronta/SKILL.md`) no mesmo commit e anote no diário.
+
+## Ataque padrao (basico) de uma classe: o que o mago ensinou
+- Combo de 3 niveis = poses `sweep/thrust/spin` (arvore de combo do jogo). Para efeito em PONTO MIRADO: `perform()` chama `magoBasicoIni` (usa `pontoMira`, guarda `an.alvo`/`an.raioM`/`an.magoB`; o dano de area reaproveita o sistema `mira` de `hitMobs`/`applyHit`). O aviso aparece do inicio do golpe ate o `hit`; no `hit` brotam os efeitos (`magoBasicoHit`).
+- Numeros em `data/armas/<arma>.json -> basico` (cliente e servidor leem o mesmo). Servidor: `ataqueMira` (server.js) aplica o dano no PvP depois do aviso (`d` enviado pelo cliente), para dar tempo de sair. Remotos: `fxBasicoRemoto(e,id,f,m)` com `m.x,m.z,m.d`.
+- Testes: `tools/teste_mago_basico_pvp.py` (2 jogadores, dano e visual no remoto) e `tools/teste_mago_basico_pve.py` (chefe da arena, `?mode=duel`). Em teste, a mira segue a camera: leia `S.face` depois de um `perform` antes de posicionar o alvo.
+- Dono tem fobia a redondo: so formas angulares (memoria `evitar-formas-redondas`).
+

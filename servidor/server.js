@@ -28,6 +28,8 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+const BASICO = {};                                              /* arma -> ataque padrao em ponto mirado (data/armas/<arma>.json -> basico), ex.: cajado/mago */
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.basico && j.basico.niveis) BASICO[j.id] = j.basico; }); } catch(e){ console.log('basico:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
 
 /* ---- progresso (nivel/xp/pontos): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado (servidor/progressao.js + prototipo/data/progressao.json) ---- */
@@ -127,9 +129,27 @@ function passaProj(c, t){
   }
 }
 
+/* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
+function ataqueMira(c, A, m, t){
+  const mb = BASICO[A.arma], nv = mb.niveis[m.id]; if(!nv || t - A.ultB < .22) return; A.ultB = t;
+  if(typeof m.f === 'number') A.f = m.f;
+  let x = +m.x, z = +m.z; if(!isFinite(x) || !isFinite(z)){ x = A.x + Math.sin(A.f) * 6; z = A.z + Math.cos(A.f) * 6; }
+  const dx = x - A.x, dz = z - A.z, dd = Math.hypot(dx, dz) || 1, dist = Math.max(mb.minimo || 2, Math.min(mb.alcance || 10, dd)); x = A.x + dx / dd * dist; z = A.z + dz / dd * dist;
+  const d = Math.max(mb.delay_min || .08, Math.min(mb.delay_max || .7, +m.d || .2));
+  difunde(c, { t: 'atk', id: A.id, k: 'b', v: m.id, f: r2(A.f), x: r2(x), z: r2(z), d: r2(d) });
+  setTimeout(() => {
+    if(A.morto) return; const t2 = agora();
+    for(const V of c.jog.values()){
+      if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue;
+      if(Math.hypot(V.x - x, V.z - z) <= nv.raio + .45) fere(c, A, V, nv.dmg, t2, 0);
+    }
+  }, d * 1000);
+}
+
 /* ---- ataque: o servidor resolve ---- */
 function ataque(c, A, m){
   if(A.morto) return; const t = agora(); let d, parte2 = false;
+  if(m.k === 'b' && BASICO[A.arma]){ ataqueMira(c, A, m, t); return; }
   if(m.k === 'b'){ d = BASIC[m.id]; if(!d || t - A.ultB < .22) return; A.ultB = t; }
   else if(m.k === 's'){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
