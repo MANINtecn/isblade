@@ -41,3 +41,4 @@ prototipo/assets/maps/baium_house/*.json.bak
 # dados das contas dos jogadores (nunca vao para o git)
 servidor/dados/
 servidor/*.antes_*
+trabalho_l2fx/
