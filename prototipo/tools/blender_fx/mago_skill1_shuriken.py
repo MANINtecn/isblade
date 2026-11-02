@@ -1,6 +1,6 @@
 """Mago - skill 1: SHURIKEN DE VENTO (rapida, na mira). Monta tudo no Blender: corpo 3D da estrela, aura (malha de redemoinho do L2), rastro em helice e impacto.
 Uso:  blender -b -P mago_skill1_shuriken.py        -> salva prototipo/assets/personagens/mage_skills.blend  (PREVIA=<pasta> tambem renderiza quadros)
-48 fps. Voo: frames 1-24 (a estrela anda 12 m no eixo +Y); impacto: frame 24 em diante (sumindo ate 44).
+48 fps. Voo: frames 1-30 (a estrela anda 20 m no eixo +Y, ~32 m/s); impacto: frame 30 em diante (sumindo ate 50).
 Paleta: nucleo branco-quente, jade palido, aco azulado, poeira cinza-areia. Sem rosa/lilas."""
 import bpy, bmesh, math, os, random
 from mathutils import Vector, Matrix
@@ -9,8 +9,8 @@ RAIZ = r"C:/TECX SOFTHOUSE/IS ONLINE/"
 SAIDA = RAIZ + "prototipo/assets/personagens/mage_skills.blend"
 L2MESH = RAIZ + "trabalho_l2fx/export_bruto/LineageEffectsStaticmeshes/StaticMesh/"
 L2TEX = RAIZ + "trabalho_l2fx/export_bruto/LineageEffectsTextures/Texture/"
-F0, F_HIT, F_FIM = 1, 24, 44
-DIST = 12.0
+F0, F_HIT, F_FIM = 1, 30, 50
+DIST = 20.0
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 try: bpy.ops.preferences.addon_enable(module="bl_ext.user_default.io_scene_psk_psa")
@@ -89,7 +89,7 @@ def fade_node(m, nome="fade"):
     nt.links.new(old, mul.inputs[0]); nt.links.new(v.outputs[0], mul.inputs[1]); nt.links.new(mul.outputs[0], mix.inputs[0]); return v
 
 # ------------------------------------------------------------------ corpo da estrela
-def blade_mesh(nome, R=1.0, hub=0.2, n_blades=4, esp=0.075):
+def blade_mesh(nome, R=1.0, hub=0.2, n_blades=4, esp=0.075, miolo=True):
     """estrela de 4 laminas curvas (foice): contorno com arco, secao em losango (cume central), pontas afiadas"""
     me = bpy.data.meshes.new(nome); bm = bmesh.new(); K = 22
     for bi in range(n_blades):
@@ -113,7 +113,7 @@ def blade_mesh(nome, R=1.0, hub=0.2, n_blades=4, esp=0.075):
         try: bm.faces.new(vs[0])
         except ValueError: pass
     # cubo central (miolo octogonal) + olho
-    bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=8, radius1=hub * 1.25, radius2=hub * 1.05, depth=esp * 3.2)
+    if miolo: bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=8, radius1=hub * 1.25, radius2=hub * 1.05, depth=esp * 3.2)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     uvl = bm.loops.layers.uv.verify()
     for f in bm.faces:
@@ -121,24 +121,47 @@ def blade_mesh(nome, R=1.0, hub=0.2, n_blades=4, esp=0.075):
             v = lp.vert.co; lp[uvl].uv = (min(1.0, max(0.0, (math.hypot(v.x, v.y) - hub) / max(R - hub, 1e-6))), 0.5)
     bm.to_mesh(me); bm.free(); return me
 def corpo_estrela():
-    ob = bpy.data.objects.new("S1_estrela", blade_mesh("S1_estrela")); link(ob)
+    ob = bpy.data.objects.new("S1_estrela", blade_mesh("S1_estrela", miolo=False)); link(ob)
     ob.data.materials.append(mat_aco())
     bpy.context.view_layer.objects.active = ob; ob.select_set(True)
     bpy.ops.object.shade_smooth()
     try: bpy.ops.object.shade_auto_smooth(angle=math.radians(35))
     except Exception: pass
     bev = ob.modifiers.new("bev", "BEVEL"); bev.width = 0.012; bev.segments = 2; bev.limit_method = "ANGLE"
-    # nucleo: cupula brilhante nas duas faces do miolo (branco-quente -> jade) + aro de aco
-    m_nuc = bpy.data.materials.new("S1_nucleo"); m_nuc.use_nodes = True; nt = m_nuc.node_tree; nt.nodes.clear()
-    o_ = nt.nodes.new("ShaderNodeOutputMaterial"); e_ = nt.nodes.new("ShaderNodeEmission"); lw = nt.nodes.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.5
-    rp = nt.nodes.new("ShaderNodeValToRGB"); rp.color_ramp.elements[0].color = (1.0, 0.99, 0.92, 1); rp.color_ramp.elements[1].color = (0.35, 0.85, 0.72, 1)
-    nt.links.new(lw.outputs["Facing"], rp.inputs[0]); nt.links.new(rp.outputs[0], e_.inputs["Color"]); e_.inputs["Strength"].default_value = 5.0; nt.links.new(e_.outputs[0], o_.inputs[0])
-    for sinal in (1, -1):
-        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=20, v_segments=12, radius=0.145); me = bpy.data.meshes.new("S1_nucleo"); bm.to_mesh(me); bm.free()
+    # BURACO NEGRO no miolo: nucleo preto, halo de borda, disco de acrecao em espiral (gira) e aro de aco ligando as laminas
+    def esfera(nome, r, seg=28, ring=18):
+        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=seg, v_segments=ring, radius=r); me = bpy.data.meshes.new(nome); bm.to_mesh(me); bm.free()
         for p_ in me.polygons: p_.use_smooth = True
-        n_ = bpy.data.objects.new("S1_nucleo", me); link(n_); n_.parent = ob; n_.location = (0, 0, sinal * 0.06); n_.scale = (1, 1, 0.55); n_.data.materials.append(m_nuc)
-    aro = bpy.data.objects.new("S1_aro", bpy.data.meshes.new("S1_aro")); link(aro); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=False, segments=24, radius1=0.2, radius2=0.2, depth=0.2); bm.to_mesh(aro.data); bm.free()
-    aro.parent = ob; aro.data.materials.append(ob.data.materials[0])
+        o = bpy.data.objects.new(nome, me); link(o); o.parent = ob; return o
+    m_pre = bpy.data.materials.new("S1_bn_preto"); m_pre.use_nodes = True; nt = m_pre.node_tree; nt.nodes.clear()
+    o_ = nt.nodes.new("ShaderNodeOutputMaterial"); e_ = nt.nodes.new("ShaderNodeEmission"); e_.inputs["Color"].default_value = (0, 0, 0, 1); nt.links.new(e_.outputs[0], o_.inputs[0])
+    nuc = esfera("S1_bn_nucleo", 0.150); nuc.data.materials.append(m_pre)
+    # halo: so a borda brilha (fresnel), centro transparente
+    m_h = mat_base("S1_bn_halo"); nt = m_h.node_tree; N = nt.nodes
+    o_ = N.new("ShaderNodeOutputMaterial"); mx_ = N.new("ShaderNodeMixShader"); tr_ = N.new("ShaderNodeBsdfTransparent"); em_ = N.new("ShaderNodeEmission"); fr = N.new("ShaderNodeFresnel"); fr.inputs["IOR"].default_value = 1.6
+    pw_ = N.new("ShaderNodeMath"); pw_.operation = "POWER"; pw_.inputs[1].default_value = 2.2; em_.inputs["Color"].default_value = (0.78, 1.0, 0.92, 1); em_.inputs["Strength"].default_value = 6.0
+    nt.links.new(fr.outputs[0], pw_.inputs[0]); nt.links.new(pw_.outputs[0], mx_.inputs[0]); nt.links.new(tr_.outputs[0], mx_.inputs[1]); nt.links.new(em_.outputs[0], mx_.inputs[2]); nt.links.new(mx_.outputs[0], o_.inputs[0])
+    halo = esfera("S1_bn_halo", 0.185); halo.data.materials.append(m_h)
+    # disco de acrecao: espiral que vai do branco-quente (perto) ao jade (longe), alfa pelo ruido e pela distancia
+    bm = bmesh.new(); uv = bm.loops.layers.uv.new("UVMap"); AN, SG = 9, 72; grade = []
+    for ia in range(AN + 1):
+        t = ia / AN; r = 0.17 + 0.30 * t; row = []
+        for isg in range(SG):
+            ang = 2 * math.pi * isg / SG + 1.1 * t; row.append(bm.verts.new((math.cos(ang) * r, math.sin(ang) * r, 0.0)))
+        grade.append(row)
+    for ia in range(AN):
+        for isg in range(SG):
+            i2 = (isg + 1) % SG; f = bm.faces.new((grade[ia][isg], grade[ia][i2], grade[ia + 1][i2], grade[ia + 1][isg]))
+            for lp, (ii, ss) in zip(f.loops, ((ia, isg), (ia, i2), (ia + 1, i2), (ia + 1, isg))): lp[uv].uv = (ii / AN, ss / SG)
+    me = bpy.data.meshes.new("S1_bn_disco"); bm.to_mesh(me); bm.free(); disco = bpy.data.objects.new("S1_bn_disco", me); link(disco); disco.parent = ob
+    disco.data.materials.append(mat_fx("S1_bn_disco_m", (1.0, 0.99, 0.90), (0.38, 0.86, 0.74), 6.5, 7.0)); disco.location = (0, 0, 0.012)
+    # aro de aco: une as laminas ao buraco negro
+    bpy.ops.mesh.primitive_torus_add(major_radius=0.205, minor_radius=0.034, major_segments=36, minor_segments=10)
+    aro = bpy.context.active_object
+    for c_ in list(aro.users_collection): c_.objects.unlink(aro)
+    link(aro); aro.name = "S1_aro"; aro.parent = ob; aro.data.materials.append(ob.data.materials[0])
+    for p_ in aro.data.polygons: p_.use_smooth = True
+    ob["disco"] = disco.name
     return ob
 
 # ------------------------------------------------------------------ tubo com u (para rastro em helice)
@@ -254,10 +277,11 @@ for fc in raiz.animation_data.action.layers[0].strips[0].channelbags[0].fcurves 
     for p in fc.keyframe_points: p.interpolation = "LINEAR"
 # giro da estrela (rapido, 2 voltas por 24 frames) + oscilacao leve
 estrela.rotation_euler = (0, 0, 0); estrela.keyframe_insert("rotation_euler", frame=F0)
-estrela.rotation_euler = (math.radians(8), math.radians(-6), math.radians(720)); estrela.keyframe_insert("rotation_euler", frame=F_HIT)
-aura.rotation_euler = (0, 0, 0); aura.keyframe_insert("rotation_euler", frame=F0); aura.rotation_euler = (0, 0, math.radians(-540)); aura.keyframe_insert("rotation_euler", frame=F_HIT)
-anel.rotation_euler = (math.radians(90), 0, 0); anel.keyframe_insert("rotation_euler", frame=F0); anel.rotation_euler = (math.radians(90), math.radians(300), 0); anel.keyframe_insert("rotation_euler", frame=F_HIT)
-grupo_rastro.rotation_euler = (0, 0, 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F0); grupo_rastro.rotation_euler = (0, math.radians(-900), 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F_HIT)
+estrela.rotation_euler = (0, 0, math.radians(43 * (F_HIT - F0))); estrela.keyframe_insert("rotation_euler", frame=F_HIT)
+aura.rotation_euler = (0, 0, 0); aura.keyframe_insert("rotation_euler", frame=F0); aura.rotation_euler = (0, 0, math.radians(-1300)); aura.keyframe_insert("rotation_euler", frame=F_HIT)
+anel.rotation_euler = (math.radians(90), 0, 0); anel.keyframe_insert("rotation_euler", frame=F0); anel.rotation_euler = (math.radians(90), math.radians(700), 0); anel.keyframe_insert("rotation_euler", frame=F_HIT)
+grupo_rastro.rotation_euler = (0, 0, 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F0); grupo_rastro.rotation_euler = (0, math.radians(-1700), 0); grupo_rastro.keyframe_insert("rotation_euler", frame=F_HIT)
+dsc = bpy.data.objects[estrela['disco']]; dsc.rotation_euler = (0, 0, 0); dsc.keyframe_insert('rotation_euler', frame=F0); dsc.rotation_euler = (0, 0, math.radians(-2400)); dsc.keyframe_insert('rotation_euler', frame=F_HIT)
 # depois do impacto: estrela/aura/rastro encolhem e somem
 for o, esc in ((estrela, 0.78), (aura, aura.scale[0]), (anel, anel.scale[0])):
     o.scale = (esc,) * 3; o.keyframe_insert("scale", frame=F_HIT); o.scale = (0.001,) * 3; o.keyframe_insert("scale", frame=F_HIT + 3)
@@ -279,8 +303,8 @@ for o, d, v in motes:
 # fora do voo/impacto: impacto some antes do frame 24
 # cameras para a previa: lateral (voo inteiro) e de perto (segue a estrela)
 cam = bpy.data.objects.new("cam_voo", bpy.data.cameras.new("cam_voo")); sc.collection.objects.link(cam); cam.data.lens = 32
-cam.location = (13.0, 6.5, 2.4); sc.camera = cam
-alvo = bpy.data.objects.new("alvo_cam", None); sc.collection.objects.link(alvo); alvo.location = (0, 6.2, 0.9)
+cam.location = (21.0, 10.5, 3.6); sc.camera = cam
+alvo = bpy.data.objects.new("alvo_cam", None); sc.collection.objects.link(alvo); alvo.location = (0, 10.3, 0.9)
 tc = cam.constraints.new("TRACK_TO"); tc.target = alvo; tc.track_axis = "TRACK_NEGATIVE_Z"; tc.up_axis = "UP_Y"
 cam2 = bpy.data.objects.new("cam_perto", bpy.data.cameras.new("cam_perto")); sc.collection.objects.link(cam2); cam2.data.lens = 50
 cam2.parent = raiz; cam2.location = (3.0, -2.4, 0.9)
@@ -290,7 +314,7 @@ for nome, loc, en, tam in (("luz_topo", (0, 3, 6), 900, 5), ("luz_lado", (6, 4, 
     t_ = l.constraints.new("TRACK_TO"); t_.target = alvo; t_.track_axis = "TRACK_NEGATIVE_Z"; t_.up_axis = "UP_Y"
 # chao de referencia (escuro, so para dar escala) fora da colecao FX
 ch = bpy.data.objects.new("chao_ref", bpy.data.meshes.new("chao_ref")); sc.collection.objects.link(ch)
-bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=2, y_segments=2, size=14); bm.to_mesh(ch.data); bm.free(); ch.location = (0, 6, -1.2)
+bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=2, y_segments=2, size=24); bm.to_mesh(ch.data); bm.free(); ch.location = (0, 10, -1.2)
 mc = bpy.data.materials.new("chao_m"); mc.use_nodes = True; mc.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.03, 0.035, 0.045, 1); mc.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 1.0; ch.data.materials.append(mc)
 
 bpy.ops.wm.save_as_mainfile(filepath=SAIDA); print("salvo:", SAIDA)
@@ -299,13 +323,13 @@ if pasta:
     os.makedirs(pasta, exist_ok=True)
     for nome_cam, c in (("voo", cam), ("perto", cam2)):
         sc.camera = c
-        for f in (4, 10, 16, 22, 25, 28, 32, 38):
+        for f in (4, 12, 20, 28, 31, 34, 40, 48):
             sc.frame_set(f); sc.render.filepath = os.path.join(pasta, "s1_%s_f%02d.png" % (nome_cam, f)); bpy.ops.render.render(write_still=True)
 
 if os.environ.get("MODELO"):
     pasta = os.environ["MODELO"]; os.makedirs(pasta, exist_ok=True)
     for o in list(col.objects):
-        if o is not estrela and o.name not in ("S1_RAIZ",): o.hide_render = True
+        if o is not estrela and o.parent is not estrela and o.name not in ("S1_RAIZ",): o.hide_render = True
     estrela.animation_data_clear(); raiz.animation_data_clear(); estrela.parent = None; estrela.location = (0, 0, 0); estrela.rotation_euler = (0, 0, 0); estrela.scale = (1, 1, 1)
     for n_, o_ in list(bpy.data.objects.items()):
         if n_ in ("cam_voo", "cam_perto", "chao_ref"): o_.hide_render = True
