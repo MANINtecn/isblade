@@ -45,7 +45,9 @@
       "proj": {
         "speed": 12,
         "width": 1.0,
-        "pierce": false
+        "pierce": false,
+        "visual": "shuriken_vento",
+        "escala": 0.65
       },
       "unlock": 0,
       "desc": "Estrela de vento girando: voa 20 m a 12 m/s (da para ver e esquivar). Rapida, na mira."
