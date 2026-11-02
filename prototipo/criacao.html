@@ -99,6 +99,52 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
 
 /* Flash transition */
 #transition-overlay { position:fixed; inset:0; background:#fff; z-index:9999; opacity:0; pointer-events:none; transition:opacity .5s ease; }
+
+/* >>> CLAUDE [criacao-abas] layout limpo: painel de abas a esquerda, personagem livre, atributos recolhidos, teclado nao cobre nada */
+.ui-layer { display:block; padding:0; }
+.ui-layer > * { position:absolute; pointer-events:auto; }
+.logo-box { left:14px; top:8px; pointer-events:none; }
+.logo-img { height:30px; width:auto; vertical-align:middle; margin-right:8px; }
+.logo-title { font-size:18px; display:flex; align-items:center; }
+.back { right:12px; top:8px; padding:6px 12px; }
+.panel { left:12px; top:52px; width:min(290px,46vw); max-height:calc(100% - 64px); overflow:auto; background:var(--panel); border:1px solid var(--panel-border); border-radius:10px; backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,.8); }
+.tabs { display:flex; gap:4px; padding:6px 6px 0; position:sticky; top:0; background:var(--panel); z-index:2; }
+.tab { flex:1; padding:7px 0; border:0; border-radius:7px 7px 0 0; background:rgba(255,255,255,.06); color:var(--dim); font:700 12px 'Outfit',sans-serif; cursor:pointer; }
+.tab.on { background:rgba(245,196,81,.18); color:var(--gold); }
+.pane { display:none; padding:10px; } .pane.on { display:block; }
+.cls-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.opt-card { padding:9px 6px; }
+.opt-card.off { opacity:.4; cursor:not-allowed; }
+.info { margin-top:8px; font-size:11.5px; line-height:1.4; color:var(--dim); }
+.lbl { font:700 10px 'Outfit',sans-serif; letter-spacing:.1em; color:var(--cyan); text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; }
+.lbl small { color:var(--dim); letter-spacing:0; font-weight:400; text-transform:none; }
+.gen button { border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.06); color:#fff; border-radius:6px; width:34px; height:28px; font-size:15px; cursor:pointer; margin-left:4px; }
+.gen button.on { border-color:var(--gold); background:rgba(245,196,81,.2); color:var(--gold); }
+.chips { display:flex; flex-wrap:wrap; gap:5px; }
+.chip { padding:8px 10px; border-radius:7px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font:700 11.5px 'Outfit',sans-serif; cursor:pointer; }
+.chip.on, .chip.active { border-color:var(--gold); background:rgba(245,196,81,.2); color:var(--gold); }
+.color-palette { margin-top:8px; flex-wrap:wrap; }
+.name-input { height:42px; font-size:16px; }
+.fb { font-size:11px; margin-top:6px; min-height:16px; font-weight:600; color:#94a3b8; }
+.atr-btn { right:12px; top:48px; background:var(--panel); border:1px solid rgba(255,255,255,.25); color:#cfe0f5; border-radius:8px; padding:7px 10px; font:600 11px 'Outfit',sans-serif; cursor:pointer; }
+.atr-box { right:12px; top:84px; width:min(250px,44vw); max-height:calc(100% - 150px); overflow:auto; background:var(--panel); border:1px solid var(--panel-border); border-radius:10px; padding:10px; display:none; box-shadow:0 8px 30px rgba(0,0,0,.8); }
+.ui-layer > .atr-box.on { display:block; }
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; }
+.stat-grid .stat-label { font-size:10px; margin-right:6px; } .stat-grid .stat-val { font-size:12px; } .stat-grid .stat-bar { margin:2px 0 4px; }
+.feature-badge { display:block; margin-top:4px; }
+.enter-btn { right:12px; bottom:12px; padding:12px 22px; font-size:13px; letter-spacing:.08em; }
+.enter-btn:hover { transform:none; }
+.drag-hint { left:50%; bottom:6px; transform:translateX(-50%); pointer-events:none; white-space:nowrap; }
+#canvas-wrap, #webgl { touch-action:none; }
+/* teclado aberto: so ficam o campo do nome e o botao Criar */
+body.kb .tabs, body.kb .atr-btn, body.kb .atr-box, body.kb .back, body.kb .drag-hint, body.kb .logo-box { display:none !important; }
+body.kb .pane { display:none !important; }
+body.kb #t-nome { display:block !important; }
+body.kb .panel { top:6px; max-height:none; }
+body.kb .enter-btn { top:8px; bottom:auto; }
+/* tela baixa (celular deitado) */
+@media (max-height:520px){ .logo-sub{display:none} .logo-title{font-size:15px} .logo-img{height:24px} .panel{top:44px;max-height:calc(100% - 54px)} .atr-btn{top:44px} .atr-box{top:78px} .opt-card{padding:7px 5px} .opt-name{font-size:12px} .pane{padding:8px} }
+/* <<< CLAUDE [criacao-abas] */
 </style>
   <!-- >>> CLAUDE [pwa] 2026-10-28 -->
   <link rel="manifest" href="manifest.json">
@@ -119,214 +165,77 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
 </div>
 
 <div class="ui-layer">
-  <!-- Header -->
-  <header class="header">
-    <div class="logo-box">
-      <div class="logo-title"><img src="icons/is-labs.png" alt="IS Labs" style="height:38px;width:auto;vertical-align:middle;margin-right:12px">IS BLADE <span>&middot; SELEÇÃO</span></div>
-      <div class="logo-sub">IS BLADE &middot; Criação Oficial de Personagem</div>
+  <div class="logo-box"><div class="logo-title"><img src="icons/is-labs.png" alt="IS" class="logo-img">IS BLADE</div><div class="logo-sub">Criar personagem</div></div>
+  <a href="selecao.html" class="top-btn back">&larr; Lobby</a>
+
+  <div class="panel" id="pn">
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-t="classe" type="button">Classe</button>
+      <button class="tab" data-t="visual" type="button">Visual</button>
+      <button class="tab" data-t="nome" type="button">Nome</button>
     </div>
-    <div class="top-actions">
-      <a href="selecao.html" class="top-btn">👥 Seleção de Personagens</a>
+
+    <div class="pane on" id="t-classe">
+      <div class="cls-grid">
+        <div class="opt-card" id="cls-guerreiro" onclick="selectClasse('guerreiro')"><span class="opt-name">Guerreiro</span><span class="opt-sub">Espada longa &middot; dano</span></div>
+        <div class="opt-card" id="cls-guardiao" onclick="selectClasse('guardiao')"><span class="opt-name">Guardi&atilde;o</span><span class="opt-sub">Escudo &middot; defesa</span></div>
+        <div class="opt-card" id="cls-mago" onclick="selectClasse('mago')"><span class="opt-name">Mago</span><span class="opt-sub">Cajado &middot; magia</span></div>
+        <div class="opt-card off" id="cls-clerico" onclick="selectClasse('clerico')" title="Em breve"><span class="opt-name">Cl&eacute;rigo</span><span class="opt-sub">em breve</span></div>
+      </div>
+      <div id="clsInfo" class="info"></div>
     </div>
-  </header>
 
-  <!-- Middle -->
-  <div class="main-content">
-    <aside class="side-panel">
-      <!-- Nome -->
-      <div class="name-input-wrap">
-        <div class="section-title">NOME DO PERSONAGEM <small id="nameStatusTag">Exclusivo</small></div>
-        <input type="text" id="charName" class="name-input" value="Ícaro" maxlength="16" placeholder="Digite seu nome...">
-        <div id="nameFeedback" style="font-size:11px; margin-top:6px; min-height:16px; font-weight:600; transition:all .2s; color:#94a3b8;">Digite o nome do seu herói em Aden.</div>
+    <div class="pane" id="t-visual">
+      <div class="lbl">Ra&ccedil;a <span class="gen"><button type="button" id="g-m" class="on" onclick="selectGender('m')">&#9794;</button><button type="button" id="g-f" onclick="selectGender('f')">&#9792;</button></span></div>
+      <div class="chips" id="raceChips">
+        <button type="button" class="chip" id="rb-human" onclick="selectBase('human')">Humano</button>
+        <button type="button" class="chip" id="rb-magic" onclick="selectBase('magic')">Humano M&iacute;stico</button>
+        <button type="button" class="chip" id="rb-elf" onclick="selectBase('elf')">Elfo</button>
+        <button type="button" class="chip" id="rb-orc" onclick="selectBase('orc')">Orc</button>
+        <button type="button" class="chip" id="rb-dwarf" onclick="selectBase('dwarf')">An&atilde;o</button>
+        <button type="button" class="chip" id="rb-darkelf" onclick="selectBase('darkelf')">Elfo Negro</button>
       </div>
-
-      <!-- Raça -->
-      <div>
-        <div class="section-title">RAÇA &amp; CLASSE <small>IS BLADE</small></div>
-        <div class="opt-grid">
-          <div class="opt-card active" id="race-human_fighter" onclick="selectRace('human_fighter')">
-            <span class="opt-name">Humano (M)</span>
-            <span class="opt-sub">Human Fighter &middot; Aden</span>
-          </div>
-          <div class="opt-card" id="race-human_fighter_female" onclick="selectRace('human_fighter_female')">
-            <span class="opt-name">Humana (F)</span>
-            <span class="opt-sub">Human Fighter &middot; Imperial</span>
-          </div>
-          <div class="opt-card" id="race-magic_m" onclick="selectRace('magic_m')">
-            <span class="opt-name">Humano Mágico (M)</span>
-            <span class="opt-sub">Mage &middot; Ivory Tower</span>
-          </div>
-          <div class="opt-card" id="race-magic_f" onclick="selectRace('magic_f')">
-            <span class="opt-name">Humana Mágica (F)</span>
-            <span class="opt-sub">Mage &middot; Einhasad</span>
-          </div>
-          <div class="opt-card" id="race-elf_m" onclick="selectRace('elf_m')">
-            <span class="opt-name">Elfo Branco (M)</span>
-            <span class="opt-sub">Elf &middot; Eva Knight</span>
-          </div>
-          <div class="opt-card" id="race-elf_f" onclick="selectRace('elf_f')">
-            <span class="opt-name">Elfa Branca (F)</span>
-            <span class="opt-sub">Elf &middot; Eva Dancer</span>
-          </div>
-          <div class="opt-card" id="race-orc_m" onclick="selectRace('orc_m')">
-            <span class="opt-name">Orc Guerreiro (M)</span>
-            <span class="opt-sub">Orc &middot; Paagrio Titan</span>
-          </div>
-          <div class="opt-card" id="race-orc_f" onclick="selectRace('orc_f')">
-            <span class="opt-name">Orc Guerreira (F)</span>
-            <span class="opt-sub">Orc &middot; Paagrio Fúria</span>
-          </div>
-          <div class="opt-card" id="race-dwarf_m" onclick="selectRace('dwarf_m')">
-            <span class="opt-name">Anão Artesão (M)</span>
-            <span class="opt-sub">Dwarf &middot; Forja Maphr</span>
-          </div>
-          <div class="opt-card" id="race-dwarf_f" onclick="selectRace('dwarf_f')">
-            <span class="opt-name">Anã Artesã (F)</span>
-            <span class="opt-sub">Dwarf &middot; Vigor Maphr</span>
-          </div>
-          <div class="opt-card" id="race-darkelf_m" onclick="selectRace('darkelf_m')">
-            <span class="opt-name">Elfo Negro (M)</span>
-            <span class="opt-sub">Dark Elf &middot; Shilen Assassin</span>
-          </div>
-          <div class="opt-card" id="race-darkelf_f" onclick="selectRace('darkelf_f')">
-            <span class="opt-name">Elfa Negra (F)</span>
-            <span class="opt-sub">Dark Elf &middot; Shilen Templar</span>
-          </div>
-        </div>
+      <div class="lbl" style="margin-top:8px">Cabelo</div>
+      <div class="chips">
+        <button type="button" class="chip active" id="hair-both" onclick="selectHairStyle('both')">Padr&atilde;o</button>
+        <button type="button" class="chip" id="hair-front" onclick="selectHairStyle('front')">Curto</button>
+        <button type="button" class="chip" id="hair-back" onclick="selectHairStyle('back')">Longo</button>
       </div>
-
-      <!-- Armadura / Set -->
-      <div>
-        <div class="section-title">ARMADURA / SET <small>Equipamento</small></div>
-        <div class="opt-grid">
-          <div class="opt-card active" id="set-starter" onclick="selectSet('fighter')">
-            <span class="opt-name">Traje de Iniciante</span>
-            <span class="opt-sub">No Grade &middot; Trainee</span>
-          </div>
-          <div class="opt-card" id="set-imperial" onclick="selectSet('imperial')">
-            <span class="opt-name">Imperial Crusader</span>
-            <span class="opt-sub">S-Grade &middot; Placas Ouro</span>
-          </div>
-        </div>
+      <div class="color-palette">
+        <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff" title="Natural" onclick="selectHairColor('#ffffff')"></div>
+        <div class="color-swatch" data-color="#e8c46d" style="background:#e8c46d" title="Loiro" onclick="selectHairColor('#e8c46d')"></div>
+        <div class="color-swatch" data-color="#8b5a2b" style="background:#8b5a2b" title="Castanho" onclick="selectHairColor('#8b5a2b')"></div>
+        <div class="color-swatch" data-color="#d2e2f5" style="background:#d2e2f5" title="Prata" onclick="selectHairColor('#d2e2f5')"></div>
+        <div class="color-swatch" data-color="#ba3b2a" style="background:#ba3b2a" title="Ruivo" onclick="selectHairColor('#ba3b2a')"></div>
+        <div class="color-swatch" data-color="#2b2b2b" style="background:#2b2b2b" title="Negro" onclick="selectHairColor('#2b2b2b')"></div>
+        <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8" title="Azul" onclick="selectHairColor('#38bdf8')"></div>
       </div>
+    </div>
 
-      <!-- Cabelo & Personalização -->
-      <div>
-        <div class="section-title">ESTILO DO CABELO <small>Visual</small></div>
-        <div class="opt-grid">
-          <div class="opt-card active" id="hair-both" onclick="selectHairStyle('both')">
-            <span class="opt-name">Padrão L2</span>
-            <span class="opt-sub">Franja + Rabo</span>
-          </div>
-          <div class="opt-card" id="hair-front" onclick="selectHairStyle('front')">
-            <span class="opt-name">Curto / Ágil</span>
-            <span class="opt-sub">Franja</span>
-          </div>
-          <div class="opt-card" id="hair-back" onclick="selectHairStyle('back')">
-            <span class="opt-name">Longo / Trança</span>
-            <span class="opt-sub">Posterior</span>
-          </div>
-        </div>
-        <div style="margin-top:10px;">
-          <div style="font-size:10px; font-weight:700; color:var(--dim); margin-bottom:6px; letter-spacing:0.05em; text-transform:uppercase;">Cor do Cabelo</div>
-          <div class="color-palette">
-            <div class="color-swatch active" data-color="#ffffff" style="background:#ffffff;" title="Original / Natural" onclick="selectHairColor('#ffffff')"></div>
-            <div class="color-swatch" data-color="#e8c46d" style="background:#e8c46d;" title="Loiro Dourado" onclick="selectHairColor('#e8c46d')"></div>
-            <div class="color-swatch" data-color="#8b5a2b" style="background:#8b5a2b;" title="Castanho Nobre" onclick="selectHairColor('#8b5a2b')"></div>
-            <div class="color-swatch" data-color="#d2e2f5" style="background:#d2e2f5;" title="Prata Élfico" onclick="selectHairColor('#d2e2f5')"></div>
-            <div class="color-swatch" data-color="#ba3b2a" style="background:#ba3b2a;" title="Ruivo Flamejante" onclick="selectHairColor('#ba3b2a')"></div>
-            <div class="color-swatch" data-color="#2b2b2b" style="background:#2b2b2b;" title="Negro Ébano" onclick="selectHairColor('#2b2b2b')"></div>
-            <div class="color-swatch" data-color="#38bdf8" style="background:#38bdf8;" title="Azul Místico" onclick="selectHairColor('#38bdf8')"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Classe (define a arma; raca e visual sao livres) -->
-      <div>
-        <div class="section-title">CLASSE <small>Obrigat&oacute;ria</small></div>
-        <div class="opt-grid">
-          <div class="opt-card" id="cls-guardiao" onclick="selectClasse('guardiao')">
-            <span class="opt-name">Guardi&atilde;o</span>
-            <span class="opt-sub">Escudo &middot; defensor</span>
-          </div>
-          <div class="opt-card" id="cls-mago" onclick="selectClasse('mago')">
-            <span class="opt-name">Mago</span>
-            <span class="opt-sub">Cajado &middot; dano m&aacute;gico</span>
-          </div>
-          <div class="opt-card active" id="cls-guerreiro" onclick="selectClasse('guerreiro')">
-            <span class="opt-name">Guerreiro</span>
-            <span class="opt-sub">Espada longa (2 m&atilde;os)</span>
-          </div>
-          <div class="opt-card" id="cls-clerico" onclick="selectClasse('clerico')" style="opacity:.45;cursor:not-allowed" title="Em breve">
-            <span class="opt-name">Cl&eacute;rigo</span>
-            <span class="opt-sub">Livro Astral &middot; em breve</span>
-          </div>
-        </div>
-        <div id="clsInfo" style="margin-top:8px;font-size:12px;opacity:.85;line-height:1.5"></div>
-      </div>
-
-      <!-- Teste de Ações -->
-      <div>
-        <div class="section-title">TESTAR ANIMAÇÃO <small>Ação L2</small></div>
-        <div class="anim-row">
-          <button class="anim-btn active" onclick="playAction('idle')">Espera</button>
-          <button class="anim-btn" onclick="playAction('run')">Corrida L2</button>
-          <button class="anim-btn" onclick="playAction('guard')">Bloqueio L2</button>
-          <button class="anim-btn" onclick="playAction('slash1')">Golpe 1</button>
-          <button class="anim-btn" onclick="playAction('slash2')">Golpe 2</button>
-          <button class="anim-btn" onclick="playAction('slash4')">Power Strike</button>
-          <button class="anim-btn" onclick="playAction('roll')">Rush / Dash</button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Right Attributes & Lore Panel -->
-    <aside class="right-panel">
-      <div class="section-title">FICHA DE ATRIBUTOS <small>IS BLADE</small></div>
-      <div>
-        <div class="stat-row"><span class="stat-label">FORÇA (STR)</span><span class="stat-val" id="val-str">40</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-str" style="width:80%"></div></div>
-
-        <div class="stat-row"><span class="stat-label">DESTREZA (DEX)</span><span class="stat-val" id="val-dex">30</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-dex" style="width:60%"></div></div>
-
-        <div class="stat-row"><span class="stat-label">CONSTITUIÇÃO (CON)</span><span class="stat-val" id="val-con">43</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-con" style="width:86%"></div></div>
-
-        <div class="stat-row"><span class="stat-label">INTELIGÊNCIA (INT)</span><span class="stat-val" id="val-int">21</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-int" style="width:42%"></div></div>
-
-        <div class="stat-row"><span class="stat-label">RACIONALIDADE (WIT)</span><span class="stat-val" id="val-wit">11</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-wit" style="width:22%"></div></div>
-
-        <div class="stat-row"><span class="stat-label">ESPÍRITO (MEN)</span><span class="stat-val" id="val-men">25</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-men" style="width:50%"></div></div>
-      </div>
-
-      <div class="section-title">LORE DA CLASSE <small id="lore-race-label">Aden</small></div>
-      <p class="lore-text" id="lore-desc">"Os Guerreiros Humanos possuem extraordinária força física e equilíbrio inabalável. Dominam espadas pesadas de duas mãos e lideram as frentes de batalha com bravura."</p>
-
-      <div class="section-title">SISTEMA DE COMBATE <small>Ativo</small></div>
-      <div style="display:flex; flex-direction:column; gap:6px;" id="features-container">
-        <div class="feature-badge">🎯 Mira Dragon Nest (Crosshair livre)</div>
-        <div class="feature-badge">⚡ Combo Quádruplo Fluido (1-2-3-4)</div>
-        <div class="feature-badge">🛡️ Bloqueio &amp; Parry Ativo (Espaço)</div>
-        <div class="feature-badge">💨 Rush Tático com I-Frames (Shift)</div>
-      </div>
-    </aside>
+    <div class="pane" id="t-nome">
+      <div class="lbl">Nome do personagem <small id="nameStatusTag"></small></div>
+      <input type="text" id="charName" class="name-input" value="&Iacute;caro" maxlength="16" placeholder="Digite seu nome..." autocomplete="off" autocapitalize="words" enterkeyhint="done">
+      <div id="nameFeedback" class="fb">Digite o nome do seu her&oacute;i.</div>
+    </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="footer-bar" style="display:flex; justify-content:center; gap:20px; align-items:center;">
-    <a href="selecao.html" class="top-btn" style="padding:12px 24px; border-radius:24px; font-family:'Cinzel',serif; font-size:12px;">👥 Voltar ao Lobby</a>
-    <button class="enter-btn" onclick="enterWorld()">
-      <span>⚔️ Criar &amp; Entrar no Mundo ⚔️</span>
-    </button>
-  </footer>
-
-  <div class="drag-hint">
-    <span>MOUSE</span> Clique e arraste para girar em 360&deg; &middot; Rodinha dá zoom
+  <button type="button" class="atr-btn" id="atrBtn">&#128202; Atributos &#9662;</button>
+  <div class="atr-box" id="atrBox">
+    <div class="lbl">Ficha <small id="lore-race-label"></small></div>
+    <div class="stat-grid">
+      <div><span class="stat-label">FOR</span><span class="stat-val" id="val-str">40</span><div class="stat-bar"><div class="stat-fill" id="bar-str"></div></div></div>
+      <div><span class="stat-label">DES</span><span class="stat-val" id="val-dex">30</span><div class="stat-bar"><div class="stat-fill" id="bar-dex"></div></div></div>
+      <div><span class="stat-label">CON</span><span class="stat-val" id="val-con">43</span><div class="stat-bar"><div class="stat-fill" id="bar-con"></div></div></div>
+      <div><span class="stat-label">INT</span><span class="stat-val" id="val-int">21</span><div class="stat-bar"><div class="stat-fill" id="bar-int"></div></div></div>
+      <div><span class="stat-label">SAB</span><span class="stat-val" id="val-wit">11</span><div class="stat-bar"><div class="stat-fill" id="bar-wit"></div></div></div>
+      <div><span class="stat-label">ESP</span><span class="stat-val" id="val-men">25</span><div class="stat-bar"><div class="stat-fill" id="bar-men"></div></div></div>
+    </div>
+    <p class="lore-text" id="lore-desc"></p>
+    <div id="features-container"></div>
   </div>
+
+  <button class="enter-btn" id="enterBtn" onclick="enterWorld()"><span>Criar &amp; Entrar</span></button>
+  <div class="drag-hint">Arraste para girar</div>
 </div>
 
 <script type="module">
@@ -476,7 +385,7 @@ function init(){
   scene.fog = new THREE.FogExp2(0x090e1c, 0.012);
 
   camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 100);
-  camera.position.set(0, 1.4, 4.2);
+  enquadra();
 
   clock = new THREE.Clock();
 
@@ -487,14 +396,11 @@ function init(){
   setupNameValidation();
 
   // Load initial model & race from localStorage
-  var savedRace = localStorage.getItem('isblade.char_race') || 'human_fighter';
-  var savedChar = localStorage.getItem('isblade.char_type') || 'fighter';
-  if(savedChar === 'imperial' && savedRace === 'human_fighter'){
-    currentSet = 'imperial';
-    document.getElementById('set-starter').classList.remove('active');
-    document.getElementById('set-imperial').classList.add('active');
-  }
+  var savedRace = 'human_fighter'; try { savedRace = localStorage.getItem('isblade.char_race') || 'human_fighter'; } catch(_){}
+    if(!RACE_DATA[savedRace]) savedRace = 'human_fighter';
+  selectClasse(currentClasse);
   selectRace(savedRace);
+  setupAbas();
 
   window.addEventListener('resize', onResize);
   animate();
@@ -754,7 +660,10 @@ function attachWeapon(){
     shieldObj = null;
   }
 
-  if(currentWeapon === 'dragon_slayer' && wpBone){
+  if(staffObj && staffObj.parent) staffObj.parent.remove(staffObj); staffObj = null;
+  if(currentWeapon === 'staff' && wpBone){
+    staffObj = makeStaff(); wpBone.add(staffObj);
+  } else if(currentWeapon === 'dragon_slayer' && wpBone){
     weaponObj = attachL2Item(wpBone, null, 'assets/personagens/dragon_slayer.glb');
   } else if(currentWeapon === 'shield'){/* CLAUDE [guardiao]: era swordshield */
     /* >>> CLAUDE [guardiao] 2026-10-27 — sem espada: o Guardiao so usa o escudo */ /* <<< CLAUDE [guardiao] */
@@ -764,6 +673,17 @@ function attachWeapon(){
   }
 }
 
+var staffObj = null;
+/* cajado do mago (mesmo desenho simples do jogo: haste escura + orbe azul), em unidades do osso (modelo ~42 u de altura) */
+function makeStaff(){
+  var g = new THREE.Group();
+  var haste = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 34, 8), new THREE.MeshStandardMaterial({ color: 0x4a3322, roughness: 0.7 }));
+  haste.position.y = 4;
+  var orbe = new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 10), new THREE.MeshStandardMaterial({ color: 0x66bbff, emissive: 0x2266cc, emissiveIntensity: 1.2 }));
+  orbe.position.y = 22.5;
+  g.add(haste); g.add(orbe); g.rotation.set(L2_WPN_AXIS_FIX, 0, 0);
+  return g;
+}
 var currentAction = null;
 window.playAction = function(name){
   if(currentWeapon === 'none'){
@@ -849,48 +769,40 @@ window.selectRace = function(r){
   currentRace = r;
   try { localStorage.setItem('isblade.char_race', r); } catch(_){}
 
-  // Update race card active states
-  document.querySelectorAll('[id^="race-"]').forEach(function(card){
-    card.classList.toggle('active', card.id === 'race-' + r);
-  });
+  var base = r.replace(/_(m|f)$/, '').replace(/_female$/, ''); if(r === 'human_fighter') base = 'human'; else if(r === 'human_fighter_female') base = 'human';
+  currentBase = base; currentGender = /(_f|_female)$/.test(r) ? 'f' : 'm';
+  document.querySelectorAll('#raceChips .chip').forEach(function(c){ c.classList.toggle('active', c.id === 'rb-' + base); });
+  var gm = document.getElementById('g-m'), gf = document.getElementById('g-f');
+  if(gm) gm.classList.toggle('on', currentGender === 'm'); if(gf) gf.classList.toggle('on', currentGender === 'f');
 
   var rData = RACE_DATA[r];
   window.updateAttributesUI(rData);
 
-  // Set availability: Imperial Crusader only for Human Fighter
-  var impCard = document.getElementById('set-imperial');
-  if(impCard){
-    if(r === 'human_fighter'){
-      impCard.style.opacity = '1';
-      impCard.style.pointerEvents = 'auto';
-      impCard.title = 'S-Grade';
-    } else {
-      impCard.style.opacity = '0.35';
-      impCard.style.pointerEvents = 'none';
-      impCard.title = 'Exclusivo para Humano Guerreiro';
-      if(currentSet === 'imperial') selectSet('fighter');
-    }
-  }
-
   // Load appropriate model
-  var url = (r === 'human_fighter' && currentSet === 'imperial') ? rData.imperialModel : rData.model;
-  loadModel(url);
+  loadModel(rData.model);
 };
 
-window.selectSet = function(set){
-  currentSet = set;
-  try { localStorage.setItem('isblade.char_type', set); } catch(_){}
-  document.getElementById('set-starter').classList.toggle('active', set === 'fighter');
-  document.getElementById('set-imperial').classList.toggle('active', set === 'imperial');
+var RACA_IDS = { human: ['human_fighter', 'human_fighter_female'], magic: ['magic_m', 'magic_f'], elf: ['elf_m', 'elf_f'], orc: ['orc_m', 'orc_f'], dwarf: ['dwarf_m', 'dwarf_f'], darkelf: ['darkelf_m', 'darkelf_f'] };
+var currentBase = 'human', currentGender = 'm';
+window.selectBase = function(base){ var ids = RACA_IDS[base]; if(ids) selectRace(ids[currentGender === 'f' ? 1 : 0]); };
+window.selectGender = function(g){ currentGender = g; var ids = RACA_IDS[currentBase]; if(ids) selectRace(ids[g === 'f' ? 1 : 0]); };
 
-  if(currentRace === 'human_fighter'){
-    if(set === 'imperial'){
-      loadModel(RACE_DATA['human_fighter'].imperialModel);
-    } else {
-      loadModel(RACE_DATA['human_fighter'].model);
-    }
+/* abas, atributos recolhidos e modo teclado (so campo do nome + Criar ficam visiveis) */
+window.showTab = function(t){
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-t') === t); });
+  document.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', p.id === 't-' + t); });
+};
+function setupAbas(){
+  document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click', function(){ showTab(b.getAttribute('data-t')); }); });
+  var ab = document.getElementById('atrBtn'), bx = document.getElementById('atrBox');
+  if(ab && bx) ab.addEventListener('click', function(){ var on = bx.classList.toggle('on'); ab.innerHTML = '&#128202; Atributos ' + (on ? '&#9652;' : '&#9662;'); });
+  var nm = document.getElementById('charName');
+  if(nm){
+    nm.addEventListener('focus', function(){ document.body.classList.add('kb'); });
+    nm.addEventListener('blur', function(){ setTimeout(function(){ document.body.classList.remove('kb'); }, 120); });
+    nm.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); nm.blur(); } });
   }
-};
+}
 
 var currentHairStyle = 'both';
 var currentHairColor = '#ffffff';
@@ -954,10 +866,9 @@ var CLASSES = {
   guerreiro: { nome: 'Guerreiro',     wpn: 'dragon_slayer', save: 'sword',  papel: 'Dano físico corpo a corpo, combos rápidos.' }
 };
 var currentClasse = 'guerreiro';
-try { document.getElementById('clsInfo').textContent = CLASSES.guerreiro.papel; localStorage.setItem('isblade.weapon', 'sword'); } catch(_){}
 window.selectClasse = function(id){
   var c = CLASSES[id];
-  if(!c){ alert('O Clérigo (Livro Astral) ainda não está disponível.'); return; }
+  if(!c){ var inf0 = document.getElementById('clsInfo'); if(inf0) inf0.textContent = 'O Clérigo (Livro Astral) ainda não está disponível.'; return; }
   currentClasse = id;
   currentWeapon = c.wpn;
   try { localStorage.setItem('isblade.weapon', c.save); } catch(_){}
@@ -1042,17 +953,18 @@ window.enterWorld = function(){
   var pName = (nameEl && nameEl.value.trim()) || '';
   var nameCheck = checkNameAvailability(pName);
   if(!nameCheck.valid){
-    alert(nameCheck.msg);
+    if(window.showTab) showTab('nome');
     if(nameEl) nameEl.focus();
+    else alert(nameCheck.msg);
     return;
   }
 
-  var saveType = (currentRace === 'human_fighter' && currentSet === 'imperial') ? 'imperial' : currentRace;
+  var saveType = currentRace;
   var saveWpn = CLASSES[currentClasse].save;
 
   /* MMO: quem cria o personagem e o SERVIDOR (nome unico, limite de slots); aqui so se pede e se guarda a copia devolvida */
   if(window._criando) return; window._criando = true;
-  var corpoCria = { name: pName, race: currentRace, charType: saveType, set: currentSet, weapon: saveWpn, classe: currentClasse, hairStyle: currentHairStyle, hairColor: currentHairColor };
+  var corpoCria = { name: pName, race: currentRace, charType: saveType, set: 'fighter', weapon: saveWpn, classe: currentClasse, hairStyle: currentHairStyle, hairColor: currentHairColor };
   Conta.api('POST', '/api/personagens', corpoCria, function(cod, j){
     window._criando = false;
     if(cod !== 200 || !j || !j.char){
@@ -1091,28 +1003,29 @@ function irParaMundo(){
 // Mouse drag to rotate pedestal & zoom
 var isDragging = false, prevX = 0, prevY = 0;
 function setupControls(){
-  window.addEventListener('mousedown', function(e){
-    if(e.target.closest('.side-panel') || e.target.closest('.header') || e.target.closest('.footer-bar')) return;
-    isDragging = true;
-    prevX = e.clientX;
-    prevY = e.clientY;
+  window.addEventListener('pointerdown', function(e){
+    if(e.target.closest('.panel') || e.target.closest('.atr-box') || e.target.closest('button') || e.target.closest('a')) return;
+    isDragging = true; prevX = e.clientX; prevY = e.clientY;
   });
-  window.addEventListener('mousemove', function(e){
+  window.addEventListener('pointermove', function(e){
     if(!isDragging || !pedestalGroup) return;
-    var dx = e.clientX - prevX;
-    var dy = e.clientY - prevY;
-    pedestalGroup.rotation.y += dx * 0.008;
-    // Câmera travada perfeitamente na altura padrão de visualização
-    prevX = e.clientX;
-    prevY = e.clientY;
+    pedestalGroup.rotation.y += (e.clientX - prevX) * 0.008;
+    prevX = e.clientX; prevY = e.clientY;
   });
-  window.addEventListener('mouseup', function(){ isDragging = false; });
+  window.addEventListener('pointerup', function(){ isDragging = false; });
+  window.addEventListener('pointercancel', function(){ isDragging = false; });
   window.addEventListener('wheel', function(e){
     camera.position.z = Math.max(2.5, Math.min(6.5, camera.position.z + e.deltaY * 0.003));
   }, { passive:true });
 }
 
+/* enquadramento: tela larga e baixa (celular deitado) afasta a camera para o personagem aparecer inteiro */
+function enquadra(){
+  var larga = innerWidth / Math.max(1, innerHeight) > 1.5;
+  camera.position.set(0, larga ? 1.05 : 1.4, larga ? 5.2 : 4.2);
+}
 function onResize(){
+  enquadra();
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
