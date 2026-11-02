@@ -308,7 +308,7 @@ for o, d, v in motes:
     o.location = d * v * 1.6 + Vector((0, 0, 0.5)); o.keyframe_insert("location", frame=F_FIM)
 # fora do voo/impacto: impacto some antes do frame 24
 # espiral: a estrela (com aura, anel e rastro) ORBITA o eixo do voo: abre do centro ate RAIO_ORB, circula e volta ao centro no impacto; torce (inclina) enquanto voa
-RAIO_ORB, VOLTAS_ORB, TORCAO_GRAUS = 0.45, 1.6, 180.0      # torcao: gira SEMPRE no mesmo sentido em volta do eixo do voo, 0 -> TORCAO_GRAUS no alvo (sem balancar de ida e volta)
+RAIO_ORB, VOLTAS_ORB, TORCAO_GRAUS = 0.0, 1.6, 180.0      # torcao: gira SEMPRE no mesmo sentido em volta do eixo do voo, 0 -> TORCAO_GRAUS no alvo (sem balancar de ida e volta)
 orb = bpy.data.objects.new("S1_ORBITA", None); orb.empty_display_type = "SPHERE"; orb.empty_display_size = 0.15; link(orb); orb.parent = raiz
 for o_ in (estrela, aura, anel, grupo_rastro): o_.parent = orb; o_.matrix_parent_inverse.identity()
 def _suave(x): x = max(0.0, min(1.0, x)); return x * x * (3 - 2 * x)

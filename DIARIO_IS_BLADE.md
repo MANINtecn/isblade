@@ -2349,3 +2349,6 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 01/11/2026 - Shuriken de Vento: torção de 180° até o alvo (só Blender)
 - Tirei o balanço de ida e volta. A estrela agora **torce sempre no mesmo sentido** em volta do eixo do voo: 0° na saída, ~90° (disco na vertical) no meio e **180° no alvo** (`TORCAO_GRAUS` no script, no `S1_ORBITA`, rotação linear). A órbita em espiral (0,45 m, 1,6 voltas) e o giro no próprio eixo (43°/quadro) ficam como estavam. Conferido por renderização de trás e de lado; `mage_skills.blend` salvo pelo MCP e script atualizado.
 - Só Blender (nada de servidor/cliente/dados). Observação aberta: a órbita ainda fecha no centro nos últimos 10 quadros antes do impacto; o halo branco do buraco negro, visto de lado, aparece como um anel.
+
+### [Claude] 01/11/2026 - Shuriken de Vento: sem balanço lateral (só Blender)
+- Tirei o deslocamento de lado (a espiral): a estrela agora **voa reta pelo eixo**, gira no próprio eixo (43°/quadro) e mantém a torção até 180° no alvo. Conferido: desvio máximo do eixo = 0,000 m em todos os 81 quadros. Para voltar a espiral basta `RAIO_ORB = 0.45` no script (hoje 0.0). `mage_skills.blend` salvo pelo MCP. Só Blender.
