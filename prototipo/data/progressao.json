@@ -51,7 +51,8 @@
         "agi": 0,
         "vit": 1
       },
-      "principal": "vit"
+      "principal": "vit",
+      "danoAttr": "for"
     },
     "mago": {
       "nome": "Mago",
@@ -71,7 +72,8 @@
         "agi": 1,
         "vit": 0
       },
-      "principal": "int"
+      "principal": "int",
+      "danoAttr": "int"
     },
     "guerreiro": {
       "nome": "Guerreiro",
@@ -91,7 +93,8 @@
         "agi": 1,
         "vit": 0
       },
-      "principal": "for"
+      "principal": "for",
+      "danoAttr": "for"
     },
     "clerico": {
       "nome": "Clérigo",
@@ -111,41 +114,152 @@
         "agi": 0,
         "vit": 1
       },
-      "principal": "int"
+      "principal": "int",
+      "danoAttr": "int"
     }
   },
   "skillsNivel": {
-    "_nota": "Nivel de personagem que libera cada slot de skill (0..5). Todas as 6 ate o nivel 25. Substitui o 'unlock' de maestria dos data/armas/*.json.",
+    "_nota": "Nivel de personagem que libera cada slot de skill (0..5): 1, 5, 10, 20, 25 e 30. Fonte unica; `node tools/aplicar_niveis_skills.js` grava isso no campo `unlock` de data/armas/*.json.",
     "guardiao": {
       "0": 1,
       "5": 5,
       "2": 10,
-      "4": 15,
-      "3": 20,
-      "1": 25
+      "4": 20,
+      "3": 25,
+      "1": 30
     },
     "mago": {
       "1": 1,
       "0": 5,
       "2": 10,
-      "5": 15,
-      "4": 20,
-      "3": 25
+      "5": 20,
+      "4": 25,
+      "3": 30
     },
     "guerreiro": {
       "1": 1,
       "0": 5,
       "2": 10,
-      "5": 15,
-      "4": 20,
-      "3": 25
+      "5": 20,
+      "4": 25,
+      "3": 30
     }
   },
   "variantesNivel": {
-    "_nota": "Variantes de skill (escolha alternativa no menu K): o 'unlock' 1..4 das variantes vira estes niveis.",
-    "1": 8,
-    "2": 14,
-    "3": 22,
-    "4": 30
+    "_nota": "Variantes de skill (menu K): o tipo 1..4 vira estes niveis.",
+    "1": 12,
+    "2": 18,
+    "3": 28,
+    "4": 35
+  },
+  "xpPorAbate": {
+    "_nota": "XP de um abate = xpMob(nivelDoMob) * peso * fator por diferenca de nivel (jogador - mob). Ate 'semPenalidade' niveis acima: 100%; cada nivel a mais tira 'penalidadePorNivel'; piso 'minimo'. Mob mais forte que voce da bonus de 'bonusPorNivel' por nivel (ate 'bonusMax'). Evita upar matando mob fraco.",
+    "semPenalidade": 3,
+    "penalidadePorNivel": 0.12,
+    "minimo": 0.05,
+    "bonusPorNivel": 0.08,
+    "bonusMax": 0.4
+  },
+  "mobsNivel": {
+    "_nota": "Nivel e peso de cada tipo de mob POR DIFICULDADE da dungeon (a chave que o cliente manda no abate). Chefe: nivel da dificuldade + peso alto. O mundo para alem do nivel ~45 ainda nao tem conteudo (fases futuras).",
+    "normal": {
+      "fantasma": [
+        1,
+        1
+      ],
+      "esqueleto": [
+        4,
+        1
+      ],
+      "vidente": [
+        7,
+        1.2
+      ],
+      "lamina": [
+        10,
+        4
+      ],
+      "shade": [
+        3,
+        1
+      ],
+      "brute": [
+        8,
+        3
+      ],
+      "caster": [
+        6,
+        1.2
+      ],
+      "mini_boss": [
+        10,
+        6
+      ],
+      "boss": [
+        12,
+        10
+      ]
+    },
+    "medio": {
+      "cao": [
+        14,
+        1
+      ],
+      "guarda_real": [
+        16,
+        1.1
+      ],
+      "cavaleiro": [
+        19,
+        1.5
+      ],
+      "erinia": [
+        17,
+        1.2
+      ],
+      "vidente": [
+        15,
+        1.2
+      ],
+      "comandante": [
+        22,
+        6
+      ],
+      "boss": [
+        24,
+        10
+      ]
+    },
+    "hard": {
+      "anjo": [
+        28,
+        1
+      ],
+      "xama": [
+        31,
+        1.1
+      ],
+      "overlord": [
+        34,
+        2
+      ],
+      "arcanjo": [
+        38,
+        4
+      ],
+      "boss": [
+        40,
+        10
+      ]
+    }
+  },
+  "efeitos": {
+    "_nota": "O que cada atributo faz (valor acima do inicial da classe). dano: % de dano por ponto no atributo de dano da classe (FOR ou INT); VIT: vida, defesa % e regeneracao de estamina %; AGI: velocidade de corrida (fracao, com teto).",
+    "danoPct": 0.5,
+    "vidaPorVit": 6,
+    "defesaPorVit": 0.05,
+    "estaminaPorVit": 0.3,
+    "corridaPorAgi": 0.001,
+    "corridaMax": 0.25
   }
 }

@@ -257,25 +257,20 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
         </div>
       </div>
 
-      <div class="section-title">ATRIBUTOS CANÔNICOS <small>IS BLADE</small></div>
+      <div class="section-title">ATRIBUTOS <small id="heroPts">IS BLADE</small></div>
       <div>
-        <div class="stat-row"><span class="stat-label">FORÇA (STR)</span><span class="stat-val" id="val-str">40</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-str" style="width:80%"></div></div>
+        <div class="stat-row"><span class="stat-label">FORÇA</span><span class="stat-val" id="val-for">-</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-for" style="width:0"></div></div>
 
-        <div class="stat-row"><span class="stat-label">DESTREZA (DEX)</span><span class="stat-val" id="val-dex">30</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-dex" style="width:60%"></div></div>
+        <div class="stat-row"><span class="stat-label">INTELIGÊNCIA</span><span class="stat-val" id="val-int">-</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-int" style="width:0"></div></div>
 
-        <div class="stat-row"><span class="stat-label">CONSTITUIÇÃO (CON)</span><span class="stat-val" id="val-con">43</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-con" style="width:86%"></div></div>
+        <div class="stat-row"><span class="stat-label">AGILIDADE</span><span class="stat-val" id="val-agi">-</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-agi" style="width:0"></div></div>
 
-        <div class="stat-row"><span class="stat-label">INTELIGÊNCIA (INT)</span><span class="stat-val" id="val-int">21</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-int" style="width:42%"></div></div>
+        <div class="stat-row"><span class="stat-label">VITALIDADE</span><span class="stat-val" id="val-vit">-</span></div>
+        <div class="stat-bar"><div class="stat-fill" id="bar-vit" style="width:0"></div></div>
 
-        <div class="stat-row"><span class="stat-label">RACIONALIDADE (WIT)</span><span class="stat-val" id="val-wit">11</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-wit" style="width:22%"></div></div>
-
-        <div class="stat-row"><span class="stat-label">ESPÍRITO (MEN)</span><span class="stat-val" id="val-men">25</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-men" style="width:50%"></div></div>
       </div>
 
       <div class="section-title">EQUIPAMENTO ATUAL</div>
@@ -438,6 +433,7 @@ var RACE_CONFIG = {
 };
 
 // Gerenciador de Personagens em localStorage
+var PROG = null; try { fetch('data/progressao.json?v=1').then(function(r){ return r.json(); }).then(function(j){ PROG = j; if(typeof updateHeroCard === 'function' && characters && characters.length) updateHeroCard(); }); } catch(e){}
 var STORAGE_KEY = 'isblade_characters';
 var ACTIVE_KEY = 'isblade_active_character_id';
 
@@ -656,20 +652,16 @@ function updateHeroCard(){
   document.getElementById('heroLoc').textContent = '• ' + (c.location || 'Talking Island');
   document.getElementById('heroLore').textContent = '"' + cfg.lore + '"';
 
-  // Stats
-  var s = cfg.stats;
-  document.getElementById('val-str').textContent = s.str;
-  document.getElementById('bar-str').style.width = (s.str / 50 * 100) + '%';
-  document.getElementById('val-dex').textContent = s.dex;
-  document.getElementById('bar-dex').style.width = (s.dex / 50 * 100) + '%';
-  document.getElementById('val-con').textContent = s.con;
-  document.getElementById('bar-con').style.width = (s.con / 50 * 100) + '%';
-  document.getElementById('val-int').textContent = s.int;
-  document.getElementById('bar-int').style.width = (s.int / 50 * 100) + '%';
-  document.getElementById('val-wit').textContent = s.wit;
-  document.getElementById('bar-wit').style.width = (s.wit / 50 * 100) + '%';
-  document.getElementById('val-men').textContent = s.men;
-  document.getElementById('bar-men').style.width = (s.men / 50 * 100) + '%';
+  // Classe e atributos (data/progressao.json: inicial da classe + crescimento por nivel + pontos distribuidos; o servidor e o dono)
+  var cl = (PROG && PROG.classes) ? PROG.classes[c.classe || (c.weapon === 'staff' ? 'mago' : (c.weapon === 'shield' || c.weapon === 'swordshield') ? 'guardiao' : 'guerreiro')] : null;
+  if(cl){
+    var L = Math.max(1, c.level | 0 || 1), at = c.attr || {}, tot = {}, mx = 1, gasto = 0;
+    ['for', 'int', 'agi', 'vit'].forEach(function(k){ tot[k] = (cl.inicial[k] | 0) + (cl.porNivel[k] | 0) * (L - 1) + (at[k] | 0); gasto += (at[k] | 0); mx = Math.max(mx, tot[k]); });
+    ['for', 'int', 'agi', 'vit'].forEach(function(k){ document.getElementById('val-' + k).textContent = tot[k]; document.getElementById('bar-' + k).style.width = Math.min(100, tot[k] / mx * 100) + '%'; });
+    var livres = Math.max(0, 2 * (L - 1) - gasto);
+    document.getElementById('heroPts').textContent = livres ? livres + ' pts livres' : 'IS BLADE';
+    document.getElementById('heroTitle').textContent = cl.nome;
+  }
 
   // Weapon label
   var wLabel = '⚔️ Guerreiro · Espada longa (2 mãos)';

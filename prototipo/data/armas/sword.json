@@ -27,7 +27,7 @@
       "intr": 0,
       "hitk": 0.9,
       "css": "#5aa9ff",
-      "unlock": 0,
+      "unlock": 5,
       "desc": "Impulso rapido para a frente, com invulnerabilidade curta."
     },
     {
@@ -42,7 +42,7 @@
       "intr": 0,
       "hitk": 0.55,
       "css": "#8bc1ff",
-      "unlock": 0,
+      "unlock": 1,
       "desc": "Corte curto e rapido: liga os golpes do combo."
     },
     {
@@ -58,7 +58,7 @@
       "hitk": 0.55,
       "css": "#8b7bff",
       "launch": true,
-      "unlock": 1,
+      "unlock": 10,
       "desc": "Onda de choque em cone: lanca o alvo no ar."
     },
     {
@@ -81,7 +81,7 @@
       ],
       "armor": true,
       "launch": true,
-      "unlock": 3,
+      "unlock": 30,
       "desc": "Varios golpes com armadura: quebra a guarda."
     },
     {
@@ -104,7 +104,7 @@
       ],
       "armor": true,
       "launch": true,
-      "unlock": 2,
+      "unlock": 25,
       "desc": "Giro com varios golpes e armadura."
     },
     {
@@ -124,7 +124,7 @@
         "width": 1.6,
         "pierce": true
       },
-      "unlock": 1,
+      "unlock": 20,
       "desc": "Lamina de luz que atravessa o alvo, ataque a distancia."
     }
   ],
@@ -143,7 +143,8 @@
       "css": "#7fd1ff",
       "desc": "Mais invulnerabilidade e recarga menor, dano menor.",
       "slot": 0,
-      "unlock": 1
+      "unlock": 12,
+      "tipo": 1
     },
     {
       "name": "Avanco Brutal",
@@ -159,7 +160,8 @@
       "css": "#ff8a5a",
       "desc": "Dano alto, recarga maior.",
       "slot": 0,
-      "unlock": 3
+      "unlock": 28,
+      "tipo": 3
     },
     {
       "name": "Corte Veloz",
@@ -175,7 +177,8 @@
       "css": "#8bc1ff",
       "desc": "Recarga curtissima, dano menor.",
       "slot": 1,
-      "unlock": 1
+      "unlock": 12,
+      "tipo": 1
     },
     {
       "name": "Corte Pesado",
@@ -191,7 +194,8 @@
       "css": "#ffb15a",
       "desc": "Mais dano e alcance, mais lento.",
       "slot": 1,
-      "unlock": 2
+      "unlock": 18,
+      "tipo": 2
     },
     {
       "name": "Onda Giratoria",
@@ -208,7 +212,8 @@
       "launch": true,
       "desc": "Onda em 360 graus: atinge ao redor.",
       "slot": 2,
-      "unlock": 2
+      "unlock": 18,
+      "tipo": 2
     },
     {
       "name": "Onda Pesada",
@@ -225,7 +230,8 @@
       "launch": true,
       "desc": "Dano muito alto, cone estreito, recarga longa.",
       "slot": 2,
-      "unlock": 4
+      "unlock": 35,
+      "tipo": 4
     },
     {
       "name": "Execucao Brutal",
@@ -247,7 +253,8 @@
       "launch": true,
       "desc": "Dois golpes enormes, recarga longa.",
       "slot": 3,
-      "unlock": 4
+      "unlock": 35,
+      "tipo": 4
     },
     {
       "name": "Execucao Rapida",
@@ -271,7 +278,8 @@
       "launch": true,
       "desc": "Mais curta e frequente, dano por golpe menor.",
       "slot": 3,
-      "unlock": 3
+      "unlock": 28,
+      "tipo": 3
     },
     {
       "name": "Tempestade Veloz",
@@ -295,7 +303,8 @@
       "launch": true,
       "desc": "Recarga curta, dano por golpe menor.",
       "slot": 4,
-      "unlock": 2
+      "unlock": 18,
+      "tipo": 2
     },
     {
       "name": "Tempestade Ampla",
@@ -319,7 +328,8 @@
       "launch": true,
       "desc": "Alcance maior e mais dano, recarga maior.",
       "slot": 4,
-      "unlock": 4
+      "unlock": 35,
+      "tipo": 4
     },
     {
       "name": "Lamina Veloz",
@@ -335,12 +345,13 @@
       "css": "#cfe6ff",
       "proj": {
         "speed": 40,
-        "width": 1.0,
+        "width": 1,
         "pierce": true
       },
       "desc": "Projetil rapido e fino, recarga curta.",
       "slot": 5,
-      "unlock": 1
+      "unlock": 12,
+      "tipo": 1
     },
     {
       "name": "Lamina Gigante",
@@ -356,12 +367,13 @@
       "css": "#9fd0ff",
       "proj": {
         "speed": 20,
-        "width": 3.0,
+        "width": 3,
         "pierce": true
       },
       "desc": "Projetil largo e forte, recarga longa, alcance menor.",
       "slot": 5,
-      "unlock": 3
+      "unlock": 28,
+      "tipo": 3
     }
   ]
 }

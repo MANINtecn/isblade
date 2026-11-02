@@ -455,6 +455,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=2"></script>
+<script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
 
@@ -719,6 +720,7 @@ try{
   DATA=await (await fetch('data/combate.json?v='+Date.now())).json();
 
   DATA.itens=await (await fetch('data/itens.json?v='+Date.now())).json();
+  DATA.prog=await (await fetch('data/progressao.json?v='+Date.now())).json();
 
   DATA.dungeon=await (await fetch('data/dungeon.json?v='+Date.now())).json();
 
@@ -1346,7 +1348,7 @@ function mastLevelOf(xp){var L=mastCfg().levels,n=0;for(var i=0;i<L.length;i++)i
 
 function mastXp(){return MAST[WPN]||0;}
 
-function mastLevel(){return mastLevelOf(mastXp());}
+function mastLevel(){return (window.S&&S.lvl)||1;}/* [nivel] skills liberam pelo nivel do personagem, nao pela maestria */
 
 function saveMast(){try{ckSet('isblade.mastery',JSON.stringify(MAST));}catch(_){}}
 
@@ -3829,7 +3831,7 @@ var RANKS=['E','D','C','B','A','S'];
 
 function rankOf(l){return RANKS[Math.min(RANKS.length-1,Math.floor((l-1)/2))];}
 
-function xpNeed(l){return 120+l*90;}
+function xpNeed(l){return (window.S&&S.need&&l===S.lvl)?S.need:120+l*90;}
 
 
 
@@ -3984,7 +3986,7 @@ function castSkill(i){
 
   if(!sk)return 'no';
 
-  if((sk.unlock||0)>mastLevel()){gestMsg(sk.name+' bloqueada: maestria Nv '+sk.unlock+' com '+DATA.armas[WPN].name);return 'no';}
+  if((sk.unlock||0)>mastLevel()){gestMsg(sk.name+' bloqueada: nivel '+sk.unlock);return 'no';}
 
   if(S.pdead)return 'no';
 
@@ -4197,7 +4199,7 @@ function resetFight(){S.gauge=S.gmax;S.fightOn=false;S.fightT=0;S.maxCombo=0;S.d
 
 function gainXp(v,tipo){
 
-  if(tipo&&window.Net&&Net.xp(tipo))return;/* [servidor] online: o servidor decide o xp e devolve (prog) */
+  if(tipo&&window.Net&&Net.xp(tipo,DG.diff))return;/* [servidor] online: o servidor decide o xp e devolve (prog) */
 
   S.xp+=v;var up=false;
 
@@ -6367,7 +6369,7 @@ function renderHud(){
 
   $('#xpfill').style.width=(S.xp/xpNeed(S.lvl)*100)+'%';
 
-  $('#hunter').innerHTML='Cacador <strong>Rank '+rankOf(S.lvl)+'</strong> &middot; Nv '+S.lvl+' &middot; Abates '+S.kills;
+  $('#hunter').innerHTML='<strong>'+((DATA.prog&&DATA.prog.classes[S.classe])?DATA.prog.classes[S.classe].nome:'Heroi')+'</strong> &middot; Nv '+S.lvl+' &middot; Abates '+S.kills;
 
   $('#phpfill').style.width=(S.php/S.pmax*100)+'%';
 
@@ -6491,6 +6493,9 @@ function applyStats(){
 
   Object.keys(INV.equip).forEach(function(slot){var it=findItem(INV.equip[slot]);if(it)Object.keys(it.stats).forEach(function(k){ST[k]=(ST[k]||0)+it.stats[k];});});
 
+  var AT=(function(){var PR=DATA.prog,c=PR&&PR.classes&&PR.classes[S.classe],e=PR&&PR.efeitos;if(!c||!e||!S.atr)return null;var b=c.inicial,d=function(k){return Math.max(0,(S.atr[k]|0)-(b[k]|0));};return {dano:d(c.danoAttr)*e.danoPct,vida:d('vit')*e.vidaPorVit,defesa:d('vit')*e.defesaPorVit,estamina:d('vit')*e.estaminaPorVit,run:Math.min(e.corridaMax,d('agi')*e.corridaPorAgi)};})();/* [atributos] pontos do status (U) */
+  if(AT){ST.dano+=AT.dano;ST.vida+=AT.vida;ST.defesa+=AT.defesa;ST.estamina+=AT.estamina;}
+  RUN=P.run*(1+(AT?AT.run:0));
   S.pmax=Math.round(BASE_HP+ST.vida);S.php=Math.min(S.php,S.pmax);
 
   renderHud();
@@ -6629,7 +6634,7 @@ function renderInv(){
 
   var curW = (DATA.armas && DATA.armas[WPN]) || (DATA.armas && DATA.armas.sword) || {name:'Desarmado'};
 
-  h+='<div class="row"><span>Arma</span><b>'+curW.name.split(' (')[0]+'</b></div><div class="row"><span>Maestria</span><b>Nv '+mastLevel()+'</b></div>';
+  h+='<div class="row"><span>Arma</span><b>'+curW.name.split(' (')[0]+'</b></div><div class="row"><span>Nivel</span><b>Nv '+mastLevel()+'</b></div>';
 
   h+='<h3 style="margin-top:12px">RARIDADES</h3>'+Object.keys(R).map(function(k){return '<div class="row"><span style="color:'+R[k].css+'">'+R[k].name+'</span><small style="color:#7f8db0">x'+R[k].mult+' &middot; +'+R[k].affixes+' extra</small></div>';}).join('');
 
@@ -6679,7 +6684,7 @@ function selectSkill(slot,idx){
 
   var c=skillCands(slot),s=c[idx];if(!s)return;
 
-  if((s.unlock||0)>mastLevel()){gestMsg(s.name+' exige maestria Nv '+s.unlock);return;}
+  if((s.unlock||0)>mastLevel()){gestMsg(s.name+' exige nivel '+s.unlock);return;}
 
   SEL[WPN]=SEL[WPN]||{};SEL[WPN][slot]=idx;
 
@@ -6715,7 +6720,7 @@ function renderSk(){
 
   });
 
-  h+='<div style="margin-top:8px;color:#7f8db0;font-size:10px">Clique numa skill para equipar no slot. A maestria da arma libera mais versoes. Cada arma guarda suas escolhas.</div>';
+  h+='<div style="margin-top:8px;color:#7f8db0;font-size:10px">Clique numa skill para equipar no slot. O nivel do personagem libera mais versoes. Cada arma guarda suas escolhas.</div>';
 
   var box=$('#skp');box.innerHTML=h;
 
@@ -6863,44 +6868,29 @@ function setWeapon(id){
 
 /* ganha maestria com a arma equipada ao acertar; sobe de nivel e libera skills */
 
-function addMastery(pts){
+function addMastery(pts){/* [nivel] a maestria por arma saiu: skills liberam pelo NIVEL do personagem (data/progressao.json) */}
 
-  var w = (DATA.armas && DATA.armas[WPN]) || (DATA.armas && DATA.armas.sword);
-
-  if(!w) return;
-
-  var before=mastLevel();MAST[WPN]=mastXp()+pts;
-
-  var after=mastLevel();saveMast();
-
-  if(after>before){
-
-    var un=w.skills.concat(w.variants||[]).filter(function(s){return s.unlock===after;}).map(function(s){return s.name;});
-
-    SFX.levelup();banner('MAESTRIA NIVEL '+after,w.name+(un.length?'  -  nova skill: '+un.join(', '):''),'#f5c451');
-
-    buildSkills();
-
-  }
-
-  renderMastery();
-
+function renderMastery(){/* a barra de baixo do inventario mostra o nivel e o XP do personagem */
+  var need=S.need||xpNeed(S.lvl),pct=Math.min(100,(S.xp||0)/need*100);
+  setT('mastTxt','Nivel '+S.lvl+' - XP '+Math.floor(S.xp||0)+'/'+need);
+  setW('mastFill',pct);
 }
 
-function renderMastery(){
+function skillsNovas(de,ate){/* nomes das skills/variantes da arma atual que liberam entre os niveis de..ate */
+  var w=(DATA.armas&&DATA.armas[WPN])||(DATA.armas&&DATA.armas.sword);if(!w)return[];
+  var vs=w.variants||{},todas=w.skills.concat(Object.keys(vs).map(function(k){return vs[k];}));
+  return todas.filter(function(s){return (s.unlock||0)>de&&(s.unlock||0)<=ate;}).map(function(s){return s.name;});
+}
 
-  var w = (DATA.armas && DATA.armas[WPN]) || (DATA.armas && DATA.armas.sword);
-
-  if(!w) return;
-
-  var L=mastCfg().levels,lv=mastLevel(),xp=mastXp(),max=lv>=L.length-1;
-
-  var cur=L[lv],nxt=max?L[lv]:L[lv+1],pct=max?100:(xp-cur)/(nxt-cur)*100;
-
-  setT('mastTxt','Maestria '+w.name+' - Nv '+lv+(max?' (maximo)':'  '+(xp-cur)+'/'+(nxt-cur)));
-
-  setW('mastFill',pct);
-
+/* [servidor] nivel, xp, pontos e atributos do personagem (mensagem prog e boas-vindas) */
+function aplicaProg(p,ini){
+  var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(p.need)S.need=p.need;if(p.max)S.max=p.max;if(p.classe)S.classe=p.classe;S.pontos=p.pontos|0;if(p.attr)S.attr=p.attr;if(p.st)S.atr=p.st;
+  if(S.lvl!==antes||ini){try{buildSkills();}catch(_){}}
+  try{applyStats();}catch(_){}
+  if(!ini&&p.subiu){var un=skillsNovas(antes,S.lvl);try{SFX.levelup();}catch(_){}banner('NIVEL '+S.lvl,(p.pontos?p.pontos+' pontos para distribuir (U)':'')+(un.length?'  -  nova skill: '+un.join(', '):''),'#f5c451');}
+  else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');
+  try{renderHud();renderMastery();}catch(_){}
+  try{if(window.Status)Status.refresh();}catch(_){}
 }
 
 function buildSkills(){
@@ -7160,10 +7150,6 @@ function buildPad(){
 
      ['Baixar arma ('+WPN+')',function(){download(WPN+'.json',exportWeapon());}],
 
-     ['+50 XP maestria',function(){addMastery(50);buildSkills();build();}],
-
-     ['Zerar maestria',function(){MAST[WPN]=0;saveMast();buildSkills();renderMastery();build();}],
-
      ['Recarregar dados',function(){location.reload();}]].forEach(function(b){
 
       var bt=document.createElement('button');bt.type='button';bt.textContent=b[0];bt.style.cssText='margin:0 6px 4px 0;cursor:pointer;font:inherit;color:#e8f0ff;background:rgba(245,196,81,.12);border:1px solid #f5c451;border-radius:3px;padding:3px 8px';bt.addEventListener('click',b[1]);bar.appendChild(bt);});
@@ -7266,6 +7252,8 @@ window.addEventListener('keydown',function(e){
   else if(k==='escape'&&DG.menu)closeDiff();
 
   else if(k==='k')toggleSk();
+
+  else if(k==='u'){if(window.Status)Status.toggle();}/* [nivel] tela de status */
 
   else if(k==='m'){NAV.mode=NAV.mode==='dn'?'click':'dn';applyMode();}
 
@@ -8908,7 +8896,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},dg:grpRecebe,irDg:function(k){if(DG.run||DG.pvp)return;location.href='arena.html?mode=dungeon&go='+k;},prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,projRemoto:projRemoto,projFim:projFim,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},dg:grpRecebe,irDg:function(k){if(DG.run||DG.pvp)return;location.href='arena.html?mode=dungeon&go='+k;},prog:aplicaProg,fxSkill:skillFxRemoto,projRemoto:projRemoto,projFim:projFim,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);

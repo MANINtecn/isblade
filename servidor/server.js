@@ -30,17 +30,14 @@ const SKILLS = {};                                                 /* arma -> [{
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
 
-/* ---- progresso (nivel/xp): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado ---- */
-const XP_MOB = {};
-try { const d = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'dungeon.json'), 'utf8')); for(const k in (d.mobs || {})) XP_MOB[k] = Math.max(1, d.mobs[k].xp | 0 || 25); } catch (e) { console.error('xp:', e.message); }
-const xpNeed = l => 120 + l * 90, LV_MAX = 100;
+/* ---- progresso (nivel/xp/pontos): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado (servidor/progressao.js + prototipo/data/progressao.json) ---- */
+const Prog = require('./progressao');
 function ganhaXp(J, v){
-  if(!J.pers) return; let p = J.pers; p.xp = (p.xp | 0) + v; let subiu = false;
-  while(p.level < LV_MAX && p.xp >= xpNeed(p.level)){ p.xp -= xpNeed(p.level); p.level++; subiu = true; }
-  if(p.level >= LV_MAX) p.xp = Math.min(p.xp, xpNeed(LV_MAX) - 1);
-  J.lv = p.level; Contas.grava(); envia(J, { t: 'prog', lvl: p.level, xp: p.xp, need: xpNeed(p.level), subiu: subiu ? 1 : 0, ganhou: v });
+  if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
+  J.lv = J.pers.level; Contas.grava(); envia(J, Object.assign({ t: 'prog', subiu: subiu ? 1 : 0, ganhou: v }, Prog.info(J.pers)));
 }
-const pmaxMax = lv => 400 + lv * 20;                              /* vida maxima aceita: base + equipamento + nivel (o cliente nao pode declarar mais que isso) */
+function enviaProg(J){ if(J.pers) envia(J, Object.assign({ t: 'prog' }, Prog.info(J.pers))); }
+const pmaxMax = p => Prog.pmaxMax(p || { level: 1 });                 /* vida maxima aceita: base + equipamento + nivel + vitalidade (o cliente nao pode declarar mais que isso) */
 
 /* ---- estado ---- */
 let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
@@ -106,7 +103,7 @@ function fere(c, A, V, base, t, pid){
   V.hp = Math.max(duelo ? 1 : 0, V.hp - dano);                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
   difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0, p: pid || 0 });
   if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
-  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; ganhaXp(A, 40 + (V.lv || 1) * 15); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
+  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; ganhaXp(A, Math.round(Prog.xpMob(V.lv || 1) * 3)); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
 }
 
 /* ---- projeteis: o servidor faz o projetil VOAR na velocidade da skill e so acerta quem estiver no caminho; esquiva (imune) e guarda valem ---- */
@@ -189,12 +186,12 @@ wss.on('connection', ws => {
       const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = pers ? pers.id : String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); const gJoin = [...grupos.values()].find(x => x.membros.has(sid));
       c = mapa === 'masmorra' ? canalMasmorra(gJoin ? gJoin.id : 0) : (mate && mate.canalRef && mate.canalRef.jog.size < (mapa === 'pvp' ? CAP_PVP : CAP)) ? mate.canalRef : canalLivre(mapa, m.canal | 0);
       J = { id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
-            sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers.level) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
+            sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
       const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = Math.PI;
       if(mapa === 'cidade' && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 600 && Math.abs(m.z) < 600){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
-      envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? { lvl: pers.level, xp: pers.xp | 0, need: xpNeed(pers.level) } : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
+      envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
@@ -209,9 +206,16 @@ wss.on('connection', ws => {
       if(typeof m.f === 'number') J.f = m.f; J.a = String(m.a || 'idle').slice(0, 24); J.ts = Math.max(.2, Math.min(5, +m.ts || 1)); J.guarda = !!m.g;
       if(SKILLS[m.w] && m.w !== J.arma && !J.morto){ J.arma = m.w; }
     } else if(m.t === 'atk') ataque(c, J, m);
+    else if(m.t === 'attr'){                                         /* distribuir pontos de atributo: o servidor valida e devolve o estado (prog) */
+      const t = agora(); if(t - (J.attrT || 0) < .1) return; J.attrT = t; if(J.pers && Prog.distribui(J.pers, m.v)) Contas.grava(); enviaProg(J);
+    }
+    else if(m.t === 'attrreset'){                                    /* reset de pontos: sempre gratis */
+      if(J.pers){ Prog.reseta(J.pers); Contas.grava(); } enviaProg(J);
+    }
     else if(m.t === 'xp'){                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
       const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
-      const tipo = String(m.tipo || '').slice(0, 24), v = !/^[a-z0-9_]{1,24}$/.test(tipo) ? 0 : (tipo === 'boss' ? 180 + (J.lv || 1) * 30 : (XP_MOB[tipo] || 25)); if(v){ if(c.mapa === 'masmorra' && c.gid){ for(const o of c.jog.values()) ganhaXp(o, v); } else ganhaXp(J, v); }      /* grupo: todo mundo ganha */
+      const tipo = String(m.tipo || '').slice(0, 24), dif = String((c.dg && c.dg.key) || m.dif || 'normal').slice(0, 12); if(!/^[a-z0-9_]{1,24}$/.test(tipo)) return;
+      if(c.mapa === 'masmorra' && c.gid){ for(const o of c.jog.values()) if(o.pers) ganhaXp(o, Prog.xpAbate(dif, tipo, o.pers.level)); } else if(J.pers) ganhaXp(J, Prog.xpAbate(dif, tipo, J.pers.level));      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
     }
     else if(m.t === 'dg' && c.mapa === 'masmorra' && c.gid){            /* sincronia da dungeon em grupo: o LIDER manda o estado, os outros mandam o que fizeram */
       const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });

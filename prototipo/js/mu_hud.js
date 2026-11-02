@@ -125,7 +125,7 @@ export const MuHud = {
           <span>Inventário (I)</span>
         </button>
         <button type="button" class="mu-sys-btn" data-sys="C" id="mu-btn-c" aria-label="Personagens">
-          <span>Trocar Personagem (C)</span>
+          <span>Status e Pontos (U)</span>
         </button>
         <button type="button" class="mu-sys-btn" data-sys="S" id="mu-btn-s" aria-label="Skills">
           <span>Árvore de Skills (K)</span>
@@ -522,7 +522,7 @@ export const MuHud = {
     var btnC = document.getElementById('mu-btn-c');
     if (btnC) {
       btnC.addEventListener('click', function() {
-        window.location.href = 'selecao.html';
+        if (window.Status) Status.toggle();
       });
     }
 

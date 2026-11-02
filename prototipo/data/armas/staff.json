@@ -27,7 +27,7 @@
       "intr": 0,
       "hitk": 0.9,
       "css": "#7fd1ff",
-      "unlock": 0,
+      "unlock": 5,
       "desc": "Passo arcano curto."
     },
     {
@@ -44,12 +44,12 @@
       "css": "#8fe3c8",
       "proj": {
         "speed": 12,
-        "width": 1.0,
+        "width": 1,
         "pierce": false,
         "visual": "shuriken_vento",
         "escala": 0.65
       },
-      "unlock": 0,
+      "unlock": 1,
       "desc": "Estrela de vento girando: voa 20 m a 12 m/s (da para ver e esquivar). Rapida, na mira.",
       "icon": "wind_star"
     },
@@ -59,14 +59,14 @@
       "cd": 8,
       "dmg": 110,
       "dur": 0.45,
-      "range": 5.0,
+      "range": 5,
       "half": 3.6,
       "ifr": 0,
       "intr": 1,
       "hitk": 0.55,
       "css": "#8b7bff",
       "launch": true,
-      "unlock": 1,
+      "unlock": 10,
       "desc": "Pulso arcano em cone: lanca o alvo."
     },
     {
@@ -75,7 +75,7 @@
       "cd": 20,
       "dmg": 80,
       "dur": 0.7,
-      "range": 5.0,
+      "range": 5,
       "half": 1.8,
       "ifr": 0,
       "intr": 2,
@@ -89,7 +89,7 @@
       ],
       "armor": true,
       "launch": true,
-      "unlock": 3,
+      "unlock": 30,
       "desc": "Chuva de golpes com armadura."
     },
     {
@@ -112,7 +112,7 @@
       ],
       "armor": true,
       "launch": true,
-      "unlock": 2,
+      "unlock": 25,
       "desc": "Tormenta de varios golpes."
     },
     {
@@ -132,7 +132,7 @@
         "width": 2.4,
         "pierce": true
       },
-      "unlock": 1,
+      "unlock": 20,
       "desc": "Orbe largo que atravessa o alvo."
     }
   ],
@@ -151,12 +151,13 @@
       "css": "#a0e0ff",
       "proj": {
         "speed": 30,
-        "width": 1.0,
+        "width": 1,
         "pierce": true
       },
       "desc": "Perfura o alvo, dano menor.",
       "slot": 1,
-      "unlock": 1
+      "unlock": 12,
+      "tipo": 1
     },
     {
       "name": "Pulso Explosivo",
@@ -173,7 +174,8 @@
       "launch": true,
       "desc": "Cone largo e dano maior, recarga maior.",
       "slot": 2,
-      "unlock": 3
+      "unlock": 28,
+      "tipo": 3
     },
     {
       "name": "Orbe Veloz",
@@ -194,7 +196,8 @@
       },
       "desc": "Orbe rapido e fino.",
       "slot": 5,
-      "unlock": 2
+      "unlock": 18,
+      "tipo": 2
     }
   ]
 }

@@ -403,7 +403,9 @@ export const Net = (function(){
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
   N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && N.grupo.m.length > 1); };      /* lider de um grupo: dono da dungeon mesmo que os outros ainda estejam entrando */
   N.soyConvidado = function(){ return !!(N.on && N.mapa === 'masmorra' && N.grupo && !N.soyLider() && remotos.size > 0); };
-  N.xp = function(tipo){ if(!N.on) return false; send({ t: 'xp', tipo: tipo }); return true; };               /* servidor decide o ganho */
+  N.xp = function(tipo, dif){ if(!N.on) return false; send({ t: 'xp', tipo: tipo, dif: dif || 'normal' }); return true; };
+  N.attr = function(v){ if(!N.on) return false; send({ t: 'attr', v: v }); return true; };               /* distribuir pontos (servidor valida) */
+  N.attrReset = function(){ if(!N.on) return false; send({ t: 'attrreset' }); return true; };         /* reset de pontos, sempre gratis */               /* servidor decide o ganho */
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };

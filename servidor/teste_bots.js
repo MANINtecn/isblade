@@ -2,7 +2,7 @@
 'use strict';
 const { spawn } = require('child_process'), path = require('path');
 let WebSocket; try { WebSocket = require('ws'); } catch (e) { WebSocket = require(path.join(__dirname, '..', 'prototipo', 'node_modules', 'ws')); }
-const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], { env: Object.assign({}, process.env, { PORT: '8011', CAP: '2', PVP_MULT: '0.4' }), stdio: 'ignore' });
+const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], { env: Object.assign({}, process.env, { PORT: '8011', CAP: '2', PVP_MULT: '0.4', AUTH: '0' }), stdio: 'ignore' });
 const esp = ms => new Promise(r => setTimeout(r, ms)); let falhas = 0;
 const ok = (c, msg) => { console.log((c ? 'ok   ' : 'FALHA') + ' ' + msg); if(!c) falhas++; };
 function bot(nome, extra){
