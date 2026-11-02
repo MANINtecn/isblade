@@ -85,20 +85,16 @@
     var disco = parte('S1_bn_disco', matDisco(uD), true);
     var aura = parte('S1_aura_L2', matL2(TEX.t1, 0xccffe6, 0.35)); var anelO = P.S1_anel_L2.clone(false); anelO.material = matL2(TEX.t5, 0xd9ffff, 0.5); mats.push(anelO.material);
     var anelW = new T.Group(); anelW.add(anelO); corpo.add(anelW);
-    var rastro = new T.Group(); tor.add(rastro);                                    /* fitas de vento atras da estrela (em -Z) */
-    var mFita = matFita(uR), mFita2 = matFita(uR2); mats.push(mFita, mFita2);
-    var n1 = leve() ? 5 : 7, n2 = leve() ? 3 : 5, i, m, g;
-    for(i = 0; i < n1; i++){ g = helice(i * 6.2832 / n1 + (alea() - 0.5) * 0.4, 0.10 + alea() * 0.06, 0.38 + alea() * 0.24, 2.8 + alea() * 1.8, 1.4 + alea(), 0.030 + alea() * 0.032, alea() * 0.5); geos.push(g); m = new T.Mesh(g, mFita); m.frustumCulled = false; rastro.add(m); }
-    for(i = 0; i < n2; i++){ g = helice(i * 6.2832 / n2 + 0.7, 0.07, 0.20 + alea() * 0.14, 1.8 + alea() * 1.2, 2.6 + alea() * 1.2, 0.014 + alea() * 0.012, 0.2 + alea() * 0.4); geos.push(g); m = new T.Mesh(g, mFita2); m.frustumCulled = false; rastro.add(m); }
+    /* [mago] sem rastro de fitas: so a shuriken e seus efeitos (muitos magos juntos pesavam) */
+    var i, m, g;
     corpo.traverse(function(o){ o.frustumCulled = false; });
     var rel = 0;
     return {
       group: raiz,
       update: function(dt, prog){
-        rel += dt; uD.uT.value = rel; uR.uT.value = uR2.uT.value = rel;
+        rel += dt; uD.uT.value = rel; 
         estrela.rotation.y += Math.min(36 * dt, 0.70);                               /* gira no proprio eixo (limite por quadro: 4 laminas nao "voltam") */
         disco.rotation.y -= Math.min(31 * dt, 0.65); aura.rotation.y -= Math.min(24 * dt, 0.60); anelW.rotation.z += Math.min(10 * dt, 0.40);
-        rastro.rotation.z -= Math.min(14 * dt, 0.50);
         tor.rotation.z = Math.PI * Math.max(0, Math.min(1, prog || 0));                /* torce ate 180 graus no alvo */
       },
       dispose: function(){ if(raiz.parent) raiz.parent.remove(raiz); geos.forEach(function(x){ x.dispose(); }); mats.forEach(function(x){ x.dispose(); }); }

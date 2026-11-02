@@ -2383,3 +2383,6 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Testado: arena PvP local, qualidade media, 12 tipos: clipe carrega (tracks), skill dispara, projetil sai, prancha de prints sem erro de pagina; mago_m/orc_f vistos em sequencia.
 - NAO testado: qualidade alta e baixa, cidade.html, outro jogador vendo o clipe (remoto), som de ouvido, celular, anoes (apareceram pequenos/cortados na prancha; pode ser enquadramento ou delta do quadril), icone na barra olhando de perto. Momento de soltar (`hit` 0,29-0,83) ainda e o medido, nao calibrado: nos tipos com hit alto a estrela sai ~0,6 s depois do inicio (pode parecer lento).
 - Dono avisou: no Blender a shuriken parece ir "pra tras"; no jogo nos prints ela sai para a frente do personagem (conferir no celular/real).
+
+### [Claude] 02/11/2026 - Pedido do dono: tirar o rastro longo da shuriken
+- Dono: "remova o rastro, quando tiver muitos magos vai pesar; deixa apenas a shuriken e seus efeitos". Feito no jogo (js/mago_fx.js v2): removidas as fitas de vento (rastro); ficam estrela, nucleo, halo, disco, aura, anel e o impacto. Blender (mage_skills.blend) nao foi mexido. Testado: 1 mago na arena, media, sem erro. Dono pediu push para a Vercel para testar.
