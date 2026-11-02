@@ -62,6 +62,10 @@ function returnToCity(){
   try{
     if(document.exitPointerLock) document.exitPointerLock();
   }catch(_){}
+  if(window.L2Teleport){
+    window.L2Teleport.teleportTo('Vila de Talking Island', 'cidade.html');
+    return;
+  }
   try{
     var screen = document.getElementById('l2LoadingScreen');
     if(screen){
@@ -83,6 +87,13 @@ function returnToCity(){
   }, 350);
 }
 window.returnToCity = returnToCity;
+document.addEventListener('click', function(e){
+  var a = e.target.closest && e.target.closest('a[href="cidade.html"]');
+  if(a && window.L2Teleport){
+    e.preventDefault();
+    window.L2Teleport.teleportTo('Vila de Talking Island', 'cidade.html');
+  }
+});
 
 window.switchCharacter = function(type) {
 
@@ -444,6 +455,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=2"></script>
+<script src="js/l2_teleport.js"></script>
 </head>
 
 <body>

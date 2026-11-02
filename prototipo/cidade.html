@@ -779,6 +779,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/qualidade.js?v=2"></script>
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=2"></script>
+<script src="js/l2_teleport.js"></script>
+<script src="js/l2_npcs.js"></script>
 </head>
 
 
@@ -3620,10 +3622,10 @@ var GLB_DIR = 'assets/talking_island/assembled_glb/';
 
 
 var villageGroup = new THREE.Group();
-
-
-
 scene.add(villageGroup);
+
+// Inicializar NPCs de Talking Island (Gatekeeper Clarissa, Ferreiro Altran, Mammon)
+if(window.L2Npcs) L2Npcs.init(scene, gltfLoader);
 
 
 
@@ -4481,7 +4483,11 @@ function openPortalMenu(){
   Array.prototype.forEach.call(box.querySelectorAll('.dcard'),function(el){el.addEventListener('click',function(){
     var g=el.getAttribute('data-go');
     if(g!=='__duel'&&g!=='__pvp'&&window.Net&&Net.on&&Net.grupo&&Net.grupo.m&&Net.grupo.m.length>1&&!Net.soyLider()){banner('APENAS O LIDER ENTRA','Peca ao lider do grupo para iniciar a dungeon: ele leva voce junto','#ff6b6b');return;}/* [dg-grupo] membro nao entra sozinho */
-    window.location.href=g==='__duel'?'arena.html?mode=duel':'arena.html?mode=dungeon&go='+(g==='__pvp'?'pvp':g);});});
+    var targetUrl = g==='__duel'?'arena.html?mode=duel':'arena.html?mode=dungeon&go='+(g==='__pvp'?'pvp':g);
+    var destName = g==='__duel'?'Salão do Baium':(g==='__pvp'?'Arena de Guerra PvP':('Torre da Insolência - ' + ((DD[g] && DD[g].name) || g)));
+    if(window.L2Teleport) L2Teleport.teleportTo(destName, targetUrl);
+    else window.location.href = targetUrl;
+  });});
   document.getElementById('diffX').addEventListener('click',closePortalMenu);
 }
 function closePortalMenu(){PORTAL_MENU=false;document.getElementById('diff').classList.remove('open');}
@@ -14208,7 +14214,10 @@ window.addEventListener('keydown',function(e){
 
 
   if(PORTAL_MENU){if(k==='escape'||k==='e')closePortalMenu();return;}/* [portal-cidade] */
-  if(k==='e' && Math.hypot(S.px - (-13.5), S.pz - (-13.0)) < 5.0){ openPortalMenu(); return; }
+  if(k==='e'){
+    if(window.L2Npcs && window.L2Npcs.handleInteractKey()){ e.preventDefault(); return; }
+    if(Math.hypot(S.px - (-13.5), S.pz - (-13.0)) < 5.0){ openPortalMenu(); return; }
+  }
 
 
 
@@ -16237,6 +16246,7 @@ function frameBody(nowMs){
 
 
   var dtR=Math.max(0,(nowMs-last)/1000),dt=Math.min(.05,dtR);last=nowMs;T+=dt;
+  if(window.L2Npcs) L2Npcs.update(dt, S.px, S.pz);
 
 
 
