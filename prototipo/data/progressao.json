@@ -1,6 +1,7 @@
 {
   "_nota": "Fonte unica da progressao (classes, nivel, pontos). O servidor (contas.js) e o cliente leem este arquivo; mudar aqui muda o balanceamento.",
   "nivelMax": 400,
+  "nivelInicial": 20,
   "pontosPorNivel": 2,
   "resetPontos": {
     "gratis": true
@@ -161,94 +162,94 @@
     "bonusMax": 0.4
   },
   "mobsNivel": {
-    "_nota": "Nivel e peso de cada tipo de mob POR DIFICULDADE da dungeon (a chave que o cliente manda no abate). Chefe: nivel da dificuldade + peso alto. O mundo para alem do nivel ~45 ainda nao tem conteudo (fases futuras).",
+    "_nota": "Nivel e peso de cada tipo de mob POR DIFICULDADE da dungeon (a chave que o cliente manda no abate). Tutorial entrega o nivel 20; a Torre (1o andar) tem 3 dificuldades no mesmo local: normal ~20-30, medio ~32-45, hard ~50-70. Chefe: nivel da dificuldade + peso alto. Acima do nivel ~70 ainda nao ha conteudo.",
     "normal": {
       "fantasma": [
-        1,
+        20,
         1
       ],
       "esqueleto": [
-        4,
+        22,
         1
       ],
       "vidente": [
-        7,
+        24,
         1.2
       ],
       "lamina": [
-        10,
+        27,
         4
       ],
       "shade": [
-        3,
+        21,
         1
       ],
       "brute": [
-        8,
+        26,
         3
       ],
       "caster": [
-        6,
+        24,
         1.2
       ],
       "mini_boss": [
-        10,
+        27,
         6
       ],
       "boss": [
-        12,
+        30,
         10
       ]
     },
     "medio": {
       "cao": [
-        14,
+        32,
         1
       ],
       "guarda_real": [
-        16,
-        1.1
+        35,
+        1
       ],
       "cavaleiro": [
-        19,
-        1.5
+        38,
+        1.2
       ],
       "erinia": [
-        17,
+        36,
         1.2
       ],
       "vidente": [
-        15,
+        34,
         1.2
       ],
       "comandante": [
-        22,
-        6
+        42,
+        4
       ],
       "boss": [
-        24,
+        45,
         10
       ]
     },
     "hard": {
       "anjo": [
-        28,
+        50,
         1
       ],
       "xama": [
-        31,
-        1.1
+        54,
+        1.2
       ],
       "overlord": [
-        34,
+        60,
         2
       ],
       "arcanjo": [
-        38,
+        66,
         4
       ],
       "boss": [
-        40,
+        70,
         10
       ]
     }

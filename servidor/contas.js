@@ -101,7 +101,8 @@ module.exports = function(opts){
       }
     } catch(e){}
   }
-  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword' };   /* classe define a arma (data/progressao.json); cleric ainda indisponivel */
+  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword' };   /* classe define a arma (data/progressao.json); cleric ainda indisponivel */
+const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_INICIAL || require('./progressao').dados().nivelInicial) | 0) || 1));   /* personagem novo nasce no nivel do tutorial (data/progressao.json -> nivelInicial) */
   function classeDe(x){ if(ARMA_CLASSE[x.classe]) return x.classe; return x.weapon === 'shield' || x.weapon === 'swordshield' ? 'guardiao' : x.weapon === 'staff' ? 'mago' : 'guerreiro'; }   /* personagens antigos: classe pela arma */
   function limpaPers(x){
     const id = /^char_[A-Za-z0-9_]{1,40}$/.test(x.id) ? x.id : 'char_' + crypto.randomBytes(6).toString('hex'), tok = (v, d) => (/^[a-z0-9_]{1,30}$/.test(String(v || '')) ? String(v) : d);
@@ -166,7 +167,7 @@ module.exports = function(opts){
           if(!NOME_RE.test(nome)) return resp(res, 400, { erro: 'Nome: 2 a 16 letras, numeros, espaco, _ ou -.' });
           if(c.pers.length >= PERS_MAX) return resp(res, 400, { erro: 'Limite de ' + PERS_MAX + ' personagens por conta.' });
           if(!nomeLivre(nome)) return resp(res, 409, { erro: 'Esse nome ja esta em uso. Escolha outro.' });
-          const novo = limpaPers(Object.assign({}, b, { id: '', name: nome, level: 1, location: 'Talking Island', createdAt: new Date().toLocaleDateString('pt-BR') })); c.pers.push(novo); mexeu();
+          const novo = limpaPers(Object.assign({}, b, { id: '', name: nome, level: nivelInicial(), location: 'Talking Island', createdAt: new Date().toLocaleDateString('pt-BR') })); c.pers.push(novo); mexeu();
           return resp(res, 200, { pers: c.pers, char: novo, rev: c.dados.rev });
         }
         const p = c.pers.find(q => q.id === String(b.id || '')); if(!p) return resp(res, 404, { erro: 'Personagem nao encontrado.' });

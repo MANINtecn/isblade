@@ -4,7 +4,7 @@
 const { spawn } = require('child_process'), path = require('path'), fs = require('fs'), os = require('os');
 let WebSocket; try { WebSocket = require('ws'); } catch (e) { WebSocket = require(path.join(__dirname, '..', 'prototipo', 'node_modules', 'ws')); }
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'isb_prog_'));
-const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], { env: Object.assign({}, process.env, { PORT: '8012', DATA_DIR: dir }), stdio: 'ignore' });
+const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], { env: Object.assign({}, process.env, { PORT: '8012', DATA_DIR: dir, NIVEL_INICIAL: '1' }), stdio: 'ignore' });
 const esp = ms => new Promise(r => setTimeout(r, ms)); let falhas = 0;
 const ok = (c, msg) => { console.log((c ? 'ok   ' : 'FALHA') + ' ' + msg); if(!c) falhas++; };
 const B = 'http://localhost:8012';
@@ -23,8 +23,8 @@ const Prog = require('./progressao');
   for(let i = 0; i < n; i++){ ws.send(JSON.stringify({ t: 'xp', tipo: 'fantasma', dif: 'normal' })); await esp(190); }
   await esp(300);
   ok(ultProg && ultProg.lvl === 2 && ultProg.pontos === 2, `${n} fantasmas (${gan} xp cada) = nivel 2 com 2 pontos`);
-  ok(Prog.xpAbate('normal', 'fantasma', 12) < gan * 0.5, 'mob fraco demais da bem menos xp (penalidade por nivel)');
-  ok(Prog.xpAbate('hard', 'anjo', 1) > Prog.xpAbate('normal', 'fantasma', 1) * 5, 'mob de nivel alto da muito mais xp (com bonus de ate 40%)');
+  ok(Prog.xpAbate('normal', 'fantasma', 40) < Prog.xpAbate('normal', 'fantasma', 20) * 0.5, 'mob fraco demais da bem menos xp (penalidade por nivel)');
+  ok(Prog.xpAbate('hard', 'anjo', 20) > Prog.xpAbate('normal', 'fantasma', 20) * 2, 'dificuldade maior da mais xp por abate (hard > normal no mesmo nivel)');
   ws.send(JSON.stringify({ t: 'xp', tipo: 'tipo_que_nao_existe', dif: 'normal' })); await esp(250);
   ok(ultProg.lvl === 2, 'tipo de mob desconhecido nao da xp');
   ws.send(JSON.stringify({ t: 'attr', v: { int: 5 } })); await esp(250);

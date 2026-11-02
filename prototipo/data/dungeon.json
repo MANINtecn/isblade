@@ -579,8 +579,8 @@
       "respawn": 2.4
     },
     "hard": {
-      "andar": 2,
-      "nome": "Torre da Insolencia - 2o Andar (Hard: anjos e Tribo de Platina)",
+      "andar": 1,
+      "nome": "Torre da Insolencia - 1o Andar (Hard: anjos e Tribo de Platina)",
       "mobs": [
         [
           "anjo",
@@ -600,7 +600,6 @@
         ]
       ],
       "bau": "gold",
-      "liberaPorta": true,
       "meta": 45,
       "tempo": 600,
       "respawn": 2.4
