@@ -31,24 +31,24 @@
       "desc": "Passo arcano curto."
     },
     {
-      "name": "Estaca Arcana",
+      "name": "Shuriken de Vento",
       "pose": "blade",
-      "cd": 1.4,
+      "cd": 1.2,
       "dmg": 30,
       "dur": 0.26,
-      "range": 10,
+      "range": 20,
       "half": 0.3,
       "ifr": 0,
       "intr": 0,
       "hitk": 0.5,
-      "css": "#a0e0ff",
+      "css": "#8fe3c8",
       "proj": {
-        "speed": 30,
+        "speed": 12,
         "width": 1.0,
         "pierce": false
       },
       "unlock": 0,
-      "desc": "Estaca arcana rapida a distancia."
+      "desc": "Estrela de vento girando: voa 20 m a 12 m/s (da para ver e esquivar). Rapida, na mira."
     },
     {
       "name": "Pulso Arcano",
@@ -125,7 +125,7 @@
       "hitk": 0.5,
       "css": "#8bc1ff",
       "proj": {
-        "speed": 22,
+        "speed": 14,
         "width": 2.4,
         "pierce": true
       },

@@ -147,10 +147,12 @@ export const Net = (function(){
     } else if(m.t === 'dgconvite'){ puxar(m.key, m.id);
     } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
     } else if(m.t === 'prog'){ if(ctx.prog) ctx.prog(m);
+    } else if(m.t === 'proj'){ if(ctx.projRemoto) ctx.projRemoto(m);
     } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && !e.morto){ if(m.k === 's' && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f); else if(m.k === 'b' && ctx.fxBasico) ctx.fxBasico(e, m.v, m.f); }
     } else if(m.t === 'j'){ addRemoto(m.p); atualizaHud();
     } else if(m.t === 'l'){ removeRemoto(m.id); atualizaHud();
     } else if(m.t === 'hit'){
+      if(m.p && ctx.projFim) ctx.projFim(m.p);
       var ratio = 0;
       if(m.v === N.id){ ctx.meHit(m.d, m.hp / (N.eu.pmax || 100), !!m.b); }
       else { e = remotos.get(m.v); if(e){ if(ctx.hitFx) ctx.hitFx(e.x, e.z); e.hp = m.hp; ctx.floatText((m.b ? 'BLOQ ' : '') + '-' + m.d, m.b ? '#8bc1ff' : '#ffd166', m.b ? 16 : 22, { x: e.x, z: e.z, y: 2.6 }); } if(m.a === N.id) ctx.iHit(m.d); }
@@ -391,7 +393,7 @@ export const Net = (function(){
   };
   /* chamados pelo jogo */
   N.atacou = function(an){
-    if(!N.on || !an) return; var S = ctx.getS();
+    if(!N.on || !an) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();
     if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; send({ t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }); }
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };

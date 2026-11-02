@@ -1,15 +1,15 @@
 """Mago - skill 1: SHURIKEN DE VENTO (rapida, na mira). Monta tudo no Blender: corpo 3D da estrela, aura (malha de redemoinho do L2), rastro em helice e impacto.
 Uso:  blender -b -P mago_skill1_shuriken.py        -> salva prototipo/assets/personagens/mage_skills.blend  (PREVIA=<pasta> tambem renderiza quadros)
-48 fps. Voo: frames 1-30 (a estrela anda 20 m no eixo +Y, ~17,8 m/s); impacto: frame 55 em diante (sumindo ate 75).
+48 fps. Voo: frames 1-30 (a estrela anda 20 m no eixo +Y, 12 m/s); impacto: frame 81 em diante (sumindo ate 101).
 Paleta: nucleo branco-quente, jade palido, aco azulado, poeira cinza-areia. Sem rosa/lilas."""
 import bpy, bmesh, math, os, random
 from mathutils import Vector, Matrix
 random.seed(7)
 RAIZ = r"C:/TECX SOFTHOUSE/IS ONLINE/"
-SAIDA = RAIZ + "prototipo/assets/personagens/mage_skills.blend"
+SAIDA = os.environ.get("SAIDA", RAIZ + "prototipo/assets/personagens/mage_skills.blend")        # SAIDA=<caminho> grava em outro arquivo (nao sobrescreve o que esta aberto)
 L2MESH = RAIZ + "trabalho_l2fx/export_bruto/LineageEffectsStaticmeshes/StaticMesh/"
 L2TEX = RAIZ + "trabalho_l2fx/export_bruto/LineageEffectsTextures/Texture/"
-F0, F_HIT, F_FIM = 1, 55, 75        # voo de 20 m em 54 quadros = 1,125 s a 48 fps (~17,8 m/s)
+F0, F_HIT, F_FIM = 1, 81, 101       # voo de 20 m em 80 quadros = 1,667 s a 48 fps = 12 m/s (da tempo de ver e desviar)
 DIST = 20.0
 N_VOO = F_HIT - F0
 
@@ -43,7 +43,16 @@ def mat_aco():
     lw = nt.nodes.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.35
     ramp = nt.nodes.new("ShaderNodeValToRGB"); ramp.color_ramp.elements[0].color = (0, 0, 0, 1); ramp.color_ramp.elements[1].color = (0.55, 1.0, 0.86, 1)
     ramp.color_ramp.elements[0].position = 0.35
-    nt.links.new(lw.outputs["Facing"], ramp.inputs[0]); nt.links.new(ramp.outputs[0], b.inputs["Emission Color"]); b.inputs["Emission Strength"].default_value = 2.6
+    nt.links.new(lw.outputs["Facing"], ramp.inputs[0]); b.inputs["Emission Strength"].default_value = 2.6
+    # a raiz das laminas esquenta (branco-jade) conforme chega perto do buraco negro (distancia ao centro, em coordenadas do objeto)
+    N = nt.nodes; tc = N.new("ShaderNodeTexCoord"); vl = N.new("ShaderNodeVectorMath"); vl.operation = "LENGTH"
+    mr = N.new("ShaderNodeMapRange"); mr.inputs[1].default_value = 0.10; mr.inputs[2].default_value = 0.60; mr.inputs[3].default_value = 1.0; mr.inputs[4].default_value = 0.0; mr.clamp = True
+    pw = N.new("ShaderNodeMath"); pw.operation = "POWER"; pw.inputs[1].default_value = 1.6
+    mx = N.new("ShaderNodeMix"); mx.data_type = "RGBA"; mx.inputs[7].default_value = (0.92, 1.0, 0.95, 1)
+    ml = N.new("ShaderNodeMath"); ml.operation = "MULTIPLY_ADD"; ml.inputs[1].default_value = 9.0; ml.inputs[2].default_value = 2.6
+    nt.links.new(tc.outputs["Object"], vl.inputs[0]); nt.links.new(vl.outputs["Value"], mr.inputs[0]); nt.links.new(mr.outputs[0], pw.inputs[0])
+    nt.links.new(ramp.outputs[0], mx.inputs[6]); nt.links.new(pw.outputs[0], mx.inputs[0]); nt.links.new(mx.outputs[2], b.inputs["Emission Color"])
+    nt.links.new(pw.outputs[0], ml.inputs[0]); nt.links.new(ml.outputs[0], b.inputs["Emission Strength"])
     return m
 def mat_fx(nome, quente, jade, forca=5.0, ruido=6.0, cauda=True, borda=False):
     """tubo/faixa de vento: u = ao longo (0 cabeca .. 1 cauda); cor quente->jade, alfa pelo ruido e pela cauda"""
@@ -90,39 +99,41 @@ def fade_node(m, nome="fade"):
     nt.links.new(old, mul.inputs[0]); nt.links.new(v.outputs[0], mul.inputs[1]); nt.links.new(mul.outputs[0], mix.inputs[0]); return v
 
 # ------------------------------------------------------------------ corpo da estrela
-def blade_mesh(nome, R=1.0, hub=0.2, n_blades=4, esp=0.075, miolo=True):
-    """estrela de 4 laminas curvas (foice): contorno com arco, secao em losango (cume central), pontas afiadas"""
-    me = bpy.data.meshes.new(nome); bm = bmesh.new(); K = 22
+def blade_mesh(nome, R=1.0, hub=0.2, n_blades=4, esp=0.075, miolo=True, swirl=0.0, swirl_len=0.30, K=22):
+    """estrela de 4 laminas curvas (foice), secao em losango, pontas afiadas. swirl>0: a RAIZ gira em espiral em volta do centro
+    (laminas "sugadas" pelo buraco negro): fica fina, mais fina quanto mais perto, e comeca dentro do buraco (hub pequeno)."""
+    me = bpy.data.meshes.new(nome); bm = bmesh.new()
+    suave = lambda x: (lambda y: y * y * (3 - 2 * y))(max(0.0, min(1.0, x)))
     for bi in range(n_blades):
-        a0 = bi * 2 * math.pi / n_blades; rows = []
+        a0 = bi * 2 * math.pi / n_blades; R2 = Matrix.Rotation(a0, 3, "Z"); linhas = []
         for k in range(K + 1):
-            t = k / K; x = hub + (R - hub) * t
+            t = (k / K) ** (1.55 if swirl else 1.0); x = hub + (R - hub) * t
             curva = 0.34 * t * t * R                       # curvatura da foice (sentido do giro)
-            w_f = 0.30 * R * (1 - t) ** 0.75 * (0.55 + 0.45 * math.sin(min(1, t * 1.4) * math.pi / 2))   # aresta de ataque (larga)
-            w_t = 0.12 * R * (1 - t) ** 1.1                # aresta de fuga (fina)
-            ye_f, ye_t = curva + w_f, curva - w_t
-            rows.append([(x, ye_f, 0.0), (x, curva + 0.25 * (w_f - w_t), esp * (1 - t * 0.6)), (x, ye_t, 0.0), (x, curva + 0.25 * (w_f - w_t), -esp * (1 - t * 0.6))])
-        R2 = Matrix.Rotation(a0, 3, "Z"); vs = []
-        for r in rows: vs.append([bm.verts.new(R2 @ Vector(p)) for p in r])
+            raiz = (0.28 + 0.72 * suave((x - hub) / 0.38)) if swirl else 1.0
+            w_f = 0.30 * R * (1 - t) ** 0.75 * (0.55 + 0.45 * math.sin(min(1, t * 1.4) * math.pi / 2)) * raiz
+            w_t = 0.12 * R * (1 - t) ** 1.1 * raiz
+            e_ = esp * (1 - t * 0.6) * ((0.5 + 0.5 * raiz) if swirl else 1.0)
+            centro = curva + 0.25 * (w_f - w_t)
+            pts = [(x, curva + w_f, 0.0), (x, centro, e_), (x, curva - w_t, 0.0), (x, centro, -e_)]
+            Rg = Matrix.Rotation(-swirl * math.exp(-(x - hub) / swirl_len), 3, "Z") if swirl else Matrix.Identity(3)
+            linhas.append([bm.verts.new(R2 @ (Rg @ Vector(q))) for q in pts])
         for k in range(K):
-            A, B = vs[k], vs[k + 1]
+            A, Bq = linhas[k], linhas[k + 1]
             for j in range(4):
-                j2 = (j + 1) % 4
-                try: bm.faces.new((A[j], A[j2], B[j2], B[j]))
+                try: bm.faces.new((A[j], A[(j + 1) % 4], Bq[(j + 1) % 4], Bq[j]))
                 except ValueError: pass
-        # tampa da raiz
-        try: bm.faces.new(vs[0])
+        try: bm.faces.new(linhas[0])
         except ValueError: pass
-    # cubo central (miolo octogonal) + olho
     if miolo: bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=8, radius1=hub * 1.25, radius2=hub * 1.05, depth=esp * 3.2)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     uvl = bm.loops.layers.uv.verify()
     for f in bm.faces:
         for lp in f.loops:
             v = lp.vert.co; lp[uvl].uv = (min(1.0, max(0.0, (math.hypot(v.x, v.y) - hub) / max(R - hub, 1e-6))), 0.5)
+    for f in bm.faces: f.smooth = True
     bm.to_mesh(me); bm.free(); return me
 def corpo_estrela():
-    ob = bpy.data.objects.new("S1_estrela", blade_mesh("S1_estrela", miolo=False)); link(ob)
+    ob = bpy.data.objects.new("S1_estrela", blade_mesh("S1_estrela", hub=0.07, miolo=False, swirl=1.45, K=40)); link(ob)
     ob.data.materials.append(mat_aco())
     bpy.context.view_layer.objects.active = ob; ob.select_set(True)
     bpy.ops.object.shade_smooth()
@@ -156,12 +167,6 @@ def corpo_estrela():
             for lp, (ii, ss) in zip(f.loops, ((ia, isg), (ia, i2), (ia + 1, i2), (ia + 1, isg))): lp[uv].uv = (ii / AN, ss / SG)
     me = bpy.data.meshes.new("S1_bn_disco"); bm.to_mesh(me); bm.free(); disco = bpy.data.objects.new("S1_bn_disco", me); link(disco); disco.parent = ob
     disco.data.materials.append(mat_fx("S1_bn_disco_m", (1.0, 0.99, 0.90), (0.38, 0.86, 0.74), 6.5, 7.0)); disco.location = (0, 0, 0.012)
-    # aro de aco: une as laminas ao buraco negro
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.205, minor_radius=0.034, major_segments=36, minor_segments=10)
-    aro = bpy.context.active_object
-    for c_ in list(aro.users_collection): c_.objects.unlink(aro)
-    link(aro); aro.name = "S1_aro"; aro.parent = ob; aro.data.materials.append(ob.data.materials[0])
-    for p_ in aro.data.polygons: p_.use_smooth = True
     ob["disco"] = disco.name
     return ob
 
@@ -324,7 +329,7 @@ if pasta:
     os.makedirs(pasta, exist_ok=True)
     for nome_cam, c in (("voo", cam), ("perto", cam2)):
         sc.camera = c
-        for f in (6, 20, 34, 48, 56, 60, 68, 76):
+        for f in (8, 30, 55, 76, 83, 88, 96, 101):
             sc.frame_set(f); sc.render.filepath = os.path.join(pasta, "s1_%s_f%02d.png" % (nome_cam, f)); bpy.ops.render.render(write_still=True)
 
 if os.environ.get("MODELO"):

@@ -670,7 +670,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=21';
+import { Net } from './js/net.js?v=22';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -2820,9 +2820,10 @@ var rangeLine=new THREE.Group();
 
 })();
 
-function spawnProj(sk,dmg){
+function spawnProj(sk,dmg,o){
+  var O=o||{x:S.px,z:S.pz,face:S.face,off:1.2,vis:false};/* [pvp-proj] o=origem de projetil de OUTRO jogador (so visual) */
 
-  var f=fwd(S.face),g=new THREE.Group(),inner=new THREE.Group();
+  var f=fwd(O.face),g=new THREE.Group(),inner=new THREE.Group();
 
   if(sk.proj && sk.proj.spear){
 
@@ -2836,15 +2837,15 @@ function spawnProj(sk,dmg){
 
     inner.add(spHead);inner.add(spShaft);
 
-    g.add(inner);g.position.set(S.px+f[0]*1.2,1.3,S.pz+f[1]*1.2);g.rotation.y=S.face;
+    g.add(inner);g.position.set(O.x+f[0]*O.off,1.3,O.z+f[1]*O.off);g.rotation.y=O.face;
 
     g.scale.set(sk.proj.width||1.4,1,sk.proj.width||1.4);
 
     scene.add(g);
 
-    PROJ.push({g:g,x:g.position.x,z:g.position.z,dx:f[0],dz:f[1],v:sk.proj.speed,range:sk.range,t:0,w:sk.proj.width,dmg:dmg,sk:sk,hit:false,trailT:0,mh:[]});
+    PROJ.push({g:g,x:g.position.x,z:g.position.z,dx:f[0],dz:f[1],v:sk.proj.speed,range:sk.range,t:0,w:sk.proj.width,dmg:dmg,sk:sk,hit:false,trailT:0,mh:[],vis:!!O.vis,pid:O.pid||0});
 
-    rangeLine.visible=true;rangeLine.userData.t=0;rangeLine.position.set(S.px,.09,S.pz);rangeLine.rotation.y=S.face;
+    rangeLine.visible=!O.vis;rangeLine.userData.t=0;if(!O.vis){rangeLine.position.set(S.px,.09,S.pz);rangeLine.rotation.y=S.face;}
 
     var rm=rangeLine.children[0];rm.scale.set((sk.proj.width||1.4)*1.4,sk.range,1);rm.position.z=sk.range/2;rm.material.opacity=.4;
 
@@ -2860,13 +2861,13 @@ function spawnProj(sk,dmg){
 
   inner.add(c1);inner.add(c2);inner.rotation.y=-Math.PI/2;/* a ponta do crescente aponta para a frente */
 
-  g.add(inner);g.position.set(S.px+f[0]*1.2,1.3,S.pz+f[1]*1.2);g.rotation.y=S.face;g.scale.set(sk.proj.width,1,sk.proj.width);
+  g.add(inner);g.position.set(O.x+f[0]*O.off,1.3,O.z+f[1]*O.off);g.rotation.y=O.face;g.scale.set(sk.proj.width,1,sk.proj.width);
 
   scene.add(g);
 
-  PROJ.push({g:g,x:g.position.x,z:g.position.z,dx:f[0],dz:f[1],v:sk.proj.speed,range:sk.range,t:0,w:sk.proj.width,dmg:dmg,sk:sk,hit:false,trailT:0,mh:[]});
+  PROJ.push({g:g,x:g.position.x,z:g.position.z,dx:f[0],dz:f[1],v:sk.proj.speed,range:sk.range,t:0,w:sk.proj.width,dmg:dmg,sk:sk,hit:false,trailT:0,mh:[],vis:!!O.vis,pid:O.pid||0});
 
-  rangeLine.visible=true;rangeLine.userData.t=0;rangeLine.position.set(S.px,.09,S.pz);rangeLine.rotation.y=S.face;
+  rangeLine.visible=!O.vis;rangeLine.userData.t=0;if(!O.vis){rangeLine.position.set(S.px,.09,S.pz);rangeLine.rotation.y=S.face;}
 
   var rm=rangeLine.children[0];rm.scale.set(sk.proj.width*1.4,sk.range,1);rm.position.z=sk.range/2;rm.material.opacity=.4;
 
@@ -2874,6 +2875,13 @@ function spawnProj(sk,dmg){
 
 }
 
+/* [pvp-proj] projetil de outro jogador: so o desenho voando na velocidade real (o servidor decide o acerto); some quando o servidor avisa que acertou */
+function projRemoto(m){
+  var w=DATA.armas&&DATA.armas[m.ar],sk=w&&w.skills&&w.skills[m.i];if(!sk||!sk.proj)return;
+  var sk2=Object.assign({},sk,{range:m.r,proj:Object.assign({},sk.proj,{speed:m.v})});
+  spawnProj(sk2,0,{x:m.x,z:m.z,face:Math.atan2(m.dx,m.dz),off:0,vis:true,pid:m.pid});
+}
+function projFim(pid){PROJ.forEach(function(p){if(p.pid===pid&&p.sk.proj&&!p.sk.proj.pierce){burst(p.x,1.3,p.z,8,0x8bc1ff,2);p.t=p.range+1;}});}
 function updateProj(dt){
 
   for(var i=PROJ.length-1;i>=0;i--){
@@ -2888,7 +2896,7 @@ function updateProj(dt){
 
     if(p.trailT<=0){p.trailT=.035;spark(p.x-p.dx*.7,1.3,p.z-p.dz*.7,1.2,0x8bc1ff,.25);}
 
-    if(DG.on){
+    if(DG.on&&!p.vis){
 
       MOBS.forEach(function(m){
 
@@ -2906,7 +2914,7 @@ function updateProj(dt){
 
     }
 
-    if(!p.hit&&!S.dead&&BOSS_ON&&Math.hypot(S.ex-p.x,S.ez-p.z)<1.1+p.w*.5){
+    if(!p.vis&&!p.hit&&!S.dead&&BOSS_ON&&Math.hypot(S.ex-p.x,S.ez-p.z)<1.1+p.w*.5){
 
       p.hit=true;
 
@@ -6016,7 +6024,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
@@ -8862,7 +8870,7 @@ Net.init({
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},
   playClip:playClip,anexar:function(r,T){Guardiao.anexarClipes(r,T);},ajusteRemoto:function(r,a,c,t,dt){Guardiao.ajusteRemoto(r,a,c,t,dt);},
-  skills:function(){return SK;},dg:grpRecebe,irDg:function(k){if(DG.run||DG.pvp)return;location.href='arena.html?mode=dungeon&go='+k;},prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
+  skills:function(){return SK;},dg:grpRecebe,irDg:function(k){if(DG.run||DG.pvp)return;location.href='arena.html?mode=dungeon&go='+k;},prog:function(p,ini){/* [servidor] nivel/xp vindos do servidor */var antes=S.lvl;S.lvl=p.lvl;S.xp=p.xp;if(!ini&&p.subiu)sysMsg('Nivel '+S.lvl+' alcancado. Rank '+rankOf(S.lvl)+'.');else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');try{renderHud();}catch(_){}},fxSkill:skillFxRemoto,projRemoto:projRemoto,projFim:projFim,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));floatText((b?'BLOQUEOU ':'')+'-'+d,b?'#8bc1ff':'#ff4d6d',b?18:24,'p');SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);

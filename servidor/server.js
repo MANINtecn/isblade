@@ -27,7 +27,7 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
-try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
 
 /* ---- progresso (nivel/xp): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado ---- */
@@ -98,6 +98,38 @@ function fimDuelo(c, perdedor, vencedor, motivo){
   difunde(c, { t: 'duelend', v: vencedor ? vencedor.id : 0, l: perdedor.id, nv: vencedor && vencedor.nome, nl: perdedor.nome, m: motivo || 'ko' });
 }
 
+/* ---- dano de um golpe/projetil numa vitima (guarda de frente reduz; duelo nao mata) ---- */
+function fere(c, A, V, base, t, pid){
+  let dano = Math.max(1, Math.round(base * (.92 + Math.random() * .16) * PVP_MULT)), bloqueio = false;
+  if(V.guarda && Math.abs(angDif(Math.atan2(A.x - V.x, A.z - V.z), V.f)) < 1.1){ dano = Math.max(1, Math.round(dano * .2)); bloqueio = true; }   /* guarda de frente */
+  const duelo = c.mapa === 'cidade';
+  V.hp = Math.max(duelo ? 1 : 0, V.hp - dano);                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
+  difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0, p: pid || 0 });
+  if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
+  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; ganhaXp(A, 40 + (V.lv || 1) * 15); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
+}
+
+/* ---- projeteis: o servidor faz o projetil VOAR na velocidade da skill e so acerta quem estiver no caminho; esquiva (imune) e guarda valem ---- */
+let proxProj = 1;
+function criaProj(c, A, d, idx){
+  const p = d.proj, dx = Math.sin(A.f), dz = Math.cos(A.f);
+  const pr = { id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora() };
+  (c.proj = c.proj || []).push(pr); if(c.proj.length > 200) c.proj.shift();
+  difunde(c, { t: 'proj', pid: pr.id, a: A.id, ar: A.arma, i: idx, x: r2(pr.x), z: r2(pr.z), dx: r2(dx), dz: r2(dz), v: pr.v, r: pr.range }, A);
+}
+function passaProj(c, t){
+  const L = c.proj; if(!L || !L.length) return;
+  for(let i = L.length - 1; i >= 0; i--){
+    const p = L[i], dt = Math.min(.25, t - p.tl), passo = p.v * dt, nx = p.x + p.dx * passo, nz = p.z + p.dz * passo; p.tl = t;
+    for(const V of c.jog.values()){
+      if(V === p.A || V.morto || p.hit.has(V.id) || t < V.imune || !podeFerir(c, p.A, V, t)) continue;
+      const sx = nx - p.x, sz = nz - p.z, l2 = sx * sx + sz * sz || 1e-6, u = Math.max(0, Math.min(1, ((V.x - p.x) * sx + (V.z - p.z) * sz) / l2)), qx = p.x + sx * u, qz = p.z + sz * u;      /* trecho percorrido neste quadro: nao atravessa ninguem em alta velocidade */
+      if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id); if(!p.pierce){ p.d = p.range + 1; break; } }
+    }
+    p.x = nx; p.z = nz; p.d += passo; if(p.d >= p.range) L.splice(i, 1);
+  }
+}
+
 /* ---- ataque: o servidor resolve ---- */
 function ataque(c, A, m){
   if(A.morto) return; const t = agora(); let d, parte2 = false;
@@ -106,21 +138,16 @@ function ataque(c, A, m){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
     if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > 3) return; parte2 = true; }            /* 2o golpe da mesma skill: sem nova recarga */
     else { if((A.cd[A.arma + i] || 0) > t + .9) return; A.cd[A.arma + i] = t + s.cd; A.ultSk = A.arma + i; A.ultSkT = t; }
-    d = { dmg: s.dmg, range: s.range, half: s.half };
+    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj };
   } else return;
   A.f = typeof m.f === 'number' ? m.f : A.f;
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
+  if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
   for(const V of c.jog.values()){
     if(V === A || V.morto || t < V.imune || !podeFerir(c, A, V, t)) continue;
     const dx = V.x - A.x, dz = V.z - A.z, dist = Math.hypot(dx, dz); if(dist > d.range + .6) continue;                  /* +0,6 m: latencia */
     if(d.half < 3.1 && Math.abs(angDif(Math.atan2(dx, dz), A.f)) > d.half + Math.atan2(.45, Math.max(dist, .5)) + .12) continue;
-    let dano = Math.max(1, Math.round(d.dmg * (.92 + Math.random() * .16) * PVP_MULT)), bloqueio = false;
-    if(V.guarda && Math.abs(angDif(Math.atan2(A.x - V.x, A.z - V.z), V.f)) < 1.1){ dano = Math.max(1, Math.round(dano * .2)); bloqueio = true; }   /* guarda de frente */
-    const duelo = c.mapa === 'cidade';
-    V.hp = Math.max(duelo ? 1 : 0, V.hp - dano);                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
-    difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0 });
-    if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
-    else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; ganhaXp(A, 40 + (V.lv || 1) * 15); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
+    fere(c, A, V, d.dmg, t, 0);
   }
 }
 
@@ -239,7 +266,7 @@ setInterval(() => { wss.clients.forEach(ws => { if(!ws.isAlive) return ws.termin
 /* ---- laco do servidor: reaparecimento, duelos e fotos do mundo (so quem esta perto, ate AOI m) ---- */
 let tick = 0;
 setInterval(() => {
-  tick++; const t = agora();
+  tick++; const t = agora(); for(const cp of todosCanais()) passaProj(cp, t);
   for(const c of todosCanais()){
     for(const J of c.jog.values()){
       if(J.morto && t - J.tMorte >= RESP_S){ const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.hp = J.pmax; J.morto = false; J.imune = t + 2; difunde(c, { t: 'resp', id: J.id, x: r2(J.x), z: r2(J.z), hp: J.hp }); }
