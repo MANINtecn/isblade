@@ -2375,3 +2375,11 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Problema: o instante de soltar a magia (`hit`/`cut`) medido pela extensao das maos varia de .29 a .83 entre racas; a prancha de quadros (previa) saiu com enquadramento torto (so tronco, canto), entao NAO validei com os olhos. Pelas pranchas: MMagic estica o braco perto do quadro 18; MElf/FElf entre 6 e 18; FMagic levanta os bracos (gesto diferente).
 - Falta para "pronta": anexar o clipe no rig (jogador e remotos), pose propria no staff.json + staffCM, icone Cabal, som, teste por raca, definir `hit` por raca.
 - Nada disso foi testado dentro do jogo ainda.
+
+### [Claude] 02/11/2026 - Dono aprovou o elenco no Blender; seguir ligando a skill 1 do mago no jogo
+- Dono viu os 12 personagens com a shuriken (cena MAGO_ELENCO em mage_skills.blend): "ta oks assim, pode prosseguir". Aviso do dono: no Blender a shuriken parece ir "pra tras"; conferir o sentido no jogo.
+- Plano: anexar clipe CastShort da raca (jogador + remotos), pose propria, icone Cabal, som, teste por raca.
+- RESULTADO (02/11): skill 1 do mago ligada no jogo para os 12 tipos de personagem. Feito: clipe CastShort do PSA de cada raca (js/guardiao.js `anexarCast`, v16; net.js v23 toca `m_cast1` nos remotos), pose propria `m_s1` em staff.json (skills[1]) + arena/cidade (POSE/CM/staffCM/getClipConfig), icone Cabal `wind_star` (`icon` no json), sons L2 `m_s1_swing/hit` (doublewind_shot, energywave_shot; sintese de reserva), script `tools/teste_cast_por_raca.py`.
+- Testado: arena PvP local, qualidade media, 12 tipos: clipe carrega (tracks), skill dispara, projetil sai, prancha de prints sem erro de pagina; mago_m/orc_f vistos em sequencia.
+- NAO testado: qualidade alta e baixa, cidade.html, outro jogador vendo o clipe (remoto), som de ouvido, celular, anoes (apareceram pequenos/cortados na prancha; pode ser enquadramento ou delta do quadril), icone na barra olhando de perto. Momento de soltar (`hit` 0,29-0,83) ainda e o medido, nao calibrado: nos tipos com hit alto a estrela sai ~0,6 s depois do inicio (pode parecer lento).
+- Dono avisou: no Blender a shuriken parece ir "pra tras"; no jogo nos prints ela sai para a frente do personagem (conferir no celular/real).

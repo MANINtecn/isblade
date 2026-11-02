@@ -65,9 +65,43 @@ export const Guardiao = (function(){
     });
     return clipsPromise;
   };
+  /* ---------- Mago, skill 1: clipe CastShort do PROPRIO PSA do L2 de cada raca (assets/personagens/mago_cast/<PSA>.glb, tools/blender_fx/mago_cast_anims.py) ----------
+     mesmo esqueleto da raca: so rotacoes + movimento (delta) do quadril. hit/cut = fracao do clipe em que a estrela sai / em que volta a agir (medidas.json) */
+  var CAST_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter', human_fighter_female:'FFighter', imperial:'FFighter', magic_m:'MMagic', magic_f:'FMagic', elf_m:'MElf', elf_f:'FElf', darkelf_m:'MDarkElf', darkelf_f:'FDarkElf', dwarf_m:'MDwarf', dwarf_f:'FDwarf', orc_m:'MOrc', orc_f:'FOrc' };
+  var CAST_T = { MFighter:[0.417,0.625],FFighter:[0.458,0.667],MMagic:[0.833,1.0],FMagic:[0.72,0.92],MElf:[0.583,0.792],FElf:[0.458,0.667],MDarkElf:[0.5,0.708],FDarkElf:[0.292,0.5],MDwarf:[0.292,0.5],FDwarf:[0.833,1.0],MOrc:[0.625,0.833],FOrc:[0.75,0.958] };
+  var castCache = {};
+  G.anexarCast = function(rig, THREE){
+    if(!rig || !rig.clips) return;
+    var tipo = rig.tipo || ''; if(!tipo){ try { tipo = localStorage.getItem('isblade.char_type') || ''; } catch(e){} }
+    var psa = CAST_PSA[String(tipo).toLowerCase()]; if(!psa) return;
+    var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
+    var pr = castCache[psa] || (castCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/mago_cast/' + psa + '.glb?v=1', function(g){ ok((g.animations || [])[0] || null); }, undefined, function(){ ok(null); }); }));
+    pr.then(function(src){
+      if(!src) return;
+      var pelvis = null; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis') pelvis = o; });
+      var c = src.clone(), tr = [];
+      c.tracks.forEach(function(t){
+        var dot = t.name.lastIndexOf('.'), node = t.name.slice(0, dot), prop = t.name.slice(dot + 1);
+        if(prop === 'scale') return;
+        if(prop === 'position'){
+          if(node === 'Bip01_Pelvis' && pelvis){
+            var v = t.values.slice(), x0 = v[0], y0 = v[1], z0 = v[2];
+            for(var i = 0; i < v.length; i += 3){ v[i] = pelvis.position.x + (v[i] - x0); v[i + 1] = pelvis.position.y + (v[i + 1] - y0); v[i + 2] = pelvis.position.z + (v[i + 2] - z0); }
+            tr.push(new THREE.VectorKeyframeTrack(t.name, t.times, v));
+          }
+          return;
+        }
+        tr.push(t);
+      });
+      c.tracks = tr; c.name = 'm_cast1'; rig.clips.m_cast1 = c;
+      var m = CAST_T[psa] || [.5, .75]; rig.mCast = { c: 'm_cast1', sp: 1, hit: m[0], cut: m[1], lg: 0, psa: psa };
+    });
+  };
+
   /* junta os clipes g_* aos do personagem (mesmos nomes de osso); os clipes entram depois de ~100 ms, e sao usados por nome na hora de tocar */
   G.anexarClipes = function(rig, THREE){
     if(!rig || !rig.clips) return;
+    G.anexarCast(rig, THREE);
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
     G.carregarClipes(THREE, loader).then(function(list){
       /* retarget por rotacao: os clipes foram gravados no corpo do humano. Posicao e escala de osso do humano esticam as outras racas,

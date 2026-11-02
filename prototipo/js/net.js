@@ -8,7 +8,7 @@ export const Net = (function(){
   var HERO = { human_fighter: 'human_fighter.glb?v=7', fighter: 'human_fighter.glb?v=7', starter: 'human_fighter.glb?v=7', imperial: 'human_fighter_imperial.glb?v=7', human_fighter_female: 'human_fighter_female.glb?v=7',
     magic_m: 'magic_m.glb?v=7', magic_f: 'magic_f.glb?v=7', elf_m: 'elf_m.glb?v=7', elf_f: 'elf_f.glb?v=7', orc_m: 'orc_m.glb?v=7', orc_f: 'orc_f.glb?v=7',
     dwarf_m: 'dwarf_m.glb?v=7', dwarf_f: 'dwarf_f.glb?v=7', darkelf_m: 'darkelf_m.glb?v=5', darkelf_f: 'darkelf_f.glb?v=5' };
-  var ONCE = /^(g_atk|g_skill|slash|punch|roll|g_roll|hit_|block_hit|parry|death|skill_|staff_|boss_)/;
+  var ONCE = /^(m_cast|g_atk|g_skill|slash|punch|roll|g_roll|hit_|block_hit|parry|death|skill_|staff_|boss_)/;
   var BASICOS = { sweep: 1, thrust: 1, spin: 1, up: 1, down: 1, wedge: 1 };
   var COR_TIME = { A: '#6fb4ff', B: '#ff7b6b' };
   function r2(v){ return Math.round(v * 100) / 100; }

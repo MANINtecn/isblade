@@ -670,8 +670,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js?v=15';
-import { Net } from './js/net.js?v=22';
+import { Guardiao } from './js/guardiao.js?v=16';
+import { Net } from './js/net.js?v=23';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -1044,6 +1044,10 @@ var SFX=(function(){
 
     storm_hit:function(){return (smp('focus_sonic_shot',.95,1.05) && smp(L2.swordBig,.9,1.0)) || smp(F.mM,.6,1.05);},
 
+    m_s1_swing:function(){return (smp('doublewind_shot',.8,1.25) && smp(L2.shing,.5,1.4)) || smp(F.las,.28,1.6);},
+
+    m_s1_hit:function(){return (smp('energywave_shot',.7,1.3) && smp(L2.shing,.45,1.2)) || smp(F.gL,.4,1.2);},
+
     blade_swing:function(){return (smp('power_strike_shot',1.0,1.0) && smp(L2.shing,.85,1.05)) || smp(F.las,.28,1.5);},
 
     blade_hit:function(){return (smp('power_strike_shot',.95,1.0) && smp(L2.swordGreat,.95,1.0)) || smp(F.gL,.5,1);},
@@ -1127,6 +1131,10 @@ var SFX=(function(){
     storm_swing:function(){noise(.35,.9,'bandpass',500,2400,0,1.5);},
 
     storm_hit:function(){tone(220,90,.15,'triangle',.4);},
+
+    m_s1_swing:function(){tone(1700,500,.3,'sine',.16);},
+
+    m_s1_hit:function(){tone(1300,420,.14,'triangle',.25);},
 
     blade_swing:function(){tone(1400,320,.26,'sine',.2);},
 
@@ -1470,6 +1478,7 @@ var SKILL_ICONS={
   astral_spear:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M3 16h16" stroke="#80d8ff" stroke-width="2" stroke-linecap="round"/><polygon points="18,11 28,16 18,21 20,16" fill="#e0f7fa" stroke="#00e5ff" stroke-width="1"/><path d="M9 11l8 0M7 21l8 0" stroke="#4fc3f7" stroke-width="1.1" opacity=".7"/><ellipse cx="15" cy="16" rx="1.5" ry="6" fill="none" stroke="#80d8ff" stroke-width=".9" opacity=".7"/></svg>',
   shield_wall:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><rect x="8" y="6" width="16" height="20" rx="2" fill="#1c2838" stroke="#b0bec5" stroke-width="1.3"/><line x1="16" y1="6" x2="16" y2="26" stroke="#78909c" stroke-width="1.2"/><line x1="8" y1="16" x2="24" y2="16" stroke="#78909c" stroke-width="1.2"/><circle cx="16" cy="16" r="2" fill="#cfd8dc"/></svg>',
   heavy_cleave:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M16 4v20" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><path d="M12 21h8" stroke="#cfd8dc" stroke-width="1.8" stroke-linecap="round"/><path d="M16 21v6" stroke="#b0bec5" stroke-width="1.8" stroke-linecap="round"/><polygon points="16,24 14,26 18,26" fill="#78909c"/><path d="M9 10l-3 4M23 10l3 4" stroke="#ff8a65" stroke-width="1.2" stroke-linecap="round"/></svg>',
+  wind_star:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M3 11h7M2 16h8M4 21h6" stroke="#4fc3f7" stroke-width="1.4" stroke-linecap="round" opacity=".75"/><polygon transform="rotate(18 19 16)" points="30,16 22.2,19.2 19,27 15.8,19.2 8,16 15.8,12.8 19,5 22.2,12.8" fill="#22344d" stroke="#c8d6e5" stroke-width="1.2" stroke-linejoin="round"/><circle cx="19" cy="16" r="3.4" fill="#05080c" stroke="#4fc3f7" stroke-width="1.2"/><path d="M13 7c3-2 7-2 10 0M13 25c3 2 7 2 10 0" stroke="#8fe3c8" stroke-width="1" fill="none" opacity=".6"/></svg>',
   energy_blade:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M6 16c6-8 14-8 20 0-6 3-14 3-20 0z" fill="#1e3a5f" stroke="#80d8ff" stroke-width="1.3"/><path d="M7 16h18" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><path d="M11 11l10 0M11 21l10 0" stroke="#4fc3f7" stroke-width="1" opacity=".6"/></svg>',
   whirlwind:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M16 7a9 9 0 0 1 9 9" stroke="#b39ddb" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M25 16a9 9 0 0 1-9 9" stroke="#90caf9" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M16 25a9 9 0 0 1-9-9" stroke="#b39ddb" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M7 16a9 9 0 0 1 9-9" stroke="#90caf9" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="16" r="3" fill="#e0e0e0"/></svg>',
   shockwave:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M6 24C9 14 17 9 26 8" stroke="#9fa8da" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M10 26C13 18 19 14 26 13" stroke="#b39ddb" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M15 28C17 22 21 19 26 18" stroke="#c5cae9" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>',
@@ -1494,6 +1503,7 @@ function skillIconSVG(s,size){
     else if(s.pose==='wave')key='shield_slam';
     else if(s.pose==='ult')key='rising_strike';
     else if(s.pose==='storm')key=(WPN==='shield'?'blade_dance':'whirlwind');
+    else if(s.pose==='m_s1')key='wind_star';
     else if(s.pose==='blade')key=(s.proj?'energy_blade':'cross_slash');
     else if(s.pose==='thrust')key='astral_spear';
     else key='cross_slash';
@@ -2476,7 +2486,9 @@ var CM={
 
   storm: {c:'boss_combo',sp:2.4,hit:.18,cut:.70,lg:0},
 
-  blade: {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0}
+  blade: {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
+
+  m_s1:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0}
 
 };
 
@@ -2487,6 +2499,8 @@ function getClipConfig(pose){
   /* <<< CLAUDE [guardiao] */
 
   if(WPN==='staff'){
+
+    /* [mago] skill 1: clipe CastShort da propria raca (Guardiao.anexarCast) */ if(pose==='m_s1'&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1)return vrm.mCast;
 
     var staffCM={
 
@@ -2512,7 +2526,9 @@ function getClipConfig(pose){
 
       storm: {c:'staff_cast',    sp:1.8, hit:.40, cut:.80, lg:0},
 
-      blade: {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0}
+      blade: {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
+
+      m_s1:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0}
 
     };
 
@@ -3792,7 +3808,8 @@ var POSE={
 
   storm:{w:2.2,e:-1.2,yw:.5,ye:-.5,lg:0,spin:false},
 
-  blade:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false}
+  blade:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  m_s1:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false}
 
 };
 
@@ -6032,7 +6049,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
