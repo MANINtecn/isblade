@@ -69,3 +69,6 @@ Corrija este arquivo (`.claude/skills/skill-pronta/SKILL.md`) no mesmo commit e 
 - Testes: `tools/teste_mago_basico_pvp.py` (2 jogadores, dano e visual no remoto) e `tools/teste_mago_basico_pve.py` (chefe da arena, `?mode=duel`). Em teste, a mira segue a camera: leia `S.face` depois de um `perform` antes de posicionar o alvo.
 - Dono tem fobia a redondo: so formas angulares (memoria `evitar-formas-redondas`).
 
+## Pronta = o jogo inteiro (regra do dono, 02/11)
+- Skill ou ataque padrao pronto vale em TODO lugar onde ha combate, nao so na arena. Hoje as unicas paginas com combate ao vivo sao `arena.html` (Torre, DG, duelo, mapas abertos `?mapa=`) e `cidade.html` (espantalho, PvP da cidade); `combate.html` e legado, sem link. Ao ligar uma skill, conferir as DUAS: `grep -c "<Classe>FX\|magoBasicoIni" prototipo/arena.html prototipo/cidade.html` e testar nas duas (e num mapa aberto). Se surgir pagina nova de combate, entra nesta lista.
+- Nada de entregar so onde foi pedido primeiro: a rota inteligente e perguntar "onde mais o jogador luta?" antes de dizer que esta pronta.

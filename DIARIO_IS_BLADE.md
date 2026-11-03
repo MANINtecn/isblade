@@ -2532,3 +2532,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Skills: o mago so tem a Shuriken pronta. As outras 5 (herdadas do antigo) ganharam `pronta:false` em `data/armas/staff.json` e nao disparam; skill bloqueada por nivel OU nao pronta some da barra (PC e botoes do celular) em vez de aparecer cinza.
 - Nivel inicial voltou para 1 (`data/progressao.json`): o 20 era so para o tutorial, que ainda nao existe. Personagem novo = nivel 1 com 1 skill. Quando o tutorial for feito ele da o 20.
 - Armadilhas de novo: `sed -i` tira o CR de arquivo CRLF; escapes `` em string Python viram backspace.
+
+### [Claude] 02/11/2026 - Skill pronta vale no jogo todo
+- Pedido do dono: o ataque padrao do mago tinha ficado so na arena; quando ele pede para deixar a skill pronta e para o jogo inteiro, nao para um lugar.
+- Conferido: so `arena.html` (Torre, DG, duelo, mapas abertos) e `cidade.html` tem combate vivo; as duas ja tem o ataque padrao do mago (cidade portado em a085660). `combate.html` e legado sem link.
+- Regra gravada em `.claude/skills/skill-pronta/SKILL.md` (secao "Pronta = o jogo inteiro"). Nao testado: o ataque padrao num mapa aberto e no DG (so arena/Torre e cidade foram vistos).
