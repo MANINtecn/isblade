@@ -6,6 +6,7 @@
     "soulshot": { "nome": "Soulshot", "preco": 3, "ss": "fighter", "bonus": 0.25, "desc": "Automático: gasta 1 por ataque e dá +25% de dano (guerreiro e guardião)." },
     "spiritshot": { "nome": "Spiritshot", "preco": 3, "ss": "magic", "bonus": 0.25, "desc": "Automático: gasta 1 por ataque e dá +25% de dano (mago)." }
   },
+  "equip": { "_nota": "Equipamento a venda (sai Normal). Galladucci = Sem grau, Mammon = Grau D. Grau C so cai de monstro. A venda ao comerciante vale venda[raridade] x graus[grau].venda (itens.json).", "sem": { "arma": 300, "armadura": 150 }, "D": { "arma": 4000, "armadura": 2000 } },
   "venda": { "normal": 25, "raro": 90, "epico": 350, "lendario": 1500 },
   "encantar": {
     "_nota": "Ferreiro Altran (servidor/inventario.js -> encantar). Arma e armadura. Ate 'seguro' nunca falha; depois, 'chance' pelo nivel que se tenta (a falha QUEBRA o item, como no L2). custo = adena por tentativa x nivel tentado (arma ou armadura). bonus = quanto cada + soma nos status do item (fracao): 'ate_seguro' nos primeiros, 'acima' do seguro em diante. brilho: cor da arma a partir do nivel (js/brilho_encanto.js).",
@@ -17,7 +18,7 @@
   },
   "armazem": { "_nota": "Wilford: bau da CONTA (todos os personagens usam o mesmo). max = itens; taxa = adena por item guardado (retirar e de graca).", "max": 60, "taxa": 10 },
   "lojas": {
-    "galladucci": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot"],
-    "mammon": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot"]
+    "galladucci": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot", "sword_long", "shield_guardian", "staff_arcane", "helmet_iron", "chest_plate", "gloves_hide", "boots_swift"],
+    "mammon": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot", "sword_long_d", "shield_guardian_d", "staff_arcane_d", "helmet_iron_d", "chest_plate_d", "gloves_hide_d", "boots_swift_d"]
   }
 }

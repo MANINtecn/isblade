@@ -5,6 +5,7 @@
    Tecla H = Pocao de Vida (PC); no celular aparece o botao POCAO com a quantidade.
    Loja.abrir('altran') = ferreiro: encantar arma/armadura (estado().todos = [{uid, nome, rar, cor, raridade, en, slot, equip}]; op.encantar(uid)).
    Loja.abrir('wilford') = armazem da conta (op.arm(k, {uid|qtd}); op.desc(item) -> {nome, cor, raridade}); o servidor manda o bau em Loja.armazem({arm}).
+   [graus] op.equip(id) -> {nome, slot, grau, tag, stats, tipo} ou null (arma de outra classe): o comerciante vende equipamento (data/loja.json -> equip); estado().bolsa[].vm = multiplicador de venda do grau.
    Loja.stats(item) = status do item com o bonus do encantamento (a pagina usa nos status e no inventario). */
 (function(){
   var L = window.Loja = {}, D = null, op = {}, el = null, lojaAtual = '', aba = 'comprar', btn = null;
@@ -67,14 +68,21 @@
     }
     else if(aba === 'comprar'){
       (D.lojas[lojaAtual] || []).forEach(function(id){
-        var c = D.consumiveis[id]; if(!c) return; var tem = (s.consum && s.consum[id]) | 0;
+        var c = D.consumiveis[id];
+        if(!c){                                                       /* [graus] equipamento (Sem grau / D): sai Normal */
+          var q = op.equip && op.equip(id), P = q && D.equip && D.equip[q.grau], pr = P && (q.slot === 'weapon' ? P.arma : P.armadura); if(!pr) return;
+          h += '<div class="ln"><div class="n"><b>' + esc(q.nome) + '</b> <small>' + esc(q.tipo || '') + ' · ' + q.tag + ' · ' + esc(q.stats) + '</small></div><span class="pr">' + pr.toLocaleString('pt-BR') + ' A</span>' +
+            '<button type="button" data-c="' + id + '" data-q="1">Comprar</button></div>';
+          return;
+        }
+        var tem = (s.consum && s.consum[id]) | 0;
         h += '<div class="ln"><div class="n"><b>' + esc(c.nome) + '</b> <small>' + esc(c.desc || '') + ' · você tem ' + tem + '</small></div><span class="pr">' + c.preco + ' A</span>' +
           '<button type="button" data-c="' + id + '" data-q="1">x1</button><button type="button" data-c="' + id + '" data-q="10">x10</button></div>';
       });
     } else {
       var b = s.bolsa || [];
       if(!b.length) h += '<div class="msg">Nada para vender (o que está equipado não aparece).</div>';
-      b.forEach(function(it){ var v = (D.venda && D.venda[it.rar]) || 1; h += '<div class="ln"><div class="n"><b style="color:' + esc(it.cor || '#fff') + '">' + esc(it.nome) + '</b> <small>' + esc(it.raridade || it.rar) + '</small></div><span class="pr">' + v + ' A</span><button type="button" data-v="' + esc(it.uid) + '">Vender</button></div>'; });
+      b.forEach(function(it){ var v = Math.round(((D.venda && D.venda[it.rar]) || 1) * (it.vm || 1)); h += '<div class="ln"><div class="n"><b style="color:' + esc(it.cor || '#fff') + '">' + esc(it.nome) + '</b> <small>' + esc(it.raridade || it.rar) + '</small></div><span class="pr">' + v + ' A</span><button type="button" data-v="' + esc(it.uid) + '">Vender</button></div>'; });
     }
     h += '<div class="msg" id="lojaMsg">' + esc(L._msg || '') + '</div>';
     el.innerHTML = h;

@@ -248,7 +248,7 @@ wss.on('connection', ws => {
     }
     else if(m.t === 'loja'){                                         /* comprar consumivel / vender equipamento (data/loja.json) */
       const t = agora(); if(t - (J.lojaT || 0) < .15 || !J.pers) return; J.lojaT = t; let erro = '', aviso = '';
-      if(m.k === 'comprar'){ const id = String(m.id || '').slice(0, 24), q = m.qtd | 0; erro = Inv.comprar(J.pers, String(m.loja || '').slice(0, 24), id, q); if(!erro) aviso = 'Você comprou ' + q + 'x ' + Inv.loja().consumiveis[id].nome + '.'; }
+      if(m.k === 'comprar'){ const id = String(m.id || '').slice(0, 24), q = m.qtd | 0; erro = Inv.comprar(J.pers, String(m.loja || '').slice(0, 24), id, q); if(!erro) aviso = Inv.loja().consumiveis[id] ? 'Você comprou ' + q + 'x ' + Inv.loja().consumiveis[id].nome + '.' : 'Você comprou ' + Inv.nome(id) + '.'; }
       else if(m.k === 'encantar'){                                   /* ferreiro Altran */
         const r = Inv.encantar(J.pers, String(m.uid || '').slice(0, 24)); erro = r.erro;
         if(!erro){ aviso = r.ok ? 'Encantamento bem-sucedido: ' + r.nome + ' +' + r.nivel + '.' : 'O encantamento falhou e ' + r.nome + ' +' + r.nivel + ' se quebrou.'; Contas.grava(); envia(J, { t: 'enc', ok: r.ok ? 1 : 0, nivel: r.nivel, nome: r.nome, slot: r.slot }); avisaEnc(c, J); }

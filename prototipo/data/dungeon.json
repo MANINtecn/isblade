@@ -728,7 +728,10 @@
     "comum": 0.05,
     "miniChefe": {"itens": 1, "extra": 0.35, "boost": 1.5, "adena": 2},
     "chefeCampo": {"itens": 2, "extra": 0.5, "boost": 2.5, "adena": 3},
-    "boss": {"itens": 1, "extra": 0.35, "boost": 1, "adena": 1}
+    "boss": {"itens": 1, "extra": 0.35, "boost": 1, "adena": 1},
+    "_graus": "Grau do item que cai, por mapa/dificuldade (chave = dif do mapa: curuma, fortress, pantano; DG: normal, medio, hard). grausChefe vale para mini-chefe, chefe de campo e chefe.",
+    "graus":      { "curuma": { "sem": 1 }, "fortress": { "sem": 0.45, "D": 0.55 }, "pantano": { "D": 0.65, "C": 0.35 }, "normal": { "sem": 0.4, "D": 0.6 }, "medio": { "D": 1 }, "hard": { "D": 0.4, "C": 0.6 } },
+    "grausChefe": { "curuma": { "sem": 0.5, "D": 0.5 }, "fortress": { "D": 0.6, "C": 0.4 }, "pantano": { "C": 1 }, "normal": { "D": 0.7, "C": 0.3 }, "medio": { "D": 0.5, "C": 0.5 }, "hard": { "C": 1 } }
   },
   "agressao": { "_nota": "Agressao estilo L2 (arena.html -> mobAgro). A maioria e PASSIVA (so ataca se apanhar); agressivos (fracao por dificuldade em difficulties[].agressivos, ou mobs[].agressivo=true) atacam quem chega a menos de visao m. Quando um mob apanha, so os vizinhos parados a ate ajuda m entram junto (sem corrente). Puxado mais longe que volta m do lugar onde nasceu: desiste, volta e recupera a vida.", "visao": 7, "ajuda": 4.5, "volta": 26 },
   "difficulties": {

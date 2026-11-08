@@ -471,7 +471,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/chat.js?v=2"></script>
 <script src="js/musica.js?v=1"></script>
 <script src="js/alvo_l2.js?v=1"></script>
-<script src="js/loja.js?v=4"></script>
+<script src="js/loja.js?v=5"></script>
+<script src="js/arma_grau.js?v=1"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -2363,6 +2364,7 @@ function applyWeaponVis(rig){
     if(rig.shd) rig.shd.visible = is1H;
 
     if(rig.stf) rig.stf.visible = isStaff;
+    armaGrau(rig);/* [graus] */
 
   } else {
 
@@ -2371,6 +2373,7 @@ function applyWeaponVis(rig){
     if(rig.shd) rig.shd.visible = is1H;
 
     if(rig.stf) rig.stf.visible = isStaff;
+    armaGrau(rig);/* [graus] */
 
   }
 
@@ -6592,12 +6595,13 @@ function invDoServidor(m){
   INV={items:m.inv.items,equip:m.inv.equip||{}};ADENA=m.inv.adena|0;CONSUM=m.inv.consum||{};INV_SRV=true;
   var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&b.weapon!==WPN)setWeapon(b.weapon);
   try{Brilho.aplica('eu',function(){return vrm;},w?(w.en|0):0);}catch(_){}/* [ferreiro] brilho da arma a partir de +4 */
+  armaGrau(vrm);/* [graus] modelo da arma pelo grau */
   applyStats();renderInv();if(m.erro){som(/insuficiente|taxa|nao tem essa adena/i.test(m.erro)?'falta':'impossivel');gestMsg(m.erro);try{Loja.aviso(m.erro);}catch(_){}}
   if(m.aviso){if(/comprou|vendido/.test(m.aviso))som('troca');try{Chat.sistema(m.aviso);Loja.aviso(m.aviso);}catch(_){}}
   try{Loja.atualiza();}catch(_){}
 }
 /* [loja] consumiveis e loja (js/loja.js + data/loja.json): o servidor gasta e devolve o efeito */
-function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name};})};}
+function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,vm:(ArmaGrau.info(ITM,b).venda||1)};})};}
 function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead)return;Net.usar(id);}
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
@@ -6630,8 +6634,9 @@ function applyStats(){
 
   var AT=(function(){var PR=DATA.prog,c=PR&&PR.classes&&PR.classes[S.classe],e=PR&&PR.efeitos;if(!c||!e||!S.atr)return null;var b=c.inicial,d=function(k){return Math.max(0,(S.atr[k]|0)-(b[k]|0));};return {dano:d(c.danoAttr)*e.danoPct,vida:d('vit')*e.vidaPorVit,defesa:d('vit')*e.defesaPorVit,estamina:d('vit')*e.estaminaPorVit,run:Math.min(e.corridaMax,d('agi')*e.corridaPorAgi)};})();/* [atributos] pontos do status (U) */
   if(AT){ST.dano+=AT.dano;ST.vida+=AT.vida;ST.defesa+=AT.defesa;ST.estamina+=AT.estamina;}
+  var CJ=null;try{CJ=ArmaGrau.conjunto(ITM,INV.equip,baseOf,findItem);}catch(_){}S.conj=CJ;if(CJ)ST.dano+=CJ.dano;/* [graus] set completo: +% de dano e de vida */
   RUN=P.run*(1+(AT?AT.run:0));
-  S.pmax=Math.round(BASE_HP+ST.vida);S.php=Math.min(S.php,S.pmax);
+  S.pmax=Math.round((BASE_HP+ST.vida)*(1+(CJ?CJ.vida:0)/100));S.php=Math.min(S.php,S.pmax);
 
   renderHud();
 
@@ -6662,9 +6667,9 @@ function equipItem(uid){som('equipar');/* [sons-l2] */
 
   var it=findItem(uid);if(!it)return;
 
-  var b=baseOf(it.base);INV.equip[b.slot]=uid;
+  var b=baseOf(it.base);if((ArmaGrau.info(ITM,b).nivel|0)>(S.lvl||1)){gestMsg(ArmaGrau.info(ITM,b).name+': precisa do nivel '+ArmaGrau.info(ITM,b).nivel+'.');return;}INV.equip[b.slot]=uid;
 
-  if(b.slot==='weapon')setWeapon(b.weapon);
+  if(b.slot==='weapon'){setWeapon(b.weapon);armaGrau();}
 
   saveInv();applyStats();renderInv();
 
@@ -6723,6 +6728,9 @@ function dropLoot(){
 
 function itemName(it){return ((it.en|0)?'+'+(it.en|0)+' ':'')+baseOf(it.base).name;}
 function statsDe(it){return (window.Loja&&Loja.stats)?Loja.stats(it):it.stats;}/* [ferreiro] status com o encantamento */
+/* [graus] 08/11/2026: Sem grau / D / C (data/itens.json -> graus, conjunto; js/arma_grau.js). Modelo da arma pelo grau; set completo da bonus; nivel minimo para equipar (o servidor confere). */
+function armaGrau(rig){try{var w=findItem(INV.equip.weapon);ArmaGrau.aplica(rig||vrm,w&&baseOf(w.base),attachL2Item);}catch(_){}}
+function grauTag(b){try{return ArmaGrau.tag(ITM,b,S.lvl||1);}catch(_){return '';}}
 
 var invOpen=false;
 
@@ -6750,7 +6758,7 @@ function renderInv(){
 
     var it=findItem(INV.equip[slot]);
 
-    h+='<div class="eq" data-slot="'+slot+'"><div><span class="sl">'+ITM.slots[slot].toUpperCase()+'</span>'+(it?'<b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+statTxt(statsDe(it))+'</small>':'<small>vazio</small>')+'</div></div>';
+    h+='<div class="eq" data-slot="'+slot+'"><div><span class="sl">'+ITM.slots[slot].toUpperCase()+'</span>'+(it?'<b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+grauTag(baseOf(it.base))+' &middot; '+statTxt(statsDe(it))+'</small>':'<small>vazio</small>')+'</div></div>';
 
   });
 
@@ -6760,7 +6768,7 @@ function renderInv(){
 
   bag.forEach(function(it){
 
-    h+='<div class="it" data-uid="'+it.uid+'" style="border-color:'+R[it.rar].css+'"><span class="x" data-x="'+it.uid+'" title="Descartar">X</span><b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+ITM.slots[baseOf(it.base).slot]+'</small><small>'+statTxt(statsDe(it))+'</small></div>';
+    h+='<div class="it" data-uid="'+it.uid+'" style="border-color:'+R[it.rar].css+'"><span class="x" data-x="'+it.uid+'" title="Descartar">X</span><b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+ITM.slots[baseOf(it.base).slot]+' &middot; '+grauTag(baseOf(it.base))+'</small><small>'+statTxt(statsDe(it))+'</small></div>';
 
   });
 
@@ -6770,6 +6778,7 @@ function renderInv(){
   h+='</div></div><div><h3>STATUS</h3>';
 
   h+='<div class="row"><span>Vida</span><b>'+S.pmax+'</b></div>';
+  if(S.conj){var _G=ArmaGrau.info(ITM,{grau:S.conj.grau});h+='<div class="row"><span style="color:'+_G.css+'">Set '+_G.name+'</span><b>+'+S.conj.vida+'% vida'+(S.conj.dano?' · +'+S.conj.dano+'% dano':'')+'</b></div>';}/* [graus] */
 
   Object.keys(ITM.stats).forEach(function(k){if(k==='vida')return;h+='<div class="row"><span>'+ITM.stats[k].name+'</span><b>'+r1(ST[k]||0)+ITM.stats[k].unit+'</b></div>';});
 
@@ -9126,7 +9135,7 @@ Guardiao.init({
 try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
 try{PerfLog.init(renderer,scene,function(){var o={pg:'arena'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
-try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel});}catch(_){}/* [loja] tecla H = pocao */
+try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot]};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Curuma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
