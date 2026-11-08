@@ -13,6 +13,7 @@
     "bonus": { "ate_seguro": 0.04, "acima": 0.08 },
     "brilho": [[4, "#3f8cff"], [7, "#38e1ff"], [12, "#ffc23a"], [16, "#ff5a1f"]]
   },
+  "armazem": { "_nota": "Wilford: bau da CONTA (todos os personagens usam o mesmo). max = itens; taxa = adena por item guardado (retirar e de graca).", "max": 60, "taxa": 10 },
   "lojas": {
     "galladucci": ["pocao_vida", "pergaminho_volta"],
     "mammon": ["pocao_vida", "pergaminho_volta"]

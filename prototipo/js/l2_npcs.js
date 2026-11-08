@@ -595,6 +595,7 @@
         label: 'Depositar / Retirar Equipamentos',
         tag: 'Armazém',
         action: function(subBox){
+          if(window.Loja && Loja.armazem){ closeDialog(); Loja.abrir('wilford'); return; }   /* [Claude] armazem de verdade (bau da conta no servidor, js/loja.js) */
           subBox.style.display = 'block';
           subBox.innerHTML = `
             <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:8px;">COFRE CENTRAL DE TALKING ISLAND</div>

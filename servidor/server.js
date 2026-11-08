@@ -238,6 +238,12 @@ wss.on('connection', ws => {
       const erro = Inv.pedido(J.pers, { k: String(m.k || ''), uid: String(m.uid || '').slice(0, 24), slot: String(m.slot || '').slice(0, 12) });
       if(!erro) Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined }); avisaEnc(c, J);
     }
+    else if(m.t === 'arm'){                                          /* armazem do Wilford (bau da conta) */
+      const t = agora(); if(t - (J.armT || 0) < .12 || !J.pers) return; J.armT = t;
+      const conta = Contas.contaDoPers(J.pers.id), erro = Inv.armazem(conta, J.pers, { k: String(m.k || '').slice(0, 10), uid: String(m.uid || '').slice(0, 24), qtd: m.qtd });
+      if(!erro && m.k !== 'ver') Contas.grava();
+      envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined }); envia(J, { t: 'arm', arm: Inv.garanteArm(conta) });
+    }
     else if(m.t === 'loja'){                                         /* comprar consumivel / vender equipamento (data/loja.json) */
       const t = agora(); if(t - (J.lojaT || 0) < .15 || !J.pers) return; J.lojaT = t; let erro = '', aviso = '';
       if(m.k === 'comprar'){ const id = String(m.id || '').slice(0, 24), q = m.qtd | 0; erro = Inv.comprar(J.pers, String(m.loja || '').slice(0, 24), id, q); if(!erro) aviso = 'Você comprou ' + q + 'x ' + Inv.loja().consumiveis[id].nome + '.'; }

@@ -91,6 +91,31 @@ function encantar(pers, uid){
 /* encantamento da arma equipada (para o brilho que os outros jogadores veem) */
 function encArma(pers){ const inv = pers && pers.inv; if(!inv || !inv.equip) return 0; const it = (inv.items || []).find(i => i.uid === inv.equip.weapon); return (it && it.en) | 0; }
 
+/* ---- armazem do Wilford (data/loja.json -> armazem): bau da CONTA {items, adena}, todos os personagens da conta usam o mesmo ----
+   guardar (item da mochila, nao equipado; paga a taxa) | retirar (cabe na mochila) | guardarA / retirarA (adena) */
+function garanteArm(conta){
+  if(!conta) return null; let a = conta.arm; if(!a || !Array.isArray(a.items)) a = conta.arm = { items: [], adena: 0 };
+  a.items = a.items.filter(i => i && baseDe(i.base) && D.rarities[i.rar]); a.adena = Math.max(0, Math.floor(+a.adena || 0)); return a;
+}
+function armazem(conta, pers, m){
+  const inv = garante(pers), a = garanteArm(conta), C = (LJ && LJ.armazem) || { max: 60, taxa: 10 }; if(!inv || !a) return 'Armazem indisponivel.';
+  const k = String(m.k || '');
+  if(k === 'ver') return '';
+  if(k === 'guardar'){
+    const it = inv.items.find(i => i.uid === m.uid); if(!it) return 'Item nao encontrado.'; if(equipado(inv, it.uid)) return 'Tire o item antes de guardar.';
+    if(a.items.length >= C.max) return 'O armazem esta cheio (' + C.max + ' itens).'; if(inv.adena < C.taxa) return 'A taxa e de ' + C.taxa + ' Adena.';
+    inv.adena -= C.taxa; inv.items = inv.items.filter(i => i !== it); a.items.push(it); return '';
+  }
+  if(k === 'retirar'){
+    const it = a.items.find(i => i.uid === m.uid); if(!it) return 'Item nao esta no armazem.'; if(inv.items.length >= D.bagMax) return 'Sua mochila esta cheia.';
+    a.items = a.items.filter(i => i !== it); inv.items.push(it); return '';
+  }
+  const q = Math.floor(+m.qtd || 0); if(q < 1 || q > 1e9) return 'Quantidade invalida.';
+  if(k === 'guardarA'){ if(inv.adena < q) return 'Voce nao tem essa adena.'; inv.adena -= q; a.adena += q; return ''; }
+  if(k === 'retirarA'){ if(a.adena < q) return 'O armazem nao tem essa adena.'; a.adena -= q; inv.adena += q; return ''; }
+  return 'Pedido desconhecido.';
+}
+
 /* pedido do cliente: {k:'equip', uid} | {k:'tirar', slot} | {k:'descartar', uid}. Devolve '' (ok) ou a mensagem de erro. */
 function pedido(pers, m){
   const inv = garante(pers); if(!inv) return 'Inventario indisponivel.';
@@ -124,4 +149,4 @@ function abate(pers, tipo, dif, xpDoAbate){
   return { adena, itens, cheia: tipo === 'boss' && inv.items.length >= D.bagMax };
 }
 
-module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, loja: () => LJ };
+module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, armazem, garanteArm, loja: () => LJ };

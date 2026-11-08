@@ -4,6 +4,7 @@
    Loja.abrir('galladucci') abre a janela; Loja.atualiza() redesenha (chamar quando o inventario muda).
    Tecla H = Pocao de Vida (PC); no celular aparece o botao POCAO com a quantidade.
    Loja.abrir('altran') = ferreiro: encantar arma/armadura (estado().todos = [{uid, nome, rar, cor, raridade, en, slot, equip}]; op.encantar(uid)).
+   Loja.abrir('wilford') = armazem da conta (op.arm(k, {uid|qtd}); op.desc(item) -> {nome, cor, raridade}); o servidor manda o bau em Loja.armazem({arm}).
    Loja.stats(item) = status do item com o bonus do encantamento (a pagina usa nos status e no inventario). */
 (function(){
   var L = window.Loja = {}, D = null, op = {}, el = null, lojaAtual = '', aba = 'comprar', btn = null;
@@ -15,6 +16,7 @@
   L.stats = function(it){ if(!it || !it.stats) return {}; var f = 1 + L.bonusEnc(it.en), o = {}; for(var k in it.stats) o[k] = Math.round(it.stats[k] * f * 10) / 10; return o; };
   function chanceEnc(alvo){ var e = E(); if(alvo <= e.seguro) return 1; for(var i = 0; i < e.chance.length; i++) if(alvo <= e.chance[i][0]) return e.chance[i][1]; return e.chance[e.chance.length - 1][1]; }
   function custoEnc(slot, alvo){ var e = E(); return (slot === 'weapon' ? e.custo.arma : e.custo.armadura) * alvo; }
+  var ARM = null; L.armazem = function(m){ ARM = m && m.arm; desenha(); };
   L.nome = function(id){ return (D && D.consumiveis[id] && D.consumiveis[id].nome) || id; };
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function toque(){ return !!(window.QUAL && QUAL.touch); }
@@ -34,10 +36,25 @@
   }
   function desenha(){
     if(!el || el.style.display === 'none') return;
-    var s = op.estado ? op.estado() : {}, fer = lojaAtual === 'altran', h = '<div class="hd"><b>' + (fer ? 'ALTRAN · FORJA' : lojaAtual === 'mammon' ? 'MAMMON' : 'GALLADUCCI') + '</b><span class="ad">Adena: ' + ((s.adena | 0).toLocaleString('pt-BR')) + '</span><button type="button" data-x="1">Fechar</button></div>' +
-      (fer ? '' : '<div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" data-aba="comprar" class="' + (aba === 'comprar' ? 'on' : '') + '">Comprar</button><button type="button" data-aba="vender" class="' + (aba === 'vender' ? 'on' : '') + '">Vender</button></div>');
+    var s = op.estado ? op.estado() : {}, fer = lojaAtual === 'altran', h = '<div class="hd"><b>' + (fer ? 'ALTRAN · FORJA' : lojaAtual === 'wilford' ? 'WILFORD · ARMAZÉM' : lojaAtual === 'mammon' ? 'MAMMON' : 'GALLADUCCI') + '</b><span class="ad">Adena: ' + ((s.adena | 0).toLocaleString('pt-BR')) + '</span><button type="button" data-x="1">Fechar</button></div>' +
+      (fer || lojaAtual === 'wilford' ? '' : '<div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" data-aba="comprar" class="' + (aba === 'comprar' ? 'on' : '') + '">Comprar</button><button type="button" data-aba="vender" class="' + (aba === 'vender' ? 'on' : '') + '">Vender</button></div>');
     if(!s.srv) h += '<div class="msg">' + (fer ? 'A forja' : 'A loja') + ' só funciona conectado ao servidor.</div>';
     else if(!D) h += '<div class="msg">Carregando...</div>';
+    else if(lojaAtual === 'wilford'){
+      var C = D.armazem || { max: 60, taxa: 10 }, bau = (ARM && ARM.items) || [], dsc = op.desc || function(i){ return { nome: i.base, cor: '#fff', raridade: i.rar }; };
+      if(!ARM) h += '<div class="msg">Abrindo o baú...</div>';
+      else {
+        h += '<div class="msg" style="margin:0 0 6px">Baú da conta: todos os seus personagens usam o mesmo. Guardar custa ' + C.taxa + ' A por item; retirar é grátis.</div>';
+        h += '<div class="ln"><div class="n"><b>Adena no baú: <span style="color:#f5c451">' + ((ARM.adena | 0).toLocaleString('pt-BR')) + '</span></b></div><input id="armQtd" type="number" min="1" placeholder="quantia" style="width:90px;font:inherit;background:#0b1428;color:#fff;border:1px solid #2b3a63;border-radius:6px;padding:5px"><button type="button" data-a="guardarA">Guardar</button><button type="button" data-a="retirarA">Retirar</button></div>';
+        h += '<div style="margin:8px 0 2px;font-weight:700;letter-spacing:.1em">NO BAÚ (' + bau.length + '/' + C.max + ')</div>';
+        if(!bau.length) h += '<div class="msg">Vazio.</div>';
+        bau.forEach(function(it){ var d = dsc(it); h += '<div class="ln"><div class="n"><b style="color:' + esc(d.cor || '#fff') + '">' + ((it.en | 0) ? '+' + (it.en | 0) + ' ' : '') + esc(d.nome) + '</b> <small>' + esc(d.raridade || it.rar) + '</small></div><button type="button" data-r="' + esc(it.uid) + '">Retirar</button></div>'; });
+        h += '<div style="margin:8px 0 2px;font-weight:700;letter-spacing:.1em">NA MOCHILA</div>';
+        var mo = (s.todos || []).filter(function(i){ return !i.equip; });
+        if(!mo.length) h += '<div class="msg">Nada para guardar (o que está equipado não aparece).</div>';
+        mo.forEach(function(it){ h += '<div class="ln"><div class="n"><b style="color:' + esc(it.cor || '#fff') + '">' + ((it.en | 0) ? '+' + (it.en | 0) + ' ' : '') + esc(it.nome) + '</b> <small>' + esc(it.raridade || it.rar) + '</small></div><span class="pr">' + C.taxa + ' A</span><button type="button" data-g="' + esc(it.uid) + '">Guardar</button></div>'; });
+      }
+    }
     else if(fer){
       var e = E();
       h += '<div class="msg" style="margin:0 0 6px">Até +' + e.seguro + ' é seguro. Depois, se falhar, o item <b style="color:#ff8a5a">quebra</b>. A arma brilha a partir de +4.</div>';
@@ -65,6 +82,9 @@
     [].forEach.call(el.querySelectorAll('[data-aba]'), function(x){ x.onclick = function(){ aba = x.getAttribute('data-aba'); L._msg = ''; desenha(); }; });
     [].forEach.call(el.querySelectorAll('[data-c]'), function(x){ x.onclick = function(){ if(op.comprar) op.comprar(lojaAtual, x.getAttribute('data-c'), +x.getAttribute('data-q')); }; });
     [].forEach.call(el.querySelectorAll('[data-v]'), function(x){ x.onclick = function(){ if(op.vender) op.vender(x.getAttribute('data-v')); }; });
+    [].forEach.call(el.querySelectorAll('[data-g]'), function(x){ x.onclick = function(){ if(op.arm) op.arm('guardar', { uid: x.getAttribute('data-g') }); }; });
+    [].forEach.call(el.querySelectorAll('[data-r]'), function(x){ x.onclick = function(){ if(op.arm) op.arm('retirar', { uid: x.getAttribute('data-r') }); }; });
+    [].forEach.call(el.querySelectorAll('[data-a]'), function(x){ x.onclick = function(){ var q = Math.floor(+((el.querySelector('#armQtd') || {}).value) || 0); if(q < 1){ L.aviso('Digite a quantia de adena.'); return; } if(op.arm) op.arm(x.getAttribute('data-a'), { qtd: q }); }; });
     [].forEach.call(el.querySelectorAll('[data-e]'), function(x){ x.onclick = function(){
       if(x.getAttribute('data-risco') && !x.getAttribute('data-ok')){ x.setAttribute('data-ok', '1'); x.textContent = 'Confirmar?'; x.style.background = '#5a2416'; return; }   /* com risco: 2o toque confirma */
       if(op.encantar) op.encantar(x.getAttribute('data-e')); }; });
@@ -80,7 +100,7 @@
     window.addEventListener('keydown', function(e){ if((e.key === 'h' || e.key === 'H') && !e.repeat && !digitando() && op.usar){ op.usar('pocao_vida'); } });
     if(document.body) botao(); else document.addEventListener('DOMContentLoaded', botao);
   };
-  L.abrir = function(loja){ monta(); lojaAtual = loja || 'galladucci'; aba = 'comprar'; L._msg = ''; el.style.display = 'block'; try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} desenha(); };
+  L.abrir = function(loja){ monta(); lojaAtual = loja || 'galladucci'; aba = 'comprar'; L._msg = ''; el.style.display = 'block'; if(lojaAtual === 'wilford'){ ARM = null; if(op.arm) op.arm('ver'); } try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} desenha(); };
   L.fechar = function(){ if(el) el.style.display = 'none'; };
   L.aberta = function(){ return !!(el && el.style.display !== 'none'); };
   L.aviso = function(t){ L._msg = t || ''; var m = el && el.querySelector('#lojaMsg'); if(m) m.textContent = L._msg; };

@@ -191,5 +191,6 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
     return resp(res, 404, { erro: 'nao encontrado' });
   }
   const persPorId = id => { for(const u in DB.contas){ const p = (DB.contas[u].pers || []).find(q => q.id === id); if(p) return p; } return null; };
-  return { http, validaToken, persPorId, grava, total: () => Object.keys(DB.contas).length };
+  const contaDoPers = id => { for(const u in DB.contas){ const c = DB.contas[u]; if((c.pers || []).some(q => q.id === id)) return c; } return null; };      /* armazem: o bau e da CONTA (c.arm) */
+  return { http, validaToken, persPorId, contaDoPers, grava, total: () => Object.keys(DB.contas).length };
 };
