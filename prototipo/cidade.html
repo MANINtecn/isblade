@@ -787,6 +787,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/loja.js?v=4"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
+<script src="js/ceu_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js?v=2"></script>
 <script src="js/l2_npcs.js?v=2"></script>
@@ -14068,7 +14069,7 @@ function updateCityMinimap() {
 
 // Ciclo automatico continuo Dia / Por do Sol / Noite / Amanhecer (240s = 24h in-game)
 
-var _cDayBg = new THREE.Color(0x78b8e0), _cSunBg = new THREE.Color(0xd97736), _cNigBg = new THREE.Color(0x050c1e), _cDawBg = new THREE.Color(0xe89978);
+var _cDayBg = new THREE.Color(0x78b8e0), _cSunBg = new THREE.Color(0xd97736), _cNigBg = new THREE.Color(0x050c1e), _cDawBg = new THREE.Color(0xe0a860);/* [ceu] aurora dourada (sem salmao/rosa) */
 
 var _cDayKey = new THREE.Color(0xfff8ee), _cSunKey = new THREE.Color(0xff7733), _cNigKey = new THREE.Color(0x5577bb), _cDawKey = new THREE.Color(0xffb07c);
 
@@ -14084,7 +14085,8 @@ function updateDayNightCycle(T) {
 
   var cycleSec = 240.0;
 
-  var gameHour = ((T / cycleSec + 10.0 / 24.0) % 1.0) * 24.0;
+  var gameHour = window.CeuL2 ? CeuL2.hora() : ((T / cycleSec + 10.0 / 24.0) % 1.0) * 24.0;/* [ceu] mesma hora para todos (relogio real) */
+  if (window.CeuL2 && !CeuL2._ok) { CeuL2._ok = 1; try { CeuL2.init(THREE, scene, camera); } catch (e) { console.warn('ceu', e); } }
 
   var fogD = 0.0018, keyInt = 2.6, ambInt = 0.65, hemiInt = 1.9;
 
@@ -14167,6 +14169,7 @@ function updateDayNightCycle(T) {
   scene.fog.color.copy(_cTmpBg);
 
   scene.fog.density = fogD;
+  if (window.CeuL2 && CeuL2._ok) CeuL2.atualiza(_cTmpBg, CeuL2.noite(gameHour), gameHour);/* [ceu] cupula com degrade, cirros e estrelas */
 
   key.color.copy(_cTmpKey);
 

@@ -474,6 +474,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/loja.js?v=4"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
+<script src="js/ceu_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
@@ -8999,6 +9000,7 @@ function mapaAbertoStart(){
   var cor=C.ceu||0x9ab8d0;scene.background=new THREE.Color(cor);if(scene.fog)scene.fog.color.set(cor);
   var _hl=new THREE.HemisphereLight(C.luzCeu||0xdfe8ff,C.luzChao||0x6a5f50,C.luzInt||1.7);scene.add(_hl);
   var _dl=new THREE.DirectionalLight(C.sol||0xfff2dd,C.solInt||1.6);_dl.position.set(120,200,80);scene.add(_dl);
+  try{CeuL2.init(THREE,scene,camera);CeuL2.automatico(scene,{corDia:cor,luzes:[{luz:_hl,int:C.luzInt||1.7},{luz:_dl,int:C.solInt||1.6,sol:1},{luz:key,int:key.intensity}]});}catch(e){console.warn('ceu',e);}/* [ceu] dia/noite (mesma hora da cidade) */
   scene.traverse(function(o){if(o.isPoints&&o.parent===scene)o.visible=false;});/* estrelas do arena */
   var sp=Torre.andares[0],gx=sp.sx+6,gz=sp.sz;
   var gate=createSoloLevelingGate({x:gx,y:sp.y+2.7,z:gz,rotY:-Math.PI/2,runeColor:0xffffff,theme:'white'});
