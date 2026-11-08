@@ -47,7 +47,7 @@
       "keep": 8,
       "projSpeed": 11
     },
-    "mini_boss": {
+    "mini_boss": { "agressivo": true,
       "name": "Comandante das Sombras",
       "hp": 750,
       "dmg": 28,
@@ -481,8 +481,9 @@
       ]
     }
   ],
+  "agressao": { "_nota": "Agressao estilo L2 (arena.html -> mobAgro). A maioria e PASSIVA (so ataca se apanhar); agressivos (fracao por dificuldade em difficulties[].agressivos, ou mobs[].agressivo=true) atacam quem chega a menos de visao m. Quando um mob apanha, so os vizinhos parados a ate ajuda m entram junto (sem corrente). Puxado mais longe que volta m do lugar onde nasceu: desiste, volta e recupera a vida.", "visao": 7, "ajuda": 4.5, "volta": 26 },
   "difficulties": {
-    "normal": {
+    "normal": { "agressivos": 0.15,
       "name": "Normal",
       "css": "#58e08e",
       "hp": 1,
@@ -493,7 +494,7 @@
       "rarityBoost": 1,
       "desc": "Inimigos padrao. Itens com as chances normais de raridade."
     },
-    "medio": {
+    "medio": { "agressivos": 0.25,
       "name": "Medio",
       "css": "#f5c451",
       "hp": 1.6,
@@ -504,7 +505,7 @@
       "rarityBoost": 1.6,
       "desc": "Mais inimigos, com mais vida e dano. Itens raros caem mais."
     },
-    "hard": {
+    "hard": { "agressivos": 0.35,
       "name": "Hard",
       "css": "#ff4d6d",
       "hp": 2.4,

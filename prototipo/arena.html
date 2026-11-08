@@ -5204,6 +5204,23 @@ DG.grp='';DG._pend={};
 function sairDg(){if(DG.grp==='host'&&window.Net)Net.dg({k:'end'});if(DG.deCidade)returnToCity();else dgHub();}
 function r1(v){return Math.round(v*10)/10;}
 function mobPorId(id){for(var i=0;i<MOBS.length;i++)if(MOBS[i].nid===id)return MOBS[i];return null;}
+/* [agressao] estilo L2 (data/dungeon.json -> agressao): passivo ate apanhar; agressivo ve a ate `visao` m; ajuda so dos vizinhos parados; volta ao lugar se puxado longe */
+function mobAgrCfg(){return (DGD&&DGD.agressao)||{visao:7,ajuda:4.5,volta:26};}
+function mobAgrIni(m){if(m.agr!==undefined)return;var D=DG.run?DIFF():DGD.difficulties.normal;m.agr=!!(m.T.agressivo||m.T.isMiniBoss||Math.random()<(D.agressivos===undefined?.25:D.agressivos));if(m.lx===undefined){m.lx=m.x;m.lz=m.z;}m.engaj=false;m.volta=false;}
+function mobEngaja(m,ajuda){
+  if(!m||m.dead||m.net)return;mobAgrIni(m);if(m.engaj&&!m.volta)return;m.engaj=true;m.volta=false;m.state='chase';m.t=0;
+  if(ajuda===false)return;var A=mobAgrCfg();
+  MOBS.forEach(function(o){if(o===m||o.dead||o.net)return;mobAgrIni(o);if(o.engaj||o.volta)return;if(Math.hypot(o.x-m.x,o.z-m.z)<=A.ajuda)mobEngaja(o,false);});/* so o grupinho, sem corrente */
+}
+function mobAgro(m,cand,dt){
+  mobAgrIni(m);var A=mobAgrCfg();
+  if(m.volta){var vx=m.lx-m.x,vz=m.lz-m.z,vd=Math.hypot(vx,vz);
+    if(vd<.8){m.volta=false;m.hp=m.max;m.state='chase';return null;}
+    var k=Math.min(vd,m.spd*1.4*dt);m.x+=vx/vd*k;m.z+=vz/vd*k;m.face=Math.atan2(vx,vz);m.hp=Math.min(m.max,m.hp+m.max*dt*.25);return null;}
+  if(!m.engaj){if(m.agr&&cand&&Math.hypot(cand.x-m.x,cand.z-m.z)<=A.visao)mobEngaja(m);else return null;}
+  if(!cand||Math.hypot(m.x-m.lx,m.z-m.lz)>A.volta){m.engaj=false;m.volta=true;m.state='chase';m.t=0;return null;}
+  return cand;
+}
 function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do grupo mais perto */
   var best=null,bd=1e9;
   if(!S.pdead){bd=Math.hypot(S.px-m.x,S.pz-m.z);best={x:S.px,z:S.pz,id:0,self:true};}
@@ -5213,7 +5230,7 @@ function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do g
 function grpTick(dt){/* chamado todo quadro (torreTick): o lider envia o estado */
   if(DG.grp!=='host'||!DG.torre||!window.Net)return;
   DG._sn=(DG._sn||0)-dt;if(DG._sn>0)return;DG._sn=.1;
-  var ms=[];MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0]);});
+  var ms=[];MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0,m.agr?1:0]);});
   Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});
   if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,ak:(S.en.atk&&S.en.atk.key)||'',dead:S.dead?1:0});
 }
@@ -5223,7 +5240,7 @@ function grpSnap(sn){/* convidado: aplica o estado dos mobs */
   sn.m.forEach(function(a){
     var id=a[0],m=mobPorId(id);vistos[id]=1;
     if(!m){if(a[8]||!DGD.mobs[a[1]])return;m=mkMob(a[1],a[2],a[3]);m.nid=id;m.net=true;m.x=a[2];m.z=a[3];MOBS.push(m);}
-    m.tx=a[2];m.tz=a[3];m.tf=a[4];m.hp=a[5];m.max=a[6];m.state=a[7]===1?'windup':(a[7]===2?'recover':'chase');m.stun=a[9]?1:0;
+    m.tx=a[2];m.tz=a[3];m.tf=a[4];m.hp=a[5];m.max=a[6];m.state=a[7]===1?'windup':(a[7]===2?'recover':'chase');m.stun=a[9]?1:0;m.agr=!!a[10];
     m.fg.scale.x=Math.max(.001,m.hp/(m.max||1));
     if(a[8]&&!m.dead){/* morreu no lider: efeito + loot proprio (XP o servidor ja deu) */
       if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;lootMob(m);renderHud();
@@ -5268,6 +5285,7 @@ function damageMob(m,dmg,an){
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
   if(m.dead)return;
   if(m.net&&window.Net)Net.dg({k:'hit',id:m.nid,d:dmg});/* [dg-grupo] a vida do mob e do lider */
+  mobEngaja(m);/* [agressao] apanhou: ataca (e chama so os vizinhos parados) */
 
   if(m.stun>0)dmg=Math.round(dmg*1.35);
 
@@ -5452,7 +5470,7 @@ function updateMobs(dt){
     m.mat.emissiveIntensity=.15+m.flash*1.1+(m.state==='windup'?.45+.45*Math.sin(m.t*30):0);
     if(m.mats){var ei=.3+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q2=0;q2<m.mats.length;q2++)m.mats[q2].emissiveIntensity=ei;}/* [mob3d] */
 
-    var TG=m.net?null:mobAlvo(m);/* [dg-grupo] */
+    var TG=m.net?null:mobAgro(m,mobAlvo(m),dt);/* [dg-grupo] [agressao] parado ate ver/apanhar; volta ao lugar */
     if(TG){
       m.t+=dt;
       var dx=TG.x-m.x,dz=TG.z-m.z,d=Math.hypot(dx,dz),want=Math.atan2(dx,dz),f=fwd(m.face),sp=m.spd;
@@ -7751,7 +7769,7 @@ var _alvoT=0;function alvoTick(){/* [alvo] janela do alvo estilo L2 (js/alvo_l2.
   if(window.Net&&Net.alvo){AlvoL2.atualiza(null);return;}
   var nivel=function(tp){var mn=DATA.prog&&DATA.prog.mobsNivel,d=(typeof DG!=='undefined'&&DG.diff)||'normal',e=mn&&mn[d]&&mn[d][tp];return e?e[0]:0;};
   var m=(S.aimM&&!S.aimM.dead)?S.aimM:((S.ultMob&&!S.ultMob.dead&&t-S.ultMobT<6000)?S.ultMob:null);
-  if(m&&m.T){AlvoL2.atualiza({nome:m.T.name,nv:nivel(m.type),hp:m.hp,max:m.max,meuNv:S.lvl});return;}
+  if(m&&m.T){AlvoL2.atualiza({nome:m.T.name+(m.agr?' (agressivo)':''),nv:nivel(m.type),hp:m.hp,max:m.max,meuNv:S.lvl});return;}
   if(typeof BOSS_ON!=='undefined'&&BOSS_ON&&!S.dead&&(S.aimT||t-(S.ultBossT||0)<8000)){AlvoL2.atualiza({nome:'Baium',nv:(typeof DG!=='undefined'&&DG.on)?nivel('boss'):0,hp:S.hp,max:S.maxhp,meuNv:S.lvl});return;}
   AlvoL2.atualiza(null);
 }

@@ -2960,3 +2960,14 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - `js/agua_l2.js` (novo): ShaderMaterial leve: ondas no vertex shader (a CPU deixou de mexer 2.401 vertices por quadro), cor funda/rasa, reflexo do ceu pela cor da neblina (acompanha o dia/noite) com Fresnel, brilho do sol, ondulacao esticada no sentido do vento (sem circulos), espuma so na faixa da beira (altura do chao calculada em GLSL com a mesma conta do jogo), neblina aplicada. Escurece a noite.
 - Neblina por mapa (`arena.html`, MAPAS_ABERTOS.nevoa): Pantano 0,62 (fechado), Fortaleza 1,0, Curuma 1,15 (mais limpa).
 - Testado (local, fotos na beira sul de dia e de noite): litoral, espuma e ondulacao ok; 1a versao tinha espuma no mar todo (fundo so 0,2 m abaixo) e brilhava a noite, corrigido. NAO testado: celular, VPS, os 3 mapas abertos com a neblina nova.
+
+### [Claude] 08/11/2026 - Agressao dos mobs estilo L2 (Fase 2, 1o item)
+- Pedido do dono: "prossiga" (Fase 2; regra pedida por ele em 08/11: nas DGs todos eram agressivos com agro natural e chegar perto juntava a sala inteira).
+- Antes: todo mob perseguia o jogador mais perto a qualquer distancia.
+- Agora (`arena.html`: mobAgrIni / mobEngaja / mobAgro; numeros em `data/dungeon.json` -> `agressao` {visao 7, ajuda 4,5, volta 26} e `difficulties[].agressivos` {normal .15, medio .25, hard .35}; `mini_boss` e mini-chefes sempre agressivos):
+  - cada mob sorteia ao nascer se e agressivo; passivo fica parado ate apanhar; agressivo ataca quem chega a 7 m;
+  - quando um mob apanha, so os vizinhos PARADOS a ate 4,5 m entram (sem corrente: ajudante nao chama outro);
+  - puxado a mais de 26 m de onde nasceu: desiste, volta e recupera a vida;
+  - janela do alvo mostra "(agressivo)"; no grupo, o lider manda quem e agressivo junto com o estado dos mobs.
+- Testado (local, Torre Normal): 13 mobs, 2-4 agressivos; parado no inicio e a 3 m de um passivo: ninguem ataca; bater num passivo: entrou ele + o unico vizinho a 4,5 m; mob levado a 30 m do lugar: voltou e encheu a vida. NAO testado: DG em grupo, celular, VPS. Medir no jogo se o Normal ficou facil demais (os numeros estao no json).
+- Processo: escorreguei num `sed -i` no arena.html (CRLF virou LF); restaurado antes do commit, diff conferido.
