@@ -148,6 +148,14 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
       if(url === '/api/conta/sair' && req.method === 'POST'){
         const c = quem(req); if(c){ const h = sha(req.headers.authorization.slice(7)); c.tokens = c.tokens.filter(t => t.h !== h); grava(); } return resp(res, 200, { ok: true });
       }
+      if(url === '/api/relato' && req.method === 'POST'){      /* "Reportar problema" (Config do jogo): uma linha JSON por relato em <DIR>/relatos.jsonl, para o dono ler */
+        const c = quem(req); if(!c) return resp(res, 401, { erro: 'Entre na conta.' });
+        if(!limite(ip, 'r', 6, 3600e3)) return resp(res, 429, { erro: 'Muitos relatos seguidos. Tente mais tarde.' });
+        const b = await corpo(req), linha = { quando: new Date().toISOString(), user: c.user, texto: String(b.texto || '').slice(0, 2000), pagina: String(b.pagina || '').slice(0, 160), log: String(b.log || '').slice(0, 60000) };
+        if(!linha.texto.trim()) return resp(res, 400, { erro: 'Escreva o que aconteceu.' });
+        fs.appendFile(path.join(DIR, 'relatos.jsonl'), JSON.stringify(linha) + '\n', e => { if(e) console.error('relato: falha ao gravar', e.message); });
+        return resp(res, 200, { ok: true });
+      }
       if(url === '/api/dados'){
         const c = quem(req); if(!c) return resp(res, 401, { erro: 'Entre na conta.' });
         if(req.method === 'GET') return resp(res, 200, { rev: c.dados.rev, chaves: chavesDaConta(c), user: c.user });

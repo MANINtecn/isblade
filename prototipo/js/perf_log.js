@@ -111,6 +111,25 @@
     sec.querySelector('#perfCop').onclick = function(){ P.copiar().then(function(ok){ if(ok) say('Copiado. Cole na conversa.'); else { tx.value = P.resumo(); tx.style.display = 'block'; tx.focus(); tx.select(); say('Nao deu para copiar sozinho: selecione o texto acima e copie.'); } }); };
     sec.querySelector('#perfBai').onclick = function(){ P.baixar(); say('Arquivo salvo nos downloads.'); };
     sec.querySelector('#perfLim').onclick = function(){ P.limpar(); tx.value = ''; tx.style.display = 'none'; say('Log apagado. Ele volta a medir agora.'); };
+
+    /* REPORTAR PROBLEMA: a descricao + o resumo do log vao para o servidor (<dados>/relatos.jsonl, o dono le na VPS); sem conta, copia */
+    var rep = document.createElement('div'); rep.id = 'repSec'; rep.style.marginTop = '12px';
+    rep.innerHTML = '<h3 style="margin:6px 0">REPORTAR PROBLEMA</h3><small style="display:block;opacity:.75;margin-bottom:6px">Conte o que aconteceu (onde, o que voce fez, o que esperava). Vai junto o resumo do desempenho do aparelho.</small>' +
+      '<textarea id="repTx" maxlength="2000" placeholder="Ex.: na DG media, ao usar a skill 2 o personagem travou..." style="pointer-events:auto;width:100%;height:80px;background:#050a18;color:#e8f0ff;border:1px solid #2b3a63;border-radius:6px;font:12px/1.4 system-ui,sans-serif;padding:6px;box-sizing:border-box"></textarea>' +
+      '<button type="button" id="repEnv" style="' + est + '">Enviar</button><small id="repMsg" style="display:block;margin-top:4px;opacity:.85"></small>';
+    sec.parentNode.insertBefore(rep, sec);
+    var rt = rep.querySelector('#repTx'), rm = rep.querySelector('#repMsg');
+    ['keydown', 'keyup', 'keypress'].forEach(function(t){ rt.addEventListener(t, function(e){ e.stopPropagation(); }); });      /* digitar aqui nao move o personagem */
+    rep.querySelector('#repEnv').onclick = function(){
+      var texto = rt.value.trim(); if(!texto){ rm.textContent = 'Escreva o que aconteceu.'; return; }
+      salva(); var corpo = { texto: texto, pagina: location.pathname.split('/').pop() + location.search, log: P.resumo() };
+      if(!window.Conta || !Conta.api){ P.copiar(); rm.textContent = 'Sem conta: o relato foi copiado, mande para o dono.'; return; }
+      rm.textContent = 'Enviando...';
+      Conta.api('POST', '/api/relato', corpo, function(cod, j){
+        if(cod === 200){ rt.value = ''; rm.textContent = 'Enviado. Obrigado!'; P.marca('relato_enviado'); }
+        else rm.textContent = (j && j.erro) || ('Nao foi possivel enviar (codigo ' + cod + ').');
+      });
+    };
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ui); else ui();
   setTimeout(ui, 1500); setTimeout(ui, 5000);

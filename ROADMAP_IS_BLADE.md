@@ -58,7 +58,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [x] Log de desempenho no jogo (Claude, 08/11)
 - [ ] **Medir no celular e fazer a 1ª rodada de gráfico/desempenho** com o log que o dono trouxer (comprimir texturas e modelos dos mapas, ajustar níveis de qualidade, corte por distância). **M** (Dono testa, Claude ajusta)
 - [x] **Chat** estilo L2 (`js/chat.js`): Enter abre/manda, Esc fecha; geral = canal; `#` no começo = grupo (verde, em qualquer mapa); mensagens do sistema em amarelo; botão CHAT no celular; teclas não vazam para o jogo; limite de 1 mensagem a cada 0,8 s no servidor. (Claude, 08/11)
-- [ ] **Botão "Reportar problema"** nas Config: copia o log de desempenho + uma descrição para o dono mandar. **P** (Claude)
+- [x] **"Reportar problema"** nas Config: o jogador escreve o que aconteceu e envia; vai junto o resumo do desempenho; o servidor grava em `servidor/dados/relatos.jsonl` (uma linha por relato, com conta e página; 6 por hora por IP). Na VPS: `Get-Content C:\IS-sync\servidor\dados\relatos.jsonl -Tail 5`. (Claude, 08/11)
 - [ ] **Inventário e adena com autoridade no servidor** (o cliente só pede; o servidor dá, guarda e confere) — obrigatório antes de qualquer economia. **G** (Claude)
 - [x] **Mira assistida no celular** (soft-lock): dono deixou a decisão comigo; ficou, reescrita em `js/mira_toque.js` — trava em chefe, mobs e jogadores hostis; com o analógico empurrado só ajuda perto da direção dele; skills de ponto mirado caem em cima do alvo. (Claude, 08/11)
 - [ ] Trocar a senha da VPS (apareceu em imagem) e deixar o repositório privado. **P** (Dono)
