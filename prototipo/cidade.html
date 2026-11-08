@@ -1320,7 +1320,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=25';
+import { Net } from './js/net.js?v=26';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -12431,7 +12431,21 @@ function statTxt(stats){return Object.keys(stats).map(function(k){var s=ITM.stat
 
 
 
-function saveInv(){try{ckSet('isblade.inv',JSON.stringify(INV));}catch(_){}}
+function saveInv(){if(INV_SRV)return;try{ckSet('isblade.inv',JSON.stringify(INV));}catch(_){}}
+/* [inventario-servidor] online, o inventario e a adena vem do servidor (servidor/inventario.js): aqui so se pede e se mostra */
+var INV_SRV=false,ADENA=0;
+function invDoServidor(m){
+  if(!m||!m.inv||!Array.isArray(m.inv.items))return;
+  INV={items:m.inv.items,equip:m.inv.equip||{}};ADENA=m.inv.adena|0;INV_SRV=true;
+  var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&b.weapon!==WPN)setWeapon(b.weapon);
+  applyStats();renderInv();if(m.erro)gestMsg(m.erro);
+}
+function dropRecebido(m){
+  var R=ITM.rarities;
+  if(m.adena>0){try{Chat.sistema('Voce obteve '+m.adena+' Adena.');}catch(_){}}
+  (m.itens||[]).forEach(function(it,i){if(!baseOf(it.base)||!R[it.rar])return;setTimeout(function(){SFX.drop(it.rar);banner('DROP: '+baseOf(it.base).name.toUpperCase(),R[it.rar].name+'  -  '+statTxt(it.stats),R[it.rar].css);try{Chat.sistema('Voce obteve '+baseOf(it.base).name+' ('+R[it.rar].name+').');}catch(_){}},i*1600);});
+  if(m.cheia)sysMsg('Mochila cheia: descarte um item para receber loot');
+}
 
 
 
@@ -12503,6 +12517,7 @@ function cycleWeapon(){
 
 
 function equipItem(uid){
+  if(INV_SRV){Net.inv('equip',uid);return;}
 
 
 
@@ -12527,6 +12542,7 @@ function equipItem(uid){
 
 
 function unequipSlot(slot){
+  if(INV_SRV&&slot!=='weapon'){Net.inv('tirar','',slot);return;}
 
 
 
@@ -12543,6 +12559,7 @@ function unequipSlot(slot){
 
 
 function discardItem(uid){
+  if(INV_SRV){Net.inv('descartar',uid);return;}
 
 
 
@@ -12575,6 +12592,7 @@ function addItem(it){
 
 
 function dropLoot(){
+  if(INV_SRV)return [];/* online: o servidor sorteia o drop no abate (mensagem 'drop') */
 
 
 
@@ -12666,7 +12684,7 @@ function renderInv(){
 
 
 
-  var R=ITM.rarities,h='<div class="hd"><b style="letter-spacing:.2em">INVENTARIO</b><button type="button" id="invClose">Fechar (I)</button></div><div class="cols"><div><h3>EQUIPADO</h3>';
+  var R=ITM.rarities,h='<div class="hd"><b style="letter-spacing:.2em">INVENTARIO</b>'+(INV_SRV?'<span style="color:#f5c451;margin-left:auto;margin-right:12px">Adena: '+ADENA.toLocaleString('pt-BR')+'</span>':'')+'<button type="button" id="invClose">Fechar (I)</button></div><div class="cols"><div><h3>EQUIPADO</h3>';
 
 
 
@@ -17729,6 +17747,7 @@ try{PerfLog.init(renderer,scene,function(){var o={pg:'cidade'};try{var st=Net.st
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
+  inv:invDoServidor,drop:dropRecebido,/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},

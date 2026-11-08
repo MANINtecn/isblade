@@ -111,14 +111,14 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
   }
   function chavesDaConta(c){                                        /* o que o cliente recebe: lista de personagens do servidor + progresso so dos ids que a conta possui */
     migra(c); const ids = new Set(c.pers.map(p => p.id)), out = {}, ch = c.dados.chaves || {};
-    for(const k in ch){ if(k === 'isblade_characters') continue; const dono = PROG.find(pf => k.startsWith(pf)); if(dono){ if(ids.has(k.slice(dono.length))) out[k] = ch[k]; } else out[k] = ch[k]; }
+    for(const k in ch){ if(k === 'isblade_characters' || k.startsWith('isblade.inv.')) continue; const dono = PROG.find(pf => k.startsWith(pf)); if(dono){ if(ids.has(k.slice(dono.length))) out[k] = ch[k]; } else out[k] = ch[k]; }
     out.isblade_characters = JSON.stringify(c.pers); return out;
   }
   function guardaChaves(c, ch){                                      /* PUT: personagem so muda nivel/local; criar/apagar so pelas rotas */
     migra(c); let inc = []; try { inc = JSON.parse(ch.isblade_characters || '[]'); } catch(e){}
     for(const x of inc){ const p = c.pers.find(q => q.id === (x && x.id)); if(p){ if(typeof x.location === 'string') p.location = x.location.slice(0, 30); }                /* nivel e xp: so o servidor decide */ }
     const ids = new Set(c.pers.map(p => p.id)), out = {};
-    for(const k in ch){ if(k === 'isblade_characters') continue; const dono = PROG.find(pf => k.startsWith(pf)); if(dono && !ids.has(k.slice(dono.length))) continue; out[k] = ch[k]; }
+    for(const k in ch){ if(k === 'isblade_characters' || k.startsWith('isblade.inv.')) continue; const dono = PROG.find(pf => k.startsWith(pf)); if(dono && !ids.has(k.slice(dono.length))) continue; out[k] = ch[k]; }      /* inventario: so pelo servidor do jogo (inventario.js), nunca pelo navegador */
     return out;
   }
   function validaToken(tk){ if(!/^[a-f0-9]{64}$/.test(String(tk || ''))) return null; const h = sha(tk); for(const u in DB.contas){ const c = DB.contas[u]; if(c.tokens.some(t => t.h === h)){ migra(c); return c; } } return null; }

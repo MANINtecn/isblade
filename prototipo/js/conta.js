@@ -7,7 +7,7 @@
   var SNAP = 'isblade.conta_snap', TOK = 'isblade.conta_token', USR = 'isblade.conta_user', REV = 'isblade.conta_rev', SUJO = 'isblade.conta_sujo', CONV = 'isblade.conta_convidado', BKP = 'isblade.conta_bkp_local';
   var ls = window.localStorage, setI = ls.setItem.bind(ls), remI = ls.removeItem.bind(ls), getI = ls.getItem.bind(ls);
   var timer = null, enviando = false;
-  var RE = /^(isblade_characters|isblade\.(inv|skillSel|mastery|dgbest|custom_slots_v5|hotbar_keys|hotbar_init)\.[A-Za-z0-9_-]+)$/;     /* so o que e progresso do personagem; volume, graficos etc. ficam no aparelho */
+  var RE = /^(isblade_characters|isblade\.(skillSel|mastery|dgbest|custom_slots_v5|hotbar_keys|hotbar_init)\.[A-Za-z0-9_-]+)$/;     /* so o que e progresso do personagem; volume, graficos etc. ficam no aparelho */
 
   function g(k){ try { return getI(k); } catch(e){ return null; } }
   function s(k, v){ try { setI(k, v); } catch(e){} }
