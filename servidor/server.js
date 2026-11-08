@@ -135,9 +135,10 @@ function passaProj(c, t){
   }
 }
 
+function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
 /* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
 function ataqueMira(c, A, m, t){
-  const mb = BASICO[A.arma], nv = mb.niveis[m.id]; if(!nv || t - A.ultB < .22) return; A.ultB = t;
+  const mb = BASICO[A.arma], nv = mb.niveis[m.id]; if(!nv || t - A.ultB < .22) return; A.ultB = t; const dmgM = Math.round(nv.dmg * (1 + tiro(A)));
   if(typeof m.f === 'number') A.f = m.f;
   let x = +m.x, z = +m.z; if(!isFinite(x) || !isFinite(z)){ x = A.x + Math.sin(A.f) * 6; z = A.z + Math.cos(A.f) * 6; }
   const dx = x - A.x, dz = z - A.z, dd = Math.hypot(dx, dz) || 1, dist = Math.max(mb.minimo || 2, Math.min(mb.alcance || 10, dd)); x = A.x + dx / dd * dist; z = A.z + dz / dd * dist;
@@ -147,7 +148,7 @@ function ataqueMira(c, A, m, t){
     if(A.morto) return; const t2 = agora();
     for(const V of c.jog.values()){
       if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue;
-      if(Math.hypot(V.x - x, V.z - z) <= nv.raio + .45) fere(c, A, V, nv.dmg, t2, 0);
+      if(Math.hypot(V.x - x, V.z - z) <= nv.raio + .45) fere(c, A, V, dmgM, t2, 0);
     }
   }, d * 1000);
 }
@@ -164,6 +165,7 @@ function ataque(c, A, m){
     d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj };
   } else return;
   A.f = typeof m.f === 'number' ? m.f : A.f;
+  const ss = parte2 ? (A.ssUlt || 0) : (A.ssUlt = tiro(A)); if(ss) d = Object.assign({}, d, { dmg: Math.round(d.dmg * (1 + ss)) });      /* soulshot: o 2o golpe da skill usa o mesmo tiro */
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
   if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
   for(const V of c.jog.values()){

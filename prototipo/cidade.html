@@ -1323,7 +1323,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=29';
+import { Net } from './js/net.js?v=30';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -6250,6 +6250,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
   var an={id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
+  ssTiro(an);/* [soulshot] automatico: +bonus se tiver */
 
 
 
@@ -8447,7 +8448,7 @@ function skillSwingFx(an){
 
 
 
-  SFX.play('soulshot');
+  if(!an||an.ss||REMOTEFX)SFX.play('soulshot');
 
 
 
@@ -9149,7 +9150,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-      if(an.part&&an.part===an.parts){SFX.play('soulshot');spark(S.px,1.4,S.pz,1.8,0x8bc1ff,.25);}
+      if(an.part&&an.part===an.parts&&(an.ss||REMOTEFX)){SFX.play('soulshot');spark(S.px,1.4,S.pz,1.8,0x8bc1ff,.25);}
 
 
 
@@ -9302,7 +9303,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');SFX.play('soulshot_hit');}
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');if(an.ss)SFX.play('soulshot_hit');}
 
 
 
@@ -11219,7 +11220,7 @@ function damageMob(m,dmg,an){
 
 
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');SFX.play('soulshot_hit');}
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');if(an.ss)SFX.play('soulshot_hit');}
 
 
 
@@ -12460,6 +12461,11 @@ function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario ch
   if(m.ok){banner('ENCANTAMENTO +'+m.nivel,m.nome+' ficou mais forte.',(window.Brilho&&Brilho.cor(m.nivel))||'#7dff9a');try{SFX.play('levelup');}catch(_){}}
   else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');try{SFX.play('hit');}catch(_){}}
 }
+function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no dano local (mobs/chefe) e marca o estalo */
+  if(REMOTEFX||!INV_SRV||!window.Loja||!Loja.dados())return;var id=WPN==='staff'?'spiritshot':'soulshot',c=Loja.dados().consumiveis[id];
+  if(!c||!(CONSUM[id]>0))return;an.ss=1;an.dmg=Math.round(an.dmg*(1+(c.bonus||0)));
+}
+function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
 function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
 function dropRecebido(m){
   var R=ITM.rarities;
@@ -12750,7 +12756,7 @@ function renderInv(){
 
 
 
-  if(INV_SRV){var _ks=Object.keys(CONSUM);h+='<h3 style="margin-top:10px">CONSUMÍVEIS</h3>';if(!_ks.length)h+='<small style="color:#7f8db0">Nada. Compre poções com o Galladucci ou o Mammon na cidade.</small>';_ks.forEach(function(k){h+='<div class="row"><span>'+(window.Loja?Loja.nome(k):k)+' x'+CONSUM[k]+'</span><button type="button" data-usar="'+k+'" style="pointer-events:auto">Usar</button></div>';});}/* [loja] */
+  if(INV_SRV){var _ks=Object.keys(CONSUM);h+='<h3 style="margin-top:10px">CONSUMÍVEIS</h3>';if(!_ks.length)h+='<small style="color:#7f8db0">Nada. Compre poções com o Galladucci ou o Mammon na cidade.</small>';_ks.forEach(function(k){h+='<div class="row"><span>'+(window.Loja?Loja.nome(k):k)+' x'+CONSUM[k]+'</span>'+((window.Loja&&Loja.dados()&&Loja.dados().consumiveis[k]&&Loja.dados().consumiveis[k].ss)?'<small style="color:#7dff9a">automático</small>':'<button type="button" data-usar="'+k+'" style="pointer-events:auto">Usar</button>')+'</div>';});}/* [loja] */
   h+='</div></div><div><h3>STATUS</h3>';
 
 
@@ -17784,7 +17790,7 @@ try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{lo
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
-  inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
+  inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},

@@ -68,12 +68,19 @@ function vender(pers, uid){
 function usar(pers, J, id, agora){
   const inv = garante(pers); if(!inv || !LJ) return { erro: 'Indisponivel.' };
   const c = LJ.consumiveis[id]; if(!c) return { erro: 'Item desconhecido.' };
+  if(c.ss) return { erro: c.nome + ' e automatico: gasta 1 por ataque enquanto voce tiver.' };
   if(!(inv.consum[id] > 0)) return { erro: 'Voce nao tem ' + c.nome + '.' };
   J.usoT = J.usoT || {}; const falta = (J.usoT[id] || 0) - agora; if(falta > 0) return { erro: c.nome + ': aguarde ' + Math.ceil(falta) + ' s.' };
   J.usoT[id] = agora + (c.recarga || 0); inv.consum[id]--; if(!inv.consum[id]) delete inv.consum[id];
   return { erro: '', id, nome: c.nome, cura: c.cura || 0, volta: !!c.volta };
 }
 
+/* soulshot / spiritshot automatico: gasta 1 por ataque se tiver (mago usa spiritshot); devolve {id, n, bonus} ou null */
+function tiro(pers){
+  const inv = pers && pers.inv; if(!inv || !inv.consum || !LJ) return null;
+  const id = armaDaClasse(pers) === 'staff' ? 'spiritshot' : 'soulshot', c = LJ.consumiveis[id]; if(!c || !(inv.consum[id] > 0)) return null;
+  inv.consum[id]--; const n = inv.consum[id]; if(!n) delete inv.consum[id]; return { id, n, bonus: c.bonus || 0 };
+}
 /* ---- ferreiro Altran (data/loja.json -> encantar): +1..+max; ate 'seguro' nunca falha; depois a falha QUEBRA o item (como no L2) ---- */
 function chanceEnc(E, alvo){ if(alvo <= E.seguro) return 1; for(const [ate, c] of E.chance) if(alvo <= ate) return c; return E.chance[E.chance.length - 1][1]; }
 function custoEnc(E, b, alvo){ return (b.slot === 'weapon' ? E.custo.arma : E.custo.armadura) * alvo; }
@@ -149,4 +156,4 @@ function abate(pers, tipo, dif, xpDoAbate){
   return { adena, itens, cheia: tipo === 'boss' && inv.items.length >= D.bagMax };
 }
 
-module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, armazem, garanteArm, loja: () => LJ };
+module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, armazem, tiro, garanteArm, loja: () => LJ };

@@ -702,7 +702,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=30';
+import { Net } from './js/net.js?v=31';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -2594,6 +2594,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
   /* >>> CLAUDE [guardiao] 2026-10-27 — qualquer ataque ou skill coloca o personagem em combate */ Guardiao.tocar('ataque'); /* <<< CLAUDE [guardiao] */
 
   var an={id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
+  ssTiro(an);/* [soulshot] automatico: +bonus se tiver */
 
   var cm=clipsOn()&&getClipConfig(pose);
   if(skill&&skill.taunt&&vrm&&vrm.isL2&&vrm.clips['skill_taunt_roar']){
@@ -3720,7 +3721,7 @@ function fxBasicoRemoto(e,id,f,m){
 function hitFxRemoto(x,z){if(Math.hypot(x-S.px,z-S.pz)>60)return;try{burst(x,1.2,z,7,0xff9a5a,2.2);spark(x,1.3,z,1.4,0xffe0b0,.2);}catch(_){}}
 function skillSwingFx(an){
 
-  SFX.play('soulshot');
+  if(!an||an.ss||REMOTEFX)SFX.play('soulshot');
 
   burst(S.px, 1.3, S.pz, 12, 0x5aa9ff, 2.6);
 
@@ -4098,7 +4099,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&an.skill.proj&&!an.noRange))return;/* [mago
 
       SFX.play('swing');try{Voz.tocar('atk');}catch(_){}
 
-      if(an.part&&an.part===an.parts){SFX.play('soulshot');spark(S.px,1.4,S.pz,1.8,0x8bc1ff,.25);}
+      if(an.part&&an.part===an.parts&&(an.ss||REMOTEFX)){SFX.play('soulshot');spark(S.px,1.4,S.pz,1.8,0x8bc1ff,.25);}
 
     }
 
@@ -4180,7 +4181,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&an.skill.proj&&!an.noRange))return;/* [mago
 
   spark(hx,1.8,hz,big?3.6:2.2,tc,.38);burst(hx,1.8,hz,big?26:10,tc,big?4:2.4);
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');SFX.play('soulshot_hit');}
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');if(an.ss)SFX.play('soulshot_hit');}
 
   if(an.sk){
 
@@ -5287,7 +5288,7 @@ function damageMob(m,dmg,an){
 
   spark(m.x,1.4*m.T.size,m.z,an.skill?3:2,0x8bc1ff,.3);burst(m.x,1.4*m.T.size,m.z,an.skill?18:8,0x8bc1ff,an.skill?3.5:2.2);
 
-  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');SFX.play('soulshot_hit');}
+  if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');if(an.ss)SFX.play('soulshot_hit');}
   try{if(m.hp>0)Voz.mob(m.type,'dmg',Math.hypot(m.x-S.px,m.z-S.pz));}catch(_){}/* [voz] gemido do monstro (L2) */
 
   if(!m.net&&m.hp<=0)killMob(m);
@@ -6584,6 +6585,11 @@ function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario ch
   if(m.ok){banner('ENCANTAMENTO +'+m.nivel,m.nome+' ficou mais forte.',(window.Brilho&&Brilho.cor(m.nivel))||'#7dff9a');try{SFX.play('levelup');}catch(_){}}
   else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');try{SFX.play('hit');}catch(_){}}
 }
+function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no dano local (mobs/chefe) e marca o estalo */
+  if(REMOTEFX||!INV_SRV||!window.Loja||!Loja.dados())return;var id=WPN==='staff'?'spiritshot':'soulshot',c=Loja.dados().consumiveis[id];
+  if(!c||!(CONSUM[id]>0))return;an.ss=1;an.dmg=Math.round(an.dmg*(1+(c.bonus||0)));
+}
+function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
 function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
 function dropRecebido(m){
   var R=ITM.rarities;
@@ -6736,7 +6742,7 @@ function renderInv(){
 
   if(!bag.length)h+='<small style="color:#7f8db0">Nada na mochila. Derrote o chefe para receber itens.</small>';
 
-  if(INV_SRV){var _ks=Object.keys(CONSUM);h+='<h3 style="margin-top:10px">CONSUMÍVEIS</h3>';if(!_ks.length)h+='<small style="color:#7f8db0">Nada. Compre poções com o Galladucci ou o Mammon na cidade.</small>';_ks.forEach(function(k){h+='<div class="row"><span>'+(window.Loja?Loja.nome(k):k)+' x'+CONSUM[k]+'</span><button type="button" data-usar="'+k+'" style="pointer-events:auto">Usar</button></div>';});}/* [loja] */
+  if(INV_SRV){var _ks=Object.keys(CONSUM);h+='<h3 style="margin-top:10px">CONSUMÍVEIS</h3>';if(!_ks.length)h+='<small style="color:#7f8db0">Nada. Compre poções com o Galladucci ou o Mammon na cidade.</small>';_ks.forEach(function(k){h+='<div class="row"><span>'+(window.Loja?Loja.nome(k):k)+' x'+CONSUM[k]+'</span>'+((window.Loja&&Loja.dados()&&Loja.dados().consumiveis[k]&&Loja.dados().consumiveis[k].ss)?'<small style="color:#7dff9a">automático</small>':'<button type="button" data-usar="'+k+'" style="pointer-events:auto">Usar</button>')+'</div>';});}/* [loja] */
   h+='</div></div><div><h3>STATUS</h3>';
 
   h+='<div class="row"><span>Vida</span><b>'+S.pmax+'</b></div>';
@@ -9061,7 +9067,7 @@ try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{lo
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Curuma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
-  inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
+  inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},

@@ -182,6 +182,7 @@ export const Net = (function(){
     else if(m.t === 'usou'){ if(ctx.usou) ctx.usou(m); }
     else if(m.t === 'enc'){ if(ctx.enc) ctx.enc(m); }
     else if(m.t === 'arm'){ if(ctx.arm) ctx.arm(m); }
+    else if(m.t === 'ss'){ if(ctx.ss) ctx.ss(m); }
     else if(m.t === 'en'){ e = remotos.get(m.v); if(e){ e.en = m.en | 0; brilho(e); } }
     else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp); } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); } } }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }

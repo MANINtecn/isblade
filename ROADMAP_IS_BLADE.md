@@ -81,7 +81,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [ ] **Spots de mobs nos 3 mapas novos:** grupos por faixa de nível, reaparecimento, um chefe de campo por mapa; reaproveitar os 15+ mobs que já têm modelo; seguir a regra de agressão acima. **G** (Claude; Gemini nos modelos novos)
 - [ ] **Adena e drops:** mob dá adena e chance de item; chefe dá item garantido; tudo pelo servidor. **M** (Claude)
 - [ ] **Graus de equipamento:** Sem grau, D e C (armas e armaduras das 3 classes, sets com bônus), vendidos no Mercador ou caídos; modelos do L2 na mão/corpo. **G** (Claude + Gemini nos modelos)
-- [ ] **Consumíveis:** poção (cura com tempo de recarga), soulshot (o som e o brilho já existem: passa a dar dano), pergaminho de volta. **M** (Claude)
+- [x] **Consumíveis:** poção (cura com tempo de recarga), soulshot (o som e o brilho já existem: passa a dar dano), pergaminho de volta. **M** (Claude) — feito 08/11: Soulshot/Spiritshot automáticos (3 A, 1 por ataque, +25% de dano; estalo só com tiro)
 - [ ] **Morte estilo L2:** perde um pouco de XP fora de DG e volta para a cidade (ou ressuscita onde caiu com pergaminho). **P** (Claude)
 - [ ] **Expedição de entrada (tutorial rápido até o nível 20)**, decidida em 02/11: guia pelos botões, primeiro mob, primeira skill, primeiro drop, primeiro portal; pode pular; uma vez por personagem. **M** (Claude)
 - [ ] Rebalancear XP e dano com o simulador (`tools/simular_progressao.js`) depois dos spots. **P** (Claude)

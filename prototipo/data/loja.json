@@ -1,8 +1,10 @@
 {
-  "_nota": "Loja dos NPCs (servidor/inventario.js le daqui; js/loja.js mostra). consumiveis: o que se compra e se usa (cura = fracao da vida maxima; volta = pergaminho que leva para a cidade; recarga em segundos). venda: adena que o comerciante paga por item de equipamento, pela raridade. lojas: o que cada NPC vende. Soulshot entra quando o bonus de dano dele existir.",
+  "_nota": "Loja dos NPCs (servidor/inventario.js le daqui; js/loja.js mostra). consumiveis: o que se compra e se usa (cura = fracao da vida maxima; volta = pergaminho que leva para a cidade; recarga em segundos). venda: adena que o comerciante paga por item de equipamento, pela raridade. lojas: o que cada NPC vende. soulshot/spiritshot: automaticos (ss), gastam 1 por ataque (o servidor desconta) e somam bonus no dano.",
   "consumiveis": {
     "pocao_vida": { "nome": "Poção de Vida", "preco": 40, "cura": 0.3, "recarga": 10, "desc": "Recupera 30% da vida. Tecla H." },
-    "pergaminho_volta": { "nome": "Pergaminho de Volta", "preco": 150, "volta": true, "recarga": 5, "desc": "Leva você de volta para Talking Island." }
+    "pergaminho_volta": { "nome": "Pergaminho de Volta", "preco": 150, "volta": true, "recarga": 5, "desc": "Leva você de volta para Talking Island." },
+    "soulshot": { "nome": "Soulshot", "preco": 3, "ss": "fighter", "bonus": 0.25, "desc": "Automático: gasta 1 por ataque e dá +25% de dano (guerreiro e guardião)." },
+    "spiritshot": { "nome": "Spiritshot", "preco": 3, "ss": "magic", "bonus": 0.25, "desc": "Automático: gasta 1 por ataque e dá +25% de dano (mago)." }
   },
   "venda": { "normal": 25, "raro": 90, "epico": 350, "lendario": 1500 },
   "encantar": {
@@ -15,7 +17,7 @@
   },
   "armazem": { "_nota": "Wilford: bau da CONTA (todos os personagens usam o mesmo). max = itens; taxa = adena por item guardado (retirar e de graca).", "max": 60, "taxa": 10 },
   "lojas": {
-    "galladucci": ["pocao_vida", "pergaminho_volta"],
-    "mammon": ["pocao_vida", "pergaminho_volta"]
+    "galladucci": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot"],
+    "mammon": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot"]
   }
 }
