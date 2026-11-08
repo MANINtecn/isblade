@@ -788,6 +788,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
+<script src="js/agua_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js?v=2"></script>
 <script src="js/l2_npcs.js?v=2"></script>
@@ -3489,11 +3490,12 @@ var waterMesh = new THREE.Mesh(waterGeo, waterMat);
 
 
 
-waterMesh.position.y = -5.5; // Nível do mar na costa
+waterMesh.position.y = -4.6; // [agua] nivel do mar: acima do fundo do terreno (-4,8), a ilha ganha litoral logo depois das muralhas (antes -5,5 ficava escondido sob o chao)
 
 
 
 scene.add(waterMesh);
+if (window.AguaL2) { waterMesh.material = AguaL2.material(THREE, { scene: scene, sol: key, nivel: -4.6, baixa: QUAL.nivel === 'baixa' }); waterMesh.userData.parado = 1; waterMesh.onBeforeRender = function(){ waterMesh.material.userData.atualiza(); }; }   /* [agua] ondas na placa de video, reflexo do ceu, espuma na beira */
 
 
 

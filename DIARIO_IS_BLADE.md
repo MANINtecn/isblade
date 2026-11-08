@@ -2953,3 +2953,10 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Saida no jogo: `assets/talking_island/luz/chao_ao.jpg` (1024 px, 82 KB, suavizado). `cidade.html`: aoMap no chao da ilha, na praca e no piso do duelo, UV pela posicao (canal 1); a oclusao escurece a luz ambiente e 55% do sol (0,9 = ceu aberto, para o chao livre nao escurecer).
 - Resultado (foto com e sem): sombra suave de contato na base da igreja, das muralhas e das casas; o chao assenta nos predios. Sem custo de desempenho relevante (1 textura).
 - Processo: a 1a montagem derrubou o Blender (vista de material com o chao de 124 mil faces); refiz por script salvo em disco, vista solida, chao mais leve. NAO testado: celular, VPS. Falta: agua, neblina por zona; paredes dos predios (precisaria UV extra por peca).
+
+### [Claude] 08/11/2026 - Agua do mar e neblina por mapa (fecha o item ceu/luz/agua da Fase 1)
+- Pedido do dono: "vamos seguir".
+- Achado: o mar estava a -5,5 m e o terreno de fora nunca desce abaixo de -4,8 m (metade da area de fora e esse "fundo" marrom): a agua ficava escondida embaixo do chao perto da ilha. Mar subiu para -4,6 m: a ilha ganha litoral a ~92 m do centro (logo depois das muralhas); os portais (~77 m, na estrada) ficam secos; quem anda ate a beira molha os pes (0,2 m).
+- `js/agua_l2.js` (novo): ShaderMaterial leve: ondas no vertex shader (a CPU deixou de mexer 2.401 vertices por quadro), cor funda/rasa, reflexo do ceu pela cor da neblina (acompanha o dia/noite) com Fresnel, brilho do sol, ondulacao esticada no sentido do vento (sem circulos), espuma so na faixa da beira (altura do chao calculada em GLSL com a mesma conta do jogo), neblina aplicada. Escurece a noite.
+- Neblina por mapa (`arena.html`, MAPAS_ABERTOS.nevoa): Pantano 0,62 (fechado), Fortaleza 1,0, Curuma 1,15 (mais limpa).
+- Testado (local, fotos na beira sul de dia e de noite): litoral, espuma e ondulacao ok; 1a versao tinha espuma no mar todo (fundo so 0,2 m abaixo) e brilhava a noite, corrigido. NAO testado: celular, VPS, os 3 mapas abertos com a neblina nova.

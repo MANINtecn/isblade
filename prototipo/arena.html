@@ -8984,9 +8984,9 @@ function torreStart(){
 }
 /* >>> CLAUDE [mapas-abertos] 02/11/2026: ?mapa=fortress|blazing_swamp|curuma (portais da cidade). Exploracao livre no mapa (mesmo motor de chao da torre), sem chefe nem mobs por enquanto; portal branco leva de volta a cidade. */
 var MAPAS_ABERTOS={
-  fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd},
-  blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060},
-  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CURUMA',ceu:0x9fbdd3}
+  fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd,nevoa:1.0},
+  blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,nevoa:.62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060},
+  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CURUMA',ceu:0x9fbdd3,nevoa:1.15}
 };
 window.__dbgA={scene:scene,camera:camera};/* debug */
 function mapaAbertoStart(){
@@ -8998,6 +8998,7 @@ function mapaAbertoStart(){
   Torre.ativar(S,1);
   /* luz e ceu de dia (o arena e noturno); cada mapa com seu clima */
   var cor=C.ceu||0x9ab8d0;scene.background=new THREE.Color(cor);if(scene.fog)scene.fog.color.set(cor);
+  if(scene.fog&&C.nevoa){scene.fog.near=QUAL.nevoa[0]*C.nevoa;scene.fog.far=Math.min(camera.far*.98,QUAL.nevoa[1]*C.nevoa);}/* [nevoa] por zona: pantano fechado, curuma mais limpa */
   var _hl=new THREE.HemisphereLight(C.luzCeu||0xdfe8ff,C.luzChao||0x6a5f50,C.luzInt||1.7);scene.add(_hl);
   var _dl=new THREE.DirectionalLight(C.sol||0xfff2dd,C.solInt||1.6);_dl.position.set(120,200,80);scene.add(_dl);
   try{CeuL2.init(THREE,scene,camera);CeuL2.automatico(scene,{corDia:cor,luzes:[{luz:_hl,int:C.luzInt||1.7},{luz:_dl,int:C.solInt||1.6,sol:1},{luz:key,int:key.intensity}]});}catch(e){console.warn('ceu',e);}/* [ceu] dia/noite (mesma hora da cidade) */
