@@ -780,9 +780,10 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=2"></script>
 <script src="js/perf_log.js?v=2"></script>
+<script src="js/mira_toque.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
-<script src="js/l2_teleport.js"></script>
-<script src="js/l2_npcs.js"></script>
+<script src="js/l2_teleport.js?v=2"></script>
+<script src="js/l2_npcs.js?v=2"></script>
 <script src="js/horizonte.js?v=1"></script>
 </head>
 
@@ -1317,7 +1318,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=23';
+import { Net } from './js/net.js?v=24';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -8888,8 +8889,8 @@ function pontoMira(sk){
     if(NAV.mode==='dn'&&S.aimT&&!S.dead&&BOSS_ON){ax=S.ex;az=S.ez;}
     else if(NAV.mode==='dn'&&S.aimM&&!S.aimM.dead){ax=S.aimM.x;az=S.aimM.z;}
     else if(MOUSE.g){ax=MOUSE.g.x;az=MOUSE.g.z;}
-  }else{/* [toque] livre: na direcao do analogico, 7 m */
-    ax=S.px+Math.sin(S.face)*7;az=S.pz+Math.cos(S.face)*7;
+  }else{/* [toque] alvo da mira assistida (MiraToque) ou 7 m na direcao do analogico */
+    var sa=S.softAlvo;if(sa&&performance.now()-sa.t<400){ax=sa.x;az=sa.z;}else{ax=S.px+Math.sin(S.face)*7;az=S.pz+Math.cos(S.face)*7;}
   }
   if(ax===null){ax=S.px+Math.sin(S.face)*5.7;az=S.pz+Math.cos(S.face)*5.7;}
   var raw=Math.hypot(ax-S.px,az-S.pz),ang=raw>.05?Math.atan2(ax-S.px,az-S.pz):S.face,d=clamp(raw,mn,mx);
@@ -9757,10 +9758,22 @@ var ORBIT=/[?&]orbit=1/.test(location.search);/* teste visual: camera orbita o p
 
 
 
+function getMobileSoftLockAngle(){/* [toque] mira assistida (js/mira_toque.js): espantalho, mobs e o adversario do duelo */
+  var c=[],i;
+  if(typeof dummyGroup!=='undefined'&&dummyGroup)c.push({x:dummyGroup.position.x,z:dummyGroup.position.z});
+  for(i=0;i<MOBS.length;i++){var m=MOBS[i];if(m&&!m.dead)c.push({x:m.x,z:m.z});}
+  try{if(Net.on&&Net.duelo){Net.alvos().forEach(function(o){if(!o.morto&&o.nome===Net.duelo.nome)c.push({x:o.x,z:o.z});});}}catch(_){}
+  return MiraToque.angulo(S,moveVec(),c);
+}
+
 function aimAngle(){
   if(ORBIT)return Math.PI;
-  /* [toque] celular: o golpe e a skill vao para onde o ANALOGICO aponta (ou para a ultima direcao andada); sem travar no inimigo mais proximo */
-  if(MOUSE.touch){var mv=moveVec();if(mv.m>.15)return Math.atan2(mv.x,mv.z);return (S.mdir!==undefined)?S.mdir:S.face;}
+  /* [toque] celular: com Soft-Lock inteligente (busca automaticamente alvo proximo em cone frontal) */
+  if(MOUSE.touch){
+    var softAng = getMobileSoftLockAngle();
+    if(softAng !== null) return softAng;
+    var mv=moveVec();if(mv.m>.15)return Math.atan2(mv.x,mv.z);return (S.mdir!==undefined)?S.mdir:S.face;
+  }
 
 
 

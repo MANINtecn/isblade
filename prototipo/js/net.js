@@ -400,7 +400,7 @@ export const Net = (function(){
   };
   /* ---- dungeon em grupo ---- */
   N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
-  N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto }); }); return l; };
+  N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto, nome: e.nome }); }); return l; };
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
   N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && N.grupo.m.length > 1); };      /* lider de um grupo: dono da dungeon mesmo que os outros ainda estejam entrando */
   N.soyConvidado = function(){ return !!(N.on && N.mapa === 'masmorra' && N.grupo && !N.soyLider() && remotos.size > 0); };

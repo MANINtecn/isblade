@@ -467,6 +467,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=3"></script>
 <script src="js/perf_log.js?v=2"></script>
+<script src="js/mira_toque.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
@@ -696,7 +697,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=24';
+import { Net } from './js/net.js?v=25';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4014,8 +4015,8 @@ function pontoMira(sk){
     if(NAV.mode==='dn'&&S.aimT&&!S.dead&&BOSS_ON){ax=S.ex;az=S.ez;}
     else if(NAV.mode==='dn'&&S.aimM&&!S.aimM.dead){ax=S.aimM.x;az=S.aimM.z;}
     else if(MOUSE.g){ax=MOUSE.g.x;az=MOUSE.g.z;}
-  }else{/* [toque] livre: na direcao do analogico, 7 m */
-    ax=S.px+Math.sin(S.face)*7;az=S.pz+Math.cos(S.face)*7;
+  }else{/* [toque] alvo da mira assistida (MiraToque) ou 7 m na direcao do analogico */
+    var sa=S.softAlvo;if(sa&&performance.now()-sa.t<400){ax=sa.x;az=sa.z;}else{ax=S.px+Math.sin(S.face)*7;az=S.pz+Math.cos(S.face)*7;}
   }
   if(ax===null){ax=S.px+Math.sin(S.face)*5.7;az=S.pz+Math.cos(S.face)*5.7;}
   var raw=Math.hypot(ax-S.px,az-S.pz),ang=raw>.05?Math.atan2(ax-S.px,az-S.pz):S.face,d=clamp(raw,mn,mx);
@@ -4408,36 +4409,12 @@ function groundAt(cx,cy){
 
 var ORBIT=/[?&]orbit=1/.test(location.search);/* teste visual: camera orbita o personagem (?orbit=1&camyaw=..&camdist=..) */
 
-function getMobileSoftLockAngle(){
-  var candidates = [];
-  if(BOSS_ON && !S.dead && (typeof BOSS_ALIVE === 'undefined' || BOSS_ALIVE)){
-    candidates.push({ x: S.ex, z: S.ez });
-  }
-  if(typeof DG !== 'undefined' && DG.mobs && DG.mobs.length){
-    for(var m = 0; m < DG.mobs.length; m++){
-      var mob = DG.mobs[m];
-      if(mob && !mob.dead && !mob.dying) candidates.push({ x: mob.x, z: mob.z });
-    }
-  }
-  if(typeof miniBoss !== 'undefined' && miniBoss && !miniBoss.dead){
-    candidates.push({ x: miniBoss.x, z: miniBoss.z });
-  }
-  if(window.Net && Net.outros){
-    Net.outros.forEach(function(o){ if(o && !o.morto) candidates.push({ x: o.x, z: o.z }); });
-  }
-  var bestAng = null, bestScore = 999;
-  for(var i = 0; i < candidates.length; i++){
-    var c = candidates[i];
-    var dx = c.x - S.px, dz = c.z - S.pz, d = Math.hypot(dx, dz);
-    if(d > 14.0) continue;
-    var ang = Math.atan2(dx, dz);
-    var diff = Math.abs(angDiff(S.face, ang));
-    if(d < 4.5 || diff < 1.35){
-      var score = d + diff * 2.5;
-      if(score < bestScore){ bestScore = score; bestAng = ang; }
-    }
-  }
-  return bestAng;
+function getMobileSoftLockAngle(){/* [toque] mira assistida (js/mira_toque.js): chefe, mobs e, no PvP, jogadores fora do seu grupo */
+  var c=[],i;
+  if(BOSS_ON&&!S.dead)c.push({x:S.ex,z:S.ez});
+  for(i=0;i<MOBS.length;i++){var m=MOBS[i];if(m&&!m.dead)c.push({x:m.x,z:m.z});}
+  try{if(Net.on&&Net.status().mapa==='pvp'){var gm=(Net.grupo&&Net.grupo.m)||[];Net.alvos().forEach(function(o){if(!o.morto&&!gm.some(function(g){return g.id===o.id;}))c.push({x:o.x,z:o.z});});}}catch(_){}
+  return MiraToque.angulo(S,moveVec(),c);
 }
 
 function aimAngle(){

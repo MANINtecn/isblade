@@ -2554,3 +2554,21 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Pedido do dono: novo roadmap com a imersao do L2, verificando tudo o que falta, numa ordem para comecar a divulgacao do beta demo; skills devem ser bem pensadas para ficarem familiares e divertidas (as skills do L2 nao abrem no Blender).
 - Verificado no codigo: sem musica nenhuma; chat existe so no servidor (sem campo no jogo); NPCs do Gemini sao enfeite (encantamento so no localStorage); sem adena; itens no navegador; mapas novos sem mobs; mago 1/6 skills; guerreiro com as skills antigas; tutorial nao existe. Recursos achados: cliente Interlude com 250 musicas .ogg, sons, Icon.utx, modelos; aCis com a ficha XML de todas as skills (referencia de desenho).
 - `ROADMAP_IS_BLADE.md` reescrito (versao 22/10 fica no git, cb5c680): estado atual, recursos, 7 pilares da imersao L2, fases 0-6 com tamanho e responsavel, guia de desenho de skills (molde de 6 + linhas do L2 por classe), criterios para abrir o beta e ordem semana a semana (beta na semana 9).
+
+
+### [Gemini] 08/11/2026 - Correção de Escala Métrica dos NPCs de Talking Island
+- **Problema**: Os modelos 3D dos NPCs (Clarissa, Altran e Mammon) estavam gigantescos no jogo (~45 metros de altura).
+- **Causa**: Os arquivos brutos `.glb` do Lineage 2 possuem altura nativa de ~35 a 44 unidades. No Three.js do IS BLADE, a unidade do mundo é o **metro** (1.0 = 1 metro). Os modelos foram instanciados com escala `1.05..1.15` em vez da escala métrica proporcional calculada em relação à altura em metros (`targetH / rawHeight ≈ 0.046..0.051`).
+- **Correção em `prototipo/js/l2_npcs.js`**:
+  - **Gatekeeper Clarissa (`elf_f.glb`)**: `targetH = 2.15m`, escala corrigida para `2.15 / 43.56 ≈ 0.0494`. Altura da nameplate ajustada para `Y = 2.45m`.
+  - **Ferreiro Altran (`dwarf_m.glb`)**: `targetH = 1.60m`, escala corrigida para `1.60 / 34.48 ≈ 0.0464` (estatura baixa de anão). Bigorna, cepo e forja reescalados e posicionados na altura ergonômica de trabalho de 72 cm. Nameplate ajustada para `Y = 1.95m`.
+  - **Mammon (`magic_m.glb`)**: `targetH = 2.15m`, escala corrigida para `2.15 / 42.14 ≈ 0.0510`. Baús e tapete cerimonial perfeitamente proporcionais. Nameplate em `Y = 2.45m`.
+  - Adicionado `castShadow` e `receiveShadow` nos três NPCs e adereços.
+  - Nameplates das cabeças reduzidas para escala proporcional agradável (`2.0 x 0.5`).
+- **Cache-busting**: `cidade.html` atualizado para carregar `js/l2_npcs.js?v=2`.
+
+### [Claude] 08/11/2026 - Decisoes do dono no roadmap + mira assistida do celular refeita
+- Dono: ordem dos mapas aprovada (Curuma 1-15, Fortaleza 15-30, Pantano 30-45, Baium 45+); pediu cuidado com a AGRESSAO dos mobs: nas DGs todos sao agressivos com agro natural, chegar perto junta todos e quase ninguem sobrevive -> regra estilo L2 anotada no roadmap (maioria passiva, agressivos com visao curta, ajuda social so do grupinho, revisar as DGs). Soft-lock: "voce assume".
+- Achado: o soft-lock do Gemini JA ESTAVA no ar na arena desde o meu commit eea94be (02/11): meu script regravou o arena.html com a copia de trabalho que tinha o codigo dele (o diario dizia que estava fora). E ele so travava no chefe: procurava `DG.mobs` e `Net.outros`, que nao existem.
+- Decisao: fica, reescrito. `js/mira_toque.js` (novo): alcance 14 m; analogico parado = alvo mais facil na frente (cone ~77 graus) ou colado (4,5 m); analogico empurrado = so ajuda num cone de ~35 graus em volta do dedo, senao vai para onde o analogico aponta (respeita a regra de 31/10). Guarda `S.softAlvo` e o `pontoMira` no toque mira EM CIMA do alvo (ataque do mago, Arremesso). Arena: chefe, mobs (`MOBS`) e, no PvP, jogadores fora do grupo. Cidade: espantalho, mobs e o adversario do duelo (`Net.alvos` agora traz o nome; net.js v+1).
+- Testado: 2 jogadores no PvP local com toque simulado no mago: mirou no outro (angulo 0,8 rad, ponto do cristal = posicao dele) e tirou vida (100 -> 84); teste da funcao: analogico oposto nao trava, perto trava; cidade carrega sem erro. NAO testado: celular real, mobs da DG e o chefe com o toque, duelo na cidade.

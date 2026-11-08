@@ -60,7 +60,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [ ] **Chat** com campo de texto: geral (canal), grupo e sistema; filtro de spam; no celular abre por botão. O servidor já repassa. **P** (Claude)
 - [ ] **Botão "Reportar problema"** nas Config: copia o log de desempenho + uma descrição para o dono mandar. **P** (Claude)
 - [ ] **Inventário e adena com autoridade no servidor** (o cliente só pede; o servidor dá, guarda e confere) — obrigatório antes de qualquer economia. **G** (Claude)
-- [ ] Decidir o **soft-lock do celular** do Gemini (entra ou sai) e limpar a cópia de trabalho. **P** (Dono decide)
+- [x] **Mira assistida no celular** (soft-lock): dono deixou a decisão comigo; ficou, reescrita em `js/mira_toque.js` — trava em chefe, mobs e jogadores hostis; com o analógico empurrado só ajuda perto da direção dele; skills de ponto mirado caem em cima do alvo. (Claude, 08/11)
 - [ ] Trocar a senha da VPS (apareceu em imagem) e deixar o repositório privado. **P** (Dono)
 
 ### FASE 1 — Imersão na cidade (Talking Island vira o coração do jogo, ~2 semanas)
@@ -76,8 +76,9 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [ ] **Céu, luz e água no padrão L2:** céu com nuvens e ciclo dia/noite em todos os mapas (hoje só na cidade), luz pré-calculada na cidade (Blender), névoa por zona. **M** (Claude)
 
 ### FASE 2 — O ciclo de jogo (o que segura o jogador, ~3 semanas)
-- [ ] **Ordem dos mapas por nível** (proposta, o dono confirma): Curuma 1–15 · Fortaleza 15–30 · Pântano Flamejante 30–45 · Torre do Baium DGs 20–45 e Baium 45+. **P** (Dono decide)
-- [ ] **Spots de mobs nos 3 mapas novos:** grupos por faixa de nível, reaparecimento, um chefe de campo por mapa; reaproveitar os 15+ mobs que já têm modelo. **G** (Claude; Gemini nos modelos novos)
+- [x] **Ordem dos mapas por nível** (dono aprovou em 08/11): Curuma 1–15 · Fortaleza 15–30 · Pântano Flamejante 30–45 · Torre do Baium DGs 20–45 e Baium 45+.
+- [ ] **Agressão dos mobs no estilo L2** (pedido do dono, 08/11: hoje nas DGs todos são agressivos com agro natural; chegar perto junta a sala inteira e quase nenhum personagem sobrevive): a maioria **passiva** (só ataca se apanhar); alguns **agressivos** com visão curta (~6–8 m) e marcados no nome; **ajuda social** só do mesmo grupinho e em raio pequeno; mob volta ao lugar se for puxado longe. Vale para os spots novos e para **revisar as DGs** da Torre. **M** (Claude)
+- [ ] **Spots de mobs nos 3 mapas novos:** grupos por faixa de nível, reaparecimento, um chefe de campo por mapa; reaproveitar os 15+ mobs que já têm modelo; seguir a regra de agressão acima. **G** (Claude; Gemini nos modelos novos)
 - [ ] **Adena e drops:** mob dá adena e chance de item; chefe dá item garantido; tudo pelo servidor. **M** (Claude)
 - [ ] **Graus de equipamento:** Sem grau, D e C (armas e armaduras das 3 classes, sets com bônus), vendidos no Mercador ou caídos; modelos do L2 na mão/corpo. **G** (Claude + Gemini nos modelos)
 - [ ] **Consumíveis:** poção (cura com tempo de recarga), soulshot (o som e o brilho já existem: passa a dar dano), pergaminho de volta. **M** (Claude)
