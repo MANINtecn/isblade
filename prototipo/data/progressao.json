@@ -257,6 +257,7 @@
     "fortress": {"formiga_fort": [17, 1], "olho_fort": [21, 1.1], "basilisco_fort": [25, 1.1], "ol_mahum_fort": [28, 1.2], "chefe_fort": [30, 8]},
     "pantano": {"salamandra_fogo": [32, 1], "magmagoil": [36, 1.1], "wyrm_fogo": [40, 1.1], "golem_lava": [43, 1.2], "chefe_blazing": [45, 8]}
   },
+  "morte": { "_nota": "Morte estilo L2 nos mapas abertos (servidor/progressao.js -> perde): perde perdaXp x XP do nivel atual, a partir de nivelMin; nunca desce de nivel. Na DG e no PvP nao perde. Depois volta para a cidade.", "perdaXp": 0.04, "nivelMin": 10 },
   "efeitos": {
     "_nota": "O que cada atributo faz (valor acima do inicial da classe). dano: % de dano por ponto no atributo de dano da classe (FOR ou INT); VIT: vida, defesa % e regeneracao de estamina %; AGI: velocidade de corrida (fracao, com teto).",
     "danoPct": 0.5,

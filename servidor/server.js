@@ -270,6 +270,10 @@ wss.on('connection', ws => {
     else if(m.t === 'attrreset'){                                    /* reset de pontos: sempre gratis */
       if(J.pers){ Prog.reseta(J.pers); Contas.grava(); } enviaProg(J);
     }
+    else if(m.t === 'morte'){                                       /* morte estilo L2 num mapa aberto: perde um pouco de XP (nao na DG nem no PvP) */
+      const t = agora(); if(!J.pers || c.mapa === 'pvp' || c.dg || t - (J.morteT || 0) < 8) return; J.morteT = t;
+      const v = Prog.perde(J.pers); Contas.grava(); envia(J, Object.assign({ t: 'prog', perdeu: v }, Prog.info(J.pers)));
+    }
     else if(m.t === 'xp'){                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
       const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
       const tipo = String(m.tipo || '').slice(0, 24), dif = String((c.dg && c.dg.key) || m.dif || 'normal').slice(0, 12); if(!/^[a-z0-9_]{1,24}$/.test(tipo)) return;

@@ -705,7 +705,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=31';
+import { Net } from './js/net.js?v=32';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4983,6 +4983,7 @@ function hurtPlayer(d,soft,quiet){
 }
 
 function resetDuel(){
+  if(MAPA_ABERTO){if(!S._morteEnv){S._morteEnv=1;try{Net.morte();}catch(_){}banner('VOCE MORREU','Voltando para Talking Island...','#ff4d6d');setTimeout(returnToCity,2200);}return;}/* [morte-l2] 08/11/2026: mapa aberto = perde um pouco de XP (servidor) e volta para a cidade; na DG continua recomecando a sala */
   if(DG.cleared){
     if(!DG.on) returnToCity();
     else sairDg();
@@ -7041,6 +7042,8 @@ function aplicaProg(p,ini){
   try{applyStats();}catch(_){}
   if(!ini&&p.subiu){var un=skillsNovas(antes,S.lvl);try{SFX.levelup();}catch(_){}banner('NIVEL '+S.lvl,(p.pontos?p.pontos+' pontos para distribuir (U)':'')+(un.length?'  -  nova skill: '+un.join(', '):''),'#f5c451');}
   else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');
+  if(!ini&&p.perdeu){floatText('-'+p.perdeu+' XP','#ff8a8a',18,'p');try{Chat.sistema('Você morreu e perdeu '+p.perdeu+' de XP.');}catch(_){}}/* [morte-l2] */
+  else if(!ini&&p.perdeu===0){try{Chat.sistema('Você morreu. Abaixo do nível 10 não se perde XP.');}catch(_){}}
   try{if(!ini&&p.ganhou)Chat.sistema('Você ganhou '+p.ganhou+' de XP.');if(!ini&&p.subiu)Chat.sistema('Parabéns! Você atingiu o nível '+S.lvl+'.');}catch(_){}/* [chat] */
   try{renderHud();renderMastery();}catch(_){}
   try{if(window.Status)Status.refresh();}catch(_){}

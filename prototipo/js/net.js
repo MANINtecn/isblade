@@ -418,6 +418,7 @@ export const Net = (function(){
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
   N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && N.grupo.m.length > 1); };      /* lider de um grupo: dono da dungeon mesmo que os outros ainda estejam entrando */
   N.soyConvidado = function(){ return !!(N.on && N.mapa === 'masmorra' && N.grupo && !N.soyLider() && remotos.size > 0); };
+  N.morte = function(){ if(!N.on) return false; send({ t: 'morte' }); return true; };       /* [morte-l2] morreu num mapa aberto: o servidor tira o XP */
   N.xp = function(tipo, dif){ if(!N.on) return false; send({ t: 'xp', tipo: tipo, dif: dif || 'normal' }); return true; };
   N.attr = function(v){ if(!N.on) return false; send({ t: 'attr', v: v }); return true; };               /* distribuir pontos (servidor valida) */
   N.attrReset = function(){ if(!N.on) return false; send({ t: 'attrreset' }); return true; };         /* reset de pontos, sempre gratis */               /* servidor decide o ganho */

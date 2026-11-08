@@ -43,6 +43,12 @@ function ganha(p, v){
   return subiu;
 }
 
+/* morte estilo L2 (progressao.json -> morte): perde uma fracao do XP do nivel, sem descer de nivel; devolve quanto perdeu */
+function perde(p){
+  const M = P.morte || { perdaXp: .04, nivelMin: 10 }, L = Math.max(1, p.level | 0); if(L < (M.nivelMin | 0)) return 0;
+  const v = Math.min(p.xp | 0, Math.floor(xpNeed(L) * (+M.perdaXp || 0))); p.xp = (p.xp | 0) - v; return v;
+}
+
 /* distribui pontos: gasta = {for:n,...}; valida inteiros >= 0 e dentro dos pontos livres. Retorna true/false */
 function distribui(p, gastar){
   if(!gastar || typeof gastar !== 'object') return false; let total = 0; const add = {};
@@ -56,4 +62,4 @@ const reseta = p => { p.attr = { for: 0, int: 0, agi: 0, vit: 0 }; return true; 
 /* vida maxima que o servidor aceita do cliente: base + equipamento + nivel + vitalidade */
 const pmaxMax = p => 400 + (p.level | 0) * 20 + 6 * Math.max(0, statsDe(p).vit - ((P.classes[classeDe(p)] || { inicial: {} }).inicial.vit | 0)) + 200;
 
-module.exports = { recarrega: carrega, dados: () => P, NIVEL_MAX, xpNeed, xpMob, abates, pontosTotais, pontosLivres, statsDe, classeDe, xpAbate, info, ganha, distribui, reseta, pmaxMax, ATTRS };
+module.exports = { perde, recarrega: carrega, dados: () => P, NIVEL_MAX, xpNeed, xpMob, abates, pontosTotais, pontosLivres, statsDe, classeDe, xpAbate, info, ganha, distribui, reseta, pmaxMax, ATTRS };
