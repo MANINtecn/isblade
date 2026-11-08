@@ -2587,3 +2587,13 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 08/11/2026 - Musica do L2 por lugar (Fase 1)
 - `js/musica.js` (novo) + `data/musica.json` + 13 faixas copiadas do cliente Interlude para `prototipo/assets/musica/` (19 MB; so a faixa do lugar e baixada). Escolha pelo nome do arquivo (nao deu para ler o musicinfo.dat: a chave RSA que eu tinha de memoria nao abre o Ver413 desse cliente): lobby `intro`, criacao `ct_<raca>` (troca com a raca escolhida), cidade `nt_speaking` (Talking Island), Torre/DG `s_tower`, chefe (Baium/sala do chefe, `BOSS_ON`) `bs01_a`, PvP `b01_f`, Curuma `d01_f`, Fortaleza `d02_f`, Pantano `d03_f`. Transicao de 2 s, comeca no 1o toque/tecla, pausa com a aba oculta, controle "Musica" nas Config (abaixo de SOM), respeita o Mudo.
 - Ligado em arena, cidade, selecao e criacao. Testado (Chrome local): criacao (ct_elf), cidade (nt_speaking), arena PvP (b01_f), duelo do Baium (bs01_a), Curuma (d01_f), todas baixando (206) e sem erro. NAO testado: o lobby tocando `intro` (o teste caiu na criacao porque a conta de teste nao tinha personagem local), DG mudando de torre para chefe ao entrar na sala, celular real, e se as faixas combinam (o dono ouve e decide).
+
+### [Gemini] 08/11/2026 - Conclusão da Escala Métrica dos NPCs (Ferreiro Altran, GK Clarissa e Mammon)
+- Atendimento à Ordem 1: Finalizado o ajuste de proporção e tamanho dos NPCs na cidade de Talking Island e commitado exclusivamente `prototipo/js/l2_npcs.js` (commit `60c4b25`). Lógicas de backend (loja, encantamento, teleportes) reservadas ao Claude conforme roadmap.
+- Detalhamento dos Ajustes:
+  - Modelos GLB nativos do L2 escalados para unidades métricas reais (1.0 = 1 metro): Clarissa com 2.15m (`scale = 2.15 / 43.56`), Altran com 1.60m (`scale = 1.60 / 34.48`), Mammon com 2.15m (`scale = 2.15 / 42.14`).
+  - Adereços (bigorna, cepo, braseiro, tapete cerimonial, baús) e nameplates flutuantes reescalados na mesma proporção humana (mesa da bigorna a 0.71m do solo).
+  - Habilitados `castShadow` e `receiveShadow` nas meshes dos NPCs e adereços.
+- Testado: Sintaxe e carregamento dos GLBs e animações; proporção visual conferida em relação ao player.
+- NÃO testado: Teste de colisão de câmera e performance em celular de entrada com WebGL1.
+
