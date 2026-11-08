@@ -580,6 +580,89 @@
     ]
   };
 
+  // 4. GUARDA-VOLUMES DO ARMAZÉM WILFORD
+  var WAREHOUSE_DATA = {
+    id: 'warehouse',
+    name: 'Wilford',
+    subTitle: 'Guarda-Volumes do Armazém',
+    avatar: '📦',
+    greeting: 'Saudações, honorável viajante! Bem-vindo ao Armazém de Talking Island. Sob a custódia da Guilda dos Anões de Ferro, nenhum ladrão ou monstro tocará nos seus tesouros mais preciosos.',
+    options: [
+      {
+        icon: '📦',
+        label: 'Depositar / Retirar Equipamentos',
+        tag: 'Armazém',
+        action: function(subBox){
+          subBox.style.display = 'block';
+          subBox.innerHTML = `
+            <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:8px;">COFRE CENTRAL DE TALKING ISLAND</div>
+            <div style="font-size:11px;color:#cfe0ff;line-height:1.6;">
+              Seus baús pessoais e armazenamento de materiais raros estão sendo catalogados. A sincronização de armazém com o servidor central está sendo integrada na Fase 1!
+            </div>
+          `;
+        }
+      },
+      {
+        icon: '📜',
+        label: 'Regulamento do Armazém da Guilda',
+        tag: 'Informação',
+        action: function(subBox){
+          subBox.style.display = 'block';
+          subBox.innerHTML = `
+            <div style="font-size:12px;color:#c9d8eb;line-height:1.6;">
+              "Todo aventureiro possui direito a um cofre blindado. Recomendamos guardar receitas de forja, minérios de ferro e conjuntos de armadura extras para evitar perda em expedições de risco em alto mar!"
+            </div>
+          `;
+        }
+      }
+    ]
+  };
+
+  // 5. SEGUNDO COMERCIANTE (MERCADOR DE EQUIPAMENTOS GALLADUCCI)
+  var TRADER_DATA = {
+    id: 'trader_galladucci',
+    name: 'Galladucci',
+    subTitle: 'Comerciante de Equipamentos',
+    avatar: '🪙',
+    greeting: 'Bem-vindo ao empório de armas e armaduras de Talking Island! Se você deseja desafiar os monstros de Curuma ou da Fortaleza, precisará de lâminas bem afiadas e proteção reforçada.',
+    options: [
+      {
+        icon: '⚔️',
+        label: 'Consultar Armas e Escudos (No-Grade, D e C)',
+        tag: 'Catálogo',
+        action: function(subBox){
+          subBox.style.display = 'block';
+          subBox.innerHTML = `
+            <div style="font-size:12px;font-weight:700;color:#4ade80;margin-bottom:8px;">CATÁLOGO DE EQUIPAMENTOS</div>
+            <div style="font-size:11px;color:#cfe0ff;line-height:1.6;">
+              🛡️ <b>Guardião</b>: Gladius, Bastard Sword, Samurai Longsword e Escudos.<br>
+              🪄 <b>Mago</b>: Cedar Staff, Ghost Staff e Ghoul's Staff.<br>
+              ⚔️ <b>Guerreiro</b>: Two-Handed Sword, Claymore e Berserker Blade.<br>
+              🧥 <b>Armaduras</b>: Sets Leather, Brigandine e Full Plate.
+            </div>
+            <div style="font-size:10px;color:#f5c451;margin-top:8px;">
+              (A compra e venda via Adenas do servidor está sendo vinculada na Fase 1!)
+            </div>
+          `;
+        }
+      },
+      {
+        icon: '📜',
+        label: 'Sobre as Rotas Comerciais do Mar de Aden',
+        tag: 'História',
+        action: function(subBox){
+          subBox.style.display = 'block';
+          subBox.innerHTML = `
+            <div style="font-size:12px;color:#c9d8eb;line-height:1.6;">
+              "Recebemos carregamentos semanais vindos do porto de Giran e Gludio. Nossos ferreiros parceiros inspecionam cada guarda e fio de corte antes de colocarmos à venda para os jovens guerreiros da ilha."
+            </div>
+          `;
+        }
+      }
+    ]
+  };
+
+
   // =========================================================================
   // MONTAGEM 3D DOS NPCS NO CENÁRIO DA CIDADE
   // =========================================================================
@@ -747,6 +830,81 @@
     return group;
   }
 
+  function createWarehouseDecor(){
+    var group = new THREE.Group();
+
+    // Balcão de Carvalho do Armazém
+    var woodMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.75 });
+    var counter = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.72, 0.42), woodMat);
+    counter.position.set(0, 0.36, 0.52);
+    group.add(counter);
+
+    // Tampo superior de madeira nobre polida
+    var topMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.45 });
+    var topCounter = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.50), topMat);
+    topCounter.position.set(0, 0.74, 0.52);
+    group.add(topCounter);
+
+    // Livro de Registros / Pergaminho no balcão
+    var bookMat = new THREE.MeshStandardMaterial({ color: 0xfaebd7, roughness: 0.9 });
+    var book = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.04, 0.24), bookMat);
+    book.position.set(-0.35, 0.78, 0.52);
+    book.rotation.y = 0.2;
+    group.add(book);
+
+    // Caixotes de Carga ao lado
+    var crateMat = new THREE.MeshStandardMaterial({ color: 0x4a321e, roughness: 0.85 });
+    var crate1 = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.48, 0.52), crateMat);
+    crate1.position.set(1.05, 0.24, 0.25);
+    group.add(crate1);
+
+    var crate2 = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.38, 0.42), crateMat);
+    crate2.position.set(1.05, 0.67, 0.25);
+    crate2.rotation.y = 0.35;
+    group.add(crate2);
+
+    // Lanterna de latão âmbar suave sobre a caixa
+    var lanternMat = new THREE.MeshStandardMaterial({ color: 0x854d0e, metalness: 0.8, roughness: 0.3 });
+    var lantern = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.12), lanternMat);
+    lantern.position.set(1.05, 0.95, 0.25);
+    group.add(lantern);
+
+    var lampLight = new THREE.PointLight(0xffaa33, 1.8, 4.0);
+    lampLight.position.set(1.05, 1.05, 0.25);
+    group.add(lampLight);
+
+    return group;
+  }
+
+  function createTraderDecor(){
+    var group = new THREE.Group();
+
+    // Mostruário de Madeira Comercial
+    var standMat = new THREE.MeshStandardMaterial({ color: 0x422006, roughness: 0.7 });
+    var stand = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.75, 0.38), standMat);
+    stand.position.set(0, 0.375, 0.50);
+    group.add(stand);
+
+    // Tecido nobre de veludo verde do expositor
+    var clothMat = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.9 });
+    var cloth = new THREE.Mesh(new THREE.BoxGeometry(1.46, 0.05, 0.44), clothMat);
+    cloth.position.set(0, 0.77, 0.50);
+    group.add(cloth);
+
+    // Expositor lateral de armas (cavalete com espada)
+    var rackMat = new THREE.MeshStandardMaterial({ color: 0x27272a, metalness: 0.6, roughness: 0.4 });
+    var rack = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.88, 0.55), rackMat);
+    rack.position.set(-0.95, 0.44, 0.20);
+    group.add(rack);
+
+    // Lanterna dourada do mercador
+    var light = new THREE.PointLight(0xf5c451, 1.8, 3.8);
+    light.position.set(0, 0.95, 0.50);
+    group.add(light);
+
+    return group;
+  }
+
   // =========================================================================
   // CARREGAMENTO DOS MODELOS E ANIMAÇÕES
   // =========================================================================
@@ -881,6 +1039,46 @@
         nameColor: '#f5c451',
         decor: createMammonDecor(),
         fallbackColor: 0x6611aa
+      });
+
+      // 4. Guarda-Volumes do Armazém Wilford (Na ala oeste: x = -13.5, z = 7.0)
+      // Raw dwarf_f.glb = 35.48 de altura -> escala 1.55 / 35.48 ≈ 0.0437 (altura real de 1.55 metros para anã)
+      loadNpc(scene, gltfLoader, {
+        data: WAREHOUSE_DATA,
+        modelPath: 'assets/personagens/dwarf_f.glb',
+        x: -13.5,
+        y: 0.0,
+        z: 7.0,
+        rotY: 0.85,
+        scale: 1.55 / 35.48,
+        targetH: 1.55,
+        nameY: 1.90,
+        nameScaleX: 2.3,
+        nameScaleY: 0.55,
+        subColor: '#38bdf8',
+        nameColor: '#f5c451',
+        decor: createWarehouseDecor(),
+        fallbackColor: 0x2563eb
+      });
+
+      // 5. Comerciante de Equipamentos Galladucci (Na praça comercial leste: x = 13.5, z = 5.5)
+      // Raw elf_m.glb = 45.92 de altura -> escala 2.10 / 45.92 ≈ 0.0457 (altura real de 2.10 metros)
+      loadNpc(scene, gltfLoader, {
+        data: TRADER_DATA,
+        modelPath: 'assets/personagens/elf_m.glb',
+        x: 13.5,
+        y: 0.0,
+        z: 5.5,
+        rotY: -1.35,
+        scale: 2.10 / 45.92,
+        targetH: 2.10,
+        nameY: 2.40,
+        nameScaleX: 2.5,
+        nameScaleY: 0.55,
+        subColor: '#4ade80',
+        nameColor: '#f5c451',
+        decor: createTraderDecor(),
+        fallbackColor: 0x16a34a
       });
     },
 
