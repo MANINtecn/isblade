@@ -471,8 +471,9 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/chat.js?v=2"></script>
 <script src="js/musica.js?v=1"></script>
 <script src="js/alvo_l2.js?v=1"></script>
-<script src="js/loja.js?v=3"></script>
+<script src="js/loja.js?v=4"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
+<script src="js/sons_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
@@ -6569,8 +6570,8 @@ function invDoServidor(m){
   INV={items:m.inv.items,equip:m.inv.equip||{}};ADENA=m.inv.adena|0;CONSUM=m.inv.consum||{};INV_SRV=true;
   var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&b.weapon!==WPN)setWeapon(b.weapon);
   try{Brilho.aplica('eu',function(){return vrm;},w?(w.en|0):0);}catch(_){}/* [ferreiro] brilho da arma a partir de +4 */
-  applyStats();renderInv();if(m.erro){gestMsg(m.erro);try{Loja.aviso(m.erro);}catch(_){}}
-  if(m.aviso){try{Chat.sistema(m.aviso);Loja.aviso(m.aviso);}catch(_){}}
+  applyStats();renderInv();if(m.erro){som(/insuficiente|taxa|nao tem essa adena/i.test(m.erro)?'falta':'impossivel');gestMsg(m.erro);try{Loja.aviso(m.erro);}catch(_){}}
+  if(m.aviso){if(/comprou|vendido/.test(m.aviso))som('troca');try{Chat.sistema(m.aviso);Loja.aviso(m.aviso);}catch(_){}}
   try{Loja.atualiza();}catch(_){}
 }
 /* [loja] consumiveis e loja (js/loja.js + data/loja.json): o servidor gasta e devolve o efeito */
@@ -6578,12 +6579,13 @@ function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:
 function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead)return;Net.usar(id);}
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
-  if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');try{SFX.play('ui');}catch(_){}renderHud();}
-  if(m.volta){banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
+  if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');if(!som('pocao'))try{SFX.play('ui');}catch(_){}renderHud();}
+  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
 }
+function som(n){try{return !!(window.SomL2&&SomL2.ui(n));}catch(_){return false;}}/* [sons-l2] som de interface do L2 (js/sons_l2.js); false = usa o som antigo */
 function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario chega junto) */
-  if(m.ok){banner('ENCANTAMENTO +'+m.nivel,m.nome+' ficou mais forte.',(window.Brilho&&Brilho.cor(m.nivel))||'#7dff9a');try{SFX.play('levelup');}catch(_){}}
-  else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');try{SFX.play('hit');}catch(_){}}
+  if(m.ok){banner('ENCANTAMENTO +'+m.nivel,m.nome+' ficou mais forte.',(window.Brilho&&Brilho.cor(m.nivel))||'#7dff9a');if(!som('enc_ok'))try{SFX.play('levelup');}catch(_){}}
+  else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');if(!som('enc_falha'))try{SFX.play('hit');}catch(_){}}
 }
 function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no dano local (mobs/chefe) e marca o estalo */
   if(REMOTEFX||!INV_SRV||!window.Loja||!Loja.dados())return;var id=WPN==='staff'?'spiritshot':'soulshot',c=Loja.dados().consumiveis[id];
@@ -6593,7 +6595,7 @@ function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CON
 function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
 function dropRecebido(m){
   var R=ITM.rarities;
-  if(m.adena>0){try{Chat.sistema('Você obteve '+m.adena+' Adena.');}catch(_){}}
+  if(m.adena>0){som('moeda');try{Chat.sistema('Você obteve '+m.adena+' Adena.');}catch(_){}}
   (m.itens||[]).forEach(function(it,i){if(!baseOf(it.base)||!R[it.rar])return;setTimeout(function(){SFX.drop(it.rar);banner('DROP: '+baseOf(it.base).name.toUpperCase(),R[it.rar].name+'  -  '+statTxt(it.stats),R[it.rar].css);try{Chat.sistema('Você obteve '+baseOf(it.base).name+' ('+R[it.rar].name+').');}catch(_){}},i*1600);});
   if(m.cheia)sysMsg('Mochila cheia: descarte um item para receber loot');
 }
@@ -6633,7 +6635,7 @@ function cycleWeapon(){
 
 }
 
-function equipItem(uid){
+function equipItem(uid){som('equipar');/* [sons-l2] */
   if(INV_SRV){Net.inv('equip',uid);return;}
 
   var it=findItem(uid);if(!it)return;
@@ -6655,7 +6657,7 @@ function unequipSlot(slot){
 
 }
 
-function discardItem(uid){
+function discardItem(uid){som('lixo');/* [sons-l2] */
   if(INV_SRV){Net.inv('descartar',uid);return;}
 
   if(Object.keys(INV.equip).some(function(s){return INV.equip[s]===uid;}))return;
@@ -6710,7 +6712,7 @@ function toggleInv(force){
 
   if(invOpen&&skOpen)toggleSk(false);
 
-  SFX.play('ui');
+  if(!som(invOpen?'inv_abre':'inv_fecha'))SFX.play('ui');
 
   if(invOpen){try{document.exitPointerLock();}catch(_){}renderInv();}
 
@@ -6784,7 +6786,7 @@ function toggleSk(force){
 
   if(skOpen&&invOpen)toggleInv(false);
 
-  SFX.play('ui');
+  if(!som(skOpen?'status_abre':'status_fecha'))SFX.play('ui');
 
   if(skOpen){try{document.exitPointerLock();}catch(_){}renderSk();}
 
