@@ -1,93 +1,143 @@
-# ROADMAP IS BLADE
+# ROADMAP IS BLADE — rumo ao BETA DEMO (versão 2)
 
-Plano para avancar no jogo enquanto o TECX LABS 3D (cenario, itens, personagens) amadurece. Tudo aqui e feito DENTRO do jogo e depois recebe os assets reais quando chegarem.
-Quem fizer algo marca `[x]` e registra no `DIARIO_IS_BLADE.md` (assinando Claude ou Gemini).
-Criado em 22/10/2026 por Claude. Foco: PC, combate fluido estilo Dragon Nest.
+Escrito por Claude em 08/11/2026, depois de verificar o jogo (código, dados, servidor, assets) e ler o diário inteiro de 26/10 a 08/11.
+Substitui a versão de 22/10 (que era do tempo do jogo solo e só PC; continua no git, commit `cb5c680`).
 
-Legenda: [ ] a fazer, [~] em andamento, [x] feito, (D) depende de asset do TECX LABS 3D.
+**Objetivo:** abrir um **Beta Demo** que pareça Lineage 2 por dentro (imersão) e jogue como Dragon Nest (ação), no PC e no celular pelo navegador, com conteúdo para segurar o jogador e para render vídeo no TikTok.
 
----
-
-## Fase 1 - Configuracoes e base de interface (agora)
-- [x] Botao de Config (engrenagem) e interface de combos/gestos desligada por padrao.
-- [x] Atalhos das skills reatribuiveis (Q E R F T Z), salvos no navegador, troca automatica se repetir tecla.
-- [ ] Atalhos para as outras acoes: esquivar, bloquear, camera 1a/3a pessoa, cone, reguas.
-- [~] Config: volume feito; falta sensibilidade do mouse, FOV, mostrar/ocultar FPS e dicas.
-- [ ] Config: qualidade grafica (sombras, particulas, escala de render) para PCs fracos.
-- [ ] Salvar tudo num objeto unico de configuracao (hoje cada opcao tem sua chave no localStorage).
-
-## Fase 2 - Skills e efeitos (prioridade do dono: "falta efeito nas skills")
-- [x] Dados de combate em JSON (`prototipo/data/combate.json`) + painel F2 de ajuste so em localhost (Claude, 22/10).
-- [x] Skills por arma em arquivos separados (`data/armas/*.json`); trocar de arma troca as skills (Claude, 22/10).
-- [~] Progressao estilo Albion: MAESTRIA POR ARMA feita (XP por arma, niveis liberam skills, barra na tela). Falta: arvore de variacoes por skill (escolher versao), balancear XP/niveis, e DEFINIR: 6 ou 8 slots? (decidido: armadura NAO da skills)
-- [ ] Painel de ADMIN no servidor (futuro, com o site da ISLABS) para ajustar os valores; o F2 so existe para desenvolvimento.
-- [x] Sistema de efeitos reutilizavel: anel no chao, coluna de luz, faixa de luz, flash de tela (Claude, 22/10).
-- [x] SUÍTE DOS 3 MOTORES DE VFX INTEGRADA (Gemini, 23/10): `lib/three.quarks.min.js`, `lib/effekseer.min.js` (+ wasm) e Procedural Three.js, testados em `prototipo/teste_vfx_engines.html`. Regra combinada para Claude e Gemini:
-  * Motor 1 (`three.quarks`): trilhas de armas, auras contínuas, efeito no set completo (MU Online +11/+15), faíscas turbulentas.
-  * Motor 2 (`Effekseer`): magias e habilidades complexas anime/MMO carregadas de `.efkefc`.
-  * Motor 3 (`Procedural Three.js`): relâmpagos contínuos em fitas 3D cruzadas, círculos rúnicos de canvas, decalques de crateras no solo e física de detritos 3D.
-- [x] Som de Batalha e Soulshot autênticos do Lineage 2 extraídos de pacotes .uax e integrados no SFX (Gemini, 23/10).
-- [x] Som de dano ("Urh! Urh!"), morte e level-up autênticos do MU Online integrados no SFX (Gemini, 23/10).
-- [x] Variantes de skill por slot e refatoração completa do Guardião (Espada & Escudo 1HS) no estilo Cabal Online / Dragon Nest: Investida 8.5m, Corte Cruzado em X, Demolidor de Escudo (Shield Break com fissura e quebra de guarda), Execução Celestial em 2 tempos, Dança das Lâminas em 4 tempos coreografados e as 3 opções no slot Z (Barreira de Retribuição, Grito de Provocação e Lança Astral) — Gemini, 25/10.
-- [x] Tela de selecao de skills (tecla K): escolher a versao de cada skill, com descricao, alcance, recarga e trava por maestria (Claude, 22/10). Ícones vetoriais estilo Cabal Online (sóbrios, moldura metálica escura) integrados tanto no HUD quanto no menu K (Gemini, 25/10).
-- [ ] Melhorar efeitos gráficos das skills de Baium usando a nova suíte three.quarks + Effekseer (agendado com o dono).
-- [ ] Balancear: Tempestade no ar tira ~26% da vida (pode estar forte).
-
-## Fase 3 - Personagem: status, inventario, progressao
-- [x] Itens com 4 raridades (normal, raro, epico, lendario), equipamento por slot, status (dano, vida, defesa, regen. estamina), drops do chefe e inventario (tecla I) — Claude, 22/10. Arma equipada define as skills.
-- [ ] Itens: icones/modelos 3D (D), efeito visual por raridade, mais status (critico, velocidade), sets, venda/crafting, remover ou trocar o Rank/Nv do cacador.
-- [x] Inventario (I), equipamento por 5 slots, drops do chefe e save no navegador feitos (Claude, 22/10). Falta: empilhar, comparar item, acessorios, tela de recompensa.
-- [ ] Atributos: Forca, Agilidade, Vitalidade, Inteligencia/Foco (afetam dano, estamina, vida, recarga).
-- [ ] Tela de status (tecla C) com atributos, vida, estamina, dano, defesa.
-- [ ] Nivel e XP reais (hoje ha barra e Rank E, sem efeito), pontos para distribuir.
-- [ ] Sets de equipamento com bonus por pecas equipadas.
-- [ ] Efeito visual nos sets fechados (aura brilhante estilo MU Online quando o kit completo estiver equipado, usando three.quarks MeshSurfaceEmitter).
-
-## Fase 4 - Inimigos e arena
-- [x] Ilha de Talking (Cidade Inicial do Jogo) integrada em `prototipo/cidade.html` (Gemini, 23/10):
-  * Praça central aberta transformada na **Arena de Duelo** com o emblema/logo oficial **IS BLADE** esculpido e iluminado no piso.
-  * **Sem Obelisco** e **Sem NPCs** (espaço limpo e desobstruído para exploração, testes de combate e duelos).
-  * Arquitetura autêntica de Lineage 2 extraída com 247 modelos glTF e 263 texturas (Guilda dos Guerreiros ao norte, casas medievais a leste/oeste, cais do porto ao sul e farol na ponta rochosa).
-  * Oceano 3D dinâmico em Three.js circundando a ilha inteira, com controle de atmosfera (Dia, Pôr do Sol, Noite) e minimapa funcional.
-  * Conexão direta entre `cidade.html` e `arena.html` através de botões de teleporte rápido.
-- [x] Santuario com portal e escolha de dificuldade (Normal/Medio/Hard) para a dungeon (Claude, 22/10).
-
-- [x] Efeitos macios com bloom (texturas suaves + brilho), maos na espada longa/cajado (IK), escudo vertical, troca de arma com X (Claude, 22/10).
-- [x] Pegada real de duas mãos (Great Sword Idle) e cajado com mãos afastadas na haste + animações mágicas (Gemini, 22/10).
-- [~] Dungeon jogavel (3 salas: obstaculos, mobs e chefe) feita em 22/10 (Claude, data/dungeon.json). Falta: mais chefes e variacoes de ataque, fases do chefe (50% / 25% de vida), mais salas e tipos de mob.
-- [x] Inimigos comuns: Sombra (corpo a corpo), Brutamontes (armadura, golpe em area) e Conjurador (projetil a distancia), com barra de vida, IA, parry/bloqueio, drop (Claude, 22/10). Falta: modelos 3D proprios (D) e mais tipos.
-- [x] Modo treino (Config): alvo que nao ataca nem morre, medidor de dano/DPS/combo, sem recarga e estamina infinita (Claude, 22/10).
-- [ ] Ondas / sequencia de lutas com dificuldade crescente.
-- [~] Arena: piso, muralha e 4 mastros instalados em 22/10 (Claude). Faltam: pilar, braseiro, ceu, colisao da camera com a muralha. (D) novas pecas do TECX LABS 3D.
-- [ ] Iluminacao e ceu da arena. (D) ceu / skybox.
-
-## Fase 5 - Polimento e "game feel"
-- [ ] Camera: tremor nos impactos, leve zoom em golpes fortes, colisao da camera com cenario.
-- [ ] 1a pessoa: mostrar espada e maos. (D) espada propria.
-- [ ] Animacoes extras: pulo com golpes aereos (definir tecla), acao do botao direito do mouse.
-- [x] (feito) fluidez: andar enquanto ataca, mira independente do corpo, memoria da esquiva (Claude, 22/10).
-- [ ] Dano flutuante melhor, indicadores de ataque do chefe (telegrafo no chao).
-- [ ] Limpar logs de diagnostico (`DBG`, `JSERR`, `JSREJ`, `FRAMEERR`, `?dbg=1`).
-- [ ] Colocar a pasta do jogo em git.
-
-## Fase 6 - Encaixe dos assets do TECX LABS 3D (quando chegarem)
-- [ ] Cenario: carregar `.glb` em `assets\cenario\`, ajustar escala, colisao e iluminacao.
-- [ ] Armas: prender na mao da Talibrac (`assets\armas\`), uma por tipo, trocar conforme o equipamento.
-- [ ] Itens e sets: modelos 3D/icones substituindo os provisorios.
-- [x] Novos personagens e sets do Lineage 2 integrados: Human Fighter (Base e Set Imperial Crusader S) com combate Dragon Nest 100% ativo e corrida/idle nativos do L2 (Gemini, 24/10).
-- [x] Tela de Criação e Seleção 3D de Personagens (`criacao.html`): pedestal com runas, iluminação nobre, partículas, áudio de skills do L2, seleção de armadura/arma/destino e persistência de nome (Gemini, 24/10).
-- [ ] Regras de entrega do `.glb`: metros, Y para cima, frente +Z, nos nomeados, normais exportadas, menos de ~30 mil triangulos por peca.
-
-## Fase 7 - Mais tarde
-- [ ] Celular/tablet: joystick, botoes de esquivar/bloquear, skills com toque, mira.
-- [ ] Interface de combos/gestos (hoje em Config, desligada e em espera).
-- [ ] Multiplayer / servidor (o projeto se chama IS "ONLINE" na origem; so depois do single player estavel).
-- [ ] Teste de gerador de mundos pago (US$ 20) com criterios: estilizado, menos de 200 mil triangulos, combina com os personagens.
+**Como usar:** seguir as fases NA ORDEM (cada uma deixa o jogo melhor para mostrar). Quem fizer marca `[x]` e registra no `DIARIO_IS_BLADE.md`. Skill/sistema só está "pronto" quando funciona no jogo inteiro (arena e cidade), no PC e no celular (regra `skill-pronta`).
+Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (horas) · **M** médio (1 a 3 dias) · **G** grande (semana) · quem: (Claude) (Gemini) (Dono).
 
 ---
 
-## Ordem sugerida (proximos passos)
-1. Efeitos das skills (Fase 2): maior impacto na sensacao de jogo.
-2. Atalhos das demais acoes e opcoes de Config (Fase 1).
-3. Status + inventario basicos com itens provisorios (Fase 3).
-4. Modo treino (Fase 4), para testar os efeitos e o balanceamento.
+## 1. Onde estamos (verificado em 08/11)
+
+**Já funciona:**
+- Jogo no ar (Vercel) + servidor Node na VPS com HTTPS (`play.isblade.tecx.pro`), religando sozinho se cair (vigia no IS_Sync, tarefas sem limite de 72 h — 08/11).
+- Contas e personagens no servidor; criação de personagem (6 raças × M/F) e lobby limpos no PC e no celular.
+- Classes obrigatórias: Guardião (escudo), Mago (cajado), Guerreiro (espada 2 mãos); Clérigo previsto. Nível até 400 no servidor, XP por abate, 2 pontos/nível em FOR/INT/AGI/VIT, tela de Status (U), skills por nível (1/5/10/20/25/30).
+- Multiplayer: canais, PvP livre na casa do Baium, party com vida no canto, DG em grupo (líder puxa), duelo, efeitos dos outros jogadores em todo lugar.
+- Mapas: cidade (Talking Island) com 4 portais e o horizonte dos mapas; Torre do Baium (DG normal/médio/hard + Baium + PvP); Fortaleza, Pântano Flamejante e Curuma jogáveis (só o terreno).
+- Combate: CC estilo Dragon Nest (`cc.js`), guarda, esquiva, pulo, corrida; Guardião com 6 skills prontas; Mago com Shuriken de Vento + ataque padrão de cristais; 12 tipos de mob com modelo e som do L2.
+- Celular: botões em leque com editor de layout, giro forçado, qualidade gráfica automática, log de desempenho (Config > LOG DE DESEMPENHO).
+
+**O que a verificação mostrou que falta (com a prova):**
+- **Silêncio:** não existe música nenhuma no jogo (busca por música/BGM nos HTML e JS = 0). Só efeitos sonoros.
+- **Chat:** o servidor já aceita e repassa chat (`server.js`, mensagem `chat`), mas não há campo para digitar no jogo.
+- **Cidade sem função:** os 3 NPCs (Gatekeeper, Ferreiro, Mammon em `js/l2_npcs.js`) são de enfeite: o encantamento +1/+16 fica só no navegador (`localStorage isblade_weapon_enchant`) e não muda o dano; não há loja, poção nem soulshot.
+- **Sem dinheiro:** não existe adena no jogo (só aparece em texto dos NPCs). Itens: 7 bases e 4 raridades (`data/itens.json`), guardados no navegador e sincronizados sem conferência (dá para forjar pelo F12 — auditoria do Gemini 01/11).
+- **Mapas vazios:** Fortaleza, Pântano e Curuma não têm mobs, DG nem baú; as DGs da Torre vão só até mobs de nível ~40.
+- **Classes incompletas:** Mago com 1 de 6 skills (as outras 5 marcadas `pronta:false`); Guerreiro com as 6 skills antigas (clipes genéricos, sem ícone próprio, sem clipe por raça); Clérigo não existe.
+- **Entrada fraca:** o tutorial/expedição até o nível 20 foi decidido em 02/11 mas não existe; personagem novo nasce no nível 1 sem guia.
+- **Gráfico no celular:** sem medida real ainda (o log foi colocado hoje); `assets/maps` tem 572 MB de origem.
+- **Pendências antigas do diário:** colisões da cidade não seguem as casas movidas; soft-lock do celular (Gemini) está na cópia de trabalho sem commit, esperando decisão.
+
+## 2. Recursos que temos e ainda não usamos
+
+- **Cliente Interlude** (`L2 IKARUS INTERCROW\L2 IKARUS PVP 300x\Cliente Interlud 300x`): **250 músicas `.ogg` prontas** (`music\`), pacotes de som (`sounds\`), interface e ícones (`systextures\Icon.utx`), modelos de NPC/mob e animações (`animations\`), malhas de efeito (`staticmeshes\`).
+- **aCis** (`aCis 384 Dev V4\gameserver\data\xml\skills`): a ficha de TODAS as skills do L2 (nome, nível, alcance, recarga, efeito). Serve de base para desenhar as nossas com nomes e sensação familiares.
+- **CABAL** e **MU_ONLINE** na mesma pasta: referência de ícone (Cabal) e sons/HUD (MU).
+- **Sobre as skills do L2 no Blender:** o que não abre é o **emissor de partículas** (a lógica do efeito). As **malhas e texturas** dos efeitos abrem — foi assim que a Shuriken de Vento usou `windblowin03` e `fx_m_t0001`. Receita para todas as classes: **clipe nativo da raça + malhas/texturas do efeito do L2 + som do L2 + comportamento refeito no three.js** (formas angulares, sem esfera/anel/disco).
+
+## 3. Pilares da imersão L2 (o que faz o jogador sentir "isso é L2")
+
+1. **Som:** música por lugar (cidade, campo, dungeon, chefe), sons de interface do L2, passos e ambiente.
+2. **Cidade viva:** NPCs com função de verdade (teleporte com custo, loja, ferreiro, armazém), mensagens de sistema no estilo L2 ("Você ganhou 120 de XP", "Adquiriu 35 Adena"), janela do alvo com vida.
+3. **Campo com spots:** cada mapa com faixas de nível, mobs em grupos que reaparecem, outros jogadores farmando ao lado, chefes de campo.
+4. **Ciclo de equipamento:** adena, drops, graus (Sem grau → D → C → B), soulshot e poção, encantamento com risco de quebrar.
+5. **Morte com peso:** perde um pouco de XP e volta para a cidade.
+6. **Social:** chat, party (feito), clã com sigla sobre o nome, PvP com nome roxo/vermelho (flag/karma).
+7. **Ação Dragon Nest em cima disso:** combate rápido e na mira, CC de 1,5 a 2 s, skills com identidade Cabal.
+
+---
+
+## 4. Fases, em ordem
+
+### FASE 0 — Base firme para mostrar (agora, ~1 semana)
+- [x] VPS religa sozinha se cair (vigia + sem limite de 72 h) (Claude, 08/11)
+- [x] Log de desempenho no jogo (Claude, 08/11)
+- [ ] **Medir no celular e fazer a 1ª rodada de gráfico/desempenho** com o log que o dono trouxer (comprimir texturas e modelos dos mapas, ajustar níveis de qualidade, corte por distância). **M** (Dono testa, Claude ajusta)
+- [ ] **Chat** com campo de texto: geral (canal), grupo e sistema; filtro de spam; no celular abre por botão. O servidor já repassa. **P** (Claude)
+- [ ] **Botão "Reportar problema"** nas Config: copia o log de desempenho + uma descrição para o dono mandar. **P** (Claude)
+- [ ] **Inventário e adena com autoridade no servidor** (o cliente só pede; o servidor dá, guarda e confere) — obrigatório antes de qualquer economia. **G** (Claude)
+- [ ] Decidir o **soft-lock do celular** do Gemini (entra ou sai) e limpar a cópia de trabalho. **P** (Dono decide)
+- [ ] Trocar a senha da VPS (apareceu em imagem) e deixar o repositório privado. **P** (Dono)
+
+### FASE 1 — Imersão na cidade (Talking Island vira o coração do jogo, ~2 semanas)
+- [ ] **Música e ambiente:** tocar as músicas do cliente Interlude por lugar (cidade, cada mapa, DG, Baium), com troca suave e volume em Config; sons de interface do L2 (abrir janela, clique, item). **M** (Claude)
+- [ ] **Mensagens de sistema estilo L2** (XP, adena, item, nível, entrar em zona) e **janela do alvo** com nome, nível e vida. **P** (Claude)
+- [ ] **NPCs com função real** (os 3 do Gemini viram de verdade + 2 novos):
+  - Gatekeeper: teleporta para os 4 mapas cobrando adena (os portais continuam). **P**
+  - Mercador (novo): poção de vida, soulshot, pergaminho de volta à cidade. **M**
+  - Ferreiro: encantamento no servidor (+1..+16, seguro até +3, risco de quebra depois), com brilho na arma a partir de +4. **M**
+  - Armazém (novo): guardar itens da conta. **M**
+  (Gemini: modelos/cenário dos NPCs · Claude: regras no servidor)
+- [ ] **Cidade menor com 4 portões** (ideia do dono de 02/11, "COBRAR O DONO"): remontar no Blender, colisões refeitas. **G** (Dono + Gemini)
+- [ ] **Céu, luz e água no padrão L2:** céu com nuvens e ciclo dia/noite em todos os mapas (hoje só na cidade), luz pré-calculada na cidade (Blender), névoa por zona. **M** (Claude)
+
+### FASE 2 — O ciclo de jogo (o que segura o jogador, ~3 semanas)
+- [ ] **Ordem dos mapas por nível** (proposta, o dono confirma): Curuma 1–15 · Fortaleza 15–30 · Pântano Flamejante 30–45 · Torre do Baium DGs 20–45 e Baium 45+. **P** (Dono decide)
+- [ ] **Spots de mobs nos 3 mapas novos:** grupos por faixa de nível, reaparecimento, um chefe de campo por mapa; reaproveitar os 15+ mobs que já têm modelo. **G** (Claude; Gemini nos modelos novos)
+- [ ] **Adena e drops:** mob dá adena e chance de item; chefe dá item garantido; tudo pelo servidor. **M** (Claude)
+- [ ] **Graus de equipamento:** Sem grau, D e C (armas e armaduras das 3 classes, sets com bônus), vendidos no Mercador ou caídos; modelos do L2 na mão/corpo. **G** (Claude + Gemini nos modelos)
+- [ ] **Consumíveis:** poção (cura com tempo de recarga), soulshot (o som e o brilho já existem: passa a dar dano), pergaminho de volta. **M** (Claude)
+- [ ] **Morte estilo L2:** perde um pouco de XP fora de DG e volta para a cidade (ou ressuscita onde caiu com pergaminho). **P** (Claude)
+- [ ] **Expedição de entrada (tutorial rápido até o nível 20)**, decidida em 02/11: guia pelos botões, primeiro mob, primeira skill, primeiro drop, primeiro portal; pode pular; uma vez por personagem. **M** (Claude)
+- [ ] Rebalancear XP e dano com o simulador (`tools/simular_progressao.js`) depois dos spots. **P** (Claude)
+
+### FASE 3 — Classes completas (paralelo às fases 1 e 2; o dono desenha, Claude liga)
+**Meta para o beta: Guardião, Mago e Guerreiro com 6 skills prontas cada + ataque padrão próprio.**
+
+Guia de desenho de skills (para ficar familiar e divertido):
+- **Molde de 6 skills por classe:** 1 de uso rápido (recarga curta) · 1 de mobilidade · 1 de controle (atordoa/derruba 1,5–2 s) · 1 em área · 1 defensiva ou buff · 1 "ultimate".
+- **Familiar:** partir de uma skill conhecida do L2 da mesma linha (ficha no aCis) e manter o nome e a sensação; o comportamento é de ação (mira, esquiva, combo).
+  - Mago (linha Mago/Feiticeiro): Wind Strike, Hurricane, Blaze/Prominence, Ice Bolt/Frost Wall, Aura Flare, Surrender to Wind.
+  - Guerreiro (linha Gladiador/Senhor da Guerra): Power Strike, Triple Slash, Whirlwind, War Cry, Thunder Storm, Stun Attack.
+  - Guardião (linha Cavaleiro/Paladino): Aggression, Shield Stun, Ultimate Defense, Holy Strike, Shield Fortress (o kit atual já cobre boa parte).
+- **Cada skill pronta tem:** efeito (Blender → jogo), clipe nativo de cada raça, ícone Cabal, som do L2, dados e teste por raça (rotina `skill-pronta`).
+
+- [~] **Mago:** skills 2–6 (dono está desenhando no Blender). **G** (Dono + Claude)
+- [ ] **Guerreiro:** refazer as 6 skills no molde acima, com clipes do L2 por raça, ícones e efeitos próprios; ataque padrão próprio (hoje é o genérico da espada). **G** (Dono + Claude)
+- [ ] **Guardião:** ameaça de verdade (Rugido/Aggression faz mobs e chefe focarem nele) — dá função de tanque na party. **M** (Claude)
+- [ ] Ícones Cabal para todas as skills do Guerreiro e as que faltam. **P** (Claude)
+
+### FASE 4 — Social e PvP (~2 semanas)
+- [ ] **PvP com flag e karma nos mapas abertos:** atacar outro jogador deixa o nome roxo; matar inocente dá karma (nome vermelho), quem tem karma pode perder item ao morrer. A casa do Baium segue PvP livre. **M** (Claude)
+- [ ] **Clã simples:** criar com nome e sigla sobre o nome, chat do clã, lista de membros. **M** (Claude)
+- [ ] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude)
+- [ ] Party com papéis: XP dividido por perto, bônus por classe diferente no grupo. **P** (Claude)
+
+### FASE 5 — Lançar o Beta Demo e divulgar
+**Critérios para abrir o beta** (todos marcados):
+- [ ] Fases 0, 1 e 2 completas; Guardião, Mago e Guerreiro com 6 skills prontas.
+- [ ] Teste de carga com bots (`servidor/teste_bots.js`): 50 jogadores por canal sem travar.
+- [ ] Rodando bem em 2 celulares de referência (um médio e um fraco), medido pelo log.
+- [ ] Recuperação de conta (o admin redefine a senha) e aviso "beta: o progresso pode ser zerado no lançamento".
+
+Divulgação:
+- [ ] **Página do beta** no site L2 IKARUS: botão Jogar, vídeo curto, Discord, requisitos. **M** (Claude)
+- [ ] **Modo câmera para gravar** (esconde a HUD, câmera livre, câmera lenta). **P** (Claude)
+- [ ] **Anúncio do servidor** dentro do jogo (manutenção, eventos). **P** (Claude)
+- [ ] **Roteiro de vídeos** (pode começar JÁ como diário de desenvolvimento): skill do Blender ao jogo · luta do Baium · PvP na casa do Baium · DG em party · "MMO do L2 no navegador, abre no celular". (Dono)
+- [ ] Evento de abertura do beta (ex.: primeiro a matar o Baium ganha título). (Dono)
+
+### FASE 6 — Depois do beta
+- [ ] Trocar de mapa sem recarregar a página (uma página só, conexão mantida).
+- [ ] Mobs e DGs simulados no servidor (hoje o líder do grupo comanda os mobs).
+- [ ] Clérigo (cura e buff) — fecha a trindade tanque/dano/suporte.
+- [ ] Troca entre jogadores, loja pessoal (private store do L2) e mercado.
+- [ ] Mais DGs e chefes de raide; grau B; encantamento de armadura.
+- [ ] Cerco/castelo (o grande evento de clã do L2).
+- [ ] Troca do nome para **L2 IKARUS ACTION** (decisão do dono) em todo o jogo, site e PWA.
+
+---
+
+## 5. Ordem de execução sugerida (o que fazer primeiro, semana a semana)
+1. **Semana 1:** log no celular → 1ª rodada de gráfico · chat · reportar problema · decidir soft-lock · (dono: skills 2–6 do mago no Blender).
+2. **Semana 2:** música e sons de interface · mensagens de sistema e janela do alvo · inventário/adena no servidor.
+3. **Semanas 3–4:** NPCs com função (Gatekeeper, Mercador, Ferreiro) · consumíveis · ordem dos mapas · spots de mobs em Curuma.
+4. **Semanas 5–6:** spots na Fortaleza e no Pântano · graus D/C · morte estilo L2 · expedição de entrada · skills do mago ligadas.
+5. **Semanas 7–8:** Guerreiro refeito · ameaça do Guardião · PvP flag/karma · ranking · modo câmera.
+6. **Semana 9:** teste de carga, critérios do beta, página do beta → **abrir o Beta Demo**.
+
+Vídeos de bastidores podem sair desde a semana 1; o convite para jogar fica para a semana 9.
