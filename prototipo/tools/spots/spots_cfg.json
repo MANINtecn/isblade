@@ -1,0 +1,159 @@
+{
+ "curuma": {
+  "dif": "curuma",
+  "respawn": 30,
+  "ativa": 80,
+  "solta": 110,
+  "sep": 30,
+  "seed": 11,
+  "faixas": [
+   {
+    "tipo": "sapo_curuma",
+    "dmin": 25,
+    "dmax": 75,
+    "spots": 5,
+    "n": 4,
+    "raio": 6,
+    "agr": 0
+   },
+   {
+    "tipo": "aranha_curuma",
+    "dmin": 75,
+    "dmax": 130,
+    "spots": 5,
+    "n": 4,
+    "raio": 6,
+    "agr": 0.15
+   },
+   {
+    "tipo": "stakato_curuma",
+    "dmin": 130,
+    "dmax": 190,
+    "spots": 5,
+    "n": 4,
+    "raio": 7,
+    "agr": 0.25
+   },
+   {
+    "tipo": "stalker_curuma",
+    "dmin": 190,
+    "dmax": 260,
+    "spots": 5,
+    "n": 4,
+    "raio": 7,
+    "agr": 0.35
+   }
+  ],
+  "chefe": {
+   "tipo": "chefe_curuma",
+   "dmin": 270,
+   "dmax": 360,
+   "resp": 300
+  }
+ },
+ "fortress": {
+  "dif": "fortress",
+  "respawn": 30,
+  "ativa": 70,
+  "solta": 95,
+  "sep": 20,
+  "seed": 5,
+  "faixas": [
+   {
+    "tipo": "formiga_fort",
+    "dmin": 20,
+    "dmax": 55,
+    "spots": 3,
+    "n": 4,
+    "raio": 5,
+    "agr": 0.1
+   },
+   {
+    "tipo": "olho_fort",
+    "dmin": 55,
+    "dmax": 95,
+    "spots": 3,
+    "n": 4,
+    "raio": 5,
+    "agr": 0.2
+   },
+   {
+    "tipo": "basilisco_fort",
+    "dmin": 95,
+    "dmax": 140,
+    "spots": 3,
+    "n": 4,
+    "raio": 6,
+    "agr": 0.3
+   },
+   {
+    "tipo": "ol_mahum_fort",
+    "dmin": 140,
+    "dmax": 200,
+    "spots": 3,
+    "n": 4,
+    "raio": 6,
+    "agr": 0.35
+   }
+  ],
+  "chefe": {
+   "tipo": "chefe_fort",
+   "dmin": 185,
+   "dmax": 225,
+   "resp": 300
+  }
+ },
+ "blazing_swamp": {
+  "dif": "pantano",
+  "respawn": 30,
+  "ativa": 70,
+  "solta": 95,
+  "sep": 16,
+  "seed": 3,
+  "faixas": [
+   {
+    "tipo": "salamandra_fogo",
+    "dmin": 25,
+    "dmax": 75,
+    "spots": 3,
+    "n": 4,
+    "raio": 5,
+    "agr": 0.15
+   },
+   {
+    "tipo": "magmagoil",
+    "dmin": 75,
+    "dmax": 125,
+    "spots": 3,
+    "n": 4,
+    "raio": 5,
+    "agr": 0.25
+   },
+   {
+    "tipo": "wyrm_fogo",
+    "dmin": 125,
+    "dmax": 170,
+    "spots": 3,
+    "n": 4,
+    "raio": 6,
+    "agr": 0.3
+   },
+   {
+    "tipo": "golem_lava",
+    "dmin": 170,
+    "dmax": 215,
+    "spots": 3,
+    "n": 4,
+    "raio": 6,
+    "agr": 0.35
+   }
+  ],
+  "chefe": {
+   "tipo": "chefe_blazing",
+   "dmin": 200,
+   "dmax": 470,
+   "resp": 300
+  },
+  "plano": 0.75
+ }
+}

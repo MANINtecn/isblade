@@ -720,7 +720,7 @@ function ckGet(k){
 function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 /* <<< CLAUDE [perchar] */
 
-import { Torre } from './js/torre.js?v=9';
+import { Torre } from './js/torre.js?v=10';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
 import { MuHud } from './js/mu_hud.js?v=17';
@@ -5206,7 +5206,7 @@ function r1(v){return Math.round(v*10)/10;}
 function mobPorId(id){for(var i=0;i<MOBS.length;i++)if(MOBS[i].nid===id)return MOBS[i];return null;}
 /* [agressao] estilo L2 (data/dungeon.json -> agressao): passivo ate apanhar; agressivo ve a ate `visao` m; ajuda so dos vizinhos parados; volta ao lugar se puxado longe */
 function mobAgrCfg(){return (DGD&&DGD.agressao)||{visao:7,ajuda:4.5,volta:26};}
-function mobAgrIni(m){if(m.agr!==undefined)return;var D=DG.run?DIFF():DGD.difficulties.normal;m.agr=!!(m.T.agressivo||m.T.isMiniBoss||Math.random()<(D.agressivos===undefined?.25:D.agressivos));if(m.lx===undefined){m.lx=m.x;m.lz=m.z;}m.engaj=false;m.volta=false;}
+function mobAgrIni(m){if(m._agr)return;m._agr=1;var D=DG.run?DIFF():DGD.difficulties.normal;if(m.agr===undefined)m.agr=!!(m.T.agressivo||m.T.isMiniBoss||Math.random()<(D.agressivos===undefined?.25:D.agressivos));if(m.lx===undefined){m.lx=m.x;m.lz=m.z;}if(m.hx===undefined){m.hx=m.lx;m.hz=m.lz;}m.engaj=false;m.volta=false;}/* hx/hz = casa (onde nasceu); lx/lz = ultimo ponto valido da colisao */
 function mobEngaja(m,ajuda){
   if(!m||m.dead||m.net)return;mobAgrIni(m);if(m.engaj&&!m.volta)return;m.engaj=true;m.volta=false;m.state='chase';m.t=0;
   if(ajuda===false)return;var A=mobAgrCfg();
@@ -5214,11 +5214,11 @@ function mobEngaja(m,ajuda){
 }
 function mobAgro(m,cand,dt){
   mobAgrIni(m);var A=mobAgrCfg();
-  if(m.volta){var vx=m.lx-m.x,vz=m.lz-m.z,vd=Math.hypot(vx,vz);
-    if(vd<.8){m.volta=false;m.hp=m.max;m.state='chase';return null;}
+  if(m.volta){var vx=m.hx-m.x,vz=m.hz-m.z,vd=Math.hypot(vx,vz);m.vt=(m.vt||0)+dt;
+    if(vd<.8||m.vt>12){if(vd>=.8){m.x=m.hx;m.z=m.hz;if(m.hy!==undefined)m.fy=m.hy;m.fx=m.x;m.fz=m.z;}m.volta=false;m.vt=0;m.hp=m.max;m.state='chase';return null;}/* preso no caminho: volta direto */
     var k=Math.min(vd,m.spd*1.4*dt);m.x+=vx/vd*k;m.z+=vz/vd*k;m.face=Math.atan2(vx,vz);m.hp=Math.min(m.max,m.hp+m.max*dt*.25);return null;}
   if(!m.engaj){if(m.agr&&cand&&Math.hypot(cand.x-m.x,cand.z-m.z)<=A.visao)mobEngaja(m);else return null;}
-  if(!cand||Math.hypot(m.x-m.lx,m.z-m.lz)>A.volta){m.engaj=false;m.volta=true;m.state='chase';m.t=0;return null;}
+  if(!cand||Math.hypot(m.x-m.hx,m.z-m.hz)>A.volta){m.engaj=false;m.volta=true;m.vt=0;m.state='chase';m.t=0;return null;}
   return cand;
 }
 function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do grupo mais perto */
@@ -5324,7 +5324,7 @@ function killMob(m){
 
   renderHud();
 
-  if(DG.grp==='guest')return;
+  if(DG.grp==='guest'||m.spot)return;/* [spots] campo aberto: o spot repoe sozinho */
   if(DG.torre&&!BOSS_ON){if(!m.T.isMiniBoss)DG.kr++;torreCheck();}else if(!BOSS_ON&&mobsAlive()===0)dgClear();
 
 }
@@ -5527,12 +5527,14 @@ function updateMobs(dt){
       var rr=Math.hypot(m.x,m.z);if(rr>ARENA-.6){m.x*=(ARENA-.6)/rr;m.z*=(ARENA-.6)/rr;}
 
       if(DG.torre&&Torre.on)Torre.mob(m);/* [torre-dg] mobs ficam no andar */
+      else if(m.fy!==undefined&&Torre.on)Torre.mobAberto(m);/* [spots] relevo do mapa aberto */
 
-    }
+    }else if(m.volta&&m.fy!==undefined&&Torre.on)Torre.mobAberto(m,1);
 
-    m.g.position.set(m.x,0,m.z);m.g.rotation.y=m.face;m.g.rotation.x=m.cc?((m.cc.e==='derrubado'||m.cc.e==='lift')?-1.2:(m.cc.e==='stun'?.12*Math.sin(m.t*40):0)):0;
+    var yM=(m.fy!==undefined&&Torre.on)?m.fy-Torre.baseY:0;/* [spots] o mapa desce com o jogador (Torre.baseY) */
+    m.g.position.set(m.x,yM,m.z);m.g.rotation.y=m.face;m.g.rotation.x=m.cc?((m.cc.e==='derrubado'||m.cc.e==='lift')?-1.2:(m.cc.e==='stun'?.12*Math.sin(m.t*40):0)):0;
 
-    m.bar.position.set(m.x,2.45*T.size,m.z);m.bar.quaternion.copy(camera.quaternion);
+    m.bar.position.set(m.x,yM+2.45*T.size,m.z);m.bar.quaternion.copy(camera.quaternion);
     if(m.mixer)mob3dAnim(m,dt);/* [mob3d] */
 
   }
@@ -6159,7 +6161,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{inv:function(){return {INV:INV,ADENA:ADENA,SRV:INV_SRV};},equip:equipItem,descartar:discardItem,perform:perform,rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{inv:function(){return {INV:INV,ADENA:ADENA,SRV:INV_SRV};},equip:equipItem,descartar:discardItem,perform:perform,rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,mkMob:mkMob,mob3dCarregar:mob3dCarregar,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;
@@ -8052,7 +8054,7 @@ function frame2(dt,T){
 
   if(!S.pdead)separate();
   try{Voz.passo(dt,S.px,S.pz,{ar:((S.jy||0)>.12||(typeof Torre!=='undefined'&&Torre.on&&Torre.altura>.12)),rolando:S.rollT>=0,sup:(typeof Torre!=='undefined'&&Torre.on)?'stone_hard':'stone'});}catch(_){}/* [voz] passos */
-  torreTick(dt);/* [torre-dg] */
+  torreTick(dt);/* [torre-dg] */spotTick(dt);/* [spots] */
   try{miraAtualiza();}catch(_){}/* [mira] anel do ponto mirado */
 
   pivot.rotation.x=S.cur.th;
@@ -9002,11 +9004,47 @@ function torreStart(){
 }
 /* >>> CLAUDE [mapas-abertos] 02/11/2026: ?mapa=fortress|blazing_swamp|curuma (portais da cidade). Exploracao livre no mapa (mesmo motor de chao da torre), sem chefe nem mobs por enquanto; portal branco leva de volta a cidade. */
 var MAPAS_ABERTOS={
-  fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd,nevoa:1.0},
-  blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,nevoa:.62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060},
-  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CURUMA',ceu:0x9fbdd3,nevoa:1.15}
+  fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd,nevoa:1.0,niveis:'15-30'},
+  blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,nevoa:.62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060,niveis:'30-45'},
+  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CURUMA',ceu:0x9fbdd3,nevoa:1.15,niveis:'1-15'}
 };
 window.__dbgA={scene:scene,camera:camera};/* debug */
+/* >>> CLAUDE [spots] 08/11/2026: spots de mobs dos mapas abertos (data/spots.json, gerado por tools/spots). Grupos por faixa de nivel (mais longe da entrada = mais forte),
+   reaparecimento por mob, um chefe de campo por mapa. O spot so tem mobs com o jogador perto (ativa/solta: leve no celular). Agressao = mesma regra das DGs (mobAgro).
+   Por enquanto os mobs sao de cada jogador (mobs no servidor: Fase 6). */
+var SPOTS=null;
+function spotsIni(){
+  fetch('data/spots.json?v=1',{cache:'no-store'}).then(function(r){return r.json();}).then(function(J){
+    var M=J[MAPA_ABERTO];if(!M||!M.spots)return;
+    DG.diff=M.dif||MAPA_ABERTO;/* chave de nivel/XP (progressao.json -> mobsNivel) */
+    var tipos={};M.spots.forEach(function(s){tipos[s.tipo]=1;});
+    return mob3dCarregar(Object.keys(tipos)).then(function(){
+      SPOTS={M:M,t:0,L:M.spots.map(function(s){var n=s.chefe?1:Math.max(2,Math.round(s.n*(QUAL.mobMult||1))),v=[];for(var i=0;i<n;i++)v.push({m:null,t:0});return {s:s,v:v};})};
+    });
+  }).catch(function(e){console.warn('spots',e);});
+}
+function spotNasce(sp,vg){
+  var s=sp.s,p=Torre.pontoAberto(s.x,s.z,s.raio,s.h);if(!p||Math.hypot(p[0]-S.px,p[1]-S.pz)<9)return;/* nao nasce colado no jogador */
+  var m=mkMob(s.tipo,p[0],p[1]);m.fy=p[2];m.hy=p[2];m.lx=m.hx=p[0];m.lz=m.hz=p[1];m.spot=1;m.face=Math.random()*6.283;
+  m.agr=!!(s.chefe||m.T.agressivo||Math.random()<(s.agr||0));
+  MOBS.push(m);vg.m=m;
+}
+function spotTick(dt){
+  if(!SPOTS||!Torre.on||!DG.on)return;
+  SPOTS.t-=dt;if(SPOTS.t>0)return;SPOTS.t=.5;
+  var M=SPOTS.M,now=performance.now()/1000;
+  SPOTS.L.forEach(function(sp){
+    var s=sp.s,d=Math.hypot(s.x-S.px,s.z-S.pz);
+    sp.v.forEach(function(vg){
+      if(vg.m&&vg.m.dead){var mo=vg.m;vg.m=null;vg.t=now+(s.chefe?(s.resp||300):(M.respawn||30))*(.85+Math.random()*.3);if(s.chefe)sysMsg(mo.T.name+' foi derrotado! Volta em cerca de '+Math.round((vg.t-now)/60)+' min.');}
+      else if(vg.m&&MOBS.indexOf(vg.m)<0)vg.m=null;
+      if(!vg.m){if(d<(M.ativa||80)&&now>=vg.t&&!S.pdead)spotNasce(sp,vg);}
+      else if(d>(M.solta||110)&&!vg.m.engaj){removeMob(vg.m);vg.m=null;}/* longe: some (volta ao chegar perto) */
+    });
+  });
+}
+window.__spots=function(){return SPOTS;};/* depuracao dos testes */
+/* <<< CLAUDE [spots] */
 function mapaAbertoStart(){
   var C=MAPAS_ABERTOS[MAPA_ABERTO];
   dgHub();                                             /* estado de santuario: sem chefe, sem mobs */
@@ -9025,7 +9063,8 @@ function mapaAbertoStart(){
   var gate=createSoloLevelingGate({x:gx,y:sp.y+2.7,z:gz,rotY:-Math.PI/2,runeColor:0xffffff,theme:'white'});
   Torre.grupo.add(gate.group);DG.cityPortal=gate.group;DG.cityPortalData=gate.data;DG.cpPos={x:gx,z:gz};
   var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';
-  banner(C.nome,'Mapa em construcao: exploracao livre (sem monstros ainda)','#f5c451');
+  banner(C.nome,'Niveis '+(C.niveis||'?')+': os monstros mais fortes ficam longe da entrada','#f5c451');
+  spotsIni();/* [spots] */
   setTimeout(function(){if(window.arenaSoltaLoading)arenaSoltaLoading();},700);/* [sem-santuario] */
 }
 if(MAPA_ABERTO){var _tmab=setInterval(function(){if(boss&&vrm&&typeof MX!=='undefined'&&MX.ready&&Torre.pronto){clearInterval(_tmab);mapaAbertoStart();}},400);Torre.carregar(THREE,scene,null,MAPAS_ABERTOS[MAPA_ABERTO]).catch(function(e){console.error('mapa aberto',e);});}

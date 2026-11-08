@@ -1,0 +1,7 @@
+Spots de mobs dos mapas abertos (gera prototipo/data/spots.json).
+1) node tools/spots/mapa_grid.js assets/maps/<mapa> <mapa>_walkgrid <spawnX> <spawnZ> <alturaSpawn> <chao_min> 10
+   (SAIDA=<pasta> grava <mapa>_walkgrid_dist.bin e _h.bin: distancia de caminho a partir da entrada e altura do chao)
+   curuma: -50 12 -195 -222.9 | fortress: 0 27 3.5 -36.4 | blazing_swamp: 14.9 -43.9 3.7 -30.8
+2) SAIDA=<pasta> node tools/spots/spots_gen.js assets/maps/<mapa> <mapa> tools/spots/spots_cfg.json
+   faixas por distancia (m) -> tipo de mob, n, raio, fracao agressiva; chefe de campo; seed fixa (mesmo resultado sempre).
+3) colar a saida em data/spots.json (sem o campo "d"). Stats dos mobs: data/dungeon.json; niveis/XP: data/progressao.json -> mobsNivel.<dif>

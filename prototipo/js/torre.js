@@ -147,6 +147,18 @@ export const Torre = (function(){
     var q = sonda(m.x, m.z, y + .6);
     if(!q.bloq && q.chao !== null && Math.abs(q.chao - y) < 1.5 && pontoLivre(m.x, m.z, y + .6)){ m.lx = m.x; m.lz = m.z; } else { m.x = m.lx; m.z = m.lz; }
   };
+  /* [spots] mapa aberto: mobs andam no relevo. chaoEm = chao sob (x,z) perto da altura y (sobe ate PASSO, desce ate 3 m) */
+  T.chaoEm = function(x, z, y){ var c = celula(x, z), L = camadas(c[0], c[1]); if(!L) return null; var b = null; for(var i = 0; i < L.length; i++){ var h = L[i].h; if(h < CHAO_MIN + .3 || L[i].l < ALTURA) continue; if(h <= y + PASSO && h >= y - 3 && (b === null || h > b)) b = h; } return b; };
+  /* ponto livre aleatorio num raio r em volta de (cx,cz) no chao da altura y -> [x, z, h] (null se nao achar) */
+  T.pontoAberto = function(cx, cz, r, y){ for(var t = 0; t < 40; t++){ var a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * r, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, h = T.chaoEm(x, z, y); if(h !== null && Math.abs(h - y) < 1.5 && livre9(x, z, h)) return [x, z, h]; } return null; };
+  /* colisao do mob no relevo: m.fy = altura do chao do mob; volta ao ultimo ponto valido se bater em parede/borda. so = so acompanhar a altura (mob voltando para casa) */
+  T.mobAberto = function(m, so){
+    if(m.fx === undefined){ m.fx = m.x; m.fz = m.z; }
+    var h = T.chaoEm(m.x, m.z, m.fy);
+    if(so){ if(h !== null) m.fy = h; m.fx = m.x; m.fz = m.z; return m.fy; }
+    if(h !== null && pontoLivre(m.x, m.z, h + .3) && !cruza(m.fx, m.fz, m.x, m.z, m.fy + .3)){ m.fx = m.x; m.fz = m.z; m.fy = h; } else { m.x = m.fx; m.z = m.fz; }
+    return m.fy;
+  };
   T.pontoPortal = function(andar){ var f = T.andares[andar - 1]; return T.pontoAleatorio(andar, 5, 9); };
   T.liberarPorta = function(v){ PORTA.liberada = v !== false; };
   T.fecharPorta = function(){ PORTA.aberta = false; PORTA.abrindo = false; PORTA.t = 0; PORTA.nos.forEach(function(o, i){ o.position.y = PORTA.y0[i]; }); };

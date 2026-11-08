@@ -2971,3 +2971,16 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
   - janela do alvo mostra "(agressivo)"; no grupo, o lider manda quem e agressivo junto com o estado dos mobs.
 - Testado (local, Torre Normal): 13 mobs, 2-4 agressivos; parado no inicio e a 3 m de um passivo: ninguem ataca; bater num passivo: entrou ele + o unico vizinho a 4,5 m; mob levado a 30 m do lugar: voltou e encheu a vida. NAO testado: DG em grupo, celular, VPS. Medir no jogo se o Normal ficou facil demais (os numeros estao no json).
 - Processo: escorreguei num `sed -i` no arena.html (CRLF virou LF); restaurado antes do commit, diff conferido.
+
+### [Claude] 08/11/2026 - Spots de mobs nos 3 mapas abertos (Fase 2, 2o item)
+- Dono: "prossiga". Usei os 15 mobs que o Gemini extraiu (4 comuns + 1 chefe por mapa).
+- `data/spots.json` (novo, gerado por `tools/spots/`: grade de chao andavel + distancia de CAMINHO a partir da entrada; seed fixa). Mais longe da entrada = mais forte:
+  - Curuma (niveis 1-15): sapo (Nv 2) -> aranha (5) -> stakato (9) -> espreitador (12), 5 grupos de cada; chefe de campo Rainha Stakato (Nv 15) a ~290 m.
+  - Fortaleza (15-30): formiga (17) -> olho (21, a distancia) -> basilisco (25) -> soldado Ol Mahum (28), 3 grupos de cada; chefe Comandante Ol Mahum (30).
+  - Pantano (30-45): salamandra (32) -> magmagoil (36, a distancia) -> serpe (40) -> golem de lava (43); chefe Senhor dos Dracos (45). O fundo do Pantano e estreito: so 2 grupos de golem.
+- Regras: grupo de 4 (3 na qualidade media/baixa), reaparece 30 s (+-15%) depois de morrer, chefe 5 min com aviso no chat; o spot so tem mobs com o jogador a ate 70-80 m e some passando de 95-110 m (leve no celular); agressao igual as DGs (fracao agressiva sobe com a faixa; chefe agressivo).
+- Mobs andam no relevo: `js/torre.js` ganhou chaoEm / pontoAberto / mobAberto (altura do chao por mob, colisao com parede e borda).
+- XP pelo servidor: `progressao.json -> mobsNivel` ganhou curuma / fortress / pantano (chave curta: o servidor corta em 12 letras). Stats dos 15 em `dungeon.json` (chute inicial; balancear com o simulador e o item de rebalancear). Modelos do Gemini ja vem em metros: altura 1.
+- Corrigido junto: na Torre o mob nunca voltava para casa (Torre.mob regravava a "casa" todo quadro). Agora casa = hx/hz; preso no caminho por 12 s volta direto.
+- Testado (local): os 3 mapas carregam os spots sem erro; Curuma: 18 mobs perto da entrada, todos no chao certo; abate deu 16 XP no Nv 1 pelo servidor; morto reaparece; puxado a 28 m volta e cura; chefe nasce agressivo; Fortaleza 66 XP; Pantano sobe de nivel. Torre Normal: mob puxado a 30 m voltou (0,8 m da casa) e curou. Fila com os 15 modelos: todos no chao e em proporcao.
+- NAO testado: celular, VPS, dois jogadores no mesmo mapa (cada um ve os SEUS mobs ate os mobs irem para o servidor, Fase 6), projeteis do olho/magmagoil em desnivel, se as faixas de nivel e os numeros ficaram bons jogando.
