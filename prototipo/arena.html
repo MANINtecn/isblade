@@ -473,6 +473,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/alvo_l2.js?v=1"></script>
 <script src="js/loja.js?v=5"></script>
 <script src="js/arma_grau.js?v=1"></script>
+<script src="js/expedicao.js?v=4"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -4064,7 +4065,7 @@ function castSkill(i){
 
   if(S.guard){S.guard=false;S.gcd=.12;}
 
-  S.cd[i]=sk.cd;tgt=null;tmark.visible=false;
+  S.cd[i]=sk.cd;tgt=null;tmark.visible=false;try{Expedicao.ev('skill');}catch(_){}
 
   S.face=aimAngle();
   var alvoMira=sk.mira?pontoMira(sk):null;if(alvoMira)S.face=alvoMira.ang;/* [mira] */
@@ -5321,7 +5322,7 @@ function lootMob(m){
   if(INV_SRV)return;/* online: o drop vem do servidor (mensagem 'drop') */
   if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
 }
-function killMob(m){
+function killMob(m){try{Expedicao.ev('abate');}catch(_){}
 
   if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;gainXp(m.T.xp||(25+(m.T.hp>300?40:0)),m.type);
 
@@ -6620,7 +6621,7 @@ function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no
 }
 function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
 function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
-function dropRecebido(m){
+function dropRecebido(m){if(m&&(m.adena>0||(m.itens&&m.itens.length)))try{Expedicao.ev('drop');}catch(_){}
   var R=ITM.rarities;
   if(m.adena>0){som('moeda');try{Chat.sistema('Você obteve '+m.adena+' Adena.');}catch(_){}}
   (m.itens||[]).forEach(function(it,i){if(!baseOf(it.base)||!R[it.rar])return;setTimeout(function(){SFX.drop(it.rar);banner('DROP: '+baseOf(it.base).name.toUpperCase(),R[it.rar].name+'  -  '+statTxt(it.stats),R[it.rar].css);try{Chat.sistema('Você obteve '+baseOf(it.base).name+' ('+R[it.rar].name+').');}catch(_){}},i*1600);});
@@ -6737,7 +6738,7 @@ var invOpen=false;
 
 function toggleInv(force){
 
-  invOpen=force===undefined?!invOpen:force;
+  invOpen=force===undefined?!invOpen:force;if(invOpen)try{Expedicao.ev('inv');}catch(_){}/* [expedicao] */
 
   $('#inv').classList.toggle('open',invOpen);
 
@@ -9139,6 +9140,7 @@ try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento *
 try{PerfLog.init(renderer,scene,function(){var o={pg:'arena'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
 try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot]};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
+try{Expedicao.init({pagina:'arena',mapa:MAPA_ABERTO,S:function(){return S;}});}catch(_){}/* [expedicao] tutorial ate o Nv 20 (js/expedicao.js) */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Cruma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({

@@ -786,6 +786,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/alvo_l2.js?v=1"></script>
 <script src="js/loja.js?v=5"></script>
 <script src="js/arma_grau.js?v=1"></script>
+<script src="js/expedicao.js?v=4"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -12744,7 +12745,7 @@ function toggleInv(force){
 
 
 
-  invOpen=force===undefined?!invOpen:force;
+  invOpen=force===undefined?!invOpen:force;if(invOpen)try{Expedicao.ev('inv');}catch(_){}/* [expedicao] */
 
 
 
@@ -17857,6 +17858,7 @@ try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{lo
 try{SomL2.ambiente('cidade');}catch(_){}/* [sons-l2] vento, ondas e gaivotas de Talking Island */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
+try{Expedicao.init({pagina:'cidade',mapa:null,S:function(){return S;}});}catch(_){}/* [expedicao] */
 Net.init({
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},

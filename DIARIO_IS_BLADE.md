@@ -3017,3 +3017,7 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 08/11/2026 - Nome Cruma e horizonte mais perto (pedido do dono)
 - "Curuma" -> "Cruma" em tudo que o jogador ve (portal da cidade, banner do mapa, chat, mobs "de Cruma", fala do NPC). Ids internos continuam `curuma` (arena.html?mapa=curuma, spots, progressao) para nao quebrar nada.
 - `js/horizonte.js`: silhuetas dos mapas a 270 m (eram 430 m) com a mesma escala -> ~1,6x maiores na tela, aparecem por cima do muro. Fotos de dentro da cidade conferidas (Pantano e Cruma).
+
+### [Claude] 08/11/2026 - Expedicao de entrada (tutorial ate o Nv 20)
+- `js/expedicao.js` (painel a direita, abaixo do minimapa): andar -> inventario -> comerciante -> portal verde da Cruma -> 3 abates -> 1 skill -> 1 drop -> Nv 5 -> Nv 15 -> Fortaleza -> Nv 20 (Grau D). Pode pular (2 cliques). Uma vez por personagem (localStorage `isblade.expedicao.<id>`); quem ja e Nv 20+ nao ve; quem entra na Cruma direto pula os passos da cidade. Ganchos: killMob, castSkill, dropRecebido e toggleInv (arena/cidade).
+- Testado local com personagem novo: os 11 passos andaram na ordem (cidade -> Cruma -> niveis). NAO testado: celular (painel pode cobrir algo na tela pequena), VPS. Sem premio ao concluir (dar pocoes/adena pediria o servidor; perguntar ao dono). Aviso: no teste apareceu "Unable to decode audio data" (algum som novo nao abre no navegador; nao e da expedicao).
