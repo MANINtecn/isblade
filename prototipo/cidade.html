@@ -3592,6 +3592,22 @@ duelFloor.position.y = 0.023;
 duelFloor.receiveShadow = true;
 
 scene.add(duelFloor);
+/* [luz] luz pre-calculada do chao da cidade (Blender: tools/blender_luz/cidade_luz.py): oclusao do ceu (cantos, becos e beirais mais escuros).
+   aoMap no canal 1 com UV pela posicao: u = (x+88)/176, v = (88-z)/176 (mesmo enquadramento do bake). Escurece so a luz ambiente/ceu, nao o sol. */
+(function(){
+  var L = 88, tex = new THREE.TextureLoader().load('assets/talking_island/luz/chao_ao.jpg?v=1');
+  tex.channel = 1; tex.colorSpace = THREE.NoColorSpace; tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  [islandMesh, floor, duelFloor].forEach(function(m){
+    if(!m || !m.geometry || !m.material) return;
+    m.updateMatrixWorld(true); var p = m.geometry.attributes.position, uv = new Float32Array(p.count * 2), v = new THREE.Vector3();
+    for(var i = 0; i < p.count; i++){ v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld); uv[i * 2] = (v.x + L) / (2 * L); uv[i * 2 + 1] = (L - v.z) / (2 * L); }
+    m.geometry.setAttribute('uv1', new THREE.BufferAttribute(uv, 2));
+    m.material.aoMap = tex; m.material.aoMapIntensity = 1.0;
+    m.material.onBeforeCompile = function(sh){ sh.fragmentShader = sh.fragmentShader.replace('#include <aomap_fragment>', '#include <aomap_fragment>\n#ifdef USE_AOMAP\n reflectedLight.directDiffuse *= mix(1.0, clamp(ambientOcclusion / 0.9, 0.0, 1.0), 0.55);\n#endif'); };   /* a sombra do ceu tambem tira parte do sol (0,9 = ceu aberto) */
+    m.material.needsUpdate = true;
+  });
+  window.__luzChao = function(k){ [islandMesh, floor, duelFloor].forEach(function(m){ if(m && m.material) m.material.aoMapIntensity = k; }); };   /* teste: 0 desliga, 1 liga */
+})();
 
 
 

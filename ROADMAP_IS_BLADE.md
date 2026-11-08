@@ -73,7 +73,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
   - ✅ Armazém (Wilford): guardar itens da conta. **M** — feito 08/11 (baú da conta, 60 itens + adena, taxa 10 A por item guardado)
   (Gemini: modelos/cenário dos NPCs · Claude: regras no servidor)
 - [ ] **Cidade menor com 4 portões** (ideia do dono de 02/11, "COBRAR O DONO"): remontar no Blender, colisões refeitas. **G** (Dono + Gemini)
-- [~] **Céu, luz e água no padrão L2:** céu com nuvens e ciclo dia/noite em todos os mapas (hoje só na cidade), luz pré-calculada na cidade (Blender), névoa por zona. **M** (Claude) — 08/11 FEITO: céu (`js/ceu_l2.js`: degradê, cirros finos, estrelas; sem disco nem nuvem redonda) e ciclo dia/noite na cidade e nos 3 mapas abertos, mesma hora para todos. FALTA: água, luz pré-calculada da cidade, névoa por zona.
+- [~] **Céu, luz e água no padrão L2:** céu com nuvens e ciclo dia/noite em todos os mapas (hoje só na cidade), luz pré-calculada na cidade (Blender), névoa por zona. **M** (Claude) — 08/11 FEITO: céu (`js/ceu_l2.js`: degradê, cirros finos, estrelas; sem disco nem nuvem redonda) e ciclo dia/noite na cidade e nos 3 mapas abertos, mesma hora para todos. Luz pré-calculada do chão da cidade FEITA (08/11, Blender: oclusão do céu, `assets/talking_island/luz/chao_ao.jpg`). FALTA: água, névoa por zona, luz pré-calculada nas paredes dos prédios (se o dono quiser mais).
 
 ### FASE 2 — O ciclo de jogo (o que segura o jogador, ~3 semanas)
 - [x] **Ordem dos mapas por nível** (dono aprovou em 08/11): Curuma 1–15 · Fortaleza 15–30 · Pântano Flamejante 30–45 · Torre do Baium DGs 20–45 e Baium 45+.
