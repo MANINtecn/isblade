@@ -27,6 +27,8 @@ Write-Host ''; Write-Host ('As tarefas vao rodar com o usuario ' + $env:USERNAME
 & schtasks /Create /TN 'IS_Servidor' /TR ('"' + $bat + '"') /SC ONSTART /RU $env:USERNAME /RP * /RL HIGHEST /F
 & schtasks /Create /TN 'IS_Sync' /TR ('powershell -NoProfile -ExecutionPolicy Bypass -File "' + $sync + '" -Repo "' + $repo + '"') /SC MINUTE /MO 5 /RU $env:USERNAME /RP * /F
 if(Test-Path $caddy){ & schtasks /Create /TN 'IS_Caddy' /TR ('"' + $caddy + '" run --config "' + (Join-Path $dir 'Caddyfile') + '"') /SC ONSTART /RU $env:USERNAME /RP * /RL HIGHEST /F }
+# sem limite de tempo: o padrao do schtasks encerra a tarefa depois de 72 h (o jogo caia sozinho); o vigia do IS_Sync tambem religa se cair
+foreach($n in 'IS_Servidor', 'IS_Caddy'){ try { $t = Get-ScheduledTask -TaskName $n -ErrorAction Stop; $t.Settings.ExecutionTimeLimit = 'PT0S'; Set-ScheduledTask -InputObject $t | Out-Null; Write-Host ('sem limite de tempo: ' + $n) } catch { Write-Host ('(nao consegui tirar o limite de ' + $n + ': ' + $_.Exception.Message + ')') -ForegroundColor Yellow } }
 Write-Host ''
 Write-Host 'Pronto. Para ligar agora sem reiniciar a VPS:  schtasks /Run /TN IS_Servidor   (e IS_Caddy)' -ForegroundColor Green
 Write-Host 'Conferir: http://localhost:3000/status   e, com DNS+Caddy,  https://play.isblade.tecx.pro/status'
