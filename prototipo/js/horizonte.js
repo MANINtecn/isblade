@@ -4,8 +4,8 @@
    e a escala sao reduzidas juntas, o tamanho aparente na tela e o mesmo. */
 window.Horizonte = (function(){
   var H = { itens: [], pronto: false };
-  var ESCALA = { toi: .6, blazing: .85, fortress: 1.0, curuma: .44 };      /* tamanho aparente igual a distancia de referencia (430) */
-  var REF = 430, MAR_Y = -6.0;
+  var ESCALA = { toi: .6, blazing: .85, fortress: 1.0, curuma: .44 };      /* escala na distancia REF */
+  var REF = 270, MAR_Y = -6.0;                                              /* 08/11: era 430 (o dono achou longe demais); mesma escala, ~1,6x maior na tela */
 
   H.init = function(THREE, scene, camera, saidas){
     var R = Math.min(REF, camera.far * .72), f = R / REF;

@@ -3008,3 +3008,12 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 08/11/2026 - Morte estilo L2 nos mapas abertos
 - Antes: morrer na Curuma/Fortaleza/Pantano caia no `dgHub` (estado de santuario quebrado). Agora: "VOCE MORREU", o servidor tira 4% do XP do nivel (so a partir do Nv 10, nunca desce de nivel; `progressao.json -> morte`, `servidor/progressao.js -> perde`, mensagem `morte`) e o jogador volta para Talking Island. Na DG continua recomecando a sala; no PvP o servidor cuida.
 - Testado local: Nv 20 com 783 XP morreu na Curuma -> 743 XP (-40 = 4% de 1012), chat "Voce morreu e perdeu 40 de XP", voltou para cidade.html. NAO testado: celular, VPS (precisa reiniciar o servidor). Falta o pergaminho de ressurreicao (ressuscitar onde caiu).
+
+### [Claude] 08/11/2026 - Mago, 2a skill (fogo e agua) a partir do L2
+- Pedido do dono: tratar a 2a skill dos magos baseada no L2. A Shuriken de Vento (Hurricane) representa uma linha; quer uma de FOGO (Archmage) e uma de AGUA, leves como a shuriken, ja com efeitos e particulas, apresentadas no Blender (MCP) e com ideias.
+- Plano: propor ideias, montar a previa das duas no Blender (formas angulares, sem redondo; malhas do L2 em trabalho_l2fx/export_bruto: fireball00, firebomb00-02, fireflame00/03, flameset_m, watericebolt00-02, watericedagger00, etc_splash). Nao ligar no jogo antes da aprovacao dele.
+- Obs: Blender MCP nao estava conectado ao iniciar (pedido o clique em Connect).
+
+### [Claude] 08/11/2026 - Nome Cruma e horizonte mais perto (pedido do dono)
+- "Curuma" -> "Cruma" em tudo que o jogador ve (portal da cidade, banner do mapa, chat, mobs "de Cruma", fala do NPC). Ids internos continuam `curuma` (arena.html?mapa=curuma, spots, progressao) para nao quebrar nada.
+- `js/horizonte.js`: silhuetas dos mapas a 270 m (eram 430 m) com a mesma escala -> ~1,6x maiores na tela, aparecem por cima do muro. Fotos de dentro da cidade conferidas (Pantano e Cruma).
