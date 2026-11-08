@@ -2854,6 +2854,13 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 
 
 
+### [Claude] 08/11/2026 - Inventario e adena com autoridade no servidor (fecha a Fase 0 do codigo)
+- Dono: "pode seguir" (Gemini ja estava nos itens 2-5 da lista dele).
+- `servidor/inventario.js` (novo): por personagem `pers.inv = {items, equip, adena}` dentro da conta. Mesmas regras de item do cliente (data/itens.json); kit inicial = arma da CLASSE equipada + 4 armaduras na mochila; arma de outra classe nao equipa e nao cai do chefe. Abate (mensagem `xp` que ja existia): adena = ~50% do XP do abate (+-20%), chefe da 1 item (35% de chance de 2) com raridade melhor no medio/hard (`rarityBoost`); em grupo na DG cada membro recebe o seu. Mensagens novas: servidor->cliente `inv` (estado) e `drop` (adena/itens); cliente->servidor `inv` {k: equip|tirar|descartar}.
+- `contas.js` nao aceita nem devolve mais `isblade.inv.*` pelo /api/dados; `js/conta.js` deixou de sincronizar o inventario. Cliente (arena e cidade): `invDoServidor`/`dropRecebido`; equipar/tirar/descartar viram pedidos; `dropLoot` local desliga online; adena no topo do inventario (I) e "Voce obteve N Adena / item" no chat. Offline (sem servidor) continua o inventario local antigo.
+- ATENCAO: quem ja jogava perde os itens que estavam so no navegador; no primeiro login depois disso o servidor da o kit inicial da classe (beta).
+- Testado (local, Chrome, conta nova de mago): kit = cajado + 4 armaduras; 3 mobs + chefe hard -> 1216 adena e 1 item, mensagens no chat; equipar elmo pelo servidor; pedido falso recusado; recarregar a pagina mantem tudo; cidade mostra o inventario do servidor sem erro. NAO testado: grupo na DG (cada membro com seu drop), celular, VPS, balanco da adena (valores sao chute: chefe hard deu 1107).
+
 ### [Claude] 08/11/2026 - Mensagens de sistema no chat + janela do alvo estilo L2 (Fase 1)
 - Chat recebe: "Voce entrou em: <zona>" (cidade = Talking Island; arena: Torre do Baium, Casa do Baium, Arena PvP, Fortaleza, Pantano Flamejante, Torre de Curuma, Santuario), "Voce ganhou N de XP", "Parabens! Voce atingiu o nivel N", adena e itens; e todo `sysMsg` do jogo tambem vai para o chat (como no L2).
 - `js/alvo_l2.js` (novo): janela do alvo para mob (o que esta sob a mira ou o ultimo atingido, 6 s) e chefe (mirado ou atingido ha 8 s), no mesmo lugar da janela de jogador do net.js (que tem prioridade). Nome em cinza/verde/branco/amarelo/vermelho pela diferenca de nivel (niveis de `progressao.json -> mobsNivel`), "Nv X · %" e barra de vida.
