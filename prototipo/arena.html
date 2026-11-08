@@ -470,6 +470,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=2"></script>
 <script src="js/musica.js?v=1"></script>
+<script src="js/alvo_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
@@ -3875,6 +3876,7 @@ function xpNeed(l){return (window.S&&S.need&&l===S.lvl)?S.need:120+l*90;}
 
 
 function sysMsg(text){
+  try{Chat.sistema(text);}catch(_){}/* [chat] mensagens do sistema tambem no chat, como no L2 */
 
   var e=$('#sysmsg');e.querySelector('p').textContent=text;
 
@@ -4118,7 +4120,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&an.skill.proj&&!an.noRange))return;/* [mago
   var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-3)>raioMira(an)):(bossReach>rng||(half<3.1&&cone>half));/* [mira] circulo no ponto mirado */
   if(!an.noRange&&foraBoss){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
 
-  var E=S.en,dmg=an.dmg,tag='';
+  var E=S.en,dmg=an.dmg,tag='';S.ultBossT=performance.now();/* [alvo] */
   /* >>> CLAUDE [guardiao] 2026-10-27 — dano causado no chefe marca combate */ Guardiao.tocar('dano causado'); /* <<< CLAUDE [guardiao] */
 
   /* so o ataque padrao recupera estamina: pouco no inicio do combo, mais conforme o combo cresce (skills nao recuperam) */
@@ -5258,6 +5260,7 @@ function mobDmg(an){var d=an.dmg;if(S.focus>0)d*=1.3;if(ST.dano)d*=1+ST.dano/100
 
 var GRPHIT=false;
 function damageMob(m,dmg,an){
+  if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
   if(m.dead)return;
   if(m.net&&window.Net)Net.dg({k:'hit',id:m.nid,d:dmg});/* [dg-grupo] a vida do mob e do lider */
 
@@ -6566,8 +6569,8 @@ function invDoServidor(m){
 }
 function dropRecebido(m){
   var R=ITM.rarities;
-  if(m.adena>0){try{Chat.sistema('Voce obteve '+m.adena+' Adena.');}catch(_){}}
-  (m.itens||[]).forEach(function(it,i){if(!baseOf(it.base)||!R[it.rar])return;setTimeout(function(){SFX.drop(it.rar);banner('DROP: '+baseOf(it.base).name.toUpperCase(),R[it.rar].name+'  -  '+statTxt(it.stats),R[it.rar].css);try{Chat.sistema('Voce obteve '+baseOf(it.base).name+' ('+R[it.rar].name+').');}catch(_){}},i*1600);});
+  if(m.adena>0){try{Chat.sistema('Você obteve '+m.adena+' Adena.');}catch(_){}}
+  (m.itens||[]).forEach(function(it,i){if(!baseOf(it.base)||!R[it.rar])return;setTimeout(function(){SFX.drop(it.rar);banner('DROP: '+baseOf(it.base).name.toUpperCase(),R[it.rar].name+'  -  '+statTxt(it.stats),R[it.rar].css);try{Chat.sistema('Você obteve '+baseOf(it.base).name+' ('+R[it.rar].name+').');}catch(_){}},i*1600);});
   if(m.cheia)sysMsg('Mochila cheia: descarte um item para receber loot');
 }
 
@@ -6978,6 +6981,7 @@ function aplicaProg(p,ini){
   try{applyStats();}catch(_){}
   if(!ini&&p.subiu){var un=skillsNovas(antes,S.lvl);try{SFX.levelup();}catch(_){}banner('NIVEL '+S.lvl,(p.pontos?p.pontos+' pontos para distribuir (U)':'')+(un.length?'  -  nova skill: '+un.join(', '):''),'#f5c451');}
   else if(!ini&&p.ganhou)floatText('+'+p.ganhou+' XP','#9fc2ff',16,'p');
+  try{if(!ini&&p.ganhou)Chat.sistema('Você ganhou '+p.ganhou+' de XP.');if(!ini&&p.subiu)Chat.sistema('Parabéns! Você atingiu o nível '+S.lvl+'.');}catch(_){}/* [chat] */
   try{renderHud();renderMastery();}catch(_){}
   try{if(window.Status)Status.refresh();}catch(_){}
 }
@@ -7712,7 +7716,17 @@ function basicTick(){
 
 }
 
+var _alvoT=0;function alvoTick(){/* [alvo] janela do alvo estilo L2 (js/alvo_l2.js): mob sob a mira ou o ultimo atingido; chefe mirado ou atingido ha pouco */
+  var t=performance.now();if(t-_alvoT<100||!window.AlvoL2)return;_alvoT=t;
+  if(window.Net&&Net.alvo){AlvoL2.atualiza(null);return;}
+  var nivel=function(tp){var mn=DATA.prog&&DATA.prog.mobsNivel,d=(typeof DG!=='undefined'&&DG.diff)||'normal',e=mn&&mn[d]&&mn[d][tp];return e?e[0]:0;};
+  var m=(S.aimM&&!S.aimM.dead)?S.aimM:((S.ultMob&&!S.ultMob.dead&&t-S.ultMobT<6000)?S.ultMob:null);
+  if(m&&m.T){AlvoL2.atualiza({nome:m.T.name,nv:nivel(m.type),hp:m.hp,max:m.max,meuNv:S.lvl});return;}
+  if(typeof BOSS_ON!=='undefined'&&BOSS_ON&&!S.dead&&(S.aimT||t-(S.ultBossT||0)<8000)){AlvoL2.atualiza({nome:'Baium',nv:(typeof DG!=='undefined'&&DG.on)?nivel('boss'):0,hp:S.hp,max:S.maxhp,meuNv:S.lvl});return;}
+  AlvoL2.atualiza(null);
+}
 function frame2(dt,T){
+  alvoTick();
 
   if(tmark.visible)tmark.scale.setScalar(1+.12*Math.sin(T*8));
 
@@ -9022,6 +9036,7 @@ Guardiao.init({
 try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
 try{PerfLog.init(renderer,scene,function(){var o={pg:'arena'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
+setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Curuma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
   inv:invDoServidor,drop:dropRecebido,/* [inventario-servidor] */
