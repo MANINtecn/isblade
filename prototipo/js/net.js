@@ -176,7 +176,7 @@ export const Net = (function(){
     } else if(m.t === 'prec'){ ctx.sysMsg(m.nome + ' recusou o convite de grupo');
     } else if(m.t === 'party'){ var tinha = N.grupo; N.grupo = m; if(m.dg && m.lider !== N.sid) puxar(m.dg.key, m.dg.id, m.dg.canal); if(!tinha) ctx.sysMsg('Você entrou no grupo (' + m.m.length + ' membros)'); renderParty(); renderMenu();
     } else if(m.t === 'partyfim'){ N.grupo = null; ctx.sysMsg(m.m === 'expulso' ? 'Você foi expulso do grupo' : (m.m === 'dissolvido' ? 'O grupo foi desfeito' : 'Você saiu do grupo')); renderParty(); renderMenu();
-    } else if(m.t === 'chat'){ ctx.sysMsg(m.n + ': ' + m.m); }
+    } else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
 
   /* ---------- MENU (tecla P ou botao): so CSS, sem nenhuma imagem. O que funciona fica em destaque; o resto aparece apagado ("em breve") ---------- */
@@ -392,6 +392,7 @@ export const Net = (function(){
     atualizaRemotos(dt); atualizaAlvo(); atualizaCoroas();
   };
   /* chamados pelo jogo */
+  N.chat = function(txt, c){ if(N.on) send({ t: 'chat', m: String(txt).slice(0, 120), c: c || '' }); return N.on; };      /* chat: '' geral, 'g' grupo */
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){
     if(!N.on || !an) return; if(an.magoB) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();

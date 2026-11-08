@@ -57,7 +57,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [x] VPS religa sozinha se cair (vigia + sem limite de 72 h) (Claude, 08/11)
 - [x] Log de desempenho no jogo (Claude, 08/11)
 - [ ] **Medir no celular e fazer a 1ª rodada de gráfico/desempenho** com o log que o dono trouxer (comprimir texturas e modelos dos mapas, ajustar níveis de qualidade, corte por distância). **M** (Dono testa, Claude ajusta)
-- [ ] **Chat** com campo de texto: geral (canal), grupo e sistema; filtro de spam; no celular abre por botão. O servidor já repassa. **P** (Claude)
+- [x] **Chat** estilo L2 (`js/chat.js`): Enter abre/manda, Esc fecha; geral = canal; `#` no começo = grupo (verde, em qualquer mapa); mensagens do sistema em amarelo; botão CHAT no celular; teclas não vazam para o jogo; limite de 1 mensagem a cada 0,8 s no servidor. (Claude, 08/11)
 - [ ] **Botão "Reportar problema"** nas Config: copia o log de desempenho + uma descrição para o dono mandar. **P** (Claude)
 - [ ] **Inventário e adena com autoridade no servidor** (o cliente só pede; o servidor dá, guarda e confere) — obrigatório antes de qualquer economia. **G** (Claude)
 - [x] **Mira assistida no celular** (soft-lock): dono deixou a decisão comigo; ficou, reescrita em `js/mira_toque.js` — trava em chefe, mobs e jogadores hostis; com o analógico empurrado só ajuda perto da direção dele; skills de ponto mirado caem em cima do alvo. (Claude, 08/11)
@@ -66,10 +66,10 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 ### FASE 1 — Imersão na cidade (Talking Island vira o coração do jogo, ~2 semanas)
 - [ ] **Música e ambiente:** tocar as músicas do cliente Interlude por lugar (cidade, cada mapa, DG, Baium), com troca suave e volume em Config; sons de interface do L2 (abrir janela, clique, item). **M** (Claude)
 - [ ] **Mensagens de sistema estilo L2** (XP, adena, item, nível, entrar em zona) e **janela do alvo** com nome, nível e vida. **P** (Claude)
-- [ ] **NPCs com função real** (os 3 do Gemini viram de verdade + 2 novos):
-  - Gatekeeper: teleporta para os 4 mapas cobrando adena (os portais continuam). **P**
-  - Mercador (novo): poção de vida, soulshot, pergaminho de volta à cidade. **M**
-  - Ferreiro: encantamento no servidor (+1..+16, seguro até +3, risco de quebra depois), com brilho na arma a partir de +4. **M**
+- [ ] **NPCs com função real** (os 3 do Gemini viram de verdade + 1 novo). Em 08/11 o dono pediu ao Gemini para corrigir o tamanho (estavam gigantes); a função vem depois:
+  - Gatekeeper Clarissa: fica na cidade; uso ainda a decidir (talvez teleporte pago para os 4 mapas, os portais continuam). **P**
+  - Comerciante (Mammon): vende poção de vida, soulshot, pergaminho de volta à cidade; compra drops. **M**
+  - Ferreiro Altran: encantamento no servidor (+1..+16, seguro até +3, risco de quebra depois), com brilho na arma a partir de +4. **M**
   - Armazém (novo): guardar itens da conta. **M**
   (Gemini: modelos/cenário dos NPCs · Claude: regras no servidor)
 - [ ] **Cidade menor com 4 portões** (ideia do dono de 02/11, "COBRAR O DONO"): remontar no Blender, colisões refeitas. **G** (Dono + Gemini)

@@ -251,7 +251,9 @@ wss.on('connection', ws => {
       }
     }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
-    else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .8){ J.ultChat = t; difunde(c, { t: 'chat', n: J.nome, m: String(m.m || '').slice(0, 120), team: J.team }); } }
+    else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .8){ J.ultChat = t; const txt = String(m.m || '').slice(0, 120).trim();      /* chat: geral = canal; c:'g' = grupo (em qualquer mapa) */
+      if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }
+      else if(txt) difunde(c, { t: 'chat', n: J.nome, m: txt, team: J.team }); } }
     else if(m.t === 'ping') envia(J, { t: 'pong', c: m.c });
     else if(m.t === 'duel' && c.mapa === 'cidade' && !J.duelo){                          /* desafia outro jogador (precisa estar perto) */
       const V = c.jog.get(m.to | 0); if(!V || V === J || V.duelo || Math.hypot(V.x - J.x, V.z - J.z) > 20) return;
