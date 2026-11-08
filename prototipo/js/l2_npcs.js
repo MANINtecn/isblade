@@ -613,69 +613,69 @@
     tex.minFilter = THREE.LinearFilter;
     var mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
     var sprite = new THREE.Sprite(mat);
-    sprite.scale.set(3.2, 0.8, 1);
+    sprite.scale.set(2.0, 0.5, 1);
     return sprite;
   }
 
   function createAnvilProp(){
     var group = new THREE.Group();
 
-    // Cepo de madeira rústico
+    // Cepo de madeira rústico em escala real (altura 45cm)
     var stumpMat = new THREE.MeshStandardMaterial({ color: 0x4a321e, roughness: 0.9 });
-    var stump = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.54, 0.65, 14), stumpMat);
-    stump.position.y = 0.325;
+    var stump = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.30, 0.45, 14), stumpMat);
+    stump.position.y = 0.225;
     group.add(stump);
 
-    // Bigorna de Ferro Escuro
+    // Bigorna de Ferro Escuro (altura total de trabalho ~72cm, perfeito para o anão)
     var ironMat = new THREE.MeshStandardMaterial({ color: 0x242830, metalness: 0.85, roughness: 0.35 });
     
     // Base da bigorna
-    var base = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.14, 0.32), ironMat);
-    base.position.y = 0.72;
+    var base = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.08, 0.20), ironMat);
+    base.position.y = 0.49;
     group.add(base);
 
     // Cintura e corpo
-    var waist = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.22, 0.22), ironMat);
-    waist.position.y = 0.88;
+    var waist = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.14), ironMat);
+    waist.position.y = 0.60;
     group.add(waist);
 
     // Mesa de bater (Face plana superior)
-    var face = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.12, 0.28), ironMat);
-    face.position.y = 1.02;
+    var face = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.08, 0.18), ironMat);
+    face.position.y = 0.71;
     group.add(face);
 
     // Chifre cônico da bigorna
-    var horn = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.35, 12), ironMat);
+    var horn = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 12), ironMat);
     horn.rotation.z = -Math.PI / 2;
-    horn.position.set(-0.48, 1.02, 0);
+    horn.position.set(-0.32, 0.71, 0);
     group.add(horn);
 
     // Martelo do ferreiro repousando na bigorna
     var woodHandleMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.8 });
-    var handle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.45, 8), woodHandleMat);
+    var handle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.018, 0.30, 8), woodHandleMat);
     handle.rotation.z = Math.PI / 3;
-    handle.position.set(0.1, 1.1, 0.05);
+    handle.position.set(0.06, 0.78, 0.03);
 
-    var hammerHead = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.14), ironMat);
-    hammerHead.position.set(0.22, 1.18, 0.05);
+    var hammerHead = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.10), ironMat);
+    hammerHead.position.set(0.15, 0.83, 0.03);
     group.add(handle, hammerHead);
 
     // Braseiro da forja incandescente ao lado da bigorna
     var forgeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.9 });
-    var forgeBase = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.32, 0.55, 12), forgeMat);
-    forgeBase.position.set(0.9, 0.275, -0.2);
+    var forgeBase = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.20, 0.42, 12), forgeMat);
+    forgeBase.position.set(0.65, 0.21, -0.15);
     group.add(forgeBase);
 
     // Brasas brilhantes
     var coalMat = new THREE.MeshBasicMaterial({ color: 0xff4400 });
-    var coals = new THREE.Mesh(new THREE.SphereGeometry(0.35, 10, 8), coalMat);
+    var coals = new THREE.Mesh(new THREE.SphereGeometry(0.20, 8, 6), coalMat);
     coals.scale.set(1, 0.3, 1);
-    coals.position.set(0.9, 0.56, -0.2);
+    coals.position.set(0.65, 0.43, -0.15);
     group.add(coals);
 
     // Luz incandescente da forja
-    var forgeLight = new THREE.PointLight(0xff6600, 3.2, 5.0);
-    forgeLight.position.set(0.9, 0.75, -0.2);
+    var forgeLight = new THREE.PointLight(0xff6600, 2.0, 4.0);
+    forgeLight.position.set(0.65, 0.58, -0.15);
     group.add(forgeLight);
 
     return group;
@@ -686,13 +686,13 @@
 
     // Tapete místico cerimonial dos Sete Selos no piso
     var carpetMat = new THREE.MeshStandardMaterial({ color: 0x2e0854, roughness: 0.85 });
-    var carpet = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.02, 24), carpetMat);
+    var carpet = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.02, 24), carpetMat);
     carpet.position.y = 0.01;
     group.add(carpet);
 
     // Anel de runas arcanas no tapete
     var runeMat = new THREE.MeshBasicMaterial({ color: 0xc084fc, transparent: true, opacity: 0.65 });
-    var runeRing = new THREE.Mesh(new THREE.RingGeometry(1.2, 1.45, 24), runeMat);
+    var runeRing = new THREE.Mesh(new THREE.RingGeometry(0.80, 0.98, 24), runeMat);
     runeRing.rotation.x = -Math.PI / 2;
     runeRing.position.y = 0.025;
     group.add(runeRing);
@@ -701,23 +701,23 @@
     var woodChestMat = new THREE.MeshStandardMaterial({ color: 0x3d1d12, roughness: 0.6 });
     var goldTrimMat = new THREE.MeshStandardMaterial({ color: 0xf5c451, metalness: 0.9, roughness: 0.25 });
 
-    var chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 0.45), woodChestMat);
-    chestBase.position.set(0.85, 0.21, 0.4);
+    var chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.30, 0.32), woodChestMat);
+    chestBase.position.set(0.60, 0.15, 0.30);
     group.add(chestBase);
 
-    var chestLid = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.7, 12, 1, false, 0, Math.PI), woodChestMat);
+    var chestLid = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.52, 12, 1, false, 0, Math.PI), woodChestMat);
     chestLid.rotation.z = Math.PI / 2;
-    chestLid.position.set(0.85, 0.42, 0.4);
+    chestLid.position.set(0.60, 0.30, 0.30);
     group.add(chestLid);
 
     // Guarnições douradas
-    var trim = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.06, 0.47), goldTrimMat);
-    trim.position.set(0.85, 0.38, 0.4);
+    var trim = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.04, 0.34), goldTrimMat);
+    trim.position.set(0.60, 0.28, 0.30);
     group.add(trim);
 
     // Luz mística do baú
-    var mammonLight = new THREE.PointLight(0xa855f7, 2.5, 4.5);
-    mammonLight.position.set(0.85, 0.6, 0.4);
+    var mammonLight = new THREE.PointLight(0xa855f7, 1.8, 3.5);
+    mammonLight.position.set(0.60, 0.45, 0.30);
     group.add(mammonLight);
 
     return group;
@@ -728,20 +728,20 @@
 
     // Pedestal de Teleporte em Pedra Escura
     var pedMat = new THREE.MeshStandardMaterial({ color: 0x1f273b, roughness: 0.8 });
-    var ped = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.35, 0.12, 24), pedMat);
-    ped.position.y = 0.06;
+    var ped = new THREE.Mesh(new THREE.CylinderGeometry(0.80, 0.90, 0.08, 24), pedMat);
+    ped.position.y = 0.04;
     group.add(ped);
 
     // Círculo Mágico de Teleporte Rúnico (Cyan Glow)
     var runeMat = new THREE.MeshBasicMaterial({ color: 0x00d5ff, transparent: true, opacity: 0.8 });
-    var runeCircle = new THREE.Mesh(new THREE.RingGeometry(0.85, 1.05, 32), runeMat);
+    var runeCircle = new THREE.Mesh(new THREE.RingGeometry(0.58, 0.74, 32), runeMat);
     runeCircle.rotation.x = -Math.PI / 2;
-    runeCircle.position.y = 0.125;
+    runeCircle.position.y = 0.085;
     group.add(runeCircle);
 
     // Luz de aura da GK
-    var gkLight = new THREE.PointLight(0x00d5ff, 2.2, 4.0);
-    gkLight.position.set(0, 0.8, 0);
+    var gkLight = new THREE.PointLight(0x00d5ff, 1.8, 3.5);
+    gkLight.position.set(0, 0.6, 0);
     group.add(gkLight);
 
     return group;
@@ -762,9 +762,12 @@
       group.add(config.decor);
     }
 
-    // Nameplate flutuante
+    // Nameplate flutuante ajustado à altura do NPC
     var npSprite = createNameplateSprite(config.data.subTitle, config.data.name, config.subColor, config.nameColor);
-    npSprite.position.set(0, 2.4, 0);
+    npSprite.position.set(0, config.nameY || 2.4, 0);
+    if(config.nameScaleX && config.nameScaleY) {
+      npSprite.scale.set(config.nameScaleX, config.nameScaleY, 1);
+    }
     group.add(npSprite);
 
     var npcObj = {
@@ -775,10 +778,17 @@
     };
     npcs.push(npcObj);
 
-    // Carregar modelo GLB
+    // Carregar modelo GLB com escala métrica proporcional (em metros!)
     gltfLoader.load(config.modelPath, function(gltf){
       var model = gltf.scene;
-      model.scale.set(config.scale || 1, config.scale || 1, config.scale || 1);
+      var s = config.scale || 0.05;
+      model.scale.set(s, s, s);
+      model.traverse(function(c){
+        if(c.isMesh){
+          c.castShadow = true;
+          c.receiveShadow = true;
+        }
+      });
       group.add(model);
 
       // Animation Mixer
@@ -796,10 +806,11 @@
     }, undefined, function(err){
       console.warn('NPC GLB fallback load:', config.data.name, err);
       // Fallback boneco simples se não carregar
-      var fallbackGeo = new THREE.CylinderGeometry(0.3, 0.35, 1.7, 12);
+      var targetH = config.targetH || 1.8;
+      var fallbackGeo = new THREE.CylinderGeometry(0.22, 0.28, targetH, 12);
       var fallbackMat = new THREE.MeshStandardMaterial({ color: config.fallbackColor || 0x4a75a0 });
       var fbMesh = new THREE.Mesh(fallbackGeo, fallbackMat);
-      fbMesh.position.y = 0.85;
+      fbMesh.position.y = targetH * 0.5;
       group.add(fbMesh);
     });
   }
@@ -812,7 +823,8 @@
     init: function(scene, gltfLoader){
       initUI();
 
-      // 1. Gatekeeper Clarissa (Na frente do Portal Dimensional da Cidade: x = -11.5, z = -11.5)
+      // 1. Gatekeeper Clarissa (Na frente do Portal Dimensional: x = -11.5, z = -11.5)
+      // Raw elf_f.glb = 43.56 de altura -> escala 2.15 / 43.56 ≈ 0.0494 (altura real de 2.15 metros)
       loadNpc(scene, gltfLoader, {
         data: GK_DATA,
         modelPath: 'assets/personagens/elf_f.glb',
@@ -820,7 +832,11 @@
         y: 0.0,
         z: -11.5,
         rotY: 0.65,
-        scale: 1.05,
+        scale: 2.15 / 43.56,
+        targetH: 2.15,
+        nameY: 2.45,
+        nameScaleX: 2.2,
+        nameScaleY: 0.55,
         subColor: '#00d5ff',
         nameColor: '#f5c451',
         decor: createGatekeeperDecor(),
@@ -828,6 +844,7 @@
       });
 
       // 2. Ferreiro Altran (Na praça leste, perto das forjas: x = 11.5, z = -8.5)
+      // Raw dwarf_m.glb = 34.48 de altura -> escala 1.60 / 34.48 ≈ 0.0464 (altura real de 1.60 metros para anão)
       loadNpc(scene, gltfLoader, {
         data: BLACKSMITH_DATA,
         modelPath: 'assets/personagens/dwarf_m.glb',
@@ -835,7 +852,11 @@
         y: 0.0,
         z: -8.5,
         rotY: -1.2,
-        scale: 1.15,
+        scale: 1.60 / 34.48,
+        targetH: 1.60,
+        nameY: 1.95,
+        nameScaleX: 2.0,
+        nameScaleY: 0.50,
         subColor: '#ff9d42',
         nameColor: '#f5c451',
         decor: createAnvilProp(),
@@ -843,6 +864,7 @@
       });
 
       // 3. Mercador dos Selos Mammon (No recanto místico: x = -16.0, z = 12.0)
+      // Raw magic_m.glb = 42.14 de altura -> escala 2.15 / 42.14 ≈ 0.0510 (altura real de 2.15 metros)
       loadNpc(scene, gltfLoader, {
         data: MAMMON_DATA,
         modelPath: 'assets/personagens/magic_m.glb',
@@ -850,7 +872,11 @@
         y: 0.0,
         z: 12.0,
         rotY: 1.1,
-        scale: 1.05,
+        scale: 2.15 / 42.14,
+        targetH: 2.15,
+        nameY: 2.45,
+        nameScaleX: 2.4,
+        nameScaleY: 0.60,
         subColor: '#c084fc',
         nameColor: '#f5c451',
         decor: createMammonDecor(),
