@@ -9,7 +9,7 @@
   "curvaXp": {
     "_nota": "Modelo por ABATES: abates para sair do nivel L = max(min, base*(L/ref)^expoente); XP para o nivel = abates * xpMob(L), com xpMob(L) = xpMobBase + xpMobPorNivel*L (XP de um mob do proprio nivel). Skills saem cedo; a dificuldade esta no nivel e nos pontos.",
     "abatesMin": 6,
-    "abatesBase": 40,
+    "abatesBase": 70,
     "abatesRef": 30,
     "expoente": 1.87,
     "xpMobBase": 10,
@@ -262,6 +262,8 @@
     "_nota": "O que cada atributo faz (valor acima do inicial da classe). dano: % de dano por ponto no atributo de dano da classe (FOR ou INT); VIT: vida, defesa % e regeneracao de estamina %; AGI: velocidade de corrida (fracao, com teto).",
     "danoPct": 0.5,
     "vidaPorVit": 6,
+    "vidaPorNivel": 5,
+    "_vidaPorNivel": "08/11 (rebalanceamento aprovado pelo dono): +5 de vida por nivel para todas as classes. Sem isso a vida do mago/guerreiro ficava parada e no Pantano morriam em ~11 golpes (na Cruma eram ~34).",
     "defesaPorVit": 0.05,
     "estaminaPorVit": 0.3,
     "corridaPorAgi": 0.001,

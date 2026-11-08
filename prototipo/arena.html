@@ -6634,7 +6634,7 @@ function applyStats(){
 
   Object.keys(INV.equip).forEach(function(slot){var it=findItem(INV.equip[slot]);if(it){var _st=statsDe(it);Object.keys(_st).forEach(function(k){ST[k]=(ST[k]||0)+_st[k];});}/* [ferreiro] com o bonus do encantamento */});
 
-  var AT=(function(){var PR=DATA.prog,c=PR&&PR.classes&&PR.classes[S.classe],e=PR&&PR.efeitos;if(!c||!e||!S.atr)return null;var b=c.inicial,d=function(k){return Math.max(0,(S.atr[k]|0)-(b[k]|0));};return {dano:d(c.danoAttr)*e.danoPct,vida:d('vit')*e.vidaPorVit,defesa:d('vit')*e.defesaPorVit,estamina:d('vit')*e.estaminaPorVit,run:Math.min(e.corridaMax,d('agi')*e.corridaPorAgi)};})();/* [atributos] pontos do status (U) */
+  var AT=(function(){var PR=DATA.prog,c=PR&&PR.classes&&PR.classes[S.classe],e=PR&&PR.efeitos;if(!c||!e||!S.atr)return null;var b=c.inicial,d=function(k){return Math.max(0,(S.atr[k]|0)-(b[k]|0));};return {dano:d(c.danoAttr)*e.danoPct,vida:d('vit')*e.vidaPorVit+((S.lvl||1)-1)*(e.vidaPorNivel||0),defesa:d('vit')*e.defesaPorVit,estamina:d('vit')*e.estaminaPorVit,run:Math.min(e.corridaMax,d('agi')*e.corridaPorAgi)};})();/* [atributos] pontos do status (U) */
   if(AT){ST.dano+=AT.dano;ST.vida+=AT.vida;ST.defesa+=AT.defesa;ST.estamina+=AT.estamina;}
   var CJ=null;try{CJ=ArmaGrau.conjunto(ITM,INV.equip,baseOf,findItem);}catch(_){}S.conj=CJ;if(CJ)ST.dano+=CJ.dano;/* [graus] set completo: +% de dano e de vida */
   RUN=P.run*(1+(AT?AT.run:0));
