@@ -466,6 +466,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=3"></script>
+<script src="js/perf_log.js?v=2"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
 </head>
@@ -9022,6 +9023,7 @@ Guardiao.init({
 /* <<< CLAUDE [guardiao] */
 /* >>> CLAUDE [net] 2026-10-28 — liga o cliente de rede (multiplayer) ao jogo */
 try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
+try{PerfLog.init(renderer,scene,function(){var o={pg:'arena'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 Net.init({
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
