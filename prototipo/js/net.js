@@ -178,6 +178,8 @@ export const Net = (function(){
     } else if(m.t === 'partyfim'){ N.grupo = null; ctx.sysMsg(m.m === 'expulso' ? 'Você foi expulso do grupo' : (m.m === 'dissolvido' ? 'O grupo foi desfeito' : 'Você saiu do grupo')); renderParty(); renderMenu();
     } else if(m.t === 'inv'){ if(ctx.inv) ctx.inv(m); }
     else if(m.t === 'drop'){ if(ctx.drop) ctx.drop(m); }
+    else if(m.t === 'usou'){ if(ctx.usou) ctx.usou(m); }
+    else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp); } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); } } }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
 
@@ -395,6 +397,8 @@ export const Net = (function(){
   };
   /* chamados pelo jogo */
   N.inv = function(k, uid, slot){ if(!N.on) return false; send({ t: 'inv', k: k, uid: uid || '', slot: slot || '' }); return true; };      /* inventario: o servidor decide */
+  N.loja = function(k, o){ if(!N.on) return false; send(Object.assign({ t: 'loja', k: k }, o || {})); return true; };
+  N.usar = function(id){ if(!N.on) return false; send({ t: 'usar', id: id }); return true; };
   N.chat = function(txt, c){ if(N.on) send({ t: 'chat', m: String(txt).slice(0, 120), c: c || '' }); return N.on; };      /* chat: '' geral, 'g' grupo */
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){

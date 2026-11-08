@@ -532,6 +532,7 @@
     avatar: '👁️',
     greeting: 'Hehehe... Shilen e Einhasad disputam os céus, mas aqui na terra é a Ancient Adena que dita o poder verdadeiro. O que um guerreiro mortal busca nas mãos do Mammon?',
     options: [
+      { icon: '🛒', label: 'Comprar e vender', tag: 'Loja', action: function(subBox){ closeDialog(); if(window.Loja) Loja.abrir('mammon'); } },   /* [Claude] loja do servidor (js/loja.js) */
       {
         icon: '💎',
         label: 'Troca de Pedras Seladas (Ancient Adena)',
@@ -626,6 +627,7 @@
     avatar: '🪙',
     greeting: 'Bem-vindo ao empório de armas e armaduras de Talking Island! Se você deseja desafiar os monstros de Curuma ou da Fortaleza, precisará de lâminas bem afiadas e proteção reforçada.',
     options: [
+      { icon: '🛒', label: 'Comprar e vender', tag: 'Loja', action: function(subBox){ closeDialog(); if(window.Loja) Loja.abrir('galladucci'); } },   /* [Claude] loja do servidor (js/loja.js) */
       {
         icon: '⚔️',
         label: 'Consultar Armas e Escudos (No-Grade, D e C)',

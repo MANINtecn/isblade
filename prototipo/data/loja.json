@@ -1,0 +1,12 @@
+{
+  "_nota": "Loja dos NPCs (servidor/inventario.js le daqui; js/loja.js mostra). consumiveis: o que se compra e se usa (cura = fracao da vida maxima; volta = pergaminho que leva para a cidade; recarga em segundos). venda: adena que o comerciante paga por item de equipamento, pela raridade. lojas: o que cada NPC vende. Soulshot entra quando o bonus de dano dele existir.",
+  "consumiveis": {
+    "pocao_vida": { "nome": "Poção de Vida", "preco": 40, "cura": 0.3, "recarga": 10, "desc": "Recupera 30% da vida. Tecla H." },
+    "pergaminho_volta": { "nome": "Pergaminho de Volta", "preco": 150, "volta": true, "recarga": 5, "desc": "Leva você de volta para Talking Island." }
+  },
+  "venda": { "normal": 25, "raro": 90, "epico": 350, "lendario": 1500 },
+  "lojas": {
+    "galladucci": ["pocao_vida", "pergaminho_volta"],
+    "mammon": ["pocao_vida", "pergaminho_volta"]
+  }
+}

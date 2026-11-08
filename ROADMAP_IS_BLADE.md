@@ -68,7 +68,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [x] **Mensagens de sistema estilo L2** no chat (XP, adena, item, nível, "Você entrou em: ..." e todos os avisos do sistema) e **janela do alvo** para mob e chefe (`js/alvo_l2.js`): nome colorido pela diferença de nível como no L2, nível e vida. (Claude, 08/11)
 - [ ] **NPCs com função real** (os 3 do Gemini viram de verdade + 1 novo). Em 08/11 o dono pediu ao Gemini para corrigir o tamanho (estavam gigantes); a função vem depois:
   - Gatekeeper Clarissa: fica na cidade; uso ainda a decidir (talvez teleporte pago para os 4 mapas, os portais continuam). **P**
-  - Comerciante (Mammon): vende poção de vida, soulshot, pergaminho de volta à cidade; compra drops. **M**
+  - [x] Comerciante: **Galladucci e Mammon** abrem a loja (`js/loja.js` + `data/loja.json`, tudo validado no servidor): Poção de Vida (40 A, cura 30%, recarga 10 s, tecla H / botão POÇÃO no celular) e Pergaminho de Volta (150 A); compram equipamento por raridade (25/90/350/1500 A). (Claude, 08/11) FALTA: soulshot (quando o bônus de dano existir).
   - Ferreiro Altran: encantamento no servidor (+1..+16, seguro até +3, risco de quebra depois), com brilho na arma a partir de +4. **M**
   - Armazém (novo): guardar itens da conta. **M**
   (Gemini: modelos/cenário dos NPCs · Claude: regras no servidor)

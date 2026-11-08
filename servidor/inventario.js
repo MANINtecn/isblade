@@ -6,10 +6,11 @@
    raridade melhor nas dificuldades maiores (dungeon.json -> difficulties[].rarityBoost). */
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const DADOS = path.join(__dirname, '..', 'prototipo', 'data');
-let D = null, DG = null;
+let D = null, DG = null, LJ = null;
 function carrega(){
   try { D = JSON.parse(fs.readFileSync(path.join(DADOS, 'itens.json'), 'utf8')); } catch(e){ console.error('inventario: sem itens.json', e.message); }
   try { DG = JSON.parse(fs.readFileSync(path.join(DADOS, 'dungeon.json'), 'utf8')); } catch(e){ DG = null; }
+  try { LJ = JSON.parse(fs.readFileSync(path.join(DADOS, 'loja.json'), 'utf8')); } catch(e){ LJ = null; console.error('inventario: sem loja.json', e.message); }
 }
 carrega();
 const r1 = n => Math.round(n * 10) / 10;
@@ -41,7 +42,35 @@ function garante(pers){
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
   if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaDaClasse(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaDaClasse(pers)); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
   inv.adena = Math.max(0, Math.floor(+inv.adena || 0));
+  if(!inv.consum || typeof inv.consum !== 'object') inv.consum = {};
+  for(const k of Object.keys(inv.consum)){ const n = Math.floor(+inv.consum[k] || 0); if(n > 0 && LJ && LJ.consumiveis[k]) inv.consum[k] = n; else delete inv.consum[k]; }
   return inv;
+}
+
+/* ---- loja (data/loja.json): comprar consumivel, vender equipamento, usar consumivel ---- */
+const MAX_PILHA = 999;
+function comprar(pers, loja, id, qtd){
+  const inv = garante(pers); if(!inv || !LJ) return 'Loja indisponivel.';
+  const lista = LJ.lojas[loja]; if(!lista || lista.indexOf(id) < 0) return 'Esse comerciante nao vende isso.';
+  const c = LJ.consumiveis[id]; qtd = Math.floor(+qtd || 0); if(!c || qtd < 1 || qtd > 100) return 'Quantidade invalida.';
+  if((inv.consum[id] || 0) + qtd > MAX_PILHA) return 'Voce ja carrega o maximo desse item.';
+  const total = c.preco * qtd; if(inv.adena < total) return 'Adena insuficiente (precisa de ' + total + ').';
+  inv.adena -= total; inv.consum[id] = (inv.consum[id] || 0) + qtd; return '';
+}
+function vender(pers, uid){
+  const inv = garante(pers); if(!inv || !LJ) return { erro: 'Loja indisponivel.' };
+  if(equipado(inv, uid)) return { erro: 'Tire o item antes de vender.' };
+  const it = inv.items.find(i => i.uid === uid); if(!it) return { erro: 'Item nao encontrado.' };
+  const v = LJ.venda[it.rar] || 1; inv.items = inv.items.filter(i => i.uid !== uid); inv.adena += v; return { erro: '', valor: v, base: it.base, rar: it.rar };
+}
+/* usar: gasta 1 e devolve o efeito ({cura} ou {volta}); a recarga fica no objeto do jogador conectado (usoT) */
+function usar(pers, J, id, agora){
+  const inv = garante(pers); if(!inv || !LJ) return { erro: 'Indisponivel.' };
+  const c = LJ.consumiveis[id]; if(!c) return { erro: 'Item desconhecido.' };
+  if(!(inv.consum[id] > 0)) return { erro: 'Voce nao tem ' + c.nome + '.' };
+  J.usoT = J.usoT || {}; const falta = (J.usoT[id] || 0) - agora; if(falta > 0) return { erro: c.nome + ': aguarde ' + Math.ceil(falta) + ' s.' };
+  J.usoT[id] = agora + (c.recarga || 0); inv.consum[id]--; if(!inv.consum[id]) delete inv.consum[id];
+  return { erro: '', id, nome: c.nome, cura: c.cura || 0, volta: !!c.volta };
 }
 
 /* pedido do cliente: {k:'equip', uid} | {k:'tirar', slot} | {k:'descartar', uid}. Devolve '' (ok) ou a mensagem de erro. */
@@ -77,4 +106,4 @@ function abate(pers, tipo, dif, xpDoAbate){
   return { adena, itens, cheia: tipo === 'boss' && inv.items.length >= D.bagMax };
 }
 
-module.exports = { recarrega: carrega, garante, pedido, abate };
+module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, loja: () => LJ };

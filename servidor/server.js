@@ -237,6 +237,20 @@ wss.on('connection', ws => {
       const erro = Inv.pedido(J.pers, { k: String(m.k || ''), uid: String(m.uid || '').slice(0, 24), slot: String(m.slot || '').slice(0, 12) });
       if(!erro) Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined });
     }
+    else if(m.t === 'loja'){                                         /* comprar consumivel / vender equipamento (data/loja.json) */
+      const t = agora(); if(t - (J.lojaT || 0) < .15 || !J.pers) return; J.lojaT = t; let erro = '', aviso = '';
+      if(m.k === 'comprar'){ const id = String(m.id || '').slice(0, 24), q = m.qtd | 0; erro = Inv.comprar(J.pers, String(m.loja || '').slice(0, 24), id, q); if(!erro) aviso = 'Você comprou ' + q + 'x ' + Inv.loja().consumiveis[id].nome + '.'; }
+      else if(m.k === 'vender'){ const r = Inv.vender(J.pers, String(m.uid || '').slice(0, 24)); erro = r.erro; if(!erro) aviso = 'Item vendido por ' + r.valor + ' Adena.'; }
+      else erro = 'Pedido desconhecido.';
+      if(!erro) Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined, aviso: aviso || undefined });
+    }
+    else if(m.t === 'usar'){                                         /* consumivel: o servidor gasta, confere a recarga e devolve o efeito */
+      if(!J.pers) return; const r = Inv.usar(J.pers, J, String(m.id || '').slice(0, 24), agora());
+      if(r.erro){ envia(J, { t: 'inv', inv: J.pers.inv, erro: r.erro }); return; }
+      Contas.grava(); let hp;
+      if(r.cura && c.mapa !== 'masmorra' && !J.morto){ J.hp = Math.min(J.pmax, J.hp + Math.round(J.pmax * r.cura)); hp = J.hp; difunde(c, { t: 'cura', v: J.id, hp: J.hp }); }      /* PvP e cidade: a vida e do servidor */
+      envia(J, { t: 'usou', id: r.id, nome: r.nome, cura: r.cura, volta: r.volta ? 1 : 0, hp }); envia(J, { t: 'inv', inv: J.pers.inv });
+    }
     else if(m.t === 'attr'){                                         /* distribuir pontos de atributo: o servidor valida e devolve o estado (prog) */
       const t = agora(); if(t - (J.attrT || 0) < .1) return; J.attrT = t; if(J.pers && Prog.distribui(J.pers, m.v)) Contas.grava(); enviaProg(J);
     }
