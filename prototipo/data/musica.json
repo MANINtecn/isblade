@@ -1,0 +1,20 @@
+{
+  "_nota": "Musica por lugar (js/musica.js). Arquivos do cliente Interlude (pasta music) copiados para assets/musica/. Para trocar a musica de um lugar, copie o .ogg do cliente para assets/musica/ e mude o nome aqui; suba 'v' para o navegador baixar de novo. Escolha inicial pelo nome do arquivo (nt_speaking = Talking Island, ct_* = criacao por raca, s_tower = Torre, bs = chefe, b = batalha, d = masmorra/campo); o dono confere ouvindo.",
+  "v": 1,
+  "volumePadrao": 0.35,
+  "lugares": {
+    "lobby": "intro.ogg",
+    "ct_human": "ct_human.ogg",
+    "ct_elf": "ct_elf.ogg",
+    "ct_darkelf": "ct_darkelf.ogg",
+    "ct_orc": "ct_orc.ogg",
+    "ct_dwarf": "ct_dwarf.ogg",
+    "cidade": "nt_speaking.ogg",
+    "torre": "s_tower.ogg",
+    "chefe": "bs01_a.ogg",
+    "pvp": "b01_f.ogg",
+    "curuma": "d01_f.ogg",
+    "fortress": "d02_f.ogg",
+    "blazing_swamp": "d03_f.ogg"
+  }
+}

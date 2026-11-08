@@ -64,7 +64,7 @@ Legenda: `[ ]` a fazer · `[~]` em andamento · `[x]` feito · **P** pequeno (ho
 - [ ] Trocar a senha da VPS (apareceu em imagem) e deixar o repositório privado. **P** (Dono)
 
 ### FASE 1 — Imersão na cidade (Talking Island vira o coração do jogo, ~2 semanas)
-- [ ] **Música e ambiente:** tocar as músicas do cliente Interlude por lugar (cidade, cada mapa, DG, Baium), com troca suave e volume em Config; sons de interface do L2 (abrir janela, clique, item). **M** (Claude)
+- [~] **Música e ambiente:** FEITO (08/11): faixas do cliente Interlude por lugar (`js/musica.js` + `data/musica.json`): lobby `intro`, criação `ct_<raça>`, cidade `nt_speaking`, Torre `s_tower`, chefe `bs01_a`, PvP `b01_f`, Curuma/Fortaleza/Pântano `d01/d02/d03_f`; troca suave, controle "Música" nas Config, respeita o Mudo. O dono confere ouvindo e troca no json. FALTA: sons de interface do L2 (abrir janela, clique, item) e ambiente (vento, água, pássaros). **M** (Claude)
 - [ ] **Mensagens de sistema estilo L2** (XP, adena, item, nível, entrar em zona) e **janela do alvo** com nome, nível e vida. **P** (Claude)
 - [ ] **NPCs com função real** (os 3 do Gemini viram de verdade + 1 novo). Em 08/11 o dono pediu ao Gemini para corrigir o tamanho (estavam gigantes); a função vem depois:
   - Gatekeeper Clarissa: fica na cidade; uso ainda a decidir (talvez teleporte pago para os 4 mapas, os portais continuam). **P**
