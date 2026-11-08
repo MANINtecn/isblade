@@ -39,6 +39,7 @@ function garante(pers){
     pers.inv = inv;
   }
   inv.items = inv.items.filter(i => i && baseDe(i.base) && D.rarities[i.rar]);
+  const mx = (LJ && LJ.encantar && LJ.encantar.max) || 16; for(const i of inv.items){ const e = Math.floor(+i.en || 0); if(e > 0) i.en = Math.min(mx, e); else delete i.en; }
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
   if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaDaClasse(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaDaClasse(pers)); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
   inv.adena = Math.max(0, Math.floor(+inv.adena || 0));
@@ -73,6 +74,23 @@ function usar(pers, J, id, agora){
   return { erro: '', id, nome: c.nome, cura: c.cura || 0, volta: !!c.volta };
 }
 
+/* ---- ferreiro Altran (data/loja.json -> encantar): +1..+max; ate 'seguro' nunca falha; depois a falha QUEBRA o item (como no L2) ---- */
+function chanceEnc(E, alvo){ if(alvo <= E.seguro) return 1; for(const [ate, c] of E.chance) if(alvo <= ate) return c; return E.chance[E.chance.length - 1][1]; }
+function custoEnc(E, b, alvo){ return (b.slot === 'weapon' ? E.custo.arma : E.custo.armadura) * alvo; }
+function encantar(pers, uid){
+  const inv = garante(pers), E = LJ && LJ.encantar; if(!inv || !E) return { erro: 'O ferreiro nao esta atendendo.' };
+  const it = inv.items.find(i => i.uid === uid); if(!it) return { erro: 'Item nao encontrado.' };
+  const b = baseDe(it.base), atual = it.en | 0, alvo = atual + 1; if(atual >= E.max) return { erro: 'Esse item ja esta no maximo (+' + E.max + ').' };
+  const custo = custoEnc(E, b, alvo); if(inv.adena < custo) return { erro: 'Adena insuficiente (precisa de ' + custo + ').' };
+  inv.adena -= custo;
+  if(Math.random() < chanceEnc(E, alvo)){ it.en = alvo; return { erro: '', ok: true, nivel: alvo, nome: b.name, slot: b.slot }; }
+  const eq = equipado(inv, uid); inv.items = inv.items.filter(i => i.uid !== uid); for(const s of Object.keys(inv.equip)) if(inv.equip[s] === uid) delete inv.equip[s];
+  garante(pers);                                                    /* arma quebrada: volta a arma basica da classe (sempre ha uma arma) */
+  return { erro: '', ok: false, quebrou: true, nivel: atual, nome: b.name, slot: b.slot, equipado: eq };
+}
+/* encantamento da arma equipada (para o brilho que os outros jogadores veem) */
+function encArma(pers){ const inv = pers && pers.inv; if(!inv || !inv.equip) return 0; const it = (inv.items || []).find(i => i.uid === inv.equip.weapon); return (it && it.en) | 0; }
+
 /* pedido do cliente: {k:'equip', uid} | {k:'tirar', slot} | {k:'descartar', uid}. Devolve '' (ok) ou a mensagem de erro. */
 function pedido(pers, m){
   const inv = garante(pers); if(!inv) return 'Inventario indisponivel.';
@@ -106,4 +124,4 @@ function abate(pers, tipo, dif, xpDoAbate){
   return { adena, itens, cheia: tipo === 'boss' && inv.items.length >= D.bagMax };
 }
 
-module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, loja: () => LJ };
+module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, loja: () => LJ };

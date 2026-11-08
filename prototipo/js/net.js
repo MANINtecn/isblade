@@ -97,15 +97,16 @@ export const Net = (function(){
   function addRemoto(p){
     if(remotos.has(p.id)) return;
     var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
-    e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e);
+    e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e); e.en = p.en | 0; brilho(e);
     ctx.loadL2(heroUrl(p.raca), function(r){
       if(!remotos.has(e.id)){ return; }
       e.rig = r; e.grp.add(r.root); r.drv = { mixer: new THREE.AnimationMixer(r.root), actions: {}, cur: null, curName: '', hold: 0 }; r.tipo = e.raca; ctx.anexar(r, THREE);
       aplicaArma(e); criaTag(e); tocar(e, e.morto ? 'death' : 'idle');
     });
   }
+  function brilho(e){ if(window.Brilho) Brilho.aplica('r' + e.id, function(){ return e.rig; }, e.en | 0); }      /* arma encantada +4: brilha para todos */
   function removeRemoto(id){
-    var e = remotos.get(id); if(!e) return; ctx.scene.remove(e.grp);
+    var e = remotos.get(id); if(!e) return; ctx.scene.remove(e.grp); if(window.Brilho) Brilho.tira('r' + id);
     e.grp.traverse(function(o){ if(o.material && o.material.map && o === (e.tag && e.tag.sp)) { o.material.map.dispose(); o.material.dispose(); } });
     remotos.delete(id);
   }
@@ -179,6 +180,8 @@ export const Net = (function(){
     } else if(m.t === 'inv'){ if(ctx.inv) ctx.inv(m); }
     else if(m.t === 'drop'){ if(ctx.drop) ctx.drop(m); }
     else if(m.t === 'usou'){ if(ctx.usou) ctx.usou(m); }
+    else if(m.t === 'enc'){ if(ctx.enc) ctx.enc(m); }
+    else if(m.t === 'en'){ e = remotos.get(m.v); if(e){ e.en = m.en | 0; brilho(e); } }
     else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp); } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); } } }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }

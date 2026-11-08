@@ -2,11 +2,19 @@
    Uso na pagina:  Loja.init({ estado: function(){ return { srv, adena, consum: {id: qtd}, bolsa: [{uid, nome, rar, cor, raridade}] }; },
                                comprar: function(loja, id, qtd){}, vender: function(uid){}, usar: function(id){} });
    Loja.abrir('galladucci') abre a janela; Loja.atualiza() redesenha (chamar quando o inventario muda).
-   Tecla H = Pocao de Vida (PC); no celular aparece o botao POCAO com a quantidade. */
+   Tecla H = Pocao de Vida (PC); no celular aparece o botao POCAO com a quantidade.
+   Loja.abrir('altran') = ferreiro: encantar arma/armadura (estado().todos = [{uid, nome, rar, cor, raridade, en, slot, equip}]; op.encantar(uid)).
+   Loja.stats(item) = status do item com o bonus do encantamento (a pagina usa nos status e no inventario). */
 (function(){
   var L = window.Loja = {}, D = null, op = {}, el = null, lojaAtual = '', aba = 'comprar', btn = null;
   fetch('data/loja.json?v=' + Date.now().toString().slice(0, -5)).then(function(r){ return r.json(); }).then(function(j){ D = j; L.atualiza(); }).catch(function(e){ console.warn('Loja: sem data/loja.json', e); });
   L.dados = function(){ return D; };
+  /* encantamento (data/loja.json -> encantar): bonus nos status, chance e custo da proxima tentativa (o servidor usa as mesmas regras) */
+  function E(){ return D && D.encantar; }
+  L.bonusEnc = function(n){ var e = E(); n = n | 0; if(!e || !n) return 0; return Math.min(n, e.seguro) * e.bonus.ate_seguro + Math.max(0, n - e.seguro) * e.bonus.acima; };
+  L.stats = function(it){ if(!it || !it.stats) return {}; var f = 1 + L.bonusEnc(it.en), o = {}; for(var k in it.stats) o[k] = Math.round(it.stats[k] * f * 10) / 10; return o; };
+  function chanceEnc(alvo){ var e = E(); if(alvo <= e.seguro) return 1; for(var i = 0; i < e.chance.length; i++) if(alvo <= e.chance[i][0]) return e.chance[i][1]; return e.chance[e.chance.length - 1][1]; }
+  function custoEnc(slot, alvo){ var e = E(); return (slot === 'weapon' ? e.custo.arma : e.custo.armadura) * alvo; }
   L.nome = function(id){ return (D && D.consumiveis[id] && D.consumiveis[id].nome) || id; };
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function toque(){ return !!(window.QUAL && QUAL.touch); }
@@ -26,10 +34,20 @@
   }
   function desenha(){
     if(!el || el.style.display === 'none') return;
-    var s = op.estado ? op.estado() : {}, h = '<div class="hd"><b>' + (lojaAtual === 'mammon' ? 'MAMMON' : 'GALLADUCCI') + '</b><span class="ad">Adena: ' + ((s.adena | 0).toLocaleString('pt-BR')) + '</span><button type="button" data-x="1">Fechar</button></div>' +
-      '<div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" data-aba="comprar" class="' + (aba === 'comprar' ? 'on' : '') + '">Comprar</button><button type="button" data-aba="vender" class="' + (aba === 'vender' ? 'on' : '') + '">Vender</button></div>';
-    if(!s.srv) h += '<div class="msg">A loja só funciona conectado ao servidor.</div>';
+    var s = op.estado ? op.estado() : {}, fer = lojaAtual === 'altran', h = '<div class="hd"><b>' + (fer ? 'ALTRAN · FORJA' : lojaAtual === 'mammon' ? 'MAMMON' : 'GALLADUCCI') + '</b><span class="ad">Adena: ' + ((s.adena | 0).toLocaleString('pt-BR')) + '</span><button type="button" data-x="1">Fechar</button></div>' +
+      (fer ? '' : '<div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" data-aba="comprar" class="' + (aba === 'comprar' ? 'on' : '') + '">Comprar</button><button type="button" data-aba="vender" class="' + (aba === 'vender' ? 'on' : '') + '">Vender</button></div>');
+    if(!s.srv) h += '<div class="msg">' + (fer ? 'A forja' : 'A loja') + ' só funciona conectado ao servidor.</div>';
     else if(!D) h += '<div class="msg">Carregando...</div>';
+    else if(fer){
+      var e = E();
+      h += '<div class="msg" style="margin:0 0 6px">Até +' + e.seguro + ' é seguro. Depois, se falhar, o item <b style="color:#ff8a5a">quebra</b>. A arma brilha a partir de +4.</div>';
+      (s.todos || []).forEach(function(it){
+        var n = it.en | 0, alvo = n + 1, max = n >= e.max, ch = max ? 0 : chanceEnc(alvo), cu = max ? 0 : custoEnc(it.slot, alvo), bc = window.Brilho ? Brilho.cor(n) : null;
+        h += '<div class="ln"><div class="n"><b style="color:' + esc(it.cor || '#fff') + '">' + (n ? '+' + n + ' ' : '') + esc(it.nome) + '</b>' + (bc ? ' <span style="color:' + bc + '">◆</span>' : '') + (it.equip ? ' <small style="display:inline;color:#7dff9a">equipado</small>' : '') +
+          '<small>' + (max ? 'Máximo' : '+' + alvo + ': ' + (ch >= 1 ? '<span style="color:#7dff9a">seguro</span>' : '<span style="color:#ffb35a">' + Math.round(ch * 100) + '% (falha quebra)</span>') + ' · bônus +' + Math.round(L.bonusEnc(alvo) * 100) + '% nos status') + '</small></div>' +
+          '<span class="pr">' + (max ? '' : cu + ' A') + '</span>' + (max ? '' : '<button type="button" data-e="' + esc(it.uid) + '"' + (ch < 1 ? ' data-risco="1"' : '') + '>Encantar</button>') + '</div>';
+      });
+    }
     else if(aba === 'comprar'){
       (D.lojas[lojaAtual] || []).forEach(function(id){
         var c = D.consumiveis[id]; if(!c) return; var tem = (s.consum && s.consum[id]) | 0;
@@ -47,6 +65,9 @@
     [].forEach.call(el.querySelectorAll('[data-aba]'), function(x){ x.onclick = function(){ aba = x.getAttribute('data-aba'); L._msg = ''; desenha(); }; });
     [].forEach.call(el.querySelectorAll('[data-c]'), function(x){ x.onclick = function(){ if(op.comprar) op.comprar(lojaAtual, x.getAttribute('data-c'), +x.getAttribute('data-q')); }; });
     [].forEach.call(el.querySelectorAll('[data-v]'), function(x){ x.onclick = function(){ if(op.vender) op.vender(x.getAttribute('data-v')); }; });
+    [].forEach.call(el.querySelectorAll('[data-e]'), function(x){ x.onclick = function(){
+      if(x.getAttribute('data-risco') && !x.getAttribute('data-ok')){ x.setAttribute('data-ok', '1'); x.textContent = 'Confirmar?'; x.style.background = '#5a2416'; return; }   /* com risco: 2o toque confirma */
+      if(op.encantar) op.encantar(x.getAttribute('data-e')); }; });
   }
   function botao(){
     if(!toque() || !document.body) return;

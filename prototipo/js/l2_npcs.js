@@ -432,6 +432,7 @@
         label: 'Encantamento Sagrado (+1 a +16)',
         tag: 'Forja',
         action: function(subBox){
+          if(window.Loja && Loja.stats){ closeDialog(); Loja.abrir('altran'); return; }   /* [Claude] encantamento de verdade, no servidor (js/loja.js); o de baixo era so visual */
           subBox.style.display = 'block';
           function renderEnchantUI(){
             var glowClass = enchantLevel >= 15 ? 'high-enchant' : (enchantLevel >= 4 ? 'enchanted' : '');

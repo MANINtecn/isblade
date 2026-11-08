@@ -43,6 +43,7 @@ function premia(J, tipo, dif, xp){                                   /* adena (e
   const r = Inv.abate(J.pers, tipo, dif, xp); if(!r) return; Contas.grava();
   envia(J, { t: 'drop', adena: r.adena, itens: r.itens, cheia: r.cheia ? 1 : 0 }); envia(J, { t: 'inv', inv: J.pers.inv });
 }
+function avisaEnc(c, J){ const e = Inv.encArma(J.pers); if(e !== (J.enV | 0)){ J.enV = e; difunde(c, { t: 'en', v: J.id, en: e }, J); } }       /* brilho da arma: os outros veem */
 function enviaProg(J){ if(J.pers) envia(J, Object.assign({ t: 'prog' }, Prog.info(J.pers))); }
 const pmaxMax = p => Prog.pmaxMax(p || { level: 1 });                 /* vida maxima aceita: base + equipamento + nivel + vitalidade (o cliente nao pode declarar mais que isso) */
 
@@ -72,7 +73,7 @@ function posSpawn(c, J){
 }
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
-const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
+const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
 
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */
@@ -214,7 +215,7 @@ wss.on('connection', ws => {
             sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
       const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = Math.PI;
       if(mapa === 'cidade' && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 600 && Math.abs(m.z) < 600){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
-      J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J);
+      J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J); J.enV = Inv.encArma(pers);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
       envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
@@ -235,11 +236,15 @@ wss.on('connection', ws => {
     else if(m.t === 'inv'){                                          /* equipar / tirar / descartar: o servidor valida e devolve o estado */
       const t = agora(); if(t - (J.invT || 0) < .08 || !J.pers) return; J.invT = t;
       const erro = Inv.pedido(J.pers, { k: String(m.k || ''), uid: String(m.uid || '').slice(0, 24), slot: String(m.slot || '').slice(0, 12) });
-      if(!erro) Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined });
+      if(!erro) Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined }); avisaEnc(c, J);
     }
     else if(m.t === 'loja'){                                         /* comprar consumivel / vender equipamento (data/loja.json) */
       const t = agora(); if(t - (J.lojaT || 0) < .15 || !J.pers) return; J.lojaT = t; let erro = '', aviso = '';
       if(m.k === 'comprar'){ const id = String(m.id || '').slice(0, 24), q = m.qtd | 0; erro = Inv.comprar(J.pers, String(m.loja || '').slice(0, 24), id, q); if(!erro) aviso = 'Você comprou ' + q + 'x ' + Inv.loja().consumiveis[id].nome + '.'; }
+      else if(m.k === 'encantar'){                                   /* ferreiro Altran */
+        const r = Inv.encantar(J.pers, String(m.uid || '').slice(0, 24)); erro = r.erro;
+        if(!erro){ aviso = r.ok ? 'Encantamento bem-sucedido: ' + r.nome + ' +' + r.nivel + '.' : 'O encantamento falhou e ' + r.nome + ' +' + r.nivel + ' se quebrou.'; Contas.grava(); envia(J, { t: 'enc', ok: r.ok ? 1 : 0, nivel: r.nivel, nome: r.nome, slot: r.slot }); avisaEnc(c, J); }
+      }
       else if(m.k === 'vender'){ const r = Inv.vender(J.pers, String(m.uid || '').slice(0, 24)); erro = r.erro; if(!erro) aviso = 'Item vendido por ' + r.valor + ' Adena.'; }
       else erro = 'Pedido desconhecido.';
       if(!erro) Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv, erro: erro || undefined, aviso: aviso || undefined });

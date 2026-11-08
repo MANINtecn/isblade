@@ -784,7 +784,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/chat.js?v=2"></script>
 <script src="js/musica.js?v=1"></script>
 <script src="js/alvo_l2.js?v=1"></script>
-<script src="js/loja.js?v=1"></script>
+<script src="js/loja.js?v=2"></script>
+<script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js?v=2"></script>
 <script src="js/l2_npcs.js?v=2"></script>
@@ -1322,7 +1323,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=27';
+import { Net } from './js/net.js?v=28';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -12442,17 +12443,22 @@ function invDoServidor(m){
   if(!m||!m.inv||!Array.isArray(m.inv.items))return;
   INV={items:m.inv.items,equip:m.inv.equip||{}};ADENA=m.inv.adena|0;CONSUM=m.inv.consum||{};INV_SRV=true;
   var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&b.weapon!==WPN)setWeapon(b.weapon);
+  try{Brilho.aplica('eu',function(){return vrm;},w?(w.en|0):0);}catch(_){}/* [ferreiro] brilho da arma a partir de +4 */
   applyStats();renderInv();if(m.erro){gestMsg(m.erro);try{Loja.aviso(m.erro);}catch(_){}}
   if(m.aviso){try{Chat.sistema(m.aviso);Loja.aviso(m.aviso);}catch(_){}}
   try{Loja.atualiza();}catch(_){}
 }
 /* [loja] consumiveis e loja (js/loja.js + data/loja.json): o servidor gasta e devolve o efeito */
-function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name};})};}
+function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name};})};}
 function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead)return;Net.usar(id);}
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
   if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');try{SFX.play('ui');}catch(_){}renderHud();}
   if(m.volta){banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
+}
+function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario chega junto) */
+  if(m.ok){banner('ENCANTAMENTO +'+m.nivel,m.nome+' ficou mais forte.',(window.Brilho&&Brilho.cor(m.nivel))||'#7dff9a');try{SFX.play('levelup');}catch(_){}}
+  else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');try{SFX.play('hit');}catch(_){}}
 }
 function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
 function dropRecebido(m){
@@ -12472,7 +12478,7 @@ function applyStats(){
 
 
 
-  Object.keys(INV.equip).forEach(function(slot){var it=findItem(INV.equip[slot]);if(it)Object.keys(it.stats).forEach(function(k){ST[k]=(ST[k]||0)+it.stats[k];});});
+  Object.keys(INV.equip).forEach(function(slot){var it=findItem(INV.equip[slot]);if(it){var _st=statsDe(it);Object.keys(_st).forEach(function(k){ST[k]=(ST[k]||0)+_st[k];});}/* [ferreiro] com o bonus do encantamento */});
 
 
 
@@ -12655,7 +12661,8 @@ function dropLoot(){
 
 
 
-function itemName(it){return baseOf(it.base).name;}
+function itemName(it){return ((it.en|0)?'+'+(it.en|0)+' ':'')+baseOf(it.base).name;}
+function statsDe(it){return (window.Loja&&Loja.stats)?Loja.stats(it):it.stats;}/* [ferreiro] status com o encantamento */
 
 
 
@@ -12711,7 +12718,7 @@ function renderInv(){
 
 
 
-    h+='<div class="eq" data-slot="'+slot+'"><div><span class="sl">'+ITM.slots[slot].toUpperCase()+'</span>'+(it?'<b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+statTxt(it.stats)+'</small>':'<small>vazio</small>')+'</div></div>';
+    h+='<div class="eq" data-slot="'+slot+'"><div><span class="sl">'+ITM.slots[slot].toUpperCase()+'</span>'+(it?'<b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+statTxt(statsDe(it))+'</small>':'<small>vazio</small>')+'</div></div>';
 
 
 
@@ -12731,7 +12738,7 @@ function renderInv(){
 
 
 
-    h+='<div class="it" data-uid="'+it.uid+'" style="border-color:'+R[it.rar].css+'"><span class="x" data-x="'+it.uid+'" title="Descartar">X</span><b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+ITM.slots[baseOf(it.base).slot]+'</small><small>'+statTxt(it.stats)+'</small></div>';
+    h+='<div class="it" data-uid="'+it.uid+'" style="border-color:'+R[it.rar].css+'"><span class="x" data-x="'+it.uid+'" title="Descartar">X</span><b style="color:'+R[it.rar].css+'">'+itemName(it)+'</b><small>'+R[it.rar].name+' &middot; '+ITM.slots[baseOf(it.base).slot]+'</small><small>'+statTxt(statsDe(it))+'</small></div>';
 
 
 
@@ -17773,11 +17780,11 @@ Guardiao.init({
 try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
 try{PerfLog.init(renderer,scene,function(){var o={pg:'cidade'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
-try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},usar:usarConsumivel});}catch(_){}/* [loja] tecla H = pocao */
+try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},usar:usarConsumivel});}catch(_){}/* [loja] tecla H = pocao */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
-  inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,/* [inventario-servidor] */
+  inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);},

@@ -5,6 +5,14 @@
     "pergaminho_volta": { "nome": "Pergaminho de Volta", "preco": 150, "volta": true, "recarga": 5, "desc": "Leva você de volta para Talking Island." }
   },
   "venda": { "normal": 25, "raro": 90, "epico": 350, "lendario": 1500 },
+  "encantar": {
+    "_nota": "Ferreiro Altran (servidor/inventario.js -> encantar). Arma e armadura. Ate 'seguro' nunca falha; depois, 'chance' pelo nivel que se tenta (a falha QUEBRA o item, como no L2). custo = adena por tentativa x nivel tentado (arma ou armadura). bonus = quanto cada + soma nos status do item (fracao): 'ate_seguro' nos primeiros, 'acima' do seguro em diante. brilho: cor da arma a partir do nivel (js/brilho_encanto.js).",
+    "max": 16, "seguro": 3,
+    "chance": [[6, 0.66], [9, 0.55], [12, 0.45], [16, 0.35]],
+    "custo": { "arma": 60, "armadura": 30 },
+    "bonus": { "ate_seguro": 0.04, "acima": 0.08 },
+    "brilho": [[4, "#3f8cff"], [7, "#38e1ff"], [12, "#ffc23a"], [16, "#ff5a1f"]]
+  },
   "lojas": {
     "galladucci": ["pocao_vida", "pergaminho_volta"],
     "mammon": ["pocao_vida", "pergaminho_volta"]
