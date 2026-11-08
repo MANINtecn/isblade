@@ -2866,3 +2866,26 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - `js/alvo_l2.js` (novo): janela do alvo para mob (o que esta sob a mira ou o ultimo atingido, 6 s) e chefe (mirado ou atingido ha 8 s), no mesmo lugar da janela de jogador do net.js (que tem prioridade). Nome em cinza/verde/branco/amarelo/vermelho pela diferenca de nivel (niveis de `progressao.json -> mobsNivel`), "Nv X · %" e barra de vida.
 - Testado (local): DG normal: "Fantasma da Torre Nv 20 · 92%" em vermelho para personagem nivel 2, mensagens de zona/XP/nivel/adena no chat; duelo do Baium: "Baium 100%". Sem erros. NAO testado: celular (posicao da janela com os botoes), cidade (sem mobs), nivel do Baium no duelo (nao existe na tabela; aparece sem nivel).
 - Visto de passagem (nao mexi): a HUD mostra "GUARDIAO" para um mago no inicio da DG, e o chat da DG comeca com "Cidade - canal 1" (aviso de canal antigo).
+
+### [Gemini] 08/11/2026 - Equipamentos e Armaduras por Grau: No-Grade, D e C (Ordem 3)
+- Atendimento à Ordem 3: Exportados todos os modelos de armas e escudos para as 3 classes por grau, além de 3 sets completos de armadura montados e animados no corpo do Human Fighter (commit `1398759`).
+- Modelos de Armas e Escudos gerados (prontos para acoplamento via socket de osso `Weapon_R_Bone` e `Shield_L_Bone`):
+  - Guardião (1H + Escudo):
+    - Sem Grau (No-Grade): `gladius.glb` (392 KB) + `round_shield.glb` (1129 KB)
+    - Grau D: `bastard_sword.glb` (451 KB) + `composite_shield.glb` (768 KB)
+    - Grau C: `samurai_longsword.glb` (787 KB) + `full_plate_shield.glb` (1399 KB)
+  - Mago (Cajado):
+    - Sem Grau (No-Grade): `cedar_staff.glb` (332 KB)
+    - Grau D: `ghost_staff.glb` (508 KB)
+    - Grau C: `ghouls_staff.glb` (453 KB)
+  - Guerreiro (Espada 2H):
+    - Sem Grau (No-Grade): `twohanded_sword.glb` (399 KB)
+    - Grau D: `claymore.glb` (401 KB)
+    - Grau C: `berserker_blade.glb` (395 KB)
+- Sets de Armadura montados no Human Fighter com rig completo e animações de combate (idle, run, walk, death, slash1..4, guard, roll, parry, hit):
+  - Sem Grau: `human_fighter_nograde.glb` (Leather Armor Set, m001)
+  - Grau D: `human_fighter_brigandine.glb` (Brigandine Heavy Armor Set, m003)
+  - Grau C: `human_fighter_fullplate.glb` (Full Plate Heavy Armor Set, m006)
+- Testado: Conversão batch e integridade estrutural dos nós e meshes GLB gerados via Blender 5.1; alinhamento de sockets e NLA tracks de animação nos sets.
+- NÃO testado: Drops, status de combate e regras de inventário/loja (a cargo do Claude no servidor).
+
