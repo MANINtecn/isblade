@@ -2889,3 +2889,13 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Testado: Conversão batch e integridade estrutural dos nós e meshes GLB gerados via Blender 5.1; alinhamento de sockets e NLA tracks de animação nos sets.
 - NÃO testado: Drops, status de combate e regras de inventário/loja (a cargo do Claude no servidor).
 
+### [Gemini] 08/11/2026 - Modelos de NPC para Armazém e Segundo Comerciante (Ordem 4)
+- Atendimento à Ordem 4: Adicionados os modelos 3D dos NPCs de Armazém e do segundo Comerciante na cidade de Talking Island, posicionados no cenário com adereços temáticos, iluminação e nameplates na escala métrica humana correta (commit `3071da1`). Sem lógica de backend (armazenamento e comércio no servidor a cargo do Claude).
+- Detalhes dos novos NPCs:
+  - Guarda-Volumes do Armazém Wilford (`dwarf_f.glb`): Posicionada na ala oeste de serviços (`x = -13.5, z = 7.0`), altura real 1.55m (`scale = 1.55 / 35.48`), balcão de carvalho nobre com tampo polido, livro de registros, caixotes de carga rústicos e lanterna com luz âmbar quente (`0xffaa33`).
+  - Comerciante de Equipamentos Galladucci (`elf_m.glb`): Posicionado na praça comercial leste (`x = 13.5, z = 5.5`), altura real 2.10m (`scale = 2.10 / 45.92`), balcão mostruário com forro de veludo verde, expositor de armas e lanterna dourada (`0xf5c451`).
+  - Diálogos estéticos informativos e imersivos no estilo L2, sem quebra de fluxo.
+- Testado: Sintaxe no node.js; proporções métricas e carregamento dos GLBs e animações no Three.js.
+- NÃO testado: Integração com transações de Adena ou persistência de baú (previstas na Fase 1 pelo Claude).
+
+
