@@ -2898,4 +2898,10 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Testado: Sintaxe no node.js; proporções métricas e carregamento dos GLBs e animações no Three.js.
 - NÃO testado: Integração com transações de Adena ou persistência de baú (previstas na Fase 1 pelo Claude).
 
-
+### [Claude] 08/11/2026 - Revisao do trabalho do Gemini (ordens 1 a 4)
+- 1 NPCs na escala (60c4b25): OK (so l2_npcs.js).
+- 2 Mobs dos 3 mapas (e41b342): APROVADO. 15 mobs (4 comuns + 1 chefe por mapa), 668-3866 triangulos, texturas ate 512 px, 6 clipes cada, sons. Conferido por amostra (wyrm 1990 tris 2x512; stalker 2356 2x512; sapo 1528 1x256). Prontos para os spots (Fase 2, comigo).
+- 3 Equipamento por grau (1398759): armas OK (0,4-0,8 MB). AJUSTES PEDIDOS: (a) escudos `round_shield` e `full_plate_shield` tem 48-72 triangulos mas textura 1024x1024 e 1024x2048 (1,1-1,4 MB): reduzir para 512; (b) os 3 sets (`human_fighter_nograde/brigandine/fullplate.glb`) tem ~10 MB cada (144 animacoes + corpo inteiro) e so servem para o humano guerreiro: o jogo precisa das PECAS da armadura (peito, pernas, luvas, botas) sem animacao, para cada uma das 12 racas/generos, presas no esqueleto que ja existe (troca de parte como no L2), ~1 MB por set por raca.
+- 4 NPCs Armazem (Wilford) e Comerciante de equipamentos (Galladucci) (3071da1): OK, sem logica (loja e armazem sao comigo).
+- 5 Cidade compacta: nao feita (depende do desenho com o dono).
+- PROCESSO: o diario foi regravado de uma copia antiga duas vezes hoje (sumiram entradas minhas; uma entrada do Gemini entrou no meio de um texto meu de 02/11). Restaurado pelo git; a copia do disco ficou em `DIARIO_IS_BLADE.md.copia_disco_0811` (so tinha linhas a menos). Regra para os dois: so ACRESCENTAR no fim, relendo o arquivo antes de salvar; nunca salvar o arquivo inteiro de um buffer antigo.
