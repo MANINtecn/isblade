@@ -5314,6 +5314,7 @@ function damageMob(m,dmg,an){
   if(!m.net&&m.hp<=0)killMob(m);
 }
 function lootMob(m){
+  if(INV_SRV)return;/* online: o drop vem do servidor (mensagem 'drop') */
   if(Math.random()<(DGD.dropChance[m.type]||0)){var b=ITM.bases[Math.floor(Math.random()*ITM.bases.length)],R=ITM.rarities,keys=Object.keys(R),tot=0;keys.forEach(function(k){tot+=wOf(k);});var roll=Math.random()*tot,rar=keys[0];for(var j=0;j<keys.length;j++){roll-=wOf(keys[j]);if(roll<=0){rar=keys[j];break;}}var it=mkItem(b.id,rar);if(addItem(it)){SFX.drop(it.rar);floatText('LOOT: '+baseOf(it.base).name,R[it.rar].css,20,{x:m.x,z:m.z,y:2.8});}}
 }
 function killMob(m){

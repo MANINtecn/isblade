@@ -721,6 +721,15 @@
       ]
     }
   ],
+  "drops": {
+    "_nota": "Drops com autoridade do servidor (servidor/inventario.js -> abate). Adena = XP do abate x adenaPorXp x variacao (x adena do chefe). Mob comum: chance `comum` de 1 item. miniChefe (DG), chefeCampo (mapas abertos) e boss (Baium/chefe da DG): `itens` garantidos + chance `extra` de mais 1; `boost` melhora a raridade (multiplica o rarityBoost da dificuldade).",
+    "adenaPorXp": 0.5,
+    "adenaVar": [0.8, 1.25],
+    "comum": 0.05,
+    "miniChefe": {"itens": 1, "extra": 0.35, "boost": 1.5, "adena": 2},
+    "chefeCampo": {"itens": 2, "extra": 0.5, "boost": 2.5, "adena": 3},
+    "boss": {"itens": 1, "extra": 0.35, "boost": 1, "adena": 1}
+  },
   "agressao": { "_nota": "Agressao estilo L2 (arena.html -> mobAgro). A maioria e PASSIVA (so ataca se apanhar); agressivos (fracao por dificuldade em difficulties[].agressivos, ou mobs[].agressivo=true) atacam quem chega a menos de visao m. Quando um mob apanha, so os vizinhos parados a ate ajuda m entram junto (sem corrente). Puxado mais longe que volta m do lugar onde nasceu: desiste, volta e recupera a vida.", "visao": 7, "ajuda": 4.5, "volta": 26 },
   "difficulties": {
     "normal": { "agressivos": 0.15,

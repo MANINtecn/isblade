@@ -2,8 +2,8 @@
 /* Inventario e ADENA com autoridade do SERVIDOR (por personagem: pers.inv = { items: [{uid, base, rar, stats}], equip: {slot: uid}, adena }).
    O cliente so PEDE (equipar / tirar / descartar) e recebe o estado; nao consegue criar item nem adena (antes ficava no navegador e dava para forjar pelo F12).
    Itens com as mesmas regras do cliente (prototipo/data/itens.json): status da base x multiplicador da raridade + extras sorteados.
-   Classe manda na arma: so equipa a arma da propria classe (pers.weapon). Drops: adena em todo abate; itens do chefe (1, 35% de chance de 2),
-   raridade melhor nas dificuldades maiores (dungeon.json -> difficulties[].rarityBoost). */
+   Classe manda na arma: so equipa a arma da propria classe (pers.weapon). Drops: adena em todo abate; chance de item em mob comum; item garantido em
+   mini-chefe, chefe de campo e chefe (dungeon.json -> drops); raridade melhor nas dificuldades maiores (difficulties[].rarityBoost) e nos chefes. */
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const DADOS = path.join(__dirname, '..', 'prototipo', 'data');
 let D = null, DG = null, LJ = null;
@@ -136,16 +136,23 @@ function pedido(pers, m){
   return 'Pedido desconhecido.';
 }
 
-/* abate: adena sempre (proporcional ao XP do abate) e itens se for chefe. xpDoAbate = o valor que o jogador ganhou de XP por esse abate. */
+/* abate: adena sempre (proporcional ao XP do abate) e chance de item; chefe da item garantido. xpDoAbate = o valor que o jogador ganhou de XP por esse abate.
+   Regras em dungeon.json -> drops: comum (chance), miniChefe / chefeCampo / boss (itens garantidos, extra = chance de mais 1, boost = raridade melhor, adena = multiplicador). */
+const DROPS0 = { adenaPorXp: .5, adenaVar: [.8, 1.25], comum: .05, miniChefe: { itens: 1, extra: .35, boost: 1.5, adena: 2 }, chefeCampo: { itens: 2, extra: .5, boost: 2.5, adena: 3 }, boss: { itens: 1, extra: .35, boost: 1, adena: 1 } };
+function categoria(tipo){
+  if(tipo === 'boss') return 'boss'; const T = DG && DG.mobs && DG.mobs[tipo];
+  return T ? (T.chefeCampo ? 'chefeCampo' : (T.isMiniBoss ? 'miniChefe' : 'comum')) : 'comum';
+}
 function abate(pers, tipo, dif, xpDoAbate){
   const inv = garante(pers); if(!inv) return null;
-  const adena = Math.max(1, Math.round((xpDoAbate || 10) * .5 * (.8 + Math.random() * .45)));
+  const Q = Object.assign({}, DROPS0, (DG && DG.drops) || {}), cat = categoria(tipo), C = cat === 'comum' ? null : (Q[cat] || DROPS0[cat]);
+  const v = Q.adenaVar || [.8, 1.25], adena = Math.max(1, Math.round((xpDoAbate || 10) * Q.adenaPorXp * (C ? C.adena || 1 : 1) * (v[0] + Math.random() * (v[1] - v[0]))));
   inv.adena += adena; const itens = [];
-  if(tipo === 'boss'){
-    const boost = (DG && DG.difficulties && DG.difficulties[dif] && DG.difficulties[dif].rarityBoost) || 1, R = D.rarities, ks = Object.keys(R);
+  const n = C ? (C.itens | 0) + (Math.random() < (C.extra || 0) ? 1 : 0) : (Math.random() < Q.comum ? 1 : 0);
+  if(n > 0){
+    const boost = ((DG && DG.difficulties && DG.difficulties[dif] && DG.difficulties[dif].rarityBoost) || 1) * (C ? C.boost || 1 : 1), R = D.rarities, ks = Object.keys(R);
     const peso = k => R[k].weight * (k === 'normal' ? 1 : boost);
     const bases = D.bases.filter(b => b.slot !== 'weapon' || b.weapon === armaDaClasse(pers));
-    const n = 1 + (Math.random() < .35 ? 1 : 0);
     for(let i = 0; i < n; i++){
       if(inv.items.length >= D.bagMax) break;
       let tot = 0; ks.forEach(k => { tot += peso(k); }); let roll = Math.random() * tot, rar = ks[0];
@@ -153,7 +160,7 @@ function abate(pers, tipo, dif, xpDoAbate){
       const it = mkItem(bases[Math.floor(Math.random() * bases.length)].id, rar); if(it){ inv.items.push(it); itens.push(it); }
     }
   }
-  return { adena, itens, cheia: tipo === 'boss' && inv.items.length >= D.bagMax };
+  return { adena, itens, cheia: n > itens.length && inv.items.length >= D.bagMax };
 }
 
 module.exports = { recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, armazem, tiro, garanteArm, loja: () => LJ };
