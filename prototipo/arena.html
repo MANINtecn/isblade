@@ -3695,7 +3695,7 @@ function hexCss(c){return '#'+('000000'+c.toString(16)).slice(-6);}
 /* >>> CLAUDE [pvp-fx] efeito das skills dos OUTROS jogadores: o servidor avisa (atk) e cada cliente refaz a explosao na posicao do atacante, trocando S por instantes */
 var REMOTEFX=false;
 function skillFxRemoto(e,i,f){
-  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;if(sk.proj&&sk.proj.visual)return;
+  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;if(sk.taunt&&DG.grp==='host')tauntAplica(e.id,e.x,e.z,sk.range||10);/* [ameaca] Guardiao do grupo provocou */if(sk.proj&&sk.proj.visual)return;
   if(Math.hypot(e.x-S.px,e.z-S.pz)>80)return;
   var n=(sk.hits||[1]).length;
   for(var k=0;k<n;k++)(function(k){setTimeout(function(){
@@ -4065,7 +4065,7 @@ function castSkill(i){
 
   if(S.guard){S.guard=false;S.gcd=.12;}
 
-  S.cd[i]=sk.cd;tgt=null;tmark.visible=false;try{Expedicao.ev('skill');}catch(_){}
+  S.cd[i]=sk.cd;tgt=null;tmark.visible=false;try{Expedicao.ev('skill');}catch(_){}if(sk.taunt)tauntAplica(0,S.px,S.pz,sk.range||10);/* [ameaca] */
 
   S.face=aimAngle();
   var alvoMira=sk.mira?pontoMira(sk):null;if(alvoMira)S.face=alvoMira.ang;/* [mira] */
@@ -4631,6 +4631,7 @@ function enemyThink(dt){
 }
 
 function bossAlvo(){/* [dg-grupo] o chefe mira quem estiver mais perto, no grupo todo */
+  var fo=focoAlvo(DG.bossFoco);if(fo)return fo;/* [ameaca] */
   var best=null,bd=1e9;
   if(!S.pdead){bd=Math.hypot(S.px-S.ex,S.pz-S.ez);best={x:S.px,z:S.pz,id:0,self:true};}
   if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto)return;var d=Math.hypot(a.x-S.ex,a.z-S.ez);if(d<bd){bd=d;best={x:a.x,z:a.z,id:a.id,self:false};}});
@@ -5226,7 +5227,23 @@ function mobAgro(m,cand,dt){
   if(!cand||Math.hypot(m.x-m.hx,m.z-m.hz)>A.volta){m.engaj=false;m.volta=true;m.vt=0;m.state='chase';m.t=0;return null;}
   return cand;
 }
+/* [ameaca] 08/11/2026: Rugido do Guardiao (skill com taunt) fixa o foco dos mobs e do chefe em quem gritou por FOCO_S segundos (raio = range da skill).
+   Eu: castSkill. Guardiao convidado do grupo: o lider recebe o efeito da skill (skillFxRemoto) e aplica. id 0 = eu. */
+var FOCO_S=6;
+function focoAlvo(fc){
+  if(!fc||Date.now()/1000>fc.ate)return null;
+  if(fc.id===0)return S.pdead?null:{x:S.px,z:S.pz,id:0,self:true};
+  if(DG.grp==='host'&&window.Net&&Net.alvos){var a=Net.alvos().filter(function(o){return o.id===fc.id;})[0];if(a&&!a.morto)return {x:a.x,z:a.z,id:a.id,self:false};}
+  return null;
+}
+function tauntAplica(id,x,z,r){
+  var ate=Date.now()/1000+FOCO_S,n=0;
+  MOBS.forEach(function(m){if(m.dead||m.net||Math.hypot(m.x-x,m.z-z)>r)return;try{mobAgrIni(m);if(!m.engaj)mobEngaja(m,false);}catch(_){}m.foco={id:id,ate:ate};n++;if(id===0)floatText('PROVOCADO','#f5c451',13,{x:m.x,z:m.z,y:2.6});});
+  if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)<=r+3){DG.bossFoco={id:id,ate:ate};n++;}
+  return n;
+}
 function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do grupo mais perto */
+  var fo=focoAlvo(m.foco);if(fo)return fo;/* [ameaca] */
   var best=null,bd=1e9;
   if(!S.pdead){bd=Math.hypot(S.px-m.x,S.pz-m.z);best={x:S.px,z:S.pz,id:0,self:true};}
   if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto)return;var d=Math.hypot(a.x-m.x,a.z-m.z);if(d<bd){bd=d;best={x:a.x,z:a.z,id:a.id,self:false};}});
@@ -6167,7 +6184,7 @@ function torreSair(){
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
 }
-window.__torreDbg=function(){return{inv:function(){return {INV:INV,ADENA:ADENA,SRV:INV_SRV};},equip:equipItem,descartar:discardItem,perform:perform,rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,mkMob:mkMob,mob3dCarregar:mob3dCarregar,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
+window.__torreDbg=function(){return{tauntAplica:tauntAplica,mobAlvo:mobAlvo,inv:function(){return {INV:INV,ADENA:ADENA,SRV:INV_SRV};},equip:equipItem,descartar:discardItem,perform:perform,rig:function(){return vrm;},PROJ:PROJ,resolveEnemyHit:resolveEnemyHit,bossAlvo:bossAlvo,damageMob:damageMob,fxRemoto:skillFxRemoto,pontoMira:pontoMira,castSkill:castSkill,MOUSE:MOUSE,SK:SK,acorda:torreAcordaBaium,dgStart:dgStart,dgHub:dgHub,MOBS:MOBS,killMob:killMob,mkMob:mkMob,mob3dCarregar:mob3dCarregar,boss:function(){return BOSS_ON;},dg:DG,S:S};};/* depuracao dos testes */
 /* <<< CLAUDE [torre-dg] */
 function dgStart(key){
   window.dgStart = dgStart;

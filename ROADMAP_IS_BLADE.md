@@ -99,7 +99,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 
 - [~] **Mago:** skills 2–6 (dono está desenhando no Blender). **G** (Dono + Claude)
 - [ ] **Guerreiro:** refazer as 6 skills no molde acima, com clipes do L2 por raça, ícones e efeitos próprios; ataque padrão próprio (hoje é o genérico da espada). **G** (Dono + Claude)
-- [ ] **Guardião:** ameaça de verdade (Rugido/Aggression faz mobs e chefe focarem nele) — dá função de tanque na party. **M** (Claude)
+- [x] **Guardião:** ameaça de verdade (Rugido/Aggression faz mobs e chefe focarem nele) — dá função de tanque na party. **M** (Claude) — feito 08/11: Rugido fixa o foco dos mobs e do chefe em 10 m por 6 s (também puxa os passivos); no grupo o líder aplica o rugido do Guardião convidado. Testado sozinho; grupo ainda não testado.
 - [ ] Ícones Cabal para todas as skills do Guerreiro e as que faltam. **P** (Claude)
 
 ### FASE 4 — Social e PvP (~2 semanas)
