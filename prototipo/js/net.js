@@ -68,7 +68,7 @@ export const Net = (function(){
   function desenhaTag(e){
     if(!e.tag) return; var c = e.tag.cv, g = c.getContext('2d'); g.clearRect(0, 0, 256, 72);
     g.font = '700 26px system-ui,Arial,sans-serif'; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.85)';
-    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (e.pk === 2 ? '#ff3b3b' : e.pk === 1 ? '#a77bff' : N.mapa === 'pvp' ? '#ffb3a8' : (e.team ? COR_TIME[e.team] : '#f4fbff'))); g.strokeText(e.nome, 128, 28); g.fillStyle = cor; g.fillText(e.nome, 128, 28);
+    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (e.pk === 2 ? '#ff3b3b' : e.pk === 1 ? '#a77bff' : N.mapa === 'pvp' ? '#ffb3a8' : (e.team ? COR_TIME[e.team] : '#f4fbff'))); var nm = (e.cla ? '[' + e.cla + '] ' : '') + e.nome; g.strokeText(nm, 128, 28); g.fillStyle = cor; g.fillText(nm, 128, 28);      /* [cla] sigla antes do nome */
     var w = 150, x = 53, y = 42, k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
     g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(x - 2, y - 2, w + 4, 14); g.fillStyle = e.morto ? '#555' : (k > .5 ? '#5cd65c' : (k > .25 ? '#e6b422' : '#e54b4b')); g.fillRect(x, y, w * k, 10);
     e.tag.tex.needsUpdate = true; e.hpDes = e.hp;
@@ -118,7 +118,7 @@ export const Net = (function(){
   }
   function addRemoto(p){
     if(remotos.has(p.id)) return;
-    var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
+    var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, cla: p.cla || '', raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
     e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e); e.en = p.en | 0; brilho(e);
     ctx.loadL2(heroUrl(p.raca), function(r){
       if(!remotos.has(e.id)){ return; }
@@ -191,6 +191,9 @@ export const Net = (function(){
     } else if(m.t === 'ms'){ if(ctx.ms) ctx.ms(m.m);                   /* [mobs-servidor] mobs do mapa aberto */
     } else if(m.t === 'mdmg'){ if(ctx.mdmg) ctx.mdmg(m);
     } else if(m.t === 'mtiro'){ if(ctx.mtiro) ctx.mtiro(m);
+    } else if(m.t === 'cla'){ N.cla = m.cla; N.claCfg = { nv: m.nv, adena: m.adena, max: m.max }; if(menuAberto) renderMenu();      /* [cla] */
+    } else if(m.t === 'clatag'){ e = remotos.get(m.id); if(e){ e.cla = m.cla || ''; if(e.tag) desenhaTag(e); }
+    } else if(m.t === 'clareq'){ pedCla = { de: m.de, nome: m.nome, cla: m.cla, ate: Date.now() + 20000 }; ctx.banner('CONVITE DE CLÃ', m.nome + ' convida você para ' + m.cla, '#ffd166'); desenhaPed();
     } else if(m.t === 'pkst'){                                          /* [pk] meu estado: 0 normal, 1 flag (roxo), 2 PK (karma) */
       var antes = N.pkSt; N.pkSt = m.st | 0; N.karma = m.karma | 0;
       if(N.pkSt === 1 && antes === 0) ctx.sysMsg('Você atacou um jogador: nome roxo por 30 s (outros podem atacar você).');
@@ -224,11 +227,11 @@ export const Net = (function(){
   }
 
   /* ---------- MENU (tecla P ou botao): so CSS, sem nenhuma imagem. O que funciona fica em destaque; o resto aparece apagado ("em breve") ---------- */
-  var pedDg = null, pedEl = null, alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null;
+  var pedDg = null, pedEl = null, alvoEl = null, anelAlvo = null, menuEl = null, btnEl = null, partyEl = null, aba = 'resumo', menuAberto = false, tMenu = 0, pedDuelo = null, pedGrupo = null, pedCla = null;
   var ITENS = [{ k: 'duelo', nome: 'Duelo', ativo: true, dica: 'Desafie um jogador por perto' }, { k: 'grupo', nome: 'Grupo', ativo: true, dica: 'Party de até 6 jogadores' },
-    { k: 'canal', nome: 'Canal', ativo: true, dica: 'Escolha em qual canal jogar' }, { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'guilda', nome: 'Guilda', ativo: false },
+    { k: 'canal', nome: 'Canal', ativo: true, dica: 'Escolha em qual canal jogar' }, { k: 'troca', nome: 'Troca', ativo: false }, { k: 'loja', nome: 'Loja', ativo: false }, { k: 'amigos', nome: 'Amigos', ativo: false }, { k: 'cla', nome: 'Clã', ativo: true, dica: 'Seu clã: membros, convites, chat com @' },
     { k: 'msg', nome: 'Mensagem', ativo: false }, { k: 'rank', nome: 'Ranking', ativo: true, dica: 'Top por nível, PvP e chefes' }];
-  var RANK = null, rankK = 'nivel';
+  var RANK = null, rankK = 'nivel', claConf = '';
   function carregaRank(){ var m = /^(wss?):\/\/([^\/]+)/.exec(urlServidor() || ''); if(!m) return; var u = (m[1] === 'wss' ? 'https://' : 'http://') + m[2]; fetch(u + '/api/ranking').then(function(r){ return r.json(); }).then(function(j){ RANK = j; renderMenu(); }).catch(function(){}); }
   function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function bonito(r){ return String(r || '').replace(/_/g, ' '); }
@@ -278,7 +281,7 @@ export const Net = (function(){
     anelAlvo = new THREE.Mesh(new THREE.RingGeometry(.85, 1.0, 40), new THREE.MeshBasicMaterial({ color: 0xf5c451, transparent: true, opacity: .85, side: THREE.DoubleSide, depthTest: false })); anelAlvo.rotation.x = -Math.PI / 2; anelAlvo.renderOrder = 998; anelAlvo.visible = false; ctx.scene.add(anelAlvo);
     menuEl.addEventListener('click', function(e){
       var el = e.target.closest ? e.target.closest('[data-a]') : null; if(!el || el.disabled) return; var a = el.getAttribute('data-a'), v = el.getAttribute('data-v');
-      if(a === 'aba'){ var it = ITENS.filter(function(i){ return i.k === v; })[0]; if(it && it.ativo){ aba = v; if(v === 'canal') carregaCanais(); if(v === 'rank') carregaRank(); } else ctx.sysMsg((it ? it.nome : 'Isso') + ': em breve'); }
+      if(a === 'aba'){ var it = ITENS.filter(function(i){ return i.k === v; })[0]; if(it && it.ativo){ aba = v; if(v === 'canal') carregaCanais(); if(v === 'rank') carregaRank(); if(v === 'cla') send({ t: 'cla', k: 'ver' }); } else ctx.sysMsg((it ? it.nome : 'Isso') + ': em breve'); }
       else if(a === 'fechar') alterna(false);
       else if(a === 'rankk'){ rankK = v; }
       else if(a === 'canal'){ preferirCanal(N.mapa, +v | 0); N.entrar(N.mapa, +v | 0); alterna(false); ctx.sysMsg('Entrando no canal ' + v + '...'); }
@@ -287,6 +290,10 @@ export const Net = (function(){
       else if(a === 'convidar') send({ t: 'pinvite', to: +v | 0 });
       else if(a === 'expulsar') send({ t: 'pkick', to: +v | 0 });
       else if(a === 'sairgrupo') send({ t: 'pleave' });
+      else if(a === 'clacriar'){ var cn = document.getElementById('netClaNome'), cs = document.getElementById('netClaSigla'); send({ t: 'cla', k: 'criar', nome: cn ? cn.value : '', sigla: cs ? cs.value : '' }); }
+      else if(a === 'clainv') send({ t: 'cla', k: 'convidar', to: +v | 0 });
+      else if(a === 'claexp'){ if(claConf !== v){ claConf = v; renderMenu(); return; } claConf = ''; send({ t: 'cla', k: 'expulsar', pid: v }); }
+      else if(a === 'clasair'){ if(claConf !== 'sair'){ claConf = 'sair'; renderMenu(); return; } claConf = ''; send({ t: 'cla', k: 'sair' }); }
       else if(a === 'aceitar') aceitar(v);
       else if(a === 'recusar') recusar(v);
       renderMenu();
@@ -297,9 +304,11 @@ export const Net = (function(){
     if(menuAberto){ try { document.exitPointerLock(); } catch(e){} renderMenu(); }
   }
   function aceitar(tipo){
+    if(tipo === 'cla' && pedCla){ send({ t: 'cla', k: 'aceitar' }); pedCla = null; desenhaPed(); return; }
     if(tipo === 'duelo' && pedDuelo){ send({ t: 'duelok' }); pedDuelo = null; } else if(tipo === 'grupo' && pedGrupo){ send({ t: 'pok' }); pedGrupo = null; } else if(tipo === 'dg' && pedDg){ var kd = pedDg.key; pedDg = null; if(ctx.irDg) ctx.irDg(kd); }
   }
   function recusar(tipo){
+    if(tipo === 'cla' && pedCla){ send({ t: 'cla', k: 'recusar' }); pedCla = null; desenhaPed(); return; }
     if(tipo === 'duelo' && pedDuelo){ send({ t: 'duelno' }); pedDuelo = null; } else if(tipo === 'grupo' && pedGrupo){ send({ t: 'pno' }); pedGrupo = null; } else if(tipo === 'dg'){ pedDg = null; }
   }
   function perto(maxD){
@@ -318,6 +327,23 @@ export const Net = (function(){
       if(N.mapa !== 'cidade') h += '<p>Duelo só na cidade.' + (N.mapa === 'pvp' ? ' Aqui a arena é livre: todos contra todos.' : '') + '</p>';
       else if(N.duelo) h += '<p>Em duelo com <b>' + esc(N.duelo.nome) + '</b>. <kbd>H</kbd> desiste.</p>';
       else { var L = perto(40); if(!L.length) h += '<p>Ninguém por perto (até 40 m).</p>'; L.forEach(function(o){ h += '<div class="r"><span class="n">' + esc(o.e.nome) + ' <small>' + esc(bonito(o.e.raca)) + ' · ' + Math.round(o.d) + ' m</small></span><button data-a="duelar" data-v="' + o.e.id + '"' + (o.d > 20 ? ' disabled title="Chegue a 20 m"' : '') + '>Desafiar</button></div>'; }); h += '<p>O duelo não mata: quem chega a 1 de vida perde. Vida cheia ao fim.</p>'; }
+    } else if(aba === 'cla'){                                          /* [cla] */
+      var CL = N.cla, cf = N.claCfg || { nv: 10, adena: 2000, max: 30 }; if(pedCla && Date.now() < pedCla.ate) h += linhaPed('cla', pedCla);
+      if(!CL){
+        h += '<h4>CLÃ</h4><p>Você não está em um clã. Para criar: nível ' + cf.nv + ' e ' + cf.adena + ' Adena. Ou peça um convite ao líder de um clã.</p>' +
+          '<div class="r"><input id="netClaNome" maxlength="16" placeholder="Nome do clã" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="flex:1;min-width:0;padding:8px;border-radius:6px;border:1px solid #3a3320;background:#0d1220;color:#fff;font:inherit">' +
+          '<input id="netClaSigla" maxlength="4" placeholder="SIGLA" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="width:70px;padding:8px;border-radius:6px;border:1px solid #3a3320;background:#0d1220;color:#fff;font:inherit;text-transform:uppercase"></div>' +
+          '<button class="bt" data-a="clacriar" style="margin-top:6px">CRIAR CLÃ</button>';
+      } else {
+        h += '<h4>' + esc(CL.nome) + ' [' + esc(CL.sigla) + ']</h4><p>' + CL.membros.length + '/' + cf.max + ' membros · chat do clã: comece a mensagem com <b>@</b></p>';
+        CL.membros.slice().sort(function(a, b){ return (b.on - a.on) || (b.lider - a.lider); }).forEach(function(mb){
+          h += '<div class="r"><span class="n">' + (mb.lider ? '★ ' : '') + esc(mb.nome) + ' <small>' + (mb.on ? 'online' : 'offline') + '</small></span>' +
+            (CL.souLider && !mb.lider ? '<button data-a="claexp" data-v="' + esc(mb.pid) + '">' + (claConf === mb.pid ? 'CONFIRMAR' : 'EXPULSAR') + '</button>' : '') + '</div>';
+        });
+        if(CL.souLider){ var LC = perto(30).filter(function(o){ return !o.e.cla; }); h += '<h4>CONVIDAR</h4>'; if(!LC.length) h += '<p>Ninguém sem clã por perto (até 30 m).</p>';
+          LC.forEach(function(o){ h += '<div class="r"><span class="n">' + esc(o.e.nome) + ' <small>' + Math.round(o.d) + ' m</small></span><button data-a="clainv" data-v="' + o.e.id + '">CONVIDAR</button></div>'; }); }
+        h += '<button class="bt" data-a="clasair" style="margin-top:8px">' + (claConf === 'sair' ? 'CONFIRMAR: SAIR DO CLÃ' : 'SAIR DO CLÃ') + '</button>';
+      }
     } else if(aba === 'rank'){                                         /* [ranking] top 10 (pagina completa: ranking.html) */
       h += '<h4>RANKING</h4><div style="display:flex;gap:6px;margin-bottom:6px">' + [['nivel', 'Nível'], ['pvp', 'PvP'], ['chefes', 'Chefes']].map(function(x){ return '<button class="bt" data-a="rankk" data-v="' + x[0] + '"' + (rankK === x[0] ? ' style="border-color:#f5c451;color:#f5c451"' : '') + '>' + x[1] + '</button>'; }).join('') + '</div>';
       var RL = RANK && RANK[rankK]; if(!RL) h += '<p>Carregando...</p>'; else if(!RL.length) h += '<p>Ninguém ainda.</p>';
@@ -375,9 +401,9 @@ export const Net = (function(){
   /* convite de grupo/duelo: cartao com Aceitar/Recusar enquanto valer (no celular nao ha tecla U/N) */
   function desenhaPed(){
     if(!pedEl) return; var t = Date.now(), tipo = '', p = null;
-    if(pedGrupo && t < pedGrupo.ate){ tipo = 'grupo'; p = pedGrupo; } else if(pedDuelo && t < pedDuelo.ate){ tipo = 'duelo'; p = pedDuelo; } else if(pedDg && t < pedDg.ate){ tipo = 'dg'; p = pedDg; }
+    if(pedCla && t < pedCla.ate){ tipo = 'cla'; p = pedCla; } else if(pedGrupo && t < pedGrupo.ate){ tipo = 'grupo'; p = pedGrupo; } else if(pedDuelo && t < pedDuelo.ate){ tipo = 'duelo'; p = pedDuelo; } else if(pedDg && t < pedDg.ate){ tipo = 'dg'; p = pedDg; }
     if(!p){ pedEl.style.display = 'none'; pedEl._h = ''; return; }
-    var seg = Math.max(0, Math.ceil((p.ate - t) / 1000)), h = '<b>' + esc(p.nome) + '</b> ' + (tipo === 'grupo' ? 'convidou você para o <b>grupo</b>' : (tipo === 'dg' ? 'entrou na <b>dungeon</b>: entre junto com o grupo?' : 'desafiou você para um <b>duelo</b>')) + '<small>expira em <span id="netPedS"></span> s</small><div class="a"><button class="ok" data-a="sim" data-v="' + tipo + '">' + (tipo === 'dg' ? 'ENTRAR' : 'ACEITAR') + '</button><button class="no" data-a="nao" data-v="' + tipo + '">' + (tipo === 'dg' ? 'DEPOIS' : 'RECUSAR') + '</button></div>';
+    var seg = Math.max(0, Math.ceil((p.ate - t) / 1000)), h = '<b>' + esc(p.nome) + '</b> ' + (tipo === 'cla' ? 'convidou você para o clã <b>' + esc(p.cla) + '</b>' : tipo === 'grupo' ? 'convidou você para o <b>grupo</b>' : (tipo === 'dg' ? 'entrou na <b>dungeon</b>: entre junto com o grupo?' : 'desafiou você para um <b>duelo</b>')) + '<small>expira em <span id="netPedS"></span> s</small><div class="a"><button class="ok" data-a="sim" data-v="' + tipo + '">' + (tipo === 'dg' ? 'ENTRAR' : 'ACEITAR') + '</button><button class="no" data-a="nao" data-v="' + tipo + '">' + (tipo === 'dg' ? 'DEPOIS' : 'RECUSAR') + '</button></div>';
     if(pedEl._h !== h){ pedEl._h = h; pedEl.innerHTML = h; } pedEl.style.display = 'block'; var sp = document.getElementById('netPedS'); if(sp) sp.textContent = seg;
   }
   function atualizaAlvo(){

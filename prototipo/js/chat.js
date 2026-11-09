@@ -6,7 +6,7 @@
 (function(){
   var C = window.Chat = { aberto: false };
   var box, log, campo, btn, linhas = [], cfg = {}, MAXL = 40;
-  var COR = { g: '#7dff8a', s: '#f2d27a', '': '#e8eefc' };
+  var COR = { g: '#7dff8a', c: '#ffb86b', s: '#f2d27a', '': '#e8eefc' };
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function toque(){ return !!(window.QUAL && QUAL.touch); }
 
@@ -20,7 +20,7 @@
       '#chatBox.on #chatCampo{display:block}#chatBtn{position:fixed;left:10px;top:138px;z-index:61;pointer-events:auto;font:700 11px system-ui,sans-serif;color:#cfe0ff;background:rgba(10,18,36,.75);border:1px solid #2b3a63;border-radius:6px;padding:6px 10px;letter-spacing:.5px}';
     document.head.appendChild(st);
     box = document.createElement('div'); box.id = 'chatBox'; if(toque()) box.className = 'toq';
-    box.innerHTML = '<div id="chatLog"></div><input id="chatCampo" maxlength="120" autocomplete="off" placeholder="Enter manda · # no começo = grupo · Esc fecha">';
+    box.innerHTML = '<div id="chatLog"></div><input id="chatCampo" maxlength="120" autocomplete="off" placeholder="Enter manda · # = grupo · @ = clã · Esc fecha">';
     document.body.appendChild(box); log = box.querySelector('#chatLog'); campo = box.querySelector('#chatCampo');
     ['keydown', 'keyup', 'keypress'].forEach(function(t){ campo.addEventListener(t, function(e){ e.stopPropagation(); if(t === 'keydown'){ if(e.key === 'Enter'){ e.preventDefault(); manda(); } else if(e.key === 'Escape'){ e.preventDefault(); fecha(); } } }); });
     campo.addEventListener('blur', function(){ setTimeout(function(){ if(C.aberto && document.activeElement !== campo && !campo.value) fecha(); }, 150); });
@@ -35,7 +35,7 @@
   function fecha(){ C.aberto = false; box.classList.remove('on'); campo.blur(); }
   function manda(){
     var t = campo.value.trim(); campo.value = '';
-    if(t){ var canal = ''; if(t.charAt(0) === '#'){ canal = 'g'; t = t.slice(1).trim(); } if(t && cfg.enviar) cfg.enviar(t, canal); }
+    if(t){ var canal = ''; if(t.charAt(0) === '#'){ canal = 'g'; t = t.slice(1).trim(); } else if(t.charAt(0) === '@'){ canal = 'c'; t = t.slice(1).trim(); }      /* @ = cla */ if(t && cfg.enviar) cfg.enviar(t, canal); }
     fecha();
   }
   function poe(html, cor){
@@ -44,7 +44,7 @@
     setTimeout(function(){ d.classList.add('velha'); }, 15000); log.scrollTop = log.scrollHeight;
   }
   C.init = function(o){ cfg = o || {}; if(document.body) monta(); else document.addEventListener('DOMContentLoaded', monta); };
-  C.recebe = function(m){ if(m.c === 's'){ C.sistema(m.m || ''); return; } var c = m.c === 'g' ? 'g' : ''; poe((c === 'g' ? '(Grupo) ' : '') + '<b>' + esc(m.n || '?') + '</b>: ' + esc(m.m || ''), COR[c]); };
+  C.recebe = function(m){ if(m.c === 's'){ C.sistema(m.m || ''); return; } var c = m.c === 'g' ? 'g' : (m.c === 'c' ? 'c' : ''); poe((c === 'g' ? '(Grupo) ' : (c === 'c' ? '(Clã) ' : '')) + '<b>' + esc(m.n || '?') + '</b>: ' + esc(m.m || ''), COR[c]); };
   C.sistema = function(t){ poe(esc(t), COR.s); };
   C.abrir = abre;
 })();

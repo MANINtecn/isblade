@@ -38,7 +38,8 @@ const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, ra
 /* ---- progresso (nivel/xp/pontos): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado (servidor/progressao.js + prototipo/data/progressao.json) ---- */
 const Prog = require('./progressao');
 const Inv = require('./inventario');
-const Mobs = require('./mobs_mundo');                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
+const Mobs = require('./mobs_mundo');
+const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 function ganhaXp(J, v){
   if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
   J.lv = J.pers.level; Contas.grava(); envia(J, Object.assign({ t: 'prog', subiu: subiu ? 1 : 0, ganhou: v }, Prog.info(J.pers)));
@@ -85,7 +86,7 @@ ANUNCIO = leAnuncio();
 setInterval(() => { const s = leAnuncio(); if(s === ANUNCIO) return; ANUNCIO = s; if(!s) return; const o = JSON.stringify({ t: 'anuncio', txt: s, novo: 1 }); for(const c of todosCanais()) for(const J of c.jog.values()) if(J.ws.readyState === 1) J.ws.send(o); }, 10e3);
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
-const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
+const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '', cla: Clas.sigla(J.pers) });
 
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */
@@ -137,6 +138,15 @@ function mundoDe(c){
   }
   return c.mundo;
 }
+/* [cla] estado do cla para o jogador; sigla nova para quem esta no mesmo canal */
+const jogadoresOnline = () => { const l = []; for(const c of todosCanais()) for(const J of c.jog.values()) if(J.pers) l.push(J); return l; };
+function enviaCla(J){
+  if(!J || !J.pers) return; const C = Clas.de(J.pers), on = new Set(jogadoresOnline().map(o => o.pers.id));
+  envia(J, { t: 'cla', nv: Clas.CRIAR_NV, adena: Clas.CRIAR_ADENA, max: Clas.MAX, cla: C ? { nome: C.nome, sigla: C.sigla, souLider: C.lider === J.pers.id,
+    membros: Object.keys(C.membros).map(pid => ({ pid, nome: C.membros[pid], lider: pid === C.lider, on: on.has(pid) })) } : null });
+}
+function membrosOnline(C){ return C ? jogadoresOnline().filter(o => o.pers.cla === C.id && C.membros[o.pers.id] !== undefined) : []; }
+function avisaTag(J){ if(J.canalRef) difunde(J.canalRef, { t: 'clatag', id: J.id, cla: Clas.sigla(J.pers) }); }
 function karmaMob(o, v){ if(o.pers && o.pers.karma > 0){ o.pers.karma = Math.max(0, o.pers.karma - Math.ceil(v / 3)); if(!o.pers.karma) envia(o, { t: 'pkmsg', m: 'Seu karma foi limpo: nome normal de novo.' }); } }
 /* abate de mob do servidor: XP para a party de quem mais bateu (membros a ate 40 m, total com bonus do L2 dividido por igual), drop para quem mais bateu */
 function abateMundo(c, W, m){
@@ -278,7 +288,8 @@ wss.on('connection', ws => {
       envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
       if(pers && Inv.garante(pers)){ Contas.grava(); envia(J, { t: 'inv', inv: pers.inv }); }
-      if(ANUNCIO) envia(J, { t: 'anuncio', txt: ANUNCIO });                 /* [anuncio] */      /* inventario do servidor */
+      if(ANUNCIO) envia(J, { t: 'anuncio', txt: ANUNCIO });                 /* [anuncio] */
+      enviaCla(J);                                                   /* [cla] */      /* inventario do servidor */
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
     if(!J) return;
@@ -337,6 +348,25 @@ wss.on('connection', ws => {
       const W = mundoDe(c); if(!W || J.morto) return; const t = agora(); J.mhT = (J.mhT || []).filter(x => t - x < 1); if(J.mhT.length >= 30) return; J.mhT.push(t);
       const mo = W.hit(J, m.id | 0, +m.d || 0, t); if(mo) abateMundo(c, W, mo);
     }
+    else if(m.t === 'cla'){                                         /* [cla] criar / convidar / aceitar / recusar / sair / expulsar / ver */
+      const t = agora(); if(!J.pers || t - (J.claT || 0) < .3) return; J.claT = t; const k = String(m.k || ''); let erro = '';
+      const sis = (Q, txt) => envia(Q, { t: 'chat', n: 'Sistema', m: txt, c: 's' });
+      if(k === 'ver'){ enviaCla(J); return; }
+      if(k === 'criar'){ erro = Clas.criar(J.pers, String(m.nome || '').slice(0, 20), String(m.sigla || '').slice(0, 6));
+        if(!erro){ Contas.grava(); envia(J, { t: 'inv', inv: J.pers.inv }); avisaTag(J); sis(J, 'Clã ' + Clas.de(J.pers).nome + ' [' + Clas.de(J.pers).sigla + '] criado.'); } }
+      else if(k === 'convidar'){ const C = Clas.de(J.pers), V = c.jog.get(m.to | 0);
+        if(!C) erro = 'Você não está em um clã.'; else if(C.lider !== J.pers.id) erro = 'Só o líder convida.'; else if(!V || !V.pers) erro = 'Jogador não encontrado.'; else if(Clas.de(V.pers)) erro = V.nome + ' já está em um clã.';
+        else { V.claInv = { id: C.id, ate: t + 20 }; envia(V, { t: 'clareq', de: J.id, nome: J.nome, cla: C.nome + ' [' + C.sigla + ']' }); sis(J, 'Convite de clã enviado para ' + V.nome + '.'); } }
+      else if(k === 'aceitar'){ const I = J.claInv; J.claInv = null; if(!I || t > I.ate) erro = 'O convite expirou.'; else { const C = Clas.porId(I.id); erro = Clas.entrar(C, J.pers);
+        if(!erro){ Contas.grava(); avisaTag(J); for(const o of membrosOnline(C)){ enviaCla(o); sis(o, J.nome + ' entrou no clã.'); } } } }
+      else if(k === 'recusar'){ J.claInv = null; return; }
+      else if(k === 'sair'){ const C = Clas.de(J.pers); erro = Clas.sair(J.pers); if(!erro){ Contas.grava(); avisaTag(J); enviaCla(J); sis(J, 'Você saiu do clã.'); for(const o of membrosOnline(C)){ enviaCla(o); sis(o, J.nome + ' saiu do clã.'); } } }
+      else if(k === 'expulsar'){ const C = Clas.de(J.pers), pid = String(m.pid || '').slice(0, 40), alvoJ = jogadoresOnline().find(o => o.pers.id === pid);
+        erro = Clas.expulsar(J.pers, pid, id => alvoJ ? alvoJ.pers : Contas.persPorId(id));
+        if(!erro){ Contas.grava(); if(alvoJ){ avisaTag(alvoJ); enviaCla(alvoJ); sis(alvoJ, 'Você foi expulso do clã.'); } for(const o of membrosOnline(C)) enviaCla(o); } }
+      else erro = 'Pedido desconhecido.';
+      if(erro) sis(J, erro); else enviaCla(J);
+    }
     else if(m.t === 'mtaunt'){ const W = mundoDe(c); if(W && !J.morto) W.taunt(J, Math.min(12, +m.r || 10), agora()); }
     else if(m.t === 'xp'){
       if(MAPAS[c.mapa].aberto) return;                               /* [mobs-servidor] mapa aberto: o XP sai do servidor (abateMundo), nao do "matei X" do cliente */                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
@@ -361,6 +391,7 @@ wss.on('connection', ws => {
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
     else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .8){ J.ultChat = t; const txt = String(m.m || '').slice(0, 120).trim();      /* chat: geral = canal; c:'g' = grupo (em qualquer mapa) */
       if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }
+      else if(txt && m.c === 'c'){ const C = Clas.de(J.pers); if(!C) envia(J, { t: 'chat', n: 'Sistema', m: 'Você não está em um clã.', c: 's' }); else for(const o of membrosOnline(C)) envia(o, { t: 'chat', n: J.nome, m: txt, c: 'c' }); }      /* [cla] chat do cla (@) */
       else if(txt) difunde(c, { t: 'chat', n: J.nome, m: txt, team: J.team }); } }
     else if(m.t === 'ping') envia(J, { t: 'pong', c: m.c });
     else if(m.t === 'duel' && c.mapa === 'cidade' && !J.duelo){                          /* desafia outro jogador (precisa estar perto) */
