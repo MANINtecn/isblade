@@ -8,7 +8,7 @@
     { pg: 'cidade', txt: 'Ande pela cidade: <b>W A S D</b> (no celular, o joystick).', ok: function(s){ return ini && Math.hypot(s.px - ini[0], s.pz - ini[1]) > 6; } },
     { pg: 'cidade', txt: 'Abra o <b>inventario</b>: tecla <b>I</b> ou o botao I.', ev: 'inv', n: 1 },
     { pg: 'cidade', txt: 'Visite um <b>comerciante</b> (Galladucci ou Mammon): pocoes, soulshot e equipamento.', ok: function(){ return !!(window.Loja && Loja.aberta && Loja.aberta()); } },
-    { pg: 'cidade', txt: 'Atravesse o <b style="color:#40ffa0">portal verde</b>: Torre de Cruma (niveis 1-15).', ok: function(){ return op.mapa === 'curuma'; }, sempre: 1 },
+    { pg: 'cidade', txt: 'Saia pelo <b style="color:#40ffa0">portão da Cruma</b> e siga a estrada até a Torre de Cruma (níveis 1-15).', ok: function(){ return op.mapa === 'curuma'; }, sempre: 1 },
     { pg: 'arena', txt: 'Derrote <b>3 monstros</b>. Os mais fracos ficam perto da entrada.', ev: 'abate', n: 3 },
     { pg: 'arena', txt: 'Use uma <b>skill</b>: <b>Q</b>, <b>E</b> ou <b>R</b>.', ev: 'skill', n: 1 },
     { pg: 'arena', txt: 'Pegue seu primeiro <b>drop</b> (adena ou item).', ev: 'drop', n: 1 },

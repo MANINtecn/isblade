@@ -787,11 +787,11 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/alvo_l2.js?v=1"></script>
 <script src="js/loja.js?v=6"></script>
 <script src="js/arma_grau.js?v=1"></script>
-<script src="js/expedicao.js?v=4"></script>
+<script src="js/expedicao.js?v=5"></script>
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
-<script src="js/mundo_campo.js?v=1"></script>
+<script src="js/mundo_campo.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -3488,6 +3488,9 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   var pa = islandGeo.attributes.position; for (var ii = 0; ii < pa.count; ii++) { if (Math.hypot(pa.getX(ii), pa.getZ(ii)) > 92) pa.setY(ii, pa.getY(ii) - 8); }
   pa.needsUpdate = true; islandGeo.computeVertexNormals();
   var esconde = setInterval(function(){ if (window.Horizonte && Horizonte.itens) Horizonte.itens.forEach(function(it){ it.grupo.visible = false; }); }, 500); setTimeout(function(){ clearInterval(esconde); }, 8000);
+  /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
+  MUNDO_ABERTO = true; ARENA = 3000;
+  SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); });
 
 
@@ -4584,9 +4587,20 @@ SAIDAS.forEach(function(s){
 });
 var CITY_GATE=SAIDAS[0].gate;
 function saidaLocal(s){var dx=S.px-s.gx,dz=S.pz-s.gz;return {n:dx*s.nx+dz*s.nz,a:Math.abs(-dx*s.nz+dz*s.nx)};}
-function saidaPerto(){for(var i=0;i<SAIDAS.length;i++){var l=saidaLocal(SAIDAS[i]);if(l.a<SAIDAS[i].w/2+.6&&l.n>-5.5)return SAIDAS[i];}return null;}
+/* [mundo] entrar andando na regiao de um mapa (Cruma 1, Fortaleza 2, Pantano 3) carrega o mapa; o planalto da Torre (4) abre o menu dela (DG / duelo / PvP) */
+function mundoTick(dt){
+  if(PORTAL_MENU||S.pdead||!window.MundoCampo||!MundoCampo.pronto)return;
+  var d=Math.hypot(S.px,S.pz), r=d>100?MundoCampo.regiao(S.px,S.pz):0;
+  if(r!==MUNDO_REG.r){MUNDO_REG.r=r;MUNDO_REG.t=0;}else MUNDO_REG.t+=dt;
+  if(r!==4)MUNDO_REG.torre=false;
+  if(r>=1&&r<=3&&MUNDO_REG.t>.35){var sid=['','curuma','fortress','blazing'][r],sa=SAIDAS.filter(function(q){return q.id===sid;})[0];if(sa){MUNDO_REG.t=-999;entrarSaida(sa);}}
+  else if(r===4&&!MUNDO_REG.torre&&MUNDO_REG.t>.35){MUNDO_REG.torre=true;openPortalMenu();}
+}
+function saidaPerto(){if(MUNDO_ABERTO)return null;for(var i=0;i<SAIDAS.length;i++){var l=saidaLocal(SAIDAS[i]);if(l.a<SAIDAS[i].w/2+.6&&l.n>-5.5)return SAIDAS[i];}return null;}
 var _saidaCd=0;
+var MUNDO_ABERTO = false, MUNDO_ULT = null, MUNDO_REG = { r: 0, t: 0, torre: false };
 function saidaTick(dt){/* atravessou o portal: entra */
+  if(MUNDO_ABERTO){ mundoTick(dt); return; }/* [mundo] sem portais: regioes dos mapas */
   _saidaCd-=dt;if(_saidaCd>0||PORTAL_MENU||S.pdead)return;
   for(var i=0;i<SAIDAS.length;i++){var s=SAIDAS[i],l=saidaLocal(s);
     if(l.a<s.w/2&&l.n>-1.5){_saidaCd=3;if(!s.url){S.px=s.gx-s.nx*3.2;S.pz=s.gz-s.nz*3.2;}entrarSaida(s);return;}}
@@ -10041,6 +10055,7 @@ function separate(){
 
 
   if(OBST.length){var q=obstPush(S.px,S.pz,.55);S.px=q[0];S.pz=q[1];}
+  if(MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>94){if(!MundoCampo.anda(S.px,S.pz)&&MUNDO_ULT){S.px=MUNDO_ULT[0];S.pz=MUNDO_ULT[1];}else MUNDO_ULT=[S.px,S.pz];}else MUNDO_ULT=[S.px,S.pz];/* [mundo] encosta ingreme e cordilheira bloqueiam */
 
 
 
