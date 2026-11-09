@@ -19,6 +19,27 @@ let SP = null, DG = null; const GRADES = {};
 function carrega(){ try { SP = J('data/spots.json'); DG = J('data/dungeon.json'); } catch(e){ console.error('mobs_mundo: dados', e.message); } }
 carrega();
 
+/* [campo] 09/11/2026: Campo de Talking Island (mundo aberto): relevo e spots vem do mapa-mundi (prototipo/assets/mundo/mundo_grade.*, tools/blender_mundo/exporta_mundo.py).
+   Mob nao entra na cidade (100 m do centro) nem em celula nao andavel; spots por faixa de nivel. */
+const CAMPO_TIPOS = { '1-5': ['sapo_curuma'], '5-10': ['aranha_curuma'], '10-15': ['stakato_curuma', 'stalker_curuma'], '15-20': ['formiga_fort', 'olho_fort'] };
+const CAMPO_AGR = { '1-5': 0, '5-10': .15, '10-15': .25, '15-20': .3 };
+let CAMPO = null;
+function campo(){
+  if(CAMPO !== null) return CAMPO;
+  try {
+    const dir = path.join(RAIZ, 'assets', 'mundo'), J = JSON.parse(fs.readFileSync(path.join(dir, 'mundo_grade.json'), 'utf8')), bin = fs.readFileSync(path.join(dir, 'mundo_grade.bin'));
+    const n = J.nx * J.nz, B = J.bytes_celula || 9, H = new Float32Array(n), A = new Uint8Array(n);
+    for(let k = 0; k < n; k++){ H[k] = bin.readInt16LE(k * B) / 100; A[k] = bin.readUInt8(k * B + 8); }
+    const chao = (x, z) => {
+      if(Math.hypot(x, z) < 100) return null; const fx = (x - J.x0) / J.passo, fz = (z - J.z0) / J.passo, i = Math.floor(fx), j = Math.floor(fz);
+      if(i < 0 || j < 0 || i >= J.nx - 1 || j >= J.nz - 1 || !A[Math.round(fz) * J.nx + Math.round(fx)]) return null;
+      const ax = fx - i, az = fz - j, k = j * J.nx + i, a = H[k] + (H[k + 1] - H[k]) * ax, b = H[k + J.nx] + (H[k + J.nx + 1] - H[k + J.nx]) * ax; return a + (b - a) * az;
+    };
+    const spots = (J.spots || []).map((s, i) => { const L = CAMPO_TIPOS[s.faixa] || CAMPO_TIPOS['1-5'], h = chao(s.x, s.z); return { tipo: L[i % L.length], n: 4, raio: 7, agr: CAMPO_AGR[s.faixa] || 0, x: s.x, z: s.z, h: h === null ? s.y : h }; });
+    CAMPO = { G: { chao: (x, z) => chao(x, z) }, M: { dif: 'campo', respawn: 30, ativa: 90, solta: 120, spots } };
+  } catch(e){ console.error('mobs_mundo: sem o campo do mundo aberto', e.message); CAMPO = false; }
+  return CAMPO;
+}
 function grade(mapa){
   if(GRADES[mapa] !== undefined) return GRADES[mapa];
   const C = CFG[mapa]; if(!C) return (GRADES[mapa] = null);
@@ -35,7 +56,8 @@ function grade(mapa){
 
 class Mundo {
   constructor(mapa){
-    this.mapa = mapa; this.G = grade(mapa); this.M = SP && SP[CFG[mapa].spots]; this.prox = 1; this.mobs = new Map(); this.t = 0; this.tSpot = 0;
+    this.mapa = mapa; const C = mapa === 'campo' ? campo() : null;
+    this.G = C ? C.G : grade(mapa); this.M = C ? C.M : (SP && SP[CFG[mapa].spots]); this.prox = 1; this.mobs = new Map(); this.t = 0; this.tSpot = 0;
     const A = (DG && DG.agressao) || {}; this.A = { visao: A.visao || 7, ajuda: A.ajuda || 4.5, volta: A.volta || 26 };
     this.L = (this.M ? this.M.spots : []).map(s => ({ s, v: Array.from({ length: s.chefe ? 1 : Math.max(2, s.n | 0) }, () => ({ m: null, t: 0 })) }));
   }
@@ -141,4 +163,4 @@ class Mundo {
     return o;
   }
 }
-module.exports = { grade, Mundo, CFG, BONUS_PT, recarrega: carrega, dif: mapa => (SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa };
+module.exports = { grade, Mundo, CFG, BONUS_PT, recarrega: carrega, dif: mapa => mapa === 'campo' ? 'campo' : ((SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa) };

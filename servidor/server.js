@@ -131,9 +131,9 @@ function fimPk(c, A, V, inocente){
 }
 /* [mobs-servidor] mundo de mobs do canal (mapas abertos) */
 function mundoDe(c){
-  if(!MAPAS[c.mapa].aberto) return null;
+  if(!MAPAS[c.mapa].aberto && c.mapa !== 'cidade') return null;      /* [campo] a cidade tem o Campo de Talking Island (mobs do mundo aberto) */
   if(!c.mundo){
-    const W = c.mundo = new Mobs.Mundo(c.mapa);
+    const W = c.mundo = new Mobs.Mundo(c.mapa === 'cidade' ? 'campo' : c.mapa);
     W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); };
     W.tiro = (m, Q, s) => difunde(c, { t: 'mtiro', id: m.id, a: Q.id, s: Math.round(s * 100) / 100 });
     W.aviso = txt => difunde(c, { t: 'pkmsg', m: txt });

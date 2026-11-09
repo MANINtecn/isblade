@@ -11211,7 +11211,89 @@ function buildObstacles(list){
 
 
 
+/* >>> CLAUDE [mob3d-cidade] 09/11/2026: modelos 3D dos mobs (mesmo codigo da arena) + mobs do SERVIDOR no Campo de Talking Island (mundo aberto).
+   O servidor (servidor/mobs_mundo.js, mapa 'campo') manda os mobs pelo `ms`; aqui so se desenha (proxy m.srv), manda o golpe (Net.mhit) e recebe o dano (mdmg). */
+var MOB3D={cache:{},pend:{}};
+function mobClamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function mob3dClone(src){
+  var a2b=new Map(),b2a=new Map(),clone=src.clone();
+  (function par(a,b){a2b.set(b,a);b2a.set(a,b);for(var i=0;i<a.children.length;i++)par(a.children[i],b.children[i]);})(src,clone);
+  clone.traverse(function(n){if(!n.isSkinnedMesh)return;var sm=a2b.get(n),sk=sm.skeleton.clone();sk.bones=sm.skeleton.bones.map(function(b){return b2a.get(b);});n.skeleton=sk;n.bindMatrix.copy(sm.bindMatrix);n.bind(sk,n.bindMatrix);});
+  return clone;
+}
+function mob3dCarregar(tipos){
+  var ps=[];
+  (tipos||[]).forEach(function(t){
+    var T=DGD.mobs[t],md=T&&T.modelo;if(!md||MOB3D.cache[md])return;
+    if(!MOB3D.pend[md])MOB3D.pend[md]=new Promise(function(ok){
+      new THREE.GLTFLoader().load('assets/mobs/modelos/'+md+'.glb?v=1',function(g){
+        g.scene.traverse(function(n){if(!n.isMesh)return;n.frustumCulled=false;n.castShadow=false;
+          (Array.isArray(n.material)?n.material:[n.material]).forEach(function(mt){mt.side=THREE.DoubleSide;if(mt.transparent){mt.transparent=false;mt.alphaTest=.45;mt.depthWrite=true;}if(mt.emissive){mt.emissive.setHex(0xffffff);if(mt.map)mt.emissiveMap=mt.map;}mt.emissiveIntensity=.22;});});
+        MOB3D.cache[md]={scene:g.scene,clips:g.animations};ok();
+      },undefined,function(){ok();});
+    });
+    ps.push(MOB3D.pend[md]);
+  });
+  return Promise.all(ps);
+}
+function mob3dTocar(m,nome,o){
+  o=o||{};var a=m.acoes&&m.acoes[nome];if(!a||(m.cur===nome&&!o.forcar))return;
+  var p=m.acoes[m.cur];a.reset();a.setLoop(o.uma?THREE.LoopOnce:THREE.LoopRepeat,Infinity);a.clampWhenFinished=!!o.uma;a.timeScale=o.vel||1;a.enabled=true;a.setEffectiveWeight(1);
+  if(p&&p!==a)a.crossFadeFrom(p,o.fade===undefined?.15:o.fade,false);a.play();m.cur=nome;
+}
+function mob3dAnim(m,dt){
+  if(!m.mixer)return;var mv=Math.hypot(m.x-(m._px===undefined?m.x:m._px),m.z-(m._pz===undefined?m.z:m._pz))>dt*.4;m._px=m.x;m._pz=m.z;
+  if(m.dead)mob3dTocar(m,'death',{uma:true,fade:.1});
+  else if(m.state==='windup')mob3dTocar(m,'atkwait');
+  else if(m.state==='recover'){if(m.cur!=='atk'){var cl=m.acoes.atk&&m.acoes.atk.getClip();mob3dTocar(m,'atk',{uma:true,fade:.08,vel:cl?mobClamp(cl.duration/Math.max(.5,m.T.rec*.85),1,2.6):1});}}
+  else mob3dTocar(m,mv?'run':'wait',{vel:mv?mobClamp(m.T.speed/2.6,.8,1.8):1});
+  if(Math.hypot(m.x-S.px,m.z-S.pz)<45)m.mixer.update(dt);
+}
+function mobPorId(id){for(var i=0;i<MOBS.length;i++)if(MOBS[i].nid===id)return MOBS[i];return null;}
+function mobSrvSnap(L){
+  var vistos={};
+  L.forEach(function(a){
+    var id=a[0],m=mobPorId(id);vistos[id]=1;
+    if(!m){if(a[9]||!DGD.mobs[a[1]])return;var md=DGD.mobs[a[1]].modelo;if(md&&!MOB3D.cache[md]){mob3dCarregar([a[1]]);return;}/* so nasce com o modelo 3D (nada de boneco provisorio) */
+      m=mkMob(a[1],a[2],a[3]);m.nid=id;m.net=true;m.srv=true;m.x=a[2];m.z=a[3];m.face=a[5];MOBS.push(m);}
+    m.tx=a[2];m.tz=a[3];m.tf=a[5];m.hp=a[6];m.max=a[7];m.state=a[8]===1?'windup':(a[8]===2?'recover':'chase');m.agr=!!a[10];
+    m.fg.scale.x=Math.max(.001,m.hp/(m.max||1));
+    if(a[9]&&!m.dead){m.dead=true;m.deadT=0;try{SFX.play('mobDie');}catch(_){}if(m._euT&&performance.now()/1000-m._euT<15){try{Expedicao.ev('abate');}catch(_){}}}
+  });
+  MOBS.slice().forEach(function(m){if(m.srv&&!vistos[m.nid]&&!m.dead)removeMob(m);});
+}
+function mobSrvAtualiza(m,dt){
+  var k=Math.min(1,dt*12);m.x+=(m.tx-m.x)*k;m.z+=(m.tz-m.z)*k;var df=m.tf-m.face;while(df>Math.PI)df-=6.2832;while(df<-Math.PI)df+=6.2832;m.face+=df*k;m.t=(m.t||0)+dt;
+  var y=getGroundHeight(m.x,m.z);m.g.position.set(m.x,y,m.z);m.g.rotation.y=m.face;m.flash=Math.max(0,(m.flash||0)-dt*4);
+  if(m.mats){var ei=.25+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q=0;q<m.mats.length;q++)m.mats[q].emissiveIntensity=ei;}
+  m.bar.position.set(m.x,y+2.45*m.T.size,m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;
+  mob3dAnim(m,dt);
+  if(m.dead){m.deadT+=dt;if(m.deadT>2.6)removeMob(m);}
+}
+function mobSrvDano(m){if(S.pdead)return;playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
+var TIROS=[];
+function mobSrvTiro(e){
+  var mo=mobPorId(e.id);if(!mo)return;var cor=parseInt(((mo.T&&mo.T.css)||'#43d9ff').slice(1),16);
+  var g=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),new THREE.MeshBasicMaterial({color:cor}));g.scale.set(.7,.7,1.8);scene.add(g);TIROS.push({g:g,de:mo,a:e.a,t:0,s:Math.max(.15,e.s||.5)});
+}
+function tirosTick(dt){
+  for(var i=TIROS.length-1;i>=0;i--){var p=TIROS[i];p.t+=dt;var k=Math.min(1,p.t/p.s),ax,az;
+    if(window.Net&&p.a===Net.id){ax=S.px;az=S.pz;}else{var o=window.Net&&Net.alvos().filter(function(q){return q.id===p.a;})[0];ax=o?o.x:p.de.x;az=o?o.z:p.de.z;}
+    var x=p.de.x+(ax-p.de.x)*k,z=p.de.z+(az-p.de.z)*k;p.g.position.set(x,getGroundHeight(x,z)+1.3,z);p.g.rotation.y=Math.atan2(ax-p.de.x,az-p.de.z);p.g.rotation.x=Math.PI/2;
+    if(k>=1){scene.remove(p.g);p.g.geometry.dispose();TIROS.splice(i,1);}}
+}
+/* <<< CLAUDE [mob3d-cidade] */
 function mkMob(type,x,z){
+  var m=mkMobBoneco(type,x,z),T=m.T,src=T.modelo&&MOB3D.cache[T.modelo];
+  if(!src)return m;
+  m.g.children.slice().forEach(function(c){m.g.remove(c);c.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});});
+  var o=mob3dClone(src.scene);o.scale.setScalar(T.altura||1.8);m.g.add(o);
+  m.mats=[];o.traverse(function(n){if(n.isMesh&&n.material){n.material=n.material.clone();m.mats.push(n.material);}});
+  m.mixer=new THREE.AnimationMixer(o);m.acoes={};src.clips.forEach(function(c){m.acoes[c.name]=m.mixer.clipAction(c);});
+  m.mat={emissiveIntensity:0};m.modelo=o;mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);
+  return m;
+}
+function mkMobBoneco(type,x,z){
 
 
 
@@ -11280,6 +11362,7 @@ function mkMob(type,x,z){
 
 
 function removeMob(m){
+  if(m.mixer){m.mixer.stopAllAction();m.mixer.uncacheRoot(m.modelo);}/* [mob3d-cidade] */
 
 
 
@@ -11319,6 +11402,7 @@ function mobDmg(an){var d=an.dmg;if(S.focus>0)d*=1.3;if(ST.dano)d*=1+ST.dano/100
 
 function damageMob(m,dmg,an){
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
+  if(m&&m.srv){if(!m.dead&&window.Net){Net.mhit(m.nid,dmg);m._euT=performance.now()/1000;m.flash=1;}return;}/* [mob3d-cidade] a vida e do servidor */
 
 
 
@@ -11629,6 +11713,7 @@ function mobStrike(m){
 
 
 function updateMobs(dt){
+  tirosTick(dt);/* [mob3d-cidade] */
 
 
 
@@ -11645,6 +11730,7 @@ function updateMobs(dt){
 
 
     var m=MOBS[i],T=m.T;
+    if(m.srv){mobSrvAtualiza(m,dt);continue;}/* [mob3d-cidade] */
 
 
 
@@ -17955,6 +18041,7 @@ try{Expedicao.init({pagina:'cidade',mapa:null,S:function(){return S;}});}catch(_
 try{Moradores.init({THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},chao:function(x,z){return getGroundHeight(x,z);},enviar:function(n,t){Net.mconv(n,t);},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);}});}catch(e){console.warn('moradores',e);}/* [moradores] NPCs com rotina (servidor/moradores.js) */
 Net.init({
+  ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,/* [mob3d-cidade] mobs do servidor no campo */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
