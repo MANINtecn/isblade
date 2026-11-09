@@ -3108,3 +3108,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Loja (`js/loja.js`): mesmos icones na compra (equipamento e consumiveis) e na venda (borda da raridade).
 - Acentos: Espada de Duas Mãos, Lâmina do Berserker, Cajado do Carniçal, Épico, Lendário.
 - Testado local: PC (1100x640) e celular deitado (900x420, toque): abre pelo I / ⚙ > I, seleciona item, detalhes e botoes; loja do Mammon com icones.
+
+### [Claude] 09/11/2026 - Skill 2 de agua refeita: Coluna de Agua (Spellsinger)
+- Pedido do dono: "refazer essa lanca de gelo, nao gostei; veja a img: ela da uma meia aura de agua em volta do conjurador e no alvo sobe uma coluna de agua" (2 prints de video do L2: Spella com meia aura de agua; Grave Guard com coluna de agua).
+- Feito (cena `MAGO_S2_AGUA`, `montar_agua` em `tools/blender_fx/mago_skill2_fogo_agua.py`; a v1 das lancas ficou como `_montar_agua_lanca_antiga`, sem uso): MEIA AURA de agua em volta do mago = calota facetada (so a metade de cima, faces retas por causa da fobia a redondo) com veios subindo e 10 lancas de agua em volta, cresce 1-13 e gira; AVISO azul em losango no alvo (1-40); no quadro 40 sobe a COLUNA = 2 prismas hexagonais (fora/dentro) com veios de agua correndo para cima e girando em sentidos opostos, coroa de espinhos de agua no topo, respingos baixos no chao, 30 gotas facetadas subindo e caindo, luz azul, e o alvo (caixa de referencia) e erguido 1,6 m e cai devagar (ate o quadro ~122). A aura recolhe quando a coluna sobe. Painel renomeado.
+- NAO feito: nada no jogo; nao foi definido se a coluna so da dano ou tambem ergue/lentifica o alvo; dano, raio (1,15 m), alcance (alvo a 12 m) e recarga em aberto; os veios da agua dependem do material do Blender (precisa ser refeito em shader do jogo).

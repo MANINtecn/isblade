@@ -1,4 +1,4 @@
-"""Mago - skill 2 (PREVIA): METEORO DE MAGMA (fogo, Archmage) e LANCA DE GELO (agua, Spellsinger). So formas angulares, sem rastro.
+"""Mago - skill 2 (PREVIA): METEORO DE MAGMA (fogo, Archmage) e COLUNA DE AGUA (agua, Spellsinger; v2, antes era lanca de gelo). So formas angulares, sem rastro.
 Rodar ao vivo no Blender pelo MCP:  exec(compile(open(r"<este arquivo>", encoding="utf8").read(), "s2", "exec"))
 Cria (ou refaz) as cenas MAGO_S2_FOGO, MAGO_S2_AGUA, MAGO_S2_NECRO e MAGO_S2_NECRO_PARALISIA no .blend aberto. 48 fps.
 Fogo: aviso 1-48, queda 20-48, impacto no quadro 48 (some ate 96). Agua: 3 lancas nascem 1-20, saem em 24/32/40, impactos em 64/72/80.
@@ -305,7 +305,7 @@ def montar_fogo():
     return sc
 
 # ================================================================== AGUA: LANCA DE GELO
-def montar_agua():
+def _montar_agua_lanca_antiga():                        # v1 (lancas de gelo), nao usada mais: o dono pediu a coluna de agua
     random.seed(33)
     F_FIM = 104; NASC = 1; SAI = (24, 32, 40); VOO = 40
     sc, col, ref = nova_cena("MAGO_S2_AGUA", F_FIM)
@@ -561,6 +561,103 @@ def montar_paralisia():
     lv = luz(col, "S2N_pbrilho_luz", "POINT", (0, 11.5, 1.8), 0, (0.3, 1.0, 0.45))
     for f, e in ((F_HIT - 1, 0), (F_HIT + 1, 2500), (F_HIT + 20, 700), (F_SOLTA, 700), (F_SOLTA + 14, 0)): lv.data.energy = e; lv.data.keyframe_insert("energy", frame=f)
     c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 2.8), (0, 6.5, 1.4), 30); camera(sc, ref, "cam_alvo", (6.0, 8.5, 2.0), (0, 12.0, 1.2), 34); camera(sc, ref, "cam_do_mago", (-4.2, -4.0, 2.6), (0, 8.0, 1.4), 32); sc.camera = c1
+    return sc
+
+# ================================================================== AGUA (v2): COLUNA DE AGUA - meia aura facetada em volta do mago e coluna de agua que sobe no alvo (ref. L2)
+def bm_coluna(r1, r2, H, lados=6):
+    """prisma aberto (sem tampas) ao longo de +Z: base em z=0, uv y = altura 0..1"""
+    bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=False, segments=lados, radius1=r1, radius2=r2, depth=H)
+    bmesh.ops.translate(bm, vec=(0, 0, H / 2), verts=bm.verts); uv_z(bm, 0, H); return bm
+def bm_meia_cupula(R, cortar=0.0):
+    """meia aura: icosfera de faces retas cortada na altura 'cortar' (so a metade de cima), sem fundo"""
+    bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=R)
+    ruim = [f for f in bm.faces if sum(v.co.z for v in f.verts) / len(f.verts) < cortar]
+    bmesh.ops.delete(bm, geom=ruim, context="FACES")
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    uv_z(bm, cortar, R); return bm
+def mat_coluna(nome, base, topo, forca=2.4, esticar=0.7, escala=5.0, alfa=0.95, vel=0.0, f0=1, f1=1):
+    """agua subindo: ruido esticado na vertical (veios), mais claro na base, some no topo; vel > 0 faz os veios subirem"""
+    m = mat_base(nome); nt = m.node_tree; N = nt.nodes
+    em = N.new("ShaderNodeEmission"); tc = N.new("ShaderNodeTexCoord"); mp = N.new("ShaderNodeMapping"); mp.name = "mapa"
+    mp.inputs[3].default_value = (escala, escala, esticar)
+    nz = N.new("ShaderNodeTexNoise"); nz.inputs["Scale"].default_value = 1.6; nz.inputs["Detail"].default_value = 3
+    rv = N.new("ShaderNodeValToRGB"); rv.color_ramp.elements[0].position = 0.32; rv.color_ramp.elements[1].position = 0.70
+    sep = N.new("ShaderNodeSeparateXYZ"); gr = N.new("ShaderNodeValToRGB"); gr.color_ramp.elements[0].color = (*base, 1); gr.color_ramp.elements[1].color = (*topo, 1)
+    inv = N.new("ShaderNodeMath"); inv.operation = "SUBTRACT"; inv.inputs[0].default_value = 1.0
+    pw = N.new("ShaderNodeMath"); pw.operation = "POWER"; pw.inputs[1].default_value = 0.55
+    mx = N.new("ShaderNodeMath"); mx.operation = "MULTIPLY_ADD"; mx.inputs[1].default_value = 0.75; mx.inputs[2].default_value = 0.25
+    al = N.new("ShaderNodeMath"); al.operation = "MULTIPLY"; al2 = N.new("ShaderNodeMath"); al2.operation = "MULTIPLY"; al2.inputs[1].default_value = alfa
+    L = nt.links; uv = N.new("ShaderNodeTexCoord")
+    L.new(tc.outputs["Object"], mp.inputs[0]); L.new(mp.outputs[0], nz.inputs["Vector"]); L.new(nz.outputs["Fac"], rv.inputs[0])
+    L.new(uv.outputs["UV"], sep.inputs[0]); L.new(sep.outputs[1], gr.inputs[0]); L.new(gr.outputs[0], em.inputs["Color"]); em.inputs["Strength"].default_value = forca
+    L.new(sep.outputs[1], inv.inputs[1]); L.new(inv.outputs[0], pw.inputs[0]); L.new(rv.outputs[0], mx.inputs[0]); L.new(mx.outputs[0], al.inputs[0]); L.new(pw.outputs[0], al.inputs[1])
+    L.new(al.outputs[0], al2.inputs[0]); _fim_emissivo(m, em, al2.outputs[0], N)
+    if vel:                                                                    # os veios correm para cima
+        for fr, z in ((f0, 0.0), (f1, -vel)):
+            mp.inputs[1].default_value = (0, 0, z); nt.keyframe_insert('nodes["mapa"].inputs[1].default_value', frame=fr)
+    return m
+
+def montar_agua():
+    random.seed(33)
+    F_AV0, F_COL, F_FIM = 1, 40, 124
+    sc, col, ref = nova_cena("MAGO_S2_AGUA", F_FIM)
+    caixa = chao_e_referencia(sc, ref, col)
+    caixa("mago_ref_1.7m", (0.0, 0.0, 0.85), (0.5, 0.35, 1.7)); alvo = caixa("alvo_ref_1.8m", (0.0, 12.0, 0.9), (0.6, 0.4, 1.8))
+    m_aura = mat_gelo("S2A_aura", (0.06, 0.40, 0.85), (0.80, 0.97, 1.0), 1.7, 0.30)
+    m_veio = mat_coluna("S2A_veio_aura", (0.85, 1.0, 1.0), (0.20, 0.60, 1.0), 2.0, 0.8, 4.0, 0.8, 5.0, 1, 60)
+    m_ext = mat_coluna("S2A_coluna_ext", (0.70, 0.93, 1.0), (0.08, 0.40, 0.92), 1.5, 0.55, 3.2, 0.85, 7.0, F_COL, 118)
+    m_int = mat_coluna("S2A_coluna_int", (0.80, 0.97, 1.0), (0.25, 0.70, 1.0), 1.6, 0.45, 4.5, 0.9, 9.0, F_COL, 118)
+    m_gota = mat_gelo("S2A_gota", (0.12, 0.55, 0.95), (0.92, 1.0, 1.0), 2.0, 0.85)
+    m_pico = mat_grad("S2A_pico", [(0.0, (0.95, 1.0, 1.0)), (0.5, (0.35, 0.78, 1.0)), (1.0, (0.08, 0.35, 0.85))], 2.6, 0.9, 0.5, 4.0)
+    m_aviso = mat_grad("S2A_aviso", [(0.0, (0.15, 0.55, 1.0)), (1.0, (0.75, 0.97, 1.0))], 3.0, 0.9)
+    # ---- meia aura em volta do mago: calota facetada (so a metade de cima) + lancas de agua subindo em volta
+    gr = bpy.data.objects.new("S2A_aura", None); gr.location = (0, 0, 0.0); col.objects.link(gr)
+    cup = para_obj(col, "S2A_cupula", bm_meia_cupula(1.35, 0.05), m_aura); cup.parent = gr
+    cup2 = para_obj(col, "S2A_cupula_veios", bm_meia_cupula(1.12, 0.05), m_veio); cup2.parent = gr
+    anim(gr, "rotation_euler", F_AV0, F_COL + 16, lambda t: (0, 0, t * math.radians(110)), 6)
+    esc(gr, [(F_AV0 - 1, 0.3), (F_AV0 + 12, 1.0), (F_COL - 4, 1.0), (F_COL + 2, 1.18), (F_COL + 16, 0.2), (F_COL + 17, 0.0)])
+    for i in range(10):
+        a = i * 2 * math.pi / 10 + random.uniform(-.15, .15); Ls = random.uniform(0.9, 1.7)
+        o = para_obj(col, "S2A_aura_lanca%d" % i, bm_cone(0.16, 0.0, Ls, 4), m_pico); o.parent = gr; o.location = (math.cos(a) * 1.05, math.sin(a) * 1.05, 0.0); apunta(o, (math.cos(a) * 0.18, math.sin(a) * 0.18, 1.0))
+        f0 = F_AV0 + 2 + i
+        esc(o, [(f0 - 1, (1, 1, 0.02)), (f0 + 6, (1, 1, 1.0)), (F_COL - 4 + i % 3, (1, 1, 1.0)), (F_COL + 6, (1, 1, 0.3))])
+    # ---- aviso no alvo: losango azul de linhas retas ate a coluna subir
+    D = 1.9; segs = [((D, 0, .03), (0, D, .03)), ((0, D, .03), (-D, 0, .03)), ((-D, 0, .03), (0, -D, .03)), ((0, -D, .03), (D, 0, .03)),
+                     ((D * .55, 0, .03), (0, D * .55, .03)), ((0, D * .55, .03), (-D * .55, 0, .03)), ((-D * .55, 0, .03), (0, -D * .55, .03)), ((0, -D * .55, .03), (D * .55, 0, .03))]
+    av = para_obj(col, "S2A_aviso", bm_linhas(segs, 0.07), m_aviso); av.location = (0, 12.0, 0)
+    esc(av, [(F_AV0, 0.5), (F_AV0 + 10, 1.0), (F_COL - 1, 0.85), (F_COL, 0.0)])
+    anim(av, "rotation_euler", F_AV0, F_COL, lambda t: (0, 0, t * math.radians(-60)), 6)
+    # ---- coluna de agua: dois prismas (fora, dentro) com veios subindo, coroa de espinhos no topo, respingos
+    H = 5.8
+    ext = para_obj(col, "S2A_coluna_ext", bm_coluna(1.15, 0.95, H, 6), m_ext); ext.location = (0, 12.0, 0)
+    inte = para_obj(col, "S2A_coluna_int", bm_coluna(0.62, 0.50, H * 0.95, 6), m_int); inte.location = (0, 12.0, 0)
+    for o, sg in ((ext, 1), (inte, -1)):
+        anim(o, "rotation_euler", F_COL, F_FIM, lambda t, sg=sg: (0, 0, sg * t * math.radians(220)), 6)
+        esc(o, [(F_COL - 1, (1, 1, 0.01)), (F_COL + 1, (0.6, 0.6, 0.35)), (F_COL + 5, (1.15, 1.15, 1.15)), (F_COL + 10, (1, 1, 1.0)), (F_COL + 56, (1, 1, 1.0)), (F_COL + 68, (0.6, 0.6, 0.85)), (F_COL + 80, (0.15, 0.15, 0.3)), (F_COL + 81, (1e-3, 1e-3, 1e-3))])
+    for i in range(8):                                                         # coroa: espinhos de agua abrindo no topo
+        a = i * 2 * math.pi / 8 + random.uniform(-.1, .1); Ls = random.uniform(1.0, 1.7)
+        o = para_obj(col, "S2A_coroa%d" % i, bm_cone(0.20, 0.0, Ls, 4), m_pico); o.location = (math.cos(a) * 0.9, 12.0 + math.sin(a) * 0.9, H * 0.9); apunta(o, (math.cos(a) * 0.9, math.sin(a) * 0.9, 0.85))
+        esc(o, [(F_COL + 4, 0.0), (F_COL + 8, 1.0), (F_COL + 56, 1.0), (F_COL + 70, 0.0)])
+    for i in range(12):                                                        # respingo no chao: espinhos baixos para fora
+        a = i * 2 * math.pi / 12 + random.uniform(-.12, .12); Ls = random.uniform(1.5, 2.6)
+        o = para_obj(col, "S2A_respingo%d" % i, bm_cone(0.32, 0.0, Ls, 4), m_pico); o.location = (math.cos(a) * 0.9, 12.0 + math.sin(a) * 0.9, 0.05); apunta(o, (math.cos(a), math.sin(a), 0.28))
+        esc(o, [(F_COL - 1, 0.0), (F_COL, 0.1), (F_COL + 4, 1.0), (F_COL + 14, 0.8), (F_COL + 34, 0.0)])
+    for i in range(30):                                                        # gotas facetadas que sobem e caem
+        d = random.uniform(0, 6.28); vh = random.uniform(.8, 3.2); vz = random.uniform(4.0, 9.0); rr = random.uniform(.07, .16); vida = random.randint(34, 60); f0 = F_COL + random.randint(0, 10)
+        o = para_obj(col, "S2A_gota%d" % i, bm_lascas(rr * 2.0, 3 if i % 2 else 4), m_gota); wx, wy, wz = [random.uniform(-8, 8) for _ in range(3)]
+        for f in list(range(f0, f0 + vida, 3)) + [f0 + vida]:
+            s_ = (f - f0) / FPS; o.location = (math.cos(d) * vh * s_ * 0.8, 12.0 + math.sin(d) * vh * s_ * 0.8, max(0.05, 0.8 + vz * s_ - 9.8 * s_ * s_ / 2))
+            o.rotation_euler = (wx * s_, wy * s_, wz * s_); o.scale = ((1,) * 3 if f < f0 + vida else (1e-4,) * 3)
+            o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f0 - 1)
+    # o alvo (caixa de referencia) e erguido pela coluna e cai devagar
+    for f, z in ((F_COL - 1, 0.9), (F_COL + 14, 2.5), (F_COL + 60, 2.5), (F_COL + 82, 0.9)): alvo.location.z = z; alvo.keyframe_insert("location", index=2, frame=f)
+    luz(ref, "S2A_sol", "SUN", (0, 0, 10), 1.0, (0.7, 0.85, 1.0)).rotation_euler = (math.radians(45), 0, math.radians(-30))
+    lf = luz(col, "S2A_brilho", "POINT", (0, 12.0, 2.5), 0, (0.5, 0.8, 1.0))
+    for f, e in ((F_COL - 1, 0), (F_COL + 3, 5000), (F_COL + 20, 2500), (F_COL + 60, 2500), (F_COL + 84, 0)): lf.data.energy = e; lf.data.keyframe_insert("energy", frame=f)
+    lm = luz(col, "S2A_brilho_mago", "POINT", (0, 0.3, 1.0), 0, (0.4, 0.75, 1.0))
+    for f, e in ((F_AV0, 0), (F_AV0 + 12, 1800), (F_COL, 1800), (F_COL + 16, 0)): lm.data.energy = e; lm.data.keyframe_insert("energy", frame=f)
+    c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 3.4), (0, 6.5, 2.0), 30); camera(sc, ref, "cam_alvo", (10.0, 6.0, 3.6), (0, 12.0, 2.6), 30); camera(sc, ref, "cam_do_mago", (3.4, -3.6, 2.0), (0, 0.3, 1.0), 32); sc.camera = c1
     return sc
 
 sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro(); sc_p = montar_paralisia()
