@@ -195,6 +195,10 @@ export const Net = (function(){
     } else if(m.t === 'cla'){ N.cla = m.cla; N.claCfg = { nv: m.nv, adena: m.adena, max: m.max }; if(menuAberto) renderMenu();      /* [cla] */
     } else if(m.t === 'clatag'){ e = remotos.get(m.id); if(e){ e.cla = m.cla || ''; if(e.tag) desenhaTag(e); }
     } else if(m.t === 'clareq'){ pedCla = { de: m.de, nome: m.nome, cla: m.cla, ate: Date.now() + 20000 }; ctx.banner('CONVITE DE CLÃ', m.nome + ' convida você para ' + m.cla, '#ffd166'); desenhaPed();
+    } else if(m.t === 'morinfo'){ if(window.Moradores) Moradores.info(m.l);      /* [moradores] */
+    } else if(m.t === 'mor'){ if(window.Moradores) Moradores.snap(m.m);
+    } else if(m.t === 'mfala'){ if(window.Moradores) Moradores.fala(m.n, m.m);
+    } else if(m.t === 'mresp'){ if(window.Moradores) Moradores.resposta(m.n, m.m);
     } else if(m.t === 'pkst'){                                          /* [pk] meu estado: 0 normal, 1 flag (roxo), 2 PK (karma) */
       var antes = N.pkSt; N.pkSt = m.st | 0; N.karma = m.karma | 0;
       if(N.pkSt === 1 && antes === 0) ctx.sysMsg('Você atacou um jogador: nome roxo por 30 s (outros podem atacar você).');
@@ -479,6 +483,7 @@ export const Net = (function(){
   N.chat = function(txt, c){ if(N.on) send({ t: 'chat', m: String(txt).slice(0, 120), c: c || '' }); return N.on; };      /* chat: '' geral, 'g' grupo */
   if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){ N._dbgSend = send; N._dbgRemotos = remotos; }      /* so testes locais */
   N.mhit = function(id, d){ if(N.on) send({ t: 'mhit', id: id, d: Math.round(d) }); };      /* [mobs-servidor] dano num mob do servidor */
+  N.mconv = function(n, txt){ if(N.on) send({ t: 'mconv', n: n, m: String(txt || '').slice(0, 160) }); };      /* [moradores] conversa */
   N.mtaunt = function(r){ if(N.on) send({ t: 'mtaunt', r: r }); };
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){

@@ -789,6 +789,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/expedicao.js?v=4"></script>
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
+<script src="js/moradores.js?v=1"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -1330,7 +1331,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=39';
+import { Net } from './js/net.js?v=40';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -14361,6 +14362,7 @@ window.addEventListener('keydown',function(e){
   if(PORTAL_MENU){if(k==='escape'||k==='e')closePortalMenu();return;}/* [portal-cidade] */
   if(k==='e'){
     if(window.L2Npcs && window.L2Npcs.handleInteractKey()){ e.preventDefault(); return; }
+    if(window.Moradores && Moradores.interage()){ e.preventDefault(); return; }/* [moradores] */
     var _sa=saidaPerto(); if(_sa){ entrarSaida(_sa); return; }/* [portais-saidas] */
   }
 
@@ -15272,7 +15274,7 @@ function frame2(dt,T){
 
 
 
-    if (pPrompt && !(window.L2Npcs && L2Npcs.perto && L2Npcs.perto())) pPrompt.style.display = 'none';/* [Claude] nao apaga o aviso de falar com NPC (o botao do celular depende dele) */
+    if (pPrompt && !(window.L2Npcs && L2Npcs.perto && L2Npcs.perto()) && !(window.Moradores && Moradores.perto())) pPrompt.style.display = 'none';/* [Claude] nao apaga o aviso de falar com NPC (o botao do celular depende dele) */
 
 
 
@@ -16406,6 +16408,7 @@ function frameBody(nowMs){
 
   var dtR=Math.max(0,(nowMs-last)/1000),dt=Math.min(.05,dtR)*((window.ModoCamera&&ModoCamera.escala)||1);last=nowMs;/* [modo-camera] F10 camera lenta */T+=dt;
   if(window.L2Npcs) L2Npcs.update(dt, S.px, S.pz);
+  if(window.Moradores) Moradores.tick(dt);/* [moradores] */
 
 
 
@@ -17863,6 +17866,8 @@ try{SomL2.ambiente('cidade');}catch(_){}/* [sons-l2] vento, ondas e gaivotas de 
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 try{Expedicao.init({pagina:'cidade',mapa:null,S:function(){return S;}});}catch(_){}/* [expedicao] */
+try{Moradores.init({THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},chao:function(x,z){return getGroundHeight(x,z);},enviar:function(n,t){Net.mconv(n,t);},
+  loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);}});}catch(e){console.warn('moradores',e);}/* [moradores] NPCs com rotina (servidor/moradores.js) */
 Net.init({
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */

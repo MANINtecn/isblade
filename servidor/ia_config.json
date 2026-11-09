@@ -1,7 +1,8 @@
 {
-  "_nota": "Jogador IA (servidor/ia_jogador.js): ligada = o servidor liga junto. qtd 1-3 (SextaFeira, Lyra, Doran). modelo/falasHora so valem com chave da API (<DATA_DIR>/anthropic_api_key.txt na VPS); sem chave ele usa frases prontas. Para gastar menos: claude-haiku-5-5.",
+  "_nota": "Jogador IA (servidor/ia_jogador.js): ligada = o servidor liga junto. qtd 1-3 (SextaFeira, Lyra, Doran). modelo/falasHora so valem com chave da API (<DATA_DIR>/anthropic_api_key.txt na VPS); sem chave ele usa frases prontas. Para gastar menos: claude-haiku-5-5. npcFalasHora = limite de respostas dos moradores da cidade pelo Claude por hora (sem chave: frases prontas).",
   "ligada": true,
   "qtd": 1,
   "modelo": "claude-opus-5-5",
-  "falasHora": 40
+  "falasHora": 40,
+  "npcFalasHora": 60
 }

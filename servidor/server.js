@@ -39,6 +39,7 @@ const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, ra
 const Prog = require('./progressao');
 const Inv = require('./inventario');
 const Mobs = require('./mobs_mundo');
+const Moradores = require('./moradores').cria({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [moradores] NPCs com rotina e conversa na cidade */
 const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 function ganhaXp(J, v){
   if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
@@ -291,7 +292,8 @@ wss.on('connection', ws => {
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
       if(pers && Inv.garante(pers)){ Contas.grava(); envia(J, { t: 'inv', inv: pers.inv }); }
       if(ANUNCIO) envia(J, { t: 'anuncio', txt: ANUNCIO });                 /* [anuncio] */
-      enviaCla(J);                                                   /* [cla] */      /* inventario do servidor */
+      enviaCla(J);                                                   /* [cla] */
+      if(mapa === 'cidade') envia(J, { t: 'morinfo', l: Moradores.info() });      /* [moradores] quem sao (modelo, nome, profissao) */      /* inventario do servidor */
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
     if(!J) return;
@@ -369,6 +371,13 @@ wss.on('connection', ws => {
       else erro = 'Pedido desconhecido.';
       if(erro) sis(J, erro); else enviaCla(J);
     }
+    else if(m.t === 'mconv'){                                       /* [moradores] jogador conversa com um morador (Claude ou frases prontas) */
+      const t = agora(); if(c.mapa !== 'cidade' || t - (J.convT || 0) < 2.5) return; J.convT = t;
+      Moradores.conversa(J, m.n | 0, String(m.m || '').slice(0, 160), t).then(r => {
+        if(!r) return; if(r.erro){ envia(J, { t: 'chat', n: 'Sistema', m: r.erro, c: 's' }); return; }
+        envia(J, { t: 'mresp', n: r.m.n, m: r.r }); difunde(c, { t: 'mfala', n: r.m.n, m: r.r }, J);
+      }).catch(e => console.error('moradores: conversa', e.message));
+    }
     else if(m.t === 'mtaunt'){ const W = mundoDe(c); if(W && !J.morto) W.taunt(J, Math.min(12, +m.r || 10), agora()); }
     else if(m.t === 'xp'){
       if(MAPAS[c.mapa].aberto) return;                               /* [mobs-servidor] mapa aberto: o XP sai do servidor (abateMundo), nao do "matei X" do cliente */                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
@@ -436,6 +445,8 @@ const MET = process.env.METRICAS === '1' ? { n: 0, soma: 0, max: 0, t: agora() }
 setInterval(() => {
   const t0m = MET ? process.hrtime.bigint() : 0n;
   tick++; const t = agora(); for(const cp of todosCanais()) passaProj(cp, t);
+  Moradores.tick(t, TICK / 1000, (M, txt) => { for(const cc of canais.cidade) if(cc.jog.size) difunde(cc, { t: 'mfala', n: M.n, m: txt }); });      /* [moradores] */
+  const MOR = tick % 3 === 0 ? JSON.stringify({ t: 'mor', m: Moradores.snap() }) : null;
   for(const c of todosCanais()){
     for(const J of c.jog.values()){
       const eP = estadoPk(J, t), kP = J.pers ? J.pers.karma | 0 : 0; if(eP !== J.stPk || kP !== J.kPk){ J.stPk = eP; J.kPk = kP; envia(J, { t: 'pkst', st: eP, karma: kP }); }      /* [pk] meu estado */
@@ -452,7 +463,7 @@ setInterval(() => {
     const W = lista.length ? mundoDe(c) : null; if(W) W.tick(t, TICK / 1000, lista);      /* [mobs-servidor] */
     for(const A of lista){
       const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null, estadoPk(B, t)]); }
-      envia(A, { t: 's', n: tick, p }); if(W && tick % 2 === 0) envia(A, { t: 'ms', m: W.snap(A, AOI) });      /* mobs a 6/s (o jogo suaviza) */
+      envia(A, { t: 's', n: tick, p }); if(MOR && c.mapa === 'cidade' && A.ws.readyState === 1) A.ws.send(MOR); if(W && tick % 2 === 0) envia(A, { t: 'ms', m: W.snap(A, AOI) });      /* mobs a 6/s (o jogo suaviza) */
     }
   }
   if(MET){ const ms = Number(process.hrtime.bigint() - t0m) / 1e6; MET.n++; MET.soma += ms; if(ms > MET.max) MET.max = ms;

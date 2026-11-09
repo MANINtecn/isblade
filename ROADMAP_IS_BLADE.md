@@ -109,7 +109,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 - [x] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude) — feito 08/11: `/api/ranking` (top 50, cache 30 s), `ranking.html` pública e aba Ranking no menu (P). Conta vitórias no PvP e chefes derrotados a partir de agora (antes não eram guardados).
 - [x] Party com papéis: XP dividido por perto, bônus por classe diferente no grupo. **P** (Claude) — feito 09/11 nos mapas abertos: XP do abate para a party a até 40 m (bônus do L2 dividido) + 10% por classe diferente (3 classes = +20%).
 
-- [~] **Jogador IA e NPCs com vida** (ideia do dono, 08/11): `servidor/ia_jogador.js` joga sozinho como humano (caça, sobe, party, PK, chat pelo Claude). Falta: ligar na VPS (chave da API + tarefa agendada) e, depois de validado, NPCs da cidade com rotina e conversa "tipo GTA". **G** (Claude)
+- [~] **Jogador IA e NPCs com vida** (ideia do dono, 08/11): `servidor/ia_jogador.js` joga sozinho como humano (caça, sobe, party, PK, chat pelo Claude). SextaFeira ligada na VPS (09/11). Moradores com vida FEITOS (09/11): 6 moradores na cidade com rotina pelo relógio do jogo, andam desviando das casas, falam em balão e conversam (Claude com chave; frases prontas sem). Próximo: mais moradores, reações (correr de PK, cumprimentar), moradores nos mapas. **G** (Claude)
 
 ### FASE 5 — Lançar o Beta Demo e divulgar
 **Critérios para abrir o beta** (todos marcados):
