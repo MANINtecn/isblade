@@ -463,18 +463,19 @@ def montar_paralisia():
     m_nucleo = mat_emit("S2N_pnucleo", (0.45, 1.0, 0.55), 3.2)
     m_marca = mat_grad("S2N_pmarca", [(0.0, (0.15, 0.80, 0.28)), (1.0, (0.75, 1.0, 0.65))], 3.4, 1.0)
     m_nevoa = mat_flama("S2N_pnevoa", TEX2 + "fx_m_t0074.png", (0.30, 0.95, 0.45), 1.5, 0.35)
-    L = 2.0; r = 0.13; INCL = math.radians(-45)       # eixo do espinho: para frente e 45 graus para baixo
+    L = 2.0; r = 0.13; INCL = 0.0       # eixo do espinho: para frente e 45 graus para baixo
     eixo = Vector((0, math.cos(INCL), math.sin(INCL)))
     ponta_alvo = Vector((0.0, 11.85, 1.25))           # a ponta toca o peito do alvo
     p_hit = ponta_alvo - Vector((0, 1, 0)) * L        # origem (cauda) quando acerta: espinho NIVELADO, cravado de frente
-    p_forma = Vector((0.0, 0.9, 2.3))                  # forma-se a 45 graus, no alto, na frente do mago
+    p_forma = Vector((0.0, 0.9, p_hit.z + 0.45))       # forma-se JA nivelado, um pouco acima do peito, na frente do mago
     p_sai = Vector((0.0, 1.4, p_hit.z))                # depois de endireitar e descer, voa reto na altura do peito
     esp = bpy.data.objects.new("S2N_espinho", None); col.objects.link(esp)
     corpo = para_obj(col, "S2N_pcorpo", bm_cristal(L, r, 5), m_osso); corpo.parent = esp; corpo.rotation_euler = (INCL, 0, 0)
     miolo = para_obj(col, "S2N_pmiolo", bm_cristal(L * 0.8, r * 0.45, 4), m_nucleo); miolo.parent = esp; miolo.rotation_euler = (INCL, 0, 0); miolo.location = tuple(eixo * 0.1)
-    for j in range(2):                                                         # farpas pequenas atras do corpo
-        f = para_obj(col, "S2N_pfarpa%d" % j, bm_cristal(0.42, 0.04, 4), m_osso); f.parent = esp
-        f.location = tuple(eixo * (0.35 + j * 0.28)); f.rotation_euler = (INCL + math.radians(22) * (1 if j % 2 else -1), math.radians(18), 0)
+    for j in range(12):                                                        # espinhos menores saindo do espinho grande (para tras e para fora)
+        ang = j * 2 * math.pi / 5 + random.uniform(-.3, .3); pos = 0.45 + (j / 11.0) * (L - 0.85); Ls = random.uniform(0.32, 0.6) * (1.15 - 0.5 * pos / L)
+        f = para_obj(col, "S2N_pfarpa%d" % j, bm_cone(0.055, 0.0, Ls, 4), m_osso); f.parent = esp
+        f.location = (math.cos(ang) * 0.07, pos, math.sin(ang) * 0.07); apunta(f, (math.cos(ang), -0.55, math.sin(ang)))
     # forma-se na frente do mago (cacos de osso e almas convergem), espera e parte reto, sem girar
     esp.location = tuple(p_forma); esp.keyframe_insert("location", frame=F_FORMA); esp.keyframe_insert("location", frame=F_SAI - 6)
     esp.rotation_euler = (0, 0, 0); esp.keyframe_insert("rotation_euler", frame=F_FORMA); esp.keyframe_insert("rotation_euler", frame=F_SAI - 6)
