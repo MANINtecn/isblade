@@ -115,9 +115,13 @@ function colega(mapa, sid){                                         /* algum mem
 const FLAG_S = 30, KARMA_PK = 720, KARMA_DROP = .25;
 const temKarma = J => ((J.pers && J.pers.karma) | 0) > 0, temFlag = (J, t) => (J.flagAte || 0) > t;
 const estadoPk = (J, t) => temKarma(J) ? 2 : (temFlag(J, t) ? 1 : 0);
+/* [pagina-unica] o canal da cidade tem o mundo aberto inteiro: dentro da muralha (raio 96 m) e zona segura (so duelo); fora vale a regra dos mapas abertos */
+const FORA_MURALHA = 96;
+const abertoAqui = (c, J) => !!MAPAS[c.mapa].aberto || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA);
+const emDuelo = (A, V, t) => { const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim); };
 function podeFerir(c, A, V, t){
   if(c.mapa === 'pvp') return !(A.party && A.party === V.party);          /* PvP livre: todos contra todos; so o mesmo grupo nao se fere */
-  if(MAPAS[c.mapa].aberto){ if(A.party && A.party === V.party) return false; return temKarma(V) || temFlag(V, t) || !!A.pk; }      /* [pk] */
+  if(abertoAqui(c, A) && abertoAqui(c, V) && !emDuelo(A, V, t)){ if(A.party && A.party === V.party) return false; return temKarma(V) || temFlag(V, t) || !!A.pk; }      /* [pk] */
   const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim);   /* cidade: so no duelo ja comecado */
 }
 function fimPk(c, A, V, inocente){
@@ -133,7 +137,7 @@ function fimPk(c, A, V, inocente){
 function mundoDe(c){
   if(!MAPAS[c.mapa].aberto && c.mapa !== 'cidade') return null;      /* [campo] a cidade tem o Campo de Talking Island (mobs do mundo aberto) */
   if(!c.mundo){
-    const W = c.mundo = new Mobs.Mundo(c.mapa === 'cidade' ? 'campo' : c.mapa);
+    const W = c.mundo = c.mapa === 'cidade' ? Mobs.mundoAberto() : new Mobs.Mundo(c.mapa);      /* [pagina-unica] cidade = Campo + Cruma + Fortaleza + Pantano no mundo */
     W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); };
     W.tiro = (m, Q, s) => difunde(c, { t: 'mtiro', id: m.id, a: Q.id, s: Math.round(s * 100) / 100 });
     W.aviso = txt => difunde(c, { t: 'pkmsg', m: txt });
@@ -155,7 +159,7 @@ function abateMundo(c, W, m){
   const K = c.jog.get(W.dono(m)); if(!K || !K.pers) return;
   const quem = [...c.jog.values()].filter(P => P.pers && !P.morto && (P === K || (K.party && P.party === K.party)) && Math.hypot(P.x - m.x, P.z - m.z) <= 40);
   const n = Math.max(1, quem.length), classes = new Set(quem.map(P => Prog.classeDe(P.pers))).size, bc = 1 + .1 * Math.max(0, classes - 1);      /* [party] +10% por classe diferente (Guardiao + Mago + Guerreiro = +20%) */
-  const f = (n > 1 ? (Mobs.BONUS_PT[Math.min(n, Mobs.BONUS_PT.length - 1)] / n) : 1) * bc, dif = Mobs.dif(W.mapa);      /* [campo] pelo mapa do mundo de mobs (no canal da cidade e o 'campo') */
+  const f = (n > 1 ? (Mobs.BONUS_PT[Math.min(n, Mobs.BONUS_PT.length - 1)] / n) : 1) * bc, dif = m.dif || Mobs.dif(W.mapa);      /* [campo] pelo mapa do mundo de mobs (no canal da cidade e o 'campo') */
   for(const P of quem){ const v = Math.max(1, Math.round(Prog.xpAbate(dif, m.tipo, P.pers.level) * f)); ganhaXp(P, v); karmaMob(P, v); }
   premia(K, m.tipo, dif, Prog.xpAbate(dif, m.tipo, K.pers.level));
 }
@@ -168,7 +172,7 @@ function fimDuelo(c, perdedor, vencedor, motivo){
 function fere(c, A, V, base, t, pid){
   let dano = Math.max(1, Math.round(base * (.92 + Math.random() * .16) * PVP_MULT)), bloqueio = false;
   if(V.guarda && Math.abs(angDif(Math.atan2(A.x - V.x, A.z - V.z), V.f)) < 1.1){ dano = Math.max(1, Math.round(dano * .2)); bloqueio = true; }   /* guarda de frente */
-  const duelo = c.mapa === 'cidade', aberto = !!MAPAS[c.mapa].aberto, inocente = aberto && !temKarma(V) && !temFlag(V, t);
+  const duelo = c.mapa === 'cidade' && emDuelo(A, V, t), aberto = !duelo && abertoAqui(c, A) && abertoAqui(c, V), inocente = aberto && !temKarma(V) && !temFlag(V, t);
   if(aberto && !temKarma(V)) A.flagAte = t + FLAG_S;                 /* [pk] bateu em quem nao e PK: fica roxo */
   V.hp = Math.max(duelo ? 1 : 0, V.hp - dano); V.pvpHitT = t;                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
   difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0, p: pid || 0 });
@@ -328,7 +332,7 @@ wss.on('connection', ws => {
         if(d > max){ J.x += dx / d * max; J.z += dz / d * max; } else { J.x = m.x; J.z = m.z; }          /* limita a velocidade; se andou demais, so chega mais devagar */
       }
       if(typeof m.y === 'number' && isFinite(m.y)) J.y = Math.max(-5000, Math.min(5000, m.y));      /* [mapas-multi] altura no relevo (so para desenhar) */
-      if((c.mapa === 'masmorra' || MAPAS[c.mapa].aberto) && typeof m.h === 'number' && !J.morto){ const h = Math.max(0, Math.min(J.pmax, m.h | 0)); if(h <= J.hp || !(t - (J.pvpHitT || 0) < 3)) J.hp = h; }      /* [pk] logo depois de golpe de jogador so aceita vida menor (pacote atrasado nao desfaz o dano) */      /* so para a barra do grupo: na masmorra o combate e do jogo */
+      if((c.mapa === 'masmorra' || abertoAqui(c, J)) && typeof m.h === 'number' && !J.morto){ const h = Math.max(0, Math.min(J.pmax, m.h | 0)); if(h <= J.hp || !(t - (J.pvpHitT || 0) < 3)) J.hp = h; }      /* [pk] logo depois de golpe de jogador so aceita vida menor (pacote atrasado nao desfaz o dano) */      /* so para a barra do grupo: na masmorra o combate e do jogo */
       if(typeof m.f === 'number') J.f = m.f; J.a = String(m.a || 'idle').slice(0, 24); J.ts = Math.max(.2, Math.min(5, +m.ts || 1)); J.guarda = !!m.g;
       if(SKILLS[m.w] && m.w !== J.arma && !J.morto){ J.arma = m.w; }
     } else if(m.t === 'atk'){ J.pk = m.pk ? 1 : 0; ataque(c, J, m); }      /* [pk] pk = ataque forcado (Ctrl / botao PK) */

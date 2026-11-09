@@ -8,15 +8,18 @@
     { pg: 'cidade', txt: 'Ande pela cidade: <b>W A S D</b> (no celular, o joystick).', ok: function(s){ return ini && Math.hypot(s.px - ini[0], s.pz - ini[1]) > 6; } },
     { pg: 'cidade', txt: 'Abra o <b>inventario</b>: tecla <b>I</b> ou o botao I.', ev: 'inv', n: 1 },
     { pg: 'cidade', txt: 'Visite um <b>comerciante</b> (Galladucci ou Mammon): pocoes, soulshot e equipamento.', ok: function(){ return !!(window.Loja && Loja.aberta && Loja.aberta()); } },
-    { pg: 'cidade', txt: 'Saia pelo <b style="color:#40ffa0">portão da Cruma</b> e siga a estrada até a Torre de Cruma (níveis 1-15).', ok: function(){ return op.mapa === 'curuma'; }, sempre: 1 },
+    { pg: 'cidade', txt: 'Saia pelo <b style="color:#40ffa0">portão da Cruma</b> e siga a estrada até a Torre de Cruma (níveis 1-15).', ok: function(){ return mapaAt() === 'curuma'; }, sempre: 1 },
     { pg: 'arena', txt: 'Derrote <b>3 monstros</b>. Os mais fracos ficam perto da entrada.', ev: 'abate', n: 3 },
     { pg: 'arena', txt: 'Use uma <b>skill</b>: <b>Q</b>, <b>E</b> ou <b>R</b>.', ev: 'skill', n: 1 },
     { pg: 'arena', txt: 'Pegue seu primeiro <b>drop</b> (adena ou item).', ev: 'drop', n: 1 },
     { txt: 'Chegue ao <b>nivel 5</b>.', ok: function(s){ return (s.lvl | 0) >= 5; } },
     { txt: 'Chegue ao <b>nivel 15</b>. Mais longe da entrada = monstros mais fortes. Morrer fora da DG tira um pouco de XP (a partir do Nv 10).', ok: function(s){ return (s.lvl | 0) >= 15; } },
-    { txt: 'Nivel 15: va para a <b>Fortaleza</b> (portal branco na cidade).', ok: function(s){ return op.mapa === 'fortress' || (s.lvl | 0) >= 20; } },
+    { txt: 'Nivel 15: va para a <b>Fortaleza</b> (saia da cidade e siga a estrada).', ok: function(s){ return mapaAt() === 'fortress' || (s.lvl | 0) >= 20; } },
     { txt: 'Chegue ao <b>nivel 20</b>: o equipamento <b style="color:#7fd6a0">Grau D</b> libera (o Mammon vende).', ok: function(s){ return (s.lvl | 0) >= 20; } }
   ];
+  function mapaAt(){ try { return typeof op.mapa === 'function' ? op.mapa() : op.mapa; } catch(e){ return null; } }
+  /* [pagina-unica] na cidade com o mundo aberto (op.unica) os passos de cacar valem em qualquer lugar fora da muralha */
+  function pagDe(P){ return (op.unica && P && P.pg === 'arena') ? 'arena' : op.pagina; }
   function chave(){ var id = null; try { id = localStorage.getItem('isblade_active_character_id'); } catch(e){} return 'isblade.expedicao.' + (id || 'x'); }
   function le(){ try { return localStorage.getItem(chave()); } catch(e){ return null; } }
   function grava(v){ try { localStorage.setItem(chave(), String(v)); } catch(e){} }
@@ -37,7 +40,7 @@
   }
   function desenha(){
     if(!el) return; var P = PASSOS[passo]; if(!P){ el.style.display = 'none'; return; }
-    var outra = P.pg && P.pg !== op.pagina && !P.sempre;
+    var outra = P.pg && P.pg !== pagDe(P) && !P.sempre;
     el.style.display = 'block';
     el.innerHTML = '<div class="hd">EXPEDICAO DE ENTRADA<span>' + (passo + 1) + '/' + PASSOS.length + '</span></div><div>' + P.txt + (P.n > 1 ? ' <span style="color:#9fb0cc">(' + conta + '/' + P.n + ')</span>' : '') + '</div>' +
       (outra ? '<div style="color:#7f8db0;margin-top:4px">' + (P.pg === 'arena' ? 'Entre na Torre de Cruma pelo portal verde da cidade.' : 'Volte para a cidade (B).') + '</div>' : '') +
@@ -61,14 +64,14 @@
       while(PASSOS[passo] && PASSOS[passo].pg === 'cidade' && !PASSOS[passo].sempre) passo++;
       grava(passo); desenha(); P = PASSOS[passo]; if(!P) return;
     }
-    if(P.pg && P.pg !== op.pagina && !P.sempre){
+    if(P.pg && P.pg !== pagDe(P) && !P.sempre){
       if((s.lvl | 0) >= 20 && passo < PASSOS.length - 1){ passo = PASSOS.length - 1; desenha(); }   /* personagem que ja passou dessa fase */
       return;
     }
     if(P.ok && P.ok(s)) avanca();
   }
   E.ev = function(nome){
-    if(!op) return; var P = PASSOS[passo]; if(!P || P.ev !== nome || (P.pg && P.pg !== op.pagina)) return;
+    if(!op) return; var P = PASSOS[passo]; if(!P || P.ev !== nome || (P.pg && P.pg !== pagDe(P))) return;
     conta++; if(conta >= (P.n || 1)) avanca(); else desenha();
   };
   E.init = function(o){

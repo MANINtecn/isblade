@@ -54,10 +54,27 @@ function grade(mapa){
   } catch(e){ console.error('mobs_mundo: sem walkgrid de', mapa, e.message); return (GRADES[mapa] = null); }
 }
 
+/* [pagina-unica] 09/11/2026: posicao de cada mapa no mapa-mundi (mundo_grade.json -> mapas: pos + rotY, a mesma rotacao Y do jogo).
+   mundo = R(rotY) * local + pos. Com xf o Mundo trabalha em coordenadas do MUNDO (spots e chao convertidos): o canal da cidade tem o mundo inteiro. */
+let POSMAPAS = null;
+function posMapas(){
+  if(POSMAPAS) return POSMAPAS;
+  try { POSMAPAS = JSON.parse(fs.readFileSync(path.join(RAIZ, 'assets', 'mundo', 'mundo_grade.json'), 'utf8')).mapas || {}; } catch(e){ POSMAPAS = {}; }
+  return POSMAPAS;
+}
+function xfDe(mapa){ const P = posMapas()[mapa]; if(!P) return null; return { x: P.pos[0], y: P.pos[1], z: P.pos[2], c: Math.cos(P.rotY), s: Math.sin(P.rotY) }; }
+const praMundo = (X, x, z) => [x * X.c + z * X.s + X.x, -x * X.s + z * X.c + X.z];
+const praLocal = (X, x, z) => { const dx = x - X.x, dz = z - X.z; return [dx * X.c - dz * X.s, dx * X.s + dz * X.c]; };
 class Mundo {
-  constructor(mapa){
+  constructor(mapa, xf){
     this.mapa = mapa; const C = mapa === 'campo' ? campo() : null;
     this.G = C ? C.G : grade(mapa); this.M = C ? C.M : (SP && SP[CFG[mapa].spots]); this.prox = 1; this.mobs = new Map(); this.t = 0; this.tSpot = 0;
+    if(xf && this.G && this.M){                                       /* [pagina-unica] mapa encaixado no mundo */
+      const G0 = this.G, X = xf; this.xf = X;
+      this.G = { chao: (x, z, y) => { const l = praLocal(X, x, z), h = G0.chao(l[0], l[1], y - X.y); return h === null ? null : h + X.y; } };
+      this.M = Object.assign({}, this.M, { spots: this.M.spots.map(s => { const p = praMundo(X, s.x, s.z); return Object.assign({}, s, { x: p[0], z: p[1], h: s.h + X.y }); }) });
+    }
+    this.difMapa = mapa === 'campo' ? 'campo' : ((SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa);
     const A = (DG && DG.agressao) || {}; this.A = { visao: A.visao || 7, ajuda: A.ajuda || 4.5, volta: A.volta || 26 };
     this.L = (this.M ? this.M.spots : []).map(s => ({ s, v: Array.from({ length: s.chefe ? 1 : Math.max(2, s.n | 0) }, () => ({ m: null, t: 0 })) }));
   }
@@ -67,7 +84,7 @@ class Mundo {
   nasce(sp, vg, jog){
     const s = sp.s, T = DG.mobs[s.tipo]; if(!T) return; const p = this.ponto(s); if(!p) return;
     for(const P of jog) if(Math.hypot(P.x - p[0], P.z - p[1]) < 9) return;           /* nao nasce colado em ninguem */
-    const m = { id: this.prox++, tipo: s.tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp,
+    const m = { id: this.novoId ? this.novoId() : this.prox++, dif: this.difMapa, tipo: s.tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp,
       agr: !!(s.chefe || T.agressivo || Math.random() < (s.agr || 0)), engaj: false, volta: false, vt: 0, st: 0, stT: 0, alvo: 0, dano: new Map(), foco: null, morto: false, mT: 0, chefe: !!s.chefe };
     this.mobs.set(m.id, m); vg.m = m;
     if(s.chefe && this.aviso) this.aviso(T.name + ' apareceu em ' + ({ curuma: 'Cruma', fortress: 'Fortaleza', pantano: 'Pantano Flamejante' })[this.mapa] + '!');
@@ -163,4 +180,23 @@ class Mundo {
     return o;
   }
 }
-module.exports = { grade, Mundo, CFG, BONUS_PT, recarrega: carrega, dif: mapa => mapa === 'campo' ? 'campo' : ((SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa) };
+/* [pagina-unica] o mundo aberto inteiro num canal (o da cidade): Campo + Cruma + Fortaleza + Pantano, cada um com seus spots e seu chao,
+   tudo em coordenadas do mundo. Mesma interface do Mundo (server.js nao muda). Ids unicos entre os mapas. */
+class Mundos {
+  constructor(lista){
+    this.mapa = 'campo'; this.prox = 1; const novoId = () => this.prox++;
+    this.subs = lista.map(([mapa, xf]) => new Mundo(mapa, xf)).filter(W => W.ok());
+    this.subs.forEach(W => { W.novoId = novoId; });
+  }
+  ok(){ return this.subs.length > 0; }
+  set fere(f){ this.subs.forEach(W => { W.fere = f; }); }
+  set tiro(f){ this.subs.forEach(W => { W.tiro = f; }); }
+  set aviso(f){ this.subs.forEach(W => { W.aviso = f; }); }
+  tick(t, dt, jog){ for(const W of this.subs) W.tick(t, dt, jog); }
+  hit(Jg, id, d, t){ for(const W of this.subs) if(W.mobs.has(id)) return W.hit(Jg, id, d, t); return null; }
+  taunt(Jg, r, t){ let n = 0; for(const W of this.subs) n += W.taunt(Jg, r, t); return n; }
+  dono(m){ return this.subs[0].dono(m); }
+  snap(P, aoi){ let o = []; for(const W of this.subs) o = o.concat(W.snap(P, aoi)); return o; }
+}
+const mundoAberto = () => new Mundos([['campo', null]].concat(Object.keys(CFG).map(k => [k, xfDe(k)]).filter(q => q[1])));
+module.exports = { grade, Mundo, Mundos, mundoAberto, xfDe, praMundo, praLocal, CFG, BONUS_PT, recarrega: carrega, dif: mapa => mapa === 'campo' ? 'campo' : ((SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa) };

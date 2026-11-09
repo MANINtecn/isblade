@@ -3,6 +3,7 @@
 <html lang="pt-BR">
 
 <head>
+<script>/* [pagina-unica] 09/11/2026: Cruma, Fortaleza e Pantano agora ficam no mundo aberto da cidade (sem trocar de pagina) */(function(){var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(location.search);if(m)location.replace('cidade.html?local='+({curuma:'curuma',fortress:'fortress',blazing_swamp:'pantano'})[m[1]]);})();</script>
 
 <meta charset="utf-8">
 
@@ -709,7 +710,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=41';
+import { Net } from './js/net.js?v=42';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */

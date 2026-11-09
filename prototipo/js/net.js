@@ -142,7 +142,7 @@ export const Net = (function(){
     if(recalc){ lista = []; remotos.forEach(function(e){ lista.push({ e: e, d: Math.hypot(e.x - S.px, e.z - S.pz) }); }); lista.sort(function(a, b){ return a.d - b.d; }); lista.forEach(function(o, i){ o.e.vis = i < MAXV && o.e.dentro; o.e.grp.visible = o.e.vis; }); }
     remotos.forEach(function(e){
       var k = Math.min(1, dt * 11); e.x += (e.tx - e.x) * k; e.z += (e.tz - e.z) * k; e.f = angLerp(e.f, e.tf, Math.min(1, dt * 12)); e.grp.position.x = e.x; e.grp.position.z = e.z; e.grp.rotation.y = e.f;
-      if(ctx.alturaRemota){ var yy = typeof e.ty === 'number' ? ctx.alturaRemota(e.ty) : 0; e.gy = (e.gy === undefined || Math.abs(yy - e.gy) > 6) ? yy : e.gy + (yy - e.gy) * k; e.grp.position.y = e.gy; }      /* [mapas-multi] relevo: altura que o outro mandou */
+      if(ctx.alturaRemota){ var yy = typeof e.ty === 'number' ? ctx.alturaRemota(e.ty) : (ctx.chaoRemoto ? ctx.chaoRemoto(e.x, e.z) : 0); e.gy = (e.gy === undefined || Math.abs(yy - e.gy) > 6) ? yy : e.gy + (yy - e.gy) * k; e.grp.position.y = e.gy; }      /* [mapas-multi] relevo: altura que o outro mandou */
       if(!e.vis || !e.rig) return;
       if(e.hp !== e.hpDes) desenhaTag(e);
       tocar(e, e.morto ? 'death' : e.a); if(e.rig.drv.cur && e.rig.drv.cur.timeScale !== (e.ts || 1)) e.rig.drv.cur.timeScale = e.ts || 1;

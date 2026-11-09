@@ -787,11 +787,12 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/alvo_l2.js?v=1"></script>
 <script src="js/loja.js?v=6"></script>
 <script src="js/arma_grau.js?v=1"></script>
-<script src="js/expedicao.js?v=5"></script>
+<script src="js/expedicao.js?v=6"></script>
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
 <script src="js/mundo_campo.js?v=2"></script>
+<script src="js/mapa_vivo.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -1333,7 +1334,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=41';
+import { Net } from './js/net.js?v=42';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -3229,12 +3230,12 @@ var OBST = window.OBST = (window.OBST && window.OBST.length ? window.OBST : []).
 
 
 
-function getGroundHeight(x, z) {
+function getGroundHeight(x, z, yh) {
 
 
 
   var dist = Math.hypot(x, z);
-  if (dist > 92 && window.MundoCampo && MundoCampo.pronto) { var hm = MundoCampo.altura(x, z); if (hm !== null) return hm; }/* [mundo] fora da muralha: terreno do mapa-mundi (js/mundo_campo.js) */
+  if (dist > 92 && window.MundoCampo && MundoCampo.pronto) { var hm = MundoCampo.altura(x, z); if (window.MapaVivo && MapaVivo.on) { var hv = MapaVivo.chao(x, z, yh !== undefined ? yh : (hm !== null ? hm : undefined)); if (hv !== null) return hv; }/* [pagina-unica] chao do mapa (Cruma, Fortaleza, Pantano) */ if (hm !== null) return hm; }/* [mundo] fora da muralha: terreno do mapa-mundi (js/mundo_campo.js) */
 
 
 
@@ -3490,6 +3491,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   var esconde = setInterval(function(){ if (window.Horizonte && Horizonte.itens) Horizonte.itens.forEach(function(it){ it.grupo.visible = false; }); }, 500); setTimeout(function(){ clearInterval(esconde); }, 8000);
   /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
   MUNDO_ABERTO = true; ARENA = 3000;
+  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa' })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); });
 
@@ -4593,8 +4595,16 @@ function mundoTick(dt){
   var d=Math.hypot(S.px,S.pz), r=d>100?MundoCampo.regiao(S.px,S.pz):0;
   if(r!==MUNDO_REG.r){MUNDO_REG.r=r;MUNDO_REG.t=0;}else MUNDO_REG.t+=dt;
   if(r!==4)MUNDO_REG.torre=false;
-  if(r>=1&&r<=3&&MUNDO_REG.t>.35){var sid=['','curuma','fortress','blazing'][r],sa=SAIDAS.filter(function(q){return q.id===sid;})[0];if(sa){MUNDO_REG.t=-999;entrarSaida(sa);}}
-  else if(r===4&&!MUNDO_REG.torre&&MUNDO_REG.t>.35){MUNDO_REG.torre=true;openPortalMenu();}
+  if(window.MapaVivo&&MapaVivo.on)MapaVivo.tick(S.px,S.pz);
+  if(r!==MUNDO_REG.aviso&&MUNDO_REG.t>.35&&r!==4){MUNDO_REG.aviso=r;var _id=MapaVivo.porRegiao(r),_C=_id&&MapaVivo.CFG[_id];if(_C){banner(_C.nome.toUpperCase(),'Niveis '+_C.niveis+': os monstros mais fortes ficam longe da entrada','#f5c451');try{Chat.sistema('Você entrou em: '+_C.nome);}catch(_){}}else if(d>100){try{Chat.sistema('Você entrou em: Campo de Talking Island');}catch(_){}}}/* [pagina-unica] o mapa ja esta no mundo: so avisa */
+  if(r===4&&!MUNDO_REG.torre&&MUNDO_REG.t>.35){MUNDO_REG.torre=true;openPortalMenu();}
+}
+/* [pagina-unica] pode ir de (x0,z0) para (x,z)? mapa carregado = parede do walkgrid; terreno = encosta; regiao de mapa ainda carregando = espera na borda */
+function mundoPode(x0,z0,x,z){
+  var b=window.MapaVivo&&MapaVivo.on?MapaVivo.bloq(x0,z0,x,z,S.py||0):null;if(b!==null)return !b;
+  var r=MundoCampo.regiao(x,z),id=r>=1&&r<=3&&window.MapaVivo&&MapaVivo.porRegiao(r);
+  if(id&&!MapaVivo.pronto(id)&&MapaVivo.mapas[id]){if(!MUNDO_REG.esp||performance.now()-MUNDO_REG.esp>4000){MUNDO_REG.esp=performance.now();try{floatText('Carregando '+MapaVivo.CFG[id].nome+'...','#cfe6ff',16,'p');}catch(_){}}return false;}
+  return MundoCampo.anda(x,z);
 }
 function saidaPerto(){if(MUNDO_ABERTO)return null;for(var i=0;i<SAIDAS.length;i++){var l=saidaLocal(SAIDAS[i]);if(l.a<SAIDAS[i].w/2+.6&&l.n>-5.5)return SAIDAS[i];}return null;}
 var _saidaCd=0;
@@ -9209,7 +9219,7 @@ function castSkill(i){
 
 
 
-  S.cd[i]=sk.cd;tgt=null;tmark.visible=false;
+  S.cd[i]=sk.cd;tgt=null;tmark.visible=false;try{Expedicao.ev('skill');}catch(_){}/* [pagina-unica] */
 
 
 
@@ -10055,7 +10065,7 @@ function separate(){
 
 
   if(OBST.length){var q=obstPush(S.px,S.pz,.55);S.px=q[0];S.pz=q[1];}
-  if(MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>94){if(!MundoCampo.anda(S.px,S.pz)&&MUNDO_ULT){S.px=MUNDO_ULT[0];S.pz=MUNDO_ULT[1];}else MUNDO_ULT=[S.px,S.pz];}else MUNDO_ULT=[S.px,S.pz];/* [mundo] encosta ingreme e cordilheira bloqueiam */
+  if(MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>94&&MUNDO_ULT){if(!mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],S.px,S.pz)){if(mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],S.px,MUNDO_ULT[1]))S.pz=MUNDO_ULT[1];else if(mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],MUNDO_ULT[0],S.pz))S.px=MUNDO_ULT[0];else{S.px=MUNDO_ULT[0];S.pz=MUNDO_ULT[1];}}MUNDO_ULT=[S.px,S.pz];}else MUNDO_ULT=[S.px,S.pz];/* [mundo] encosta ingreme e cordilheira bloqueiam */
 
 
 
@@ -11256,7 +11266,7 @@ function mobSrvSnap(L){
     var id=a[0],m=mobPorId(id);vistos[id]=1;
     if(!m){if(a[9]||!DGD.mobs[a[1]])return;var md=DGD.mobs[a[1]].modelo;if(md&&!MOB3D.cache[md]){mob3dCarregar([a[1]]);return;}/* so nasce com o modelo 3D (nada de boneco provisorio) */
       m=mkMob(a[1],a[2],a[3]);m.nid=id;m.net=true;m.srv=true;m.x=a[2];m.z=a[3];m.face=a[5];MOBS.push(m);}
-    m.tx=a[2];m.tz=a[3];m.tf=a[5];m.hp=a[6];m.max=a[7];m.state=a[8]===1?'windup':(a[8]===2?'recover':'chase');m.agr=!!a[10];
+    m.tx=a[2];m.tz=a[3];m.ty=a[4];m.tf=a[5];m.hp=a[6];m.max=a[7];m.state=a[8]===1?'windup':(a[8]===2?'recover':'chase');m.agr=!!a[10];
     m.fg.scale.x=Math.max(.001,m.hp/(m.max||1));
     if(a[9]&&!m.dead){m.dead=true;m.deadT=0;try{SFX.play('mobDie');}catch(_){}if(m._euT&&performance.now()/1000-m._euT<15){try{Expedicao.ev('abate');}catch(_){}}}
   });
@@ -11264,7 +11274,7 @@ function mobSrvSnap(L){
 }
 function mobSrvAtualiza(m,dt){
   var k=Math.min(1,dt*12);m.x+=(m.tx-m.x)*k;m.z+=(m.tz-m.z)*k;var df=m.tf-m.face;while(df>Math.PI)df-=6.2832;while(df<-Math.PI)df+=6.2832;m.face+=df*k;m.t=(m.t||0)+dt;
-  var y=getGroundHeight(m.x,m.z);m.g.position.set(m.x,y,m.z);m.g.rotation.y=m.face;m.flash=Math.max(0,(m.flash||0)-dt*4);
+  var y=getGroundHeight(m.x,m.z,m.ty);m.g.position.set(m.x,y,m.z);/* [pagina-unica] altura do servidor escolhe a camada do mapa */m.g.rotation.y=m.face;m.flash=Math.max(0,(m.flash||0)-dt*4);
   if(m.mats){var ei=.25+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q=0;q<m.mats.length;q++)m.mats[q].emissiveIntensity=ei;}
   m.bar.position.set(m.x,y+2.45*m.T.size,m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;
   mob3dAnim(m,dt);
@@ -11279,7 +11289,7 @@ function mobSrvTiro(e){
 function tirosTick(dt){
   for(var i=TIROS.length-1;i>=0;i--){var p=TIROS[i];p.t+=dt;var k=Math.min(1,p.t/p.s),ax,az;
     if(window.Net&&p.a===Net.id){ax=S.px;az=S.pz;}else{var o=window.Net&&Net.alvos().filter(function(q){return q.id===p.a;})[0];ax=o?o.x:p.de.x;az=o?o.z:p.de.z;}
-    var x=p.de.x+(ax-p.de.x)*k,z=p.de.z+(az-p.de.z)*k;p.g.position.set(x,getGroundHeight(x,z)+1.3,z);p.g.rotation.y=Math.atan2(ax-p.de.x,az-p.de.z);p.g.rotation.x=Math.PI/2;
+    var x=p.de.x+(ax-p.de.x)*k,z=p.de.z+(az-p.de.z)*k;p.g.position.set(x,getGroundHeight(x,z,p.de.ty)+1.3,z);p.g.rotation.y=Math.atan2(ax-p.de.x,az-p.de.z);p.g.rotation.x=Math.PI/2;
     if(k>=1){scene.remove(p.g);p.g.geometry.dispose();TIROS.splice(i,1);}}
 }
 /* <<< CLAUDE [mob3d-cidade] */
@@ -12702,7 +12712,7 @@ function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no
 }
 function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
 function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
-function dropRecebido(m){
+function dropRecebido(m){if(m&&(m.adena>0||(m.itens&&m.itens.length)))try{Expedicao.ev('drop');}catch(_){}/* [pagina-unica] */
   var R=ITM.rarities;
   if(m.adena>0){som('moeda');try{Chat.sistema('Você obteve '+m.adena+' Adena.');}catch(_){}}
   (m.itens||[]).forEach(function(it,i){if(!baseOf(it.base)||!R[it.rar])return;setTimeout(function(){SFX.drop(it.rar);banner('DROP: '+baseOf(it.base).name.toUpperCase(),R[it.rar].name+'  -  '+statTxt(it.stats),R[it.rar].css);try{Chat.sistema('Você obteve '+baseOf(it.base).name+' ('+R[it.rar].name+').');}catch(_){}},i*1600);});
@@ -15886,7 +15896,7 @@ function frame2(dt,T){
 
 
 
-  if(DG.on){updateMobs(dt);updateEProj(dt);updatePortal(dt);}
+  if(DG.on){updateMobs(dt);updateEProj(dt);updatePortal(dt);}else if(MOBS.length)updateMobs(dt);/* [pagina-unica] mobs do servidor no mundo aberto andam mesmo fora da DG */
 
 
 
@@ -16123,7 +16133,7 @@ function frame2(dt,T){
 
 
 
-  var targetY = getGroundHeight(S.px, S.pz);
+  var targetY = getGroundHeight(S.px, S.pz, S.py);/* [pagina-unica] camadas do mapa pela altura atual */
 
 
 
@@ -18036,11 +18046,12 @@ try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao 
 try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot],ico:window.InvUI?InvUI.icone(b,{tam:30}):''};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
 try{SomL2.ambiente('cidade');}catch(_){}/* [sons-l2] vento, ondas e gaivotas de Talking Island */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
-try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
-try{Expedicao.init({pagina:'cidade',mapa:null,S:function(){return S;}});}catch(_){}/* [expedicao] */
+try{Musica.init({lugar:function(){var r=MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>100?MundoCampo.regiao(S.px,S.pz):0;return ['cidade','curuma','fortress','blazing_swamp','cidade'][r]||'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
+try{Expedicao.init({pagina:'cidade',unica:true,mapa:function(){var r=MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>100?MundoCampo.regiao(S.px,S.pz):0;return window.MapaVivo&&MapaVivo.porRegiao(r);},S:function(){return S;}});}catch(_){}/* [expedicao] */
 try{Moradores.init({THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},chao:function(x,z){return getGroundHeight(x,z);},enviar:function(n,t){Net.mconv(n,t);},
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);}});}catch(e){console.warn('moradores',e);}/* [moradores] NPCs com rotina (servidor/moradores.js) */
 Net.init({
+  getY:function(){return S.py||0;},alturaRemota:function(y){return y;},chaoRemoto:function(x,z){return getGroundHeight(x,z);},/* [pagina-unica] outros jogadores no relevo do mundo */
   ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,/* [mob3d-cidade] mobs do servidor no campo */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
@@ -18062,7 +18073,7 @@ Net.init({
   onEntrou:function(m){if(m.mapa==='pvp'){S.px=m.eu.x;S.pz=m.eu.z;S.face=m.eu.f;S.vx=0;S.vz=0;S.anim=null;S.pdead=false;S.php=S.pmax;renderHud();}}
 });
 /* <<< CLAUDE [net] */
-Net.entrar('cidade');
+(function(){var t0=Date.now();if(!/[?&]local=/.test(location.search)){Net.entrar('cidade');return;}var w=setInterval(function(){if(MUNDO_ABERTO||Date.now()-t0>30000){clearInterval(w);Net.entrar('cidade');}},200);})();/* [pagina-unica] ?local=: entra no servidor ja na entrada do mapa (o servidor limita a velocidade: teleporte depois nao vale) */
 requestAnimationFrame(frame);
 
 })();

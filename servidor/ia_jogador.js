@@ -116,22 +116,27 @@ class Jogador {
     rumo: null, tRumo: 0, lider: 0, liderNome: '', jog: new Map(), pkAlvo: 0, pkAte: 0, tPocao: 0, tCidade: 0, anim: 'idle', entrando: false, tUltHit: 0, eqT: {}, tLog: 0, abates: 0, ignora: {}, desvio: null }); }
   send(o){ if(this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(o)); }
   async inicia(){ const c = await contaDe(this.p); this.tk = c.tk; this.cid = c.ch.id; this.nome = c.ch.name; this.lvl = c.ch.level || 1; log(this, 'conta pronta, personagem', this.nome); this.entra('cidade'); setInterval(() => this.tick(), 100); }
+  /* [pagina-unica] 09/11/2026: o mundo aberto e um canal so (o da cidade), em coordenadas do mundo. A IA continua pensando nas coordenadas do mapa
+     onde caca (spots, walkgrid) e converte so na rede: manda posicao do mundo, recebe mobs/jogadores do mundo. */
+  xf(){ return this.mapa === 'cidade' ? null : Mobs.xfDe(this.mapa); }
+  praRede(x, z){ const X = this.xf(); return X ? Mobs.praMundo(X, x, z) : [x, z]; }
+  daRede(x, z){ const X = this.xf(); return X ? Mobs.praLocal(X, x, z) : [x, z]; }
   entra(mapa){
     if(this.ws){ try { this.ws.removeAllListeners(); this.ws.close(); } catch(e){} }
     this.mapa = mapa; this.mobs = []; this.jog.clear(); this.alvo = 0; this.entrando = true; this.morto = false;
     if(mapa === 'cidade'){ const a = Math.random() * 6.28; this.x = Math.sin(a) * 4; this.z = 6 + Math.cos(a) * 4; this.y = 0; this.tCidade = agora() + 40 + Math.random() * 60; this.fazendo = 'na cidade'; }
     else { const A = ABERTO[mapa]; this.x = A.spawn[0] + (Math.random() - .5) * 4; this.z = A.spawn[1] + (Math.random() - .5) * 4; const G = Mobs.grade(mapa), h0 = SPOTS[Mobs.CFG[mapa].spots].spots[0].h; this.y = (G && G.chao(this.x, this.z, h0)) || h0; this.fazendo = 'caçando'; }
     const ws = this.ws = new WebSocket(WSURL, { headers: { 'x-ia': process.env.IA_SEGREDO || '' } });      /* segredo: o servidor que me ligou aceita sem Origin */
-    ws.on('open', () => this.send({ t: 'join', tk: this.tk, cid: this.cid, sid: 'ia_' + this.cid, nome: this.nome, raca: this.p.raca, cls: 'fighter', arma: 'sword', pmax: this.pmax, mapa, canal: 1, x: r2(this.x), z: r2(this.z) }));
+    ws.on('open', () => this.send({ t: 'join', tk: this.tk, cid: this.cid, sid: 'ia_' + this.cid, nome: this.nome, raca: this.p.raca, cls: 'fighter', arma: 'sword', pmax: this.pmax, mapa: 'cidade', canal: 1, x: r2(this.praRede(this.x, this.z)[0]), z: r2(this.praRede(this.x, this.z)[1]) }));
     ws.on('message', d => { let m; try { m = JSON.parse(d); } catch(e){ return; } this.msg(m); });
     ws.on('close', () => { if(this.ws === ws){ this.ws = null; setTimeout(() => { if(!this.ws) this.entra(this.mapa); }, 5000); } });
     ws.on('error', () => {});
   }
   msg(m){
     if(m.t === 'w'){ this.id = m.id; this.entrando = false; if(m.prog) this.prog(m.prog, true); (m.jog || []).forEach(o => this.jog.set(o.id, { id: o.id, nome: o.nome, x: o.x, z: o.z })); log(this, 'entrou em', this.mapa, 'canal', m.canal, 'Nv', this.lvl); if(this.mapa === 'cidade') this.cidade(); }
-    else if(m.t === 's'){ const vis = new Set(); for(const p of m.p){ vis.add(p[0]); const o = this.jog.get(p[0]) || { id: p[0] }; o.x = p[1]; o.z = p[2]; o.morto = !!p[7]; o.pk = p[10] | 0; this.jog.set(p[0], o); } }
+    else if(m.t === 's'){ const vis = new Set(); for(const p of m.p){ vis.add(p[0]); const o = this.jog.get(p[0]) || { id: p[0] }; const q = this.daRede(p[1], p[2]); o.x = q[0]; o.z = q[1]; o.morto = !!p[7]; o.pk = p[10] | 0; this.jog.set(p[0], o); } }
     else if(m.t === 'j' || m.t === 'entrou'){ if(m.e || m.j){ const e = m.e || m.j; this.jog.set(e.id, Object.assign(this.jog.get(e.id) || {}, { id: e.id, nome: e.nome })); } }
-    else if(m.t === 'ms') this.mobs = m.m;
+    else if(m.t === 'ms'){ const X = this.xf(); this.mobs = !X ? m.m : m.m.map(a => { const q = Mobs.praLocal(X, a[2], a[3]); const o = a.slice(); o[2] = q[0]; o[3] = q[1]; o[4] = a[4] - X.y; return o; }); }
     else if(m.t === 'mdmg') this.levaGolpe(m.dmg);
     else if(m.t === 'prog') this.prog(m, false);
     else if(m.t === 'inv') this.invDe(m.inv);
@@ -199,7 +204,7 @@ class Jogador {
       if(this.hp < this.pmax * .4 && this.pocoes > 0 && t > this.tPocao){ this.tPocao = t + 10.5; this.send({ t: 'usar', id: 'pocao_vida' }); }
       if(this.mapa === 'cidade') this.tickCidade(t, dt); else this.tickCaca(t, dt);
     }
-    this.send({ t: 'st', x: r2(this.x), z: r2(this.z), f: r2(this.f), h: Math.max(0, Math.round(this.hp)), a: this.anim, ts: 1, g: 0, w: 'sword', y: this.mapa === 'cidade' ? undefined : r2(this.y) });
+    const W = this.praRede(this.x, this.z), X = this.xf(); this.send({ t: 'st', x: r2(W[0]), z: r2(W[1]), f: r2(this.f), h: Math.max(0, Math.round(this.hp)), a: this.anim, ts: 1, g: 0, w: 'sword', y: X ? r2(this.y + X.y) : 0 });
     if(process.env.IA_LOG && t > this.tLog){ this.tLog = t + 20; const a = this.mobs.find(m => m[0] === this.alvo); log(this, this.mapa, 'pos', this.x.toFixed(1), this.z.toFixed(1), 'y', this.y.toFixed(1), 'vida', Math.round(this.hp) + '/' + this.pmax, 'Nv', this.lvl, 'xp', this.xp, 'abates', this.abates, 'mobs vistos', this.mobs.length, 'alvo', a ? a[1] + ' a ' + Math.hypot(a[2] - this.x, a[3] - this.z).toFixed(1) + ' m' : '-', '|', this.fazendo); }
     if(t > this.tSolto){ this.tSolto = t + 300 + Math.random() * 420; if(Math.random() < .5) fala(this, 'solto', 'Diga algo espontaneo e curto no chat geral, sobre o que voce esta fazendo agora no jogo (ou responda - se nao quiser falar).'); }
   }
