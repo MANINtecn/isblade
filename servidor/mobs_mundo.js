@@ -136,7 +136,7 @@ class Mundo {
     const o = [];
     for(const m of this.mobs.values()){
       if(Math.abs(m.x - P.x) > aoi || Math.abs(m.z - P.z) > aoi) continue;
-      o.push([m.id, m.tipo, Math.round(m.x * 100) / 100, Math.round(m.z * 100) / 100, Math.round(m.y * 100) / 100, Math.round(m.f * 100) / 100, Math.round(m.hp), m.max, m.st, m.morto ? 1 : 0, m.agr ? 1 : 0, m.alvo || 0]);
+      o.push([m.id, m.tipo, Math.round(m.x * 10) / 10, Math.round(m.z * 10) / 10, Math.round(m.y * 10) / 10, Math.round(m.f * 10) / 10, Math.round(m.hp), m.max, m.st, m.morto ? 1 : 0, m.agr ? 1 : 0, m.alvo || 0]);
     }
     return o;
   }

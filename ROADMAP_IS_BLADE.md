@@ -112,7 +112,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 ### FASE 5 — Lançar o Beta Demo e divulgar
 **Critérios para abrir o beta** (todos marcados):
 - [ ] Fases 0, 1 e 2 completas; Guardião, Mago e Guerreiro com 6 skills prontas.
-- [ ] Teste de carga com bots (`servidor/teste_bots.js`): 50 jogadores por canal sem travar.
+- [x] Teste de carga com bots (`servidor/teste_bots.js`): 50 jogadores por canal sem travar. — 08/11 local (`servidor/teste_carga.js 50 65 curuma`): 50 bots caçando os mobs do servidor no mesmo canal: laço 3,8 ms médio / 8 ms máx (limite 83), 5% CPU, 46 MB, 31 KB/s por jogador. Repetir na VPS (`METRICAS=1` mostra o laço no log).
 - [ ] Rodando bem em 2 celulares de referência (um médio e um fraco), medido pelo log.
 - [ ] Recuperação de conta (o admin redefine a senha) — **deixar para o final** (dono, 08/11) e aviso "beta: o progresso pode ser zerado no lançamento".
 

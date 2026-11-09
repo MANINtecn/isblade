@@ -395,7 +395,9 @@ setInterval(() => { wss.clients.forEach(ws => { if(!ws.isAlive) return ws.termin
 
 /* ---- laco do servidor: reaparecimento, duelos e fotos do mundo (so quem esta perto, ate AOI m) ---- */
 let tick = 0;
+const MET = process.env.METRICAS === '1' ? { n: 0, soma: 0, max: 0, t: agora() } : null;      /* METRICAS=1: tempo do laco no log a cada 30 s */
 setInterval(() => {
+  const t0m = MET ? process.hrtime.bigint() : 0n;
   tick++; const t = agora(); for(const cp of todosCanais()) passaProj(cp, t);
   for(const c of todosCanais()){
     for(const J of c.jog.values()){
@@ -413,9 +415,11 @@ setInterval(() => {
     const W = lista.length ? mundoDe(c) : null; if(W) W.tick(t, TICK / 1000, lista);      /* [mobs-servidor] */
     for(const A of lista){
       const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null, estadoPk(B, t)]); }
-      envia(A, { t: 's', n: tick, p }); if(W) envia(A, { t: 'ms', m: W.snap(A, AOI) });
+      envia(A, { t: 's', n: tick, p }); if(W && tick % 2 === 0) envia(A, { t: 'ms', m: W.snap(A, AOI) });      /* mobs a 6/s (o jogo suaviza) */
     }
   }
+  if(MET){ const ms = Number(process.hrtime.bigint() - t0m) / 1e6; MET.n++; MET.soma += ms; if(ms > MET.max) MET.max = ms;
+    if(t - MET.t >= 30){ const nj = todosCanais().reduce((s, c) => s + c.jog.size, 0); console.log('[metricas] laco medio ' + (MET.soma / MET.n).toFixed(2) + ' ms, max ' + MET.max.toFixed(1) + ' ms (limite ' + TICK.toFixed(0) + ') | jogadores ' + nj + ' | memoria ' + (process.memoryUsage().rss / 1048576).toFixed(0) + ' MB'); MET.n = 0; MET.soma = 0; MET.max = 0; MET.t = t; } }
 }, TICK);
 
 setInterval(() => {
