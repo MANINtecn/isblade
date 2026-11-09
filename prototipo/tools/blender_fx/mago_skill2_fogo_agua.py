@@ -453,7 +453,7 @@ def montar_necro():
 # ================================================================== NECROMANTE: ESPINHO PARALISANTE (projetil a 45 graus, sem girar; paralisa 3 s e brotam espinhos do corpo)
 def montar_paralisia():
     random.seed(77)
-    F_FORMA, F_SAI, F_HIT, F_FIM = 1, 26, 66, 246
+    F_FORMA, F_SAI, F_HIT, F_FIM = 1, 28, 66, 372
     F_SOLTA = F_HIT + 3 * FPS                       # fim da paralisia: 3 s
     sc, col, ref = nova_cena("MAGO_S2_NECRO_PARALISIA", F_FIM)
     caixa = chao_e_referencia(sc, ref, col)
@@ -466,9 +466,9 @@ def montar_paralisia():
     L = 2.0; r = 0.13; INCL = math.radians(-45)       # eixo do espinho: para frente e 45 graus para baixo
     eixo = Vector((0, math.cos(INCL), math.sin(INCL)))
     ponta_alvo = Vector((0.0, 11.85, 1.25))           # a ponta toca o peito do alvo
-    p_hit = ponta_alvo - eixo * L                      # posicao da origem (cauda) quando acerta
-    p_forma = Vector((0.0, 0.9, p_hit.z))
-    p_sai = Vector((p_forma.x, p_forma.y, p_hit.z))   # voa na horizontal, mesma altura ate o alvo
+    p_hit = ponta_alvo - Vector((0, 1, 0)) * L        # origem (cauda) quando acerta: espinho NIVELADO, cravado de frente
+    p_forma = Vector((0.0, 0.9, 2.3))                  # forma-se a 45 graus, no alto, na frente do mago
+    p_sai = Vector((0.0, 1.4, p_hit.z))                # depois de endireitar e descer, voa reto na altura do peito
     esp = bpy.data.objects.new("S2N_espinho", None); col.objects.link(esp)
     corpo = para_obj(col, "S2N_pcorpo", bm_cristal(L, r, 5), m_osso); corpo.parent = esp; corpo.rotation_euler = (INCL, 0, 0)
     miolo = para_obj(col, "S2N_pmiolo", bm_cristal(L * 0.8, r * 0.45, 4), m_nucleo); miolo.parent = esp; miolo.rotation_euler = (INCL, 0, 0); miolo.location = tuple(eixo * 0.1)
@@ -476,11 +476,11 @@ def montar_paralisia():
         f = para_obj(col, "S2N_pfarpa%d" % j, bm_cristal(0.42, 0.04, 4), m_osso); f.parent = esp
         f.location = tuple(eixo * (0.35 + j * 0.28)); f.rotation_euler = (INCL + math.radians(22) * (1 if j % 2 else -1), math.radians(18), 0)
     # forma-se na frente do mago (cacos de osso e almas convergem), espera e parte reto, sem girar
-    for f, v in ((F_FORMA, p_forma),): esp.location = tuple(v); esp.keyframe_insert("location", frame=f)
-    esp.location = tuple(p_forma + Vector((0, 0, 0.12))); esp.keyframe_insert("location", frame=F_SAI - 2)
-    esp.location = tuple(p_forma); esp.keyframe_insert("location", frame=F_SAI)
-    for f in range(F_SAI + 4, F_HIT, 4):
-        t = (f - F_SAI) / (F_HIT - F_SAI); esp.location = tuple(p_sai + (p_hit - p_sai) * t); esp.keyframe_insert("location", frame=f)
+    esp.location = tuple(p_forma); esp.keyframe_insert("location", frame=F_FORMA); esp.keyframe_insert("location", frame=F_SAI - 6)
+    esp.rotation_euler = (0, 0, 0); esp.keyframe_insert("rotation_euler", frame=F_FORMA); esp.keyframe_insert("rotation_euler", frame=F_SAI - 6)
+    esp.rotation_euler = (-INCL, 0, 0); esp.keyframe_insert("rotation_euler", frame=F_SAI + 2)        # endireita: a 45 graus ao formar, nivelado ao sair
+    for f in range(F_SAI + 2, F_HIT, 4):
+        t = (f - (F_SAI + 2)) / (F_HIT - (F_SAI + 2)); esp.location = tuple(p_sai + (p_hit - p_sai) * t); esp.keyframe_insert("location", frame=f)
     esp.location = tuple(p_hit); esp.keyframe_insert("location", frame=F_HIT)
     esc(esp, [(F_FORMA - 1, 0.0), (F_FORMA + 4, 0.2), (F_FORMA + 18, 1.0)])
     for k in range(7):                                                         # cacos que convergem para formar o espinho
@@ -535,6 +535,23 @@ def montar_paralisia():
             c.location.z = max(0.05, c.location.z); c.rotation_euler = (wx * s_, wy * s_, wz * s_); c.scale = ((1,) * 3 if f < f1 + 30 else (1e-4,) * 3)
             c.keyframe_insert("location", frame=f); c.keyframe_insert("rotation_euler", frame=f); c.keyframe_insert("scale", frame=f)
         c.scale = (1e-4,) * 3; c.keyframe_insert("scale", frame=f1 - 1)
+    # zona de espinhos no chao: onde os espinhos do corpo explodem, nascem espinhos pequenos que dao dano em area (pulsos a cada 0,5 s)
+    F_ZONA0, F_ZONA1 = F_SOLTA + 2, F_SOLTA + 2 + 3 * FPS
+    Rz = 3.0; m_zona = mat_grad("S2N_pzona", [(0.0, (0.02, 0.10, 0.04)), (0.6, (0.10, 0.55, 0.20)), (1.0, (0.55, 1.0, 0.55))], 2.4, 0.85)
+    zona = para_obj(col, "S2N_pzona_chao", bm_estrela_chao(Rz, 9), m_zona); zona.location = (0, 12.0, 0.03)
+    esc(zona, [(F_ZONA0 - 1, 0.0), (F_ZONA0 + 4, 1.0), (F_ZONA1 - 8, 1.0), (F_ZONA1, 0.0)])
+    for i in range(22):
+        a = random.uniform(0, 6.28); rr = Rz * math.sqrt(random.uniform(0.05, 0.95)) * 0.92; Lz = random.uniform(0.40, 0.85); f0 = F_ZONA0 + random.randint(0, 10)
+        o = para_obj(col, "S2N_pzespinho%d" % i, bm_cone(random.uniform(.07, .11), 0.0, Lz, 4), m_osso); o.location = (math.cos(a) * rr, 12.0 + math.sin(a) * rr, -0.02)
+        apunta(o, (random.uniform(-.25, .25), random.uniform(-.25, .25), 1.0))
+        pts = [(f0 - 1, (1, 1, 0.01)), (f0, (1, 1, 0.05)), (f0 + 4, (1, 1, 1.3)), (f0 + 8, (1, 1, 1.0))]
+        for k, ft in enumerate(range(f0 + 12, F_ZONA1 - 6, 24)): pts += [(ft, (1, 1, 1.0)), (ft + 2, (1.25, 1.25, 1.35)), (ft + 6, (1, 1, 1.0))]      # pulso de dano
+        pts += [(F_ZONA1 - 5, (1, 1, 1.0)), (F_ZONA1, (1, 1, 0.02))]
+        esc(o, sorted(set(pts), key=lambda q: q[0]))
+        g = para_obj(col, "S2N_pzbrilho%d" % i, bm_cone(0.12, 0.0, 0.22, 4), m_verde); g.location = (o.location.x, o.location.y, 0.0); apunta(g, (0, 0, 1))
+        gp = [(f0 - 1, 0.0), (f0, 1.0), (f0 + 6, 0.0)]
+        for ft in range(f0 + 12, F_ZONA1 - 6, 24): gp += [(ft, 0.0), (ft + 2, 1.0), (ft + 6, 0.0)]
+        esc(g, sorted(set(gp), key=lambda q: q[0]))
     # o espinho cravado some quando a paralisia acaba
     esc(esp, [(F_SOLTA - 1, 1.0), (F_SOLTA + 6, 0.0)])
     nv = para_obj(col, "S2N_pnevoa_alvo", bm_lamina(2.6, 1.6, 0.3, 2), m_nevoa); nv.location = (0, 12.0, 0.0)
