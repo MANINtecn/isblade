@@ -1,6 +1,6 @@
 """Mago - skill 2 (PREVIA): METEORO DE MAGMA (fogo, Archmage) e LANCA DE GELO (agua, Spellsinger). So formas angulares, sem rastro.
 Rodar ao vivo no Blender pelo MCP:  exec(compile(open(r"<este arquivo>", encoding="utf8").read(), "s2", "exec"))
-Cria (ou refaz) as cenas MAGO_S2_FOGO e MAGO_S2_AGUA no .blend aberto. 48 fps.
+Cria (ou refaz) as cenas MAGO_S2_FOGO, MAGO_S2_AGUA, MAGO_S2_NECRO e MAGO_S2_NECRO_PARALISIA no .blend aberto. 48 fps.
 Fogo: aviso 1-48, queda 20-48, impacto no quadro 48 (some ate 96). Agua: 3 lancas nascem 1-20, saem em 24/32/40, impactos em 64/72/80.
 Paleta fogo: nucleo branco-amarelo, laranja, vermelho escuro, basalto preto. Agua: azul profundo, branco-ciano. Sem rosa/lilas."""
 import bpy, bmesh, math, random
@@ -13,7 +13,7 @@ bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 FPS = 48
 
 # ------------------------------------------------------------------ limpeza de execucoes anteriores
-for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "MAGO_S2_NECRO", "TESTE_L2"):
+for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "MAGO_S2_NECRO", "MAGO_S2_NECRO_PARALISIA", "TESTE_L2"):
     s = bpy.data.scenes.get(nome)
     if s:
         for o in list(s.objects): bpy.data.objects.remove(o, do_unlink=True)
@@ -450,7 +450,102 @@ def montar_necro():
     c1 = camera(sc, ref, "cam_lateral", (12.5, 5.8, 3.2), (0, 5.8, 1.3), 30); camera(sc, ref, "cam_do_mago", (-4.2, -4.5, 2.4), (0, 6.0, 1.2), 32); sc.camera = c1
     return sc
 
-sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro()
+# ================================================================== NECROMANTE: ESPINHO PARALISANTE (projetil a 45 graus, sem girar; paralisa 3 s e brotam espinhos do corpo)
+def montar_paralisia():
+    random.seed(77)
+    F_FORMA, F_SAI, F_HIT, F_FIM = 1, 26, 66, 246
+    F_SOLTA = F_HIT + 3 * FPS                       # fim da paralisia: 3 s
+    sc, col, ref = nova_cena("MAGO_S2_NECRO_PARALISIA", F_FIM)
+    caixa = chao_e_referencia(sc, ref, col)
+    caixa("mago_ref_1.7m", (0.0, 0.0, 0.85), (0.5, 0.35, 1.7)); caixa("alvo_ref_1.8m", (0.0, 12.0, 0.9), (0.6, 0.4, 1.8))
+    m_osso = mat_gelo("S2N_posso", (0.36, 0.32, 0.24), (0.96, 0.98, 0.84), 1.2, 1.0)
+    m_verde = mat_emit("S2N_palma", (0.12, 0.85, 0.25), 2.8)
+    m_nucleo = mat_emit("S2N_pnucleo", (0.45, 1.0, 0.55), 3.2)
+    m_marca = mat_grad("S2N_pmarca", [(0.0, (0.15, 0.80, 0.28)), (1.0, (0.75, 1.0, 0.65))], 3.4, 1.0)
+    m_nevoa = mat_flama("S2N_pnevoa", TEX2 + "fx_m_t0074.png", (0.30, 0.95, 0.45), 1.5, 0.35)
+    L = 2.0; r = 0.13; INCL = math.radians(-45)       # eixo do espinho: para frente e 45 graus para baixo
+    eixo = Vector((0, math.cos(INCL), math.sin(INCL)))
+    ponta_alvo = Vector((0.0, 11.85, 1.25))           # a ponta toca o peito do alvo
+    p_hit = ponta_alvo - eixo * L                      # posicao da origem (cauda) quando acerta
+    p_forma = Vector((0.0, 0.9, p_hit.z))
+    p_sai = Vector((p_forma.x, p_forma.y, p_hit.z))   # voa na horizontal, mesma altura ate o alvo
+    esp = bpy.data.objects.new("S2N_espinho", None); col.objects.link(esp)
+    corpo = para_obj(col, "S2N_pcorpo", bm_cristal(L, r, 5), m_osso); corpo.parent = esp; corpo.rotation_euler = (INCL, 0, 0)
+    miolo = para_obj(col, "S2N_pmiolo", bm_cristal(L * 0.8, r * 0.45, 4), m_nucleo); miolo.parent = esp; miolo.rotation_euler = (INCL, 0, 0); miolo.location = tuple(eixo * 0.1)
+    for j in range(2):                                                         # farpas pequenas atras do corpo
+        f = para_obj(col, "S2N_pfarpa%d" % j, bm_cristal(0.42, 0.04, 4), m_osso); f.parent = esp
+        f.location = tuple(eixo * (0.35 + j * 0.28)); f.rotation_euler = (INCL + math.radians(22) * (1 if j % 2 else -1), math.radians(18), 0)
+    # forma-se na frente do mago (cacos de osso e almas convergem), espera e parte reto, sem girar
+    for f, v in ((F_FORMA, p_forma),): esp.location = tuple(v); esp.keyframe_insert("location", frame=f)
+    esp.location = tuple(p_forma + Vector((0, 0, 0.12))); esp.keyframe_insert("location", frame=F_SAI - 2)
+    esp.location = tuple(p_forma); esp.keyframe_insert("location", frame=F_SAI)
+    for f in range(F_SAI + 4, F_HIT, 4):
+        t = (f - F_SAI) / (F_HIT - F_SAI); esp.location = tuple(p_sai + (p_hit - p_sai) * t); esp.keyframe_insert("location", frame=f)
+    esp.location = tuple(p_hit); esp.keyframe_insert("location", frame=F_HIT)
+    esc(esp, [(F_FORMA - 1, 0.0), (F_FORMA + 4, 0.2), (F_FORMA + 18, 1.0)])
+    for k in range(7):                                                         # cacos que convergem para formar o espinho
+        a = k * 2 * math.pi / 7; o = para_obj(col, "S2N_pforma%d" % k, bm_lascas(0.18, 3), m_osso)
+        for f in list(range(F_FORMA, F_FORMA + 18, 3)) + [F_FORMA + 18]:
+            t = (f - F_FORMA) / 18; q = (1 - t) ** 2
+            o.location = tuple(p_forma + Vector((math.cos(a) * 1.4 * q, math.sin(a) * 0.9 * q, (0.6 + k * 0.1) * q * (1 if k % 2 else -1)))); o.rotation_euler = (t * 6, t * 4, t * 5)
+            o.scale = ((1,) * 3 if f < F_FORMA + 18 else (1e-4,) * 3); o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=F_FORMA - 1)
+    # impacto: clarao verde de espinhos e cacos; o espinho fica cravado
+    for j in range(12):
+        v = Vector((random.uniform(-1, 1), random.uniform(-1.2, 0.2), random.uniform(-0.2, 1.0))).normalized(); Ls = random.uniform(0.9, 1.8)
+        o = para_obj(col, "S2N_pclarao%d" % j, bm_cone(0.12, 0.0, Ls, 4), m_verde); o.location = tuple(ponta_alvo); apunta(o, v)
+        esc(o, [(F_HIT - 1, 0.0), (F_HIT, 0.3), (F_HIT + 2, 1.0), (F_HIT + 7, 0.5), (F_HIT + 13, 0.0)])
+    for j in range(10):
+        d = random.uniform(0, 6.28); vh = random.uniform(1.5, 4.5); vz = random.uniform(1.0, 4.0); vida = random.randint(24, 34)
+        o = para_obj(col, "S2N_pcaco%d" % j, bm_lascas(random.uniform(.10, .20) * 2, 3), m_osso); wx, wy, wz = [random.uniform(-9, 9) for _ in range(3)]
+        for f in list(range(F_HIT, F_HIT + vida, 3)) + [F_HIT + vida]:
+            s_ = (f - F_HIT) / FPS; o.location = (math.cos(d) * vh * s_ * 0.7, ponta_alvo.y - 0.3 + math.sin(d) * vh * s_ * 0.6 - 0.6 * s_, max(0.05, ponta_alvo.z + vz * s_ - 9.8 * s_ * s_ / 2))
+            o.rotation_euler = (wx * s_, wy * s_, wz * s_); o.scale = ((1,) * 3 if f < F_HIT + vida else (1e-4,) * 3)
+            o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=F_HIT - 1)
+    # paralisia (3 s): marca angular girando sobre a cabeca + espinhos brotando do corpo, um a um
+    segs = []; Dm = 0.75
+    for a_, b_ in (((Dm, 0), (0, Dm)), ((0, Dm), (-Dm, 0)), ((-Dm, 0), (0, -Dm)), ((0, -Dm), (Dm, 0)), ((Dm * .5, 0), (0, Dm * .5)), ((0, Dm * .5), (-Dm * .5, 0)), ((-Dm * .5, 0), (0, -Dm * .5)), ((0, -Dm * .5), (Dm * .5, 0))):
+        segs.append(((a_[0], a_[1], 0), (b_[0], b_[1], 0)))
+    marca = para_obj(col, "S2N_pmarca_cabeca", bm_linhas(segs, 0.07), m_marca); marca.location = (0, 12.0, 2.45)
+    esc(marca, [(F_HIT, 0.0), (F_HIT + 4, 1.2), (F_HIT + 10, 1.0), (F_SOLTA - 6, 1.0), (F_SOLTA, 0.0)])
+    anim(marca, "rotation_euler", F_HIT, F_SOLTA, lambda t: (0, 0, t * math.radians(540)), 6)
+    for k in range(4):                                                         # 4 pontas para baixo (correntes de osso) abaixo da marca
+        c = para_obj(col, "S2N_pponta%d" % k, bm_cone(0.07, 0.0, 0.5, 4), m_verde); a = k * math.pi / 2 + math.pi / 4
+        c.location = (math.cos(a) * 0.55, 12.0 + math.sin(a) * 0.55, 2.25); c.rotation_euler = (math.radians(180), 0, 0)
+        esc(c, [(F_HIT + 3, 0.0), (F_HIT + 9, 1.0), (F_SOLTA - 6, 1.0), (F_SOLTA, 0.0)])
+    ncorpo = 18; espinhos = []
+    for i in range(ncorpo):
+        face = random.choice(("frente", "frente", "lado", "lado", "topo", "costas")); z = random.uniform(0.15, 1.7)
+        if face == "frente": p = Vector((random.uniform(-.28, .28), 11.8, z)); n = Vector((random.uniform(-.5, .5), -1, random.uniform(-.1, .5)))
+        elif face == "costas": p = Vector((random.uniform(-.28, .28), 12.2, z)); n = Vector((random.uniform(-.5, .5), 1, random.uniform(-.1, .5)))
+        elif face == "lado": sx = random.choice((-1, 1)); p = Vector((sx * 0.3, random.uniform(11.85, 12.15), z)); n = Vector((sx, random.uniform(-.5, .5), random.uniform(-.1, .6)))
+        else: p = Vector((random.uniform(-.25, .25), random.uniform(11.85, 12.15), 1.8)); n = Vector((random.uniform(-.4, .4), random.uniform(-.4, .4), 1))
+        Le = random.uniform(0.55, 1.3) * (0.7 if z > 1.5 else 1.0); f0 = F_HIT + 6 + i * 4 + random.randint(0, 2)
+        o = para_obj(col, "S2N_pbrota%d" % i, bm_cone(random.uniform(.08, .13), 0.0, Le, 5), m_osso); o.location = tuple(p - n.normalized() * 0.05); apunta(o, n)
+        esc(o, [(f0 - 1, (1, 1, 0.01)), (f0, (1, 1, 0.05)), (f0 + 4, (1, 1, 1.3)), (f0 + 8, (1, 1, 1.0)), (F_SOLTA - 4, (1, 1, 1.0)), (F_SOLTA + 8, (1, 1, 0.02))])
+        g = para_obj(col, "S2N_pbrilho%d" % i, bm_cone(0.16, 0.0, 0.30, 4), m_verde); g.location = tuple(p); apunta(g, n)
+        esc(g, [(f0 - 1, 0.0), (f0, 1.0), (f0 + 7, 0.0)])
+        espinhos.append((o, p, n, Le))
+    for i in range(ncorpo):                                                    # ao soltar, cada espinho vira cacos
+        o, p, n, Le = espinhos[i]
+        c = para_obj(col, "S2N_pcaco_fim%d" % i, bm_lascas(0.2, 3), m_osso); d = n.normalized() * random.uniform(1.2, 2.8); wx, wy, wz = [random.uniform(-8, 8) for _ in range(3)]; f1 = F_SOLTA - 2 + i % 5
+        for f in list(range(f1, f1 + 30, 3)) + [f1 + 30]:
+            s_ = (f - f1) / FPS; c.location = tuple(p + n.normalized() * Le * 0.5 + d * s_ + Vector((0, 0, 0.2 * s_ - 9.8 * s_ * s_ / 2)))
+            c.location.z = max(0.05, c.location.z); c.rotation_euler = (wx * s_, wy * s_, wz * s_); c.scale = ((1,) * 3 if f < f1 + 30 else (1e-4,) * 3)
+            c.keyframe_insert("location", frame=f); c.keyframe_insert("rotation_euler", frame=f); c.keyframe_insert("scale", frame=f)
+        c.scale = (1e-4,) * 3; c.keyframe_insert("scale", frame=f1 - 1)
+    # o espinho cravado some quando a paralisia acaba
+    esc(esp, [(F_SOLTA - 1, 1.0), (F_SOLTA + 6, 0.0)])
+    nv = para_obj(col, "S2N_pnevoa_alvo", bm_lamina(2.6, 1.6, 0.3, 2), m_nevoa); nv.location = (0, 12.0, 0.0)
+    esc(nv, [(F_HIT + 2, (1, 1, 0.02)), (F_HIT + 14, (1, 1, 0.9)), (F_SOLTA - 10, (1, 1, 0.7)), (F_SOLTA + 6, (1, 1, 0.02))])
+    luz(ref, "S2N_psol", "SUN", (0, 0, 10), 0.7, (0.7, 0.85, 0.8)).rotation_euler = (math.radians(45), 0, math.radians(-25))
+    lv = luz(col, "S2N_pbrilho_luz", "POINT", (0, 11.5, 1.8), 0, (0.3, 1.0, 0.45))
+    for f, e in ((F_HIT - 1, 0), (F_HIT + 1, 2500), (F_HIT + 20, 700), (F_SOLTA, 700), (F_SOLTA + 14, 0)): lv.data.energy = e; lv.data.keyframe_insert("energy", frame=f)
+    c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 2.8), (0, 6.5, 1.4), 30); camera(sc, ref, "cam_alvo", (6.0, 8.5, 2.0), (0, 12.0, 1.2), 34); camera(sc, ref, "cam_do_mago", (-4.2, -4.0, 2.6), (0, 8.0, 1.4), 32); sc.camera = c1
+    return sc
+
+sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro(); sc_p = montar_paralisia()
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
 bpy.context.window.scene = sc_f
-print("S2 pronto:", [s.name for s in bpy.data.scenes], "objetos fogo", len(sc_f.objects), "agua", len(sc_a.objects), "necro", len(sc_n.objects))
+print("S2 pronto:", [s.name for s in bpy.data.scenes], "objetos fogo", len(sc_f.objects), "agua", len(sc_a.objects), "necro", len(sc_n.objects), "paralisia", len(sc_p.objects))

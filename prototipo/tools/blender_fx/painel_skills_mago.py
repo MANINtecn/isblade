@@ -8,6 +8,7 @@ SKILLS = [                                   # (cena, rotulo)
     ("MAGO_S2_FOGO", "2  Fogo: Meteoro de Magma (Archmage)"),
     ("MAGO_S2_AGUA", "2  Agua: Lanca de Gelo (Spellsinger)"),
     ("MAGO_S2_NECRO", "2  Morte: Espinhos de Osso (Necromante)"),
+    ("MAGO_S2_NECRO_PARALISIA", "2b Morte: Espinho Paralisante (Necromante)"),
     ("MAGO_ELENCO", "Elenco: 12 personagens"),
 ]
 
