@@ -24,7 +24,28 @@ export const Net = (function(){
     if(SRV_PADRAO && !/^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname)) return SRV_PADRAO;
     return (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
   }
-  function send(o){ if(ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+  function send(o){ if(o && o.t === 'atk' && (ctrlPk || N.pkModo) && ABERTOS[N.mapa]) o.pk = 1; if(ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+  /* [pk] PvP estilo L2 nos mapas abertos: atacar quem nao e PK so forcando (Ctrl segurado no PC ou o botao PK, que liga/desliga, no celular e no PC).
+     Nome roxo = flag (bateu em alguem ha pouco), vermelho = PK (karma). O servidor decide tudo (server.js [pk]). */
+  var ABERTOS = { curuma: 1, fortress: 1, pantano: 1 }, ctrlPk = false, pkBtn = null;
+  N.pkModo = false; N.pkSt = 0; N.karma = 0;
+  window.addEventListener('keydown', function(e){ if(e.key === 'Control') ctrlPk = true; });
+  window.addEventListener('keyup', function(e){ if(e.key === 'Control') ctrlPk = false; });
+  window.addEventListener('blur', function(){ ctrlPk = false; });
+  function pkBotao(){
+    var mostra = N.on && !!ABERTOS[N.mapa];
+    if(!pkBtn && mostra){
+      pkBtn = document.createElement('button'); pkBtn.type = 'button'; pkBtn.id = 'pkBtn';
+      pkBtn.style.cssText = 'position:fixed;right:12px;bottom:92px;z-index:61;pointer-events:auto;font:800 12px system-ui,sans-serif;letter-spacing:.08em;padding:7px 12px;border-radius:6px;cursor:pointer';
+      pkBtn.title = 'Ataque forçado em jogadores (no PC: segure Ctrl). Matar quem não reagiu deixa você PK.';
+      pkBtn.addEventListener('click', function(e){ e.stopPropagation(); N.pkModo = !N.pkModo; pkBotao(); if(ctx && ctx.sysMsg) ctx.sysMsg(N.pkModo ? 'PK ligado: seus ataques acertam outros jogadores.' : 'PK desligado.'); });
+      document.body.appendChild(pkBtn);
+    }
+    if(!pkBtn) return;
+    pkBtn.style.display = mostra ? 'block' : 'none';
+    pkBtn.textContent = N.pkModo ? 'PK ON' : 'PK';
+    pkBtn.style.background = N.pkModo ? '#7a1010' : 'rgba(10,16,30,.8)'; pkBtn.style.color = N.pkModo ? '#fff' : '#ff8a8a'; pkBtn.style.border = '1px solid ' + (N.pkModo ? '#ff4d4d' : '#7a2a2a');
+  }
   function angLerp(a, b, k){ var d = b - a; while(d > Math.PI) d -= 6.2832; while(d < -Math.PI) d += 6.2832; return a + d * k; }
 
   /* ---------- HUD de rede (canto da tela) ---------- */
@@ -39,14 +60,15 @@ export const Net = (function(){
     var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : ({ curuma: 'Torre de Cruma', fortress: 'Fortaleza', pantano: 'Pântano Flamejante' })[N.mapa] || 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
     var duelo = N.duelo ? '<br><span style="color:#ffd166">Duelo com ' + N.duelo.nome + (N.duelo.seg > 0 ? ' em ' + Math.ceil(N.duelo.seg) + '...' : '  (H desiste)') + '</span>' : '';
     if(N.mapa === 'masmorra'){ hudEl.innerHTML = ''; return; } var ajuda = N.mapa === 'cidade' && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
-    hudEl.innerHTML = nome + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online' + t + duelo + ajuda;
+    var pk = N.pkSt === 2 ? '<br><span style="color:#ff3b3b">PK · karma ' + N.karma + '</span>' : (N.pkSt === 1 ? '<br><span style="color:#a77bff">Em combate PvP (nome roxo)</span>' : '');
+    hudEl.innerHTML = nome + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online' + t + duelo + ajuda + pk; pkBotao();
   }
 
   /* ---------- plaquinha: nome + barra de vida ---------- */
   function desenhaTag(e){
     if(!e.tag) return; var c = e.tag.cv, g = c.getContext('2d'); g.clearRect(0, 0, 256, 72);
     g.font = '700 26px system-ui,Arial,sans-serif'; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.85)';
-    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (N.mapa === 'pvp' ? '#ffb3a8' : (e.team ? COR_TIME[e.team] : '#f4fbff'))); g.strokeText(e.nome, 128, 28); g.fillStyle = cor; g.fillText(e.nome, 128, 28);
+    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (e.pk === 2 ? '#ff3b3b' : e.pk === 1 ? '#a77bff' : N.mapa === 'pvp' ? '#ffb3a8' : (e.team ? COR_TIME[e.team] : '#f4fbff'))); g.strokeText(e.nome, 128, 28); g.fillStyle = cor; g.fillText(e.nome, 128, 28);
     var w = 150, x = 53, y = 42, k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
     g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(x - 2, y - 2, w + 4, 14); g.fillStyle = e.morto ? '#555' : (k > .5 ? '#5cd65c' : (k > .25 ? '#e6b422' : '#e54b4b')); g.fillRect(x, y, w * k, 10);
     e.tag.tex.needsUpdate = true; e.hpDes = e.hp;
@@ -140,7 +162,7 @@ export const Net = (function(){
       m.jog.forEach(addRemoto); ctx.onEntrou(m); atualizaHud(); ctx.sysMsg((m.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' - canal ' + m.canal + (m.eu.team ? ' - Time ' + (m.eu.team === 'A' ? 'Azul' : 'Vermelho') : ''));
     } else if(m.t === 's'){
       var vistos = {}; m.p.forEach(function(p){
-        e = remotos.get(p[0]); if(!e) return; vistos[p[0]] = 1; e.dentro = true; e.tx = p[1]; e.tz = p[2]; e.tf = p[3]; e.a = p[4]; e.hp = p[5]; e.g = p[6]; var morreu = !!p[7]; e.ts = p[8] || 1; e.ty = p[9];
+        e = remotos.get(p[0]); if(!e) return; vistos[p[0]] = 1; e.dentro = true; e.tx = p[1]; e.tz = p[2]; e.tf = p[3]; e.a = p[4]; e.hp = p[5]; e.g = p[6]; var morreu = !!p[7]; e.ts = p[8] || 1; e.ty = p[9]; if((p[10] | 0) !== (e.pk | 0)){ e.pk = p[10] | 0; if(e.tag) desenhaTag(e); }
         if(morreu !== e.morto){ e.morto = morreu; e.curA = ''; if(e.tag) desenhaTag(e); }
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
@@ -166,6 +188,11 @@ export const Net = (function(){
     } else if(m.t === 'duelreq'){
       pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce', '#ffd166'); desenhaPed();
     } else if(m.t === 'duelsent'){ ctx.sysMsg('Desafio enviado para ' + m.nome + '...');
+    } else if(m.t === 'pkst'){                                          /* [pk] meu estado: 0 normal, 1 flag (roxo), 2 PK (karma) */
+      var antes = N.pkSt; N.pkSt = m.st | 0; N.karma = m.karma | 0;
+      if(N.pkSt === 1 && antes === 0) ctx.sysMsg('Você atacou um jogador: nome roxo por 30 s (outros podem atacar você).');
+      if(N.pkSt === 2 && antes !== 2) ctx.banner('VOCÊ É PK', 'Nome vermelho. Se morrer, pode perder um item. Mate monstros para limpar o karma.', '#ff3b3b');
+    } else if(m.t === 'pkmsg'){ try { if(window.Chat) Chat.sistema(m.m); else ctx.sysMsg(m.m); } catch(e){}
     } else if(m.t === 'anuncio'){                                       /* [anuncio] aviso do servidor: banner na hora; ao trocar de mapa so no chat (uma vez por sessao) */
       var ja = ''; try { ja = sessionStorage.getItem('isblade.anuncio') || ''; } catch(e){}
       if(m.novo || ja !== m.txt){ ctx.banner('AVISO DO SERVIDOR', m.txt, '#f5c451'); try { sessionStorage.setItem('isblade.anuncio', m.txt); } catch(e){} }
