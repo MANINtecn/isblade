@@ -659,7 +659,7 @@ def montar_agua():
         esc(o, [(F_COL - 1, (1, 1, 0.01)), (F_COL + 1, (0.6, 0.6, 0.35)), (F_COL + 5, (1.15, 1.15, 1.15)), (F_COL + 10, (1, 1, 1.0)), (F_COL + 56, (1, 1, 1.0)), (F_COL + 68, (0.6, 0.6, 0.85)), (F_COL + 80, (0.15, 0.15, 0.3)), (F_COL + 81, (1e-3, 1e-3, 1e-3))])
     for i in range(30):                                                        # gotas facetadas que sobem e caem
         d = random.uniform(0, 6.28); vh = random.uniform(.8, 3.2); vz = random.uniform(4.0, 9.0); rr = random.uniform(.07, .16); vida = random.randint(34, 60); f0 = F_COL + random.randint(0, 10)
-        o = para_obj(col, "S2A_gota%d" % i, bm_lascas(rr * 2.0, 3 if i % 2 else 4), m_gota); wx, wy, wz = [random.uniform(-8, 8) for _ in range(3)]
+        o = para_obj(col, "S2A_gota%d" % i, bm_gota_agua(rr * 1.1), m_gota); wx, wy, wz = [random.uniform(-8, 8) for _ in range(3)]
         for f in list(range(f0, f0 + vida, 3)) + [f0 + vida]:
             s_ = (f - f0) / FPS; o.location = (math.cos(d) * vh * s_ * 0.8, 12.0 + math.sin(d) * vh * s_ * 0.8, max(0.05, 0.8 + vz * s_ - 9.8 * s_ * s_ / 2))
             o.rotation_euler = (wx * s_, wy * s_, wz * s_); o.scale = ((1,) * 3 if f < f0 + vida else (1e-4,) * 3)
