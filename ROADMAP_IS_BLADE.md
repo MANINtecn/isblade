@@ -126,7 +126,11 @@ Divulgação:
 - [ ] Evento de abertura do beta (ex.: primeiro a matar o Baium ganha título). (Dono)
 
 ### FASE 6 — Depois do beta
-- [ ] Trocar de mapa sem recarregar a página (uma página só, conexão mantida).
+- [~] **Mundo aberto estilo Priston Tale** (dono, 09/11; substitui "trocar de mapa sem recarregar"): cidade no centro, mapas ligados a cada saída, carregados por proximidade (no máximo cidade + 1 mapa na memória), sem tela de carregamento ao atravessar.
+  - [x] Mapa-múndi no Blender (`tools/blender_mundo/mapa_mundi.py` -> `mapa_mundi.blend`, local): mapas posicionados por fora do anel na direção de cada portão, estradas guia, `data/mundo.json` (exporta). Dono ajusta terreno/posições.
+  - [ ] **Campo de Talking Island** (a emenda): anel em volta da muralha com mobs Nv 1–20 (spots por faixa já marcados), terreno esculpido pelo dono.
+  - [ ] Página única (cidade + mapas no mesmo jogo, conexão mantida) — esperar o dono terminar as skills (arena.html) e trazer o log do celular.
+  - [ ] Carregar o mapa vizinho perto do portão e soltar o que ficou longe; servidor troca o canal ao cruzar a divisa.
 - [~] Mobs e DGs simulados no servidor (hoje o líder do grupo comanda os mobs). — **mapas abertos FEITO 08/11** (adiantado a pedido do dono: `servidor/mobs_mundo.js`); DGs ainda pelo líder.
 - [ ] Clérigo (cura e buff) — fecha a trindade tanque/dano/suporte.
 - [ ] Troca entre jogadores, loja pessoal (private store do L2) e mercado.
