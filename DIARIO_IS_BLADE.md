@@ -3038,3 +3038,7 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - `prototipo/ranking.html`: pagina publica (abre sem conta, boa para video/site), abas Nivel/PvP/Chefes, atualiza a cada minuto. No jogo: a aba "Ranking" do menu P (que existia desligada) mostra o top 10 e o link da pagina.
 - De quebra: o HUD mostrava "Guardiao" quando faltava `isblade.weapon` no navegador; agora usa a classe que vem do servidor (`js/mu_hud.js`).
 - Testado local: chefe abatido entrou no ranking de chefes; menu e pagina conferidos na foto. VPS: reiniciar o servidor.
+
+### [Claude] 08/11/2026 - Modo camera para gravar (PC)
+- `js/modo_camera.js` (arena e cidade): F9 esconde a HUD inteira (fica so o jogo), F10 troca a velocidade normal -> 1/2 -> 1/4 (multiplica o dt do quadro; so neste navegador). Aviso curto no topo. Camera continua a do jogo (mouse gira, roda aproxima); camera livre solta ainda nao.
+- Testado local: cidade e Cruma, fotos com a HUD escondida e camera lenta 1/2, sem erro.

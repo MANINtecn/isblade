@@ -787,6 +787,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/loja.js?v=5"></script>
 <script src="js/arma_grau.js?v=1"></script>
 <script src="js/expedicao.js?v=4"></script>
+<script src="js/modo_camera.js?v=1"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -16400,7 +16401,7 @@ function frameBody(nowMs){
 
 
 
-  var dtR=Math.max(0,(nowMs-last)/1000),dt=Math.min(.05,dtR);last=nowMs;T+=dt;
+  var dtR=Math.max(0,(nowMs-last)/1000),dt=Math.min(.05,dtR)*((window.ModoCamera&&ModoCamera.escala)||1);last=nowMs;/* [modo-camera] F10 camera lenta */T+=dt;
   if(window.L2Npcs) L2Npcs.update(dt, S.px, S.pz);
 
 

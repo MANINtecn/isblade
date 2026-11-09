@@ -117,7 +117,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 
 Divulgação:
 - [ ] **Página do beta** no site L2 IKARUS: botão Jogar, vídeo curto, Discord, requisitos. **M** (Claude)
-- [ ] **Modo câmera para gravar** (esconde a HUD, câmera livre, câmera lenta). **P** (Claude)
+- [x] **Modo câmera para gravar** (esconde a HUD, câmera livre, câmera lenta). **P** (Claude) — feito 08/11 (PC): F9 esconde/mostra a HUD, F10 câmera lenta (1/2, 1/4); câmera livre solta do personagem ainda não.
 - [ ] **Anúncio do servidor** dentro do jogo (manutenção, eventos). **P** (Claude)
 - [ ] **Roteiro de vídeos** (pode começar JÁ como diário de desenvolvimento): skill do Blender ao jogo · luta do Baium · PvP na casa do Baium · DG em party · "MMO do L2 no navegador, abre no celular". (Dono)
 - [ ] Evento de abertura do beta (ex.: primeiro a matar o Baium ganha título). (Dono)
