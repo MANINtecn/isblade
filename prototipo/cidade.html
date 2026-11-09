@@ -784,10 +784,11 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/chat.js?v=3"></script>
 <script src="js/musica.js?v=1"></script>
 <script src="js/alvo_l2.js?v=1"></script>
-<script src="js/loja.js?v=5"></script>
+<script src="js/loja.js?v=6"></script>
 <script src="js/arma_grau.js?v=1"></script>
 <script src="js/expedicao.js?v=4"></script>
 <script src="js/modo_camera.js?v=1"></script>
+<script src="js/inventario_ui.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -12511,7 +12512,7 @@ function invDoServidor(m){
   try{Loja.atualiza();}catch(_){}
 }
 /* [loja] consumiveis e loja (js/loja.js + data/loja.json): o servidor gasta e devolve o efeito */
-function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,vm:(ArmaGrau.info(ITM,b).venda||1)};})};}
+function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,vm:(ArmaGrau.info(ITM,b).venda||1),ico:window.InvUI?InvUI.icone(b,{tam:30}):''};})};}
 function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead)return;Net.usar(id);}
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
@@ -12775,6 +12776,8 @@ function renderInv(){
 
 
   var box=$('#inv');if(!invOpen)return;
+  if(window.InvUI){try{InvUI.render(box,{itm:ITM,inv:INV,st:ST,pmax:S.pmax,conj:S.conj,adena:ADENA,srv:INV_SRV,consum:CONSUM,lvl:S.lvl||1,lojaDados:window.Loja&&Loja.dados()},
+    {equip:equipItem,tirar:unequipSlot,descartar:discardItem,usar:usarConsumivel,fechar:function(){toggleInv(false);},statsDe:statsDe,nome:itemName});return;}catch(e){console.warn('InvUI',e);}}/* [inventario-ui] 09/11/2026: inventario com cara de jogo (js/inventario_ui.js) */
 
 
 
@@ -17855,7 +17858,7 @@ Guardiao.init({
 try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
 try{PerfLog.init(renderer,scene,function(){var o={pg:'cidade'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
-try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot]};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
+try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot],ico:window.InvUI?InvUI.icone(b,{tam:30}):''};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
 try{SomL2.ambiente('cidade');}catch(_){}/* [sons-l2] vento, ondas e gaivotas de Talking Island */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */

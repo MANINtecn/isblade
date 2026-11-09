@@ -29,7 +29,7 @@
       'background:linear-gradient(rgba(16,26,48,.98),rgba(6,10,20,.98));box-shadow:inset 0 0 0 2px #5a7ea6,0 0 30px rgba(0,0,0,.8);color:#e4edf8;font:13px system-ui,sans-serif}' +
       '#lojaWin .hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}#lojaWin .hd b{letter-spacing:.15em}#lojaWin .ad{margin-left:auto;color:#f5c451;font-weight:700}' +
       '#lojaWin button{pointer-events:auto;cursor:pointer;font:inherit;font-weight:700;color:#e8f0ff;background:#16223d;border:1px solid #2b3a63;border-radius:6px;padding:6px 10px}#lojaWin button.on{background:#2b3a63}' +
-      '#lojaWin .ln{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid rgba(90,126,166,.25)}#lojaWin .ln .n{flex:1}#lojaWin .ln small{display:block;color:#9fb0cc}#lojaWin .pr{color:#f5c451;min-width:70px;text-align:right}' +
+      '#lojaWin .ln{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid rgba(90,126,166,.25)}#lojaWin .ln .n{flex:1}#lojaWin .ln small{display:block;color:#9fb0cc}#lojaWin .pr{color:#f5c451;min-width:70px;text-align:right}#lojaWin .ico{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:rgba(6,10,20,.85);border:1px solid #2c3a5c;clip-path:polygon(0 5px,5px 0,calc(100% - 5px) 0,100% 5px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px))}' +
       '#lojaWin .msg{min-height:16px;margin-top:6px;color:#9fb0cc}#lojaPocao{position:fixed;left:84px;top:138px;z-index:61;pointer-events:auto;font:700 11px system-ui,sans-serif;color:#d8ffe2;background:rgba(10,30,20,.78);border:1px solid #2f7a4a;border-radius:6px;padding:6px 10px}';
     document.head.appendChild(st);
     el = document.createElement('div'); el.id = 'lojaWin'; document.body.appendChild(el);
@@ -71,18 +71,18 @@
         var c = D.consumiveis[id];
         if(!c){                                                       /* [graus] equipamento (Sem grau / D): sai Normal */
           var q = op.equip && op.equip(id), P = q && D.equip && D.equip[q.grau], pr = P && (q.slot === 'weapon' ? P.arma : P.armadura); if(!pr) return;
-          h += '<div class="ln"><div class="n"><b>' + esc(q.nome) + '</b> <small>' + esc(q.tipo || '') + ' · ' + q.tag + ' · ' + esc(q.stats) + '</small></div><span class="pr">' + pr.toLocaleString('pt-BR') + ' A</span>' +
+          h += '<div class="ln">' + (q.ico ? '<span class="ico">' + q.ico + '</span>' : '') + '<div class="n"><b>' + esc(q.nome) + '</b> <small>' + esc(q.tipo || '') + ' · ' + q.tag + ' · ' + esc(q.stats) + '</small></div><span class="pr">' + pr.toLocaleString('pt-BR') + ' A</span>' +
             '<button type="button" data-c="' + id + '" data-q="1">Comprar</button></div>';
           return;
         }
         var tem = (s.consum && s.consum[id]) | 0;
-        h += '<div class="ln"><div class="n"><b>' + esc(c.nome) + '</b> <small>' + esc(c.desc || '') + ' · você tem ' + tem + '</small></div><span class="pr">' + c.preco + ' A</span>' +
+        h += '<div class="ln">' + (window.InvUI ? '<span class="ico">' + InvUI.icone(id, { tam: 30 }) + '</span>' : '') + '<div class="n"><b>' + esc(c.nome) + '</b> <small>' + esc(c.desc || '') + ' · você tem ' + tem + '</small></div><span class="pr">' + c.preco + ' A</span>' +
           '<button type="button" data-c="' + id + '" data-q="1">x1</button><button type="button" data-c="' + id + '" data-q="10">x10</button></div>';
       });
     } else {
       var b = s.bolsa || [];
       if(!b.length) h += '<div class="msg">Nada para vender (o que está equipado não aparece).</div>';
-      b.forEach(function(it){ var v = Math.round(((D.venda && D.venda[it.rar]) || 1) * (it.vm || 1)); h += '<div class="ln"><div class="n"><b style="color:' + esc(it.cor || '#fff') + '">' + esc(it.nome) + '</b> <small>' + esc(it.raridade || it.rar) + '</small></div><span class="pr">' + v + ' A</span><button type="button" data-v="' + esc(it.uid) + '">Vender</button></div>'; });
+      b.forEach(function(it){ var v = Math.round(((D.venda && D.venda[it.rar]) || 1) * (it.vm || 1)); h += '<div class="ln">' + (it.ico ? '<span class="ico" style="border-color:' + esc(it.cor || '#2c3a5c') + '">' + it.ico + '</span>' : '') + '<div class="n"><b style="color:' + esc(it.cor || '#fff') + '">' + esc(it.nome) + '</b> <small>' + esc(it.raridade || it.rar) + '</small></div><span class="pr">' + v + ' A</span><button type="button" data-v="' + esc(it.uid) + '">Vender</button></div>'; });
     }
     h += '<div class="msg" id="lojaMsg">' + esc(L._msg || '') + '</div>';
     el.innerHTML = h;

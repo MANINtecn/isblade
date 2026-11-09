@@ -4,8 +4,8 @@
   "rarities": {
     "normal":   { "name": "Normal",   "css": "#c9d1e6", "mult": 1.0, "affixes": 0, "weight": 60 },
     "raro":     { "name": "Raro",     "css": "#5aa9ff", "mult": 1.3, "affixes": 1, "weight": 28 },
-    "epico":    { "name": "Epico",    "css": "#b45aff", "mult": 1.7, "affixes": 2, "weight": 10 },
-    "lendario": { "name": "Lendario", "css": "#ffb02e", "mult": 2.3, "affixes": 3, "weight": 2 }
+    "epico":    { "name": "Épico",    "css": "#b45aff", "mult": 1.7, "affixes": 2, "weight": 10 },
+    "lendario": { "name": "Lendário", "css": "#ffb02e", "mult": 2.3, "affixes": 3, "weight": 2 }
   },
 
   "stats": {
@@ -34,7 +34,7 @@
   },
 
   "bases": [
-    { "id": "sword_long", "name": "Espada de Duas Maos", "slot": "weapon", "grau": "sem", "weapon": "sword", "modelo": "assets/armas/twohanded_sword.glb", "stats": { "dano": 10 } },
+    { "id": "sword_long", "name": "Espada de Duas Mãos", "slot": "weapon", "grau": "sem", "weapon": "sword", "modelo": "assets/armas/twohanded_sword.glb", "stats": { "dano": 10 } },
     { "id": "shield_guardian", "name": "Escudo do Recruta", "slot": "weapon", "grau": "sem", "weapon": "shield", "stats": { "dano": 7, "defesa": 3 } },
     { "id": "staff_arcane", "name": "Cajado de Cedro", "slot": "weapon", "grau": "sem", "weapon": "staff", "modelo": "assets/armas/cedar_staff.glb", "stats": { "dano": 12 } },
     { "id": "helmet_iron", "name": "Elmo de Ferro", "slot": "helmet", "grau": "sem", "stats": { "vida": 20, "defesa": 2 } },
@@ -48,9 +48,9 @@
     { "id": "chest_plate_d", "name": "Peitoral de Mithril", "slot": "chest", "grau": "D", "stats": { "vida": 64, "defesa": 6.4 } },
     { "id": "gloves_hide_d", "name": "Luvas de Mithril", "slot": "gloves", "grau": "D", "stats": { "dano": 4.8, "estamina": 6.4 } },
     { "id": "boots_swift_d", "name": "Botas de Mithril", "slot": "boots", "grau": "D", "stats": { "estamina": 12.8, "vida": 16 } },
-    { "id": "sword_long_c", "name": "Lamina do Berserker", "slot": "weapon", "grau": "C", "weapon": "sword", "modelo": "assets/armas/berserker_blade.glb", "stats": { "dano": 24 } },
+    { "id": "sword_long_c", "name": "Lâmina do Berserker", "slot": "weapon", "grau": "C", "weapon": "sword", "modelo": "assets/armas/berserker_blade.glb", "stats": { "dano": 24 } },
     { "id": "shield_guardian_c", "name": "Escudo de Placa Completa", "slot": "weapon", "grau": "C", "weapon": "shield", "modelo": "assets/armas/full_plate_shield.glb", "stats": { "dano": 16.8, "defesa": 7.2 } },
-    { "id": "staff_arcane_c", "name": "Cajado do Carnical", "slot": "weapon", "grau": "C", "weapon": "staff", "modelo": "assets/armas/ghouls_staff.glb", "stats": { "dano": 28.8 } },
+    { "id": "staff_arcane_c", "name": "Cajado do Carniçal", "slot": "weapon", "grau": "C", "weapon": "staff", "modelo": "assets/armas/ghouls_staff.glb", "stats": { "dano": 28.8 } },
     { "id": "helmet_iron_c", "name": "Elmo de Placa Completa", "slot": "helmet", "grau": "C", "stats": { "vida": 48, "defesa": 4.8 } },
     { "id": "chest_plate_c", "name": "Peitoral de Placa Completa", "slot": "chest", "grau": "C", "stats": { "vida": 96, "defesa": 9.6 } },
     { "id": "gloves_hide_c", "name": "Luvas de Placa Completa", "slot": "gloves", "grau": "C", "stats": { "dano": 7.2, "estamina": 9.6 } },
