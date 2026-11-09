@@ -13,7 +13,7 @@ bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 FPS = 48
 
 # ------------------------------------------------------------------ limpeza de execucoes anteriores
-for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "MAGO_S2_NECRO", "MAGO_S2_NECRO_PARALISIA", "TESTE_L2"):
+for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "MAGO_S2_NECRO", "MAGO_S2_NECRO_PARALISIA", "MAGO_S2_FOGO_DISCO", "TESTE_L2"):
     s = bpy.data.scenes.get(nome)
     if s:
         for o in list(s.objects): bpy.data.objects.remove(o, do_unlink=True)
@@ -673,7 +673,113 @@ def montar_agua():
     c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 3.4), (0, 6.5, 2.0), 30); camera(sc, ref, "cam_alvo", (10.0, 6.0, 3.6), (0, 12.0, 2.6), 30); camera(sc, ref, "cam_do_mago", (3.4, -3.6, 2.0), (0, 0.3, 1.0), 32); sc.camera = c1
     return sc
 
-sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro(); sc_p = montar_paralisia()
+# ================================================================== FOGO 2: DISCO DE FOGO (Archmage) - projetil giratorio no modelo da Shuriken de Vento
+def bm_disco(R=0.85, dentes=8, esp=0.12):
+    """disco-serra: dentes retos (rampa suave + queda seca), solido com espessura, plano XZ (normal em Y)"""
+    bm = bmesh.new(); c = bm.verts.new((0, 0, 0)); passo = 2 * math.pi / dentes; ring = []
+    for k in range(dentes):
+        th = k * passo
+        ring.append(bm.verts.new((R * 0.52 * math.cos(th), R * 0.52 * math.sin(th), 0)))                    # vale
+        ring.append(bm.verts.new((R * math.cos(th + 0.82 * passo), R * math.sin(th + 0.82 * passo), 0)))    # ponta do dente
+    for i in range(len(ring)): bm.faces.new((c, ring[i], ring[(i + 1) % len(ring)]))
+    bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=esp)
+    bmesh.ops.translate(bm, vec=(0, 0, -esp / 2), verts=bm.verts)
+    bmesh.ops.rotate(bm, cent=(0, 0, 0), matrix=Matrix.Rotation(math.pi / 2, 3, "X"), verts=bm.verts)   # (x,y,0) -> (x,0,y): normal em Y
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+def mat_disco(nome):
+    """metal em brasa: centro branco-amarelo, esfria para laranja e vermelho escuro nas pontas (distancia ao centro)"""
+    m = bpy.data.materials.new(nome); m.use_nodes = True; nt = m.node_tree; b = nt.nodes["Principled BSDF"]; N = nt.nodes
+    b.inputs["Base Color"].default_value = (0.12, 0.03, 0.01, 1); b.inputs["Roughness"].default_value = 0.6
+    tc = N.new("ShaderNodeTexCoord"); vl = N.new("ShaderNodeVectorMath"); vl.operation = "LENGTH"; mr = N.new("ShaderNodeMapRange"); mr.clamp = True
+    mr.inputs[1].default_value = 0.20; mr.inputs[2].default_value = 1.05
+    rp = N.new("ShaderNodeValToRGB"); e = rp.color_ramp.elements; e[0].position = 0.0; e[0].color = (1.0, 0.92, 0.55, 1); e[1].position = 1.0; e[1].color = (0.45, 0.04, 0.0, 1)
+    e2 = e.new(0.38); e2.color = (1.0, 0.36, 0.04, 1)
+    nt.links.new(tc.outputs["Object"], vl.inputs[0]); nt.links.new(vl.outputs["Value"], mr.inputs[0]); nt.links.new(mr.outputs[0], rp.inputs[0])
+    nt.links.new(rp.outputs[0], b.inputs["Emission Color"]); b.inputs["Emission Strength"].default_value = 3.0
+    return m
+
+def montar_disco_fogo():
+    random.seed(88)
+    F_FORMA, F_SAI, VOO, F_FIM = 1, 16, 80, 142
+    F_HIT = F_SAI + VOO; Y0, Y1 = 1.1, 21.0; ZV = 1.5
+    sc, col, ref = nova_cena("MAGO_S2_FOGO_DISCO", F_FIM)
+    caixa = chao_e_referencia(sc, ref, col)
+    caixa("mago_ref_1.7m", (0.0, 0.0, 0.85), (0.5, 0.35, 1.7)); caixa("alvo_ref_1.8m", (0.0, 21.2, 0.9), (0.6, 0.4, 1.8))
+    m_disco = mat_disco("S2F_disco"); m_nucleo = mat_emit("S2F_dnucleo", (1.0, 0.93, 0.62), 7.0); m_brasa = mat_emit("S2F_dbrasa", (1.0, 0.52, 0.10), 6.0)
+    m_f1 = mat_flama("S2F_dchama", TEX1 + "flame_a00.png", (1.0, 0.58, 0.26), 2.5, 0.45)
+    m_f2 = mat_flama("S2F_dchama2", TEX2 + "fx_m_t2076.png", (1.0, 0.62, 0.45), 2.4, 0.5)
+    m_pico = mat_grad("S2F_dpico", [(0.0, (1.0, 0.78, 0.30)), (0.35, (1.0, 0.28, 0.03)), (1.0, (0.22, 0.015, 0.0))], 2.6, 0.8, 0.55, 5.0)
+    m_chao = mat_grad("S2F_dmarca", [(0.0, (0.10, 0.03, 0.01)), (0.5, (0.55, 0.10, 0.01)), (1.0, (1.0, 0.50, 0.06))], 2.2, 1.0, 0.0)
+    m_fumaca = mat_flama("S2F_dfumaca", TEX2 + "fx_m_t0074.png", (0.20, 0.16, 0.15), 1.0, 0.35)
+    # ---- o disco: raiz (voa) -> giro (em volta do eixo Y = eixo do voo) -> serra + miolo + 8 linguas de fogo presas as pontas
+    raiz = bpy.data.objects.new("S2F_disco_raiz", None); col.objects.link(raiz)
+    giro = bpy.data.objects.new("S2F_disco_giro", None); col.objects.link(giro); giro.parent = raiz
+    serra = para_obj(col, "S2F_serra", bm_disco(1.1, 8, 0.16), m_disco); serra.parent = giro
+    miolo = para_obj(col, "S2F_miolo", bm_rocha(0.20, 1.0, 0.12), m_nucleo); miolo.parent = giro
+    for k in range(8):
+        a = k * 2 * math.pi / 8 + 0.5; Lc = random.uniform(1.7, 2.5)
+        c = para_obj(col, "S2F_lingua%d" % k, bm_cone(0.40, 0.0, Lc, 4), m_f1 if k % 2 == 0 else m_f2); c.parent = giro
+        c.location = (1.05 * math.cos(a), 0.0, 1.05 * math.sin(a)); apunta(c, (-math.sin(a), 0.15, math.cos(a)))
+        esc(c, [(F_FORMA + k, 0.0), (F_FORMA + k + 8, 1.0)] + [(F_SAI + 4 * j + k % 4, random.uniform(.85, 1.15)) for j in range(VOO // 4)] + [(F_HIT - 1, 1.0), (F_HIT, 0.0)])
+    saia = bpy.data.objects.new("S2F_dsaia", None); col.objects.link(saia); saia.parent = raiz; saia.rotation_euler = (math.pi / 2, 0, 0)
+    for k in range(7):                                                         # penacho de chamas atras do disco (nao gira), como o do meteoro
+        a = k * 2 * math.pi / 7 + random.uniform(-.2, .2); Lb = random.uniform(2.6, 4.0); wb = random.uniform(1.0, 1.5)
+        b = para_obj(col, "S2F_dpenacho%d" % k, bm_lamina(Lb, wb, random.uniform(.1, .35), random.uniform(0, 6)), m_f1 if k % 2 == 0 else m_f2)
+        b.parent = saia; b.location = (math.cos(a) * 0.55, math.sin(a) * 0.55, 0.1); b.rotation_euler = (math.sin(a) * 0.3, -math.cos(a) * 0.3, a)
+        esc(b, [(F_FORMA + 6, 0.0), (F_FORMA + 16, 1.0)] + [(F_SAI + 3 * j, random.uniform(.8, 1.15)) for j in range(VOO // 3)] + [(F_HIT - 1, 1.0), (F_HIT, 0.0)])
+    giro.rotation_euler = (0, 0, 0); giro.keyframe_insert("rotation_euler", frame=F_FORMA)
+    giro.rotation_euler = (0, math.radians(26 * (F_HIT - F_FORMA)), 0); giro.keyframe_insert("rotation_euler", frame=F_HIT)            # 26 graus por quadro, so duas chaves (linear)
+    raiz.location = (0, Y0, ZV); raiz.keyframe_insert("location", frame=F_FORMA); raiz.keyframe_insert("location", frame=F_SAI)
+    raiz.location = (0, Y1, ZV); raiz.keyframe_insert("location", frame=F_HIT)                                                          # 20 m em 80 quadros = 12 m/s, como a shuriken
+    esc(raiz, [(F_FORMA - 1, 0.05), (F_FORMA + 14, 1.0), (F_HIT - 1, 1.0), (F_HIT, 0.0)])
+    # ---- impacto: a serra se parte em 8 pedacos, estrela de espinhos de fogo, anel de chamas no chao, brasas e fumaca
+    fim = Vector((0, Y1, ZV))
+    for k in range(8):
+        a = k * 2 * math.pi / 8; o = para_obj(col, "S2F_pedaco%d" % k, bm_lascas(0.32, 3), m_disco); wx, wy, wz = [random.uniform(-9, 9) for _ in range(3)]; vida = random.randint(26, 36)
+        for f in list(range(F_HIT, F_HIT + vida, 3)) + [F_HIT + vida]:
+            s_ = (f - F_HIT) / FPS; o.location = tuple(fim + Vector((math.cos(a) * 5.5 * s_, -2.0 * s_, math.sin(a) * 5.5 * s_ - 9.8 * s_ * s_ / 2)))
+            o.location.z = max(0.05, o.location.z); o.rotation_euler = (wx * s_, wy * s_, wz * s_); o.scale = ((1,) * 3 if f < F_HIT + vida else (1e-4,) * 3)
+            o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=F_HIT - 1)
+    for i in range(10):
+        v = Vector((random.uniform(-1, 1), random.uniform(-1.2, 0.2), random.uniform(-0.2, 1.0))).normalized(); Ls = random.uniform(1.2, 2.2)
+        o = para_obj(col, "S2F_dclarao%d" % i, bm_cone(0.20, 0.0, Ls, 4), m_nucleo); o.location = tuple(fim); apunta(o, v)
+        esc(o, [(F_HIT - 1, 0.0), (F_HIT, 0.3), (F_HIT + 2, 1.0), (F_HIT + 7, 0.55), (F_HIT + 13, 0.0)])
+    for i in range(10):
+        a = i * 2 * math.pi / 10 + random.uniform(-.2, .2); Lp = random.uniform(3.0, 4.8)
+        o = para_obj(col, "S2F_dchamas%d" % i, bm_cone(0.6, 0.0, Lp, 4), m_pico); o.location = (math.cos(a) * 0.4, Y1 + 0.3 + math.sin(a) * 0.4, 0.3); apunta(o, (math.cos(a), math.sin(a), 0.32))
+        esc(o, [(F_HIT - 1, 0.0), (F_HIT, 0.12), (F_HIT + 4, 1.0), (F_HIT + 12, 0.75), (F_HIT + 26, 0.0)])
+    for i in range(7):
+        a = i * 2 * math.pi / 7 + random.uniform(-.3, .3); rr = random.uniform(.2, .9); Lc = random.uniform(3.4, 5.4)
+        b = para_obj(col, "S2F_dcoluna%d" % i, bm_lamina(Lc, random.uniform(1.8, 2.6), random.uniform(.2, .6), random.uniform(0, 6)), m_f1 if i % 2 == 0 else m_f2)
+        b.location = (math.cos(a) * rr, Y1 + 0.3 + math.sin(a) * rr, 0.0); b.rotation_euler[2] = random.uniform(0, 6.28)
+        esc(b, [(F_HIT - 1, (1, 1, 0.02)), (F_HIT + 2, (0.5, 1, 0.35)), (F_HIT + 9, (1, 1, 1)), (F_HIT + 22, (0.9, 1, 1.05)), (F_HIT + 36, (0.6, 1, 0.5)), (F_HIT + 42, (0.1, 1, 0.02))])
+    for i in range(5):
+        a = i * 2 * math.pi / 5 + random.uniform(-.4, .4); rr = random.uniform(.4, 1.4); Lf = random.uniform(5.0, 7.5)
+        sm = para_obj(col, "S2F_dfumaca%d" % i, bm_lamina(Lf, random.uniform(2.2, 3.0), random.uniform(.3, .8), random.uniform(0, 6)), m_fumaca)
+        sm.location = (math.cos(a) * rr, Y1 + 0.3 + math.sin(a) * rr, 0.0); sm.rotation_euler[2] = random.uniform(0, 6.28)
+        esc(sm, [(F_HIT + 4, (1, 1, 0.02)), (F_HIT + 18, (0.8, 1, 0.55)), (F_HIT + 36, (1, 1, 0.9)), (F_FIM - 6, (1, 1, 1)), (F_FIM, (0.2, 1, 0.1))])
+    for i in range(30):
+        d = random.uniform(0, 6.28); vh = random.uniform(.8, 3.8); vz = random.uniform(2.5, 8.0); vida = random.randint(34, 62)
+        o = para_obj(col, "S2F_dbrasa%d" % i, bm_cone(0.05, 0.0, 0.2, 4), m_brasa)
+        for f in list(range(F_HIT, F_HIT + vida, 4)) + [F_HIT + vida]:
+            s_ = (f - F_HIT) / FPS; o.location = (math.cos(d) * vh * s_ + .35 * math.sin(s_ * 5 + d), Y1 + 0.3 + math.sin(d) * vh * s_, max(0.05, 0.5 + vz * s_ - 4.5 * s_ * s_)); o.rotation_euler = (s_ * 6, s_ * 4, s_ * 3)
+            o.scale = (max(1.0 - (f - F_HIT) / vida, 1e-4),) * 3; o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=F_HIT - 1)
+    marca = para_obj(col, "S2F_dmarca_no_chao", bm_estrela_chao(3.0), m_chao); marca.location = (0, Y1 + 0.3, 0.025)
+    esc(marca, [(F_HIT - 1, 0.0), (F_HIT, 0.4), (F_HIT + 5, 1.0), (F_HIT + 30, 1.0), (F_FIM - 4, 0.9), (F_FIM, 0.0)])
+    fl = luz(col, "S2F_dflash", "POINT", (0, Y1, 2.0), 0, (1.0, 0.55, 0.2))
+    for f, e in ((F_HIT - 1, 0), (F_HIT, 7000), (F_HIT + 4, 3500), (F_HIT + 18, 1200), (F_HIT + 40, 0)): fl.data.energy = e; fl.data.keyframe_insert("energy", frame=f)
+    lv = luz(col, "S2F_dluz_voo", "POINT", (0, Y0, ZV), 0, (1.0, 0.5, 0.15)); lv.parent = raiz; lv.location = (0, 0.3, 0)
+    for f, e in ((F_FORMA, 0), (F_FORMA + 14, 900), (F_HIT - 1, 900), (F_HIT, 0)): lv.data.energy = e; lv.data.keyframe_insert("energy", frame=f)
+    luz(ref, "S2F_dsol", "SUN", (0, 0, 10), 0.8, (0.55, 0.65, 1.0)).rotation_euler = (math.radians(40), 0, math.radians(30))
+    c1 = camera(sc, ref, "cam_voo", (22.0, 11.0, 4.6), (0, 11.0, 1.6), 28); camera(sc, ref, "cam_alvo", (7.5, 17.0, 3.0), (0, 21.0, 1.5), 34); camera(sc, ref, "cam_do_mago", (4.0, -3.0, 2.2), (0, 6.0, 1.5), 32)
+    cs = bpy.data.objects.new("cam_segue", bpy.data.cameras.new("cam_segue")); cs.data.lens = 40; col.objects.link(cs); cs.parent = raiz; cs.location = (5.0, -2.6, 0.9)
+    kc = cs.constraints.new("TRACK_TO"); kc.target = raiz; kc.track_axis = "TRACK_NEGATIVE_Z"; kc.up_axis = "UP_Y"; sc.camera = c1
+    return sc
+
+sc_f = montar_fogo(); sc_d = montar_disco_fogo(); sc_a = montar_agua(); sc_n = montar_necro(); sc_p = montar_paralisia()
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
 bpy.context.window.scene = sc_f
-print("S2 pronto:", [s.name for s in bpy.data.scenes], "objetos fogo", len(sc_f.objects), "agua", len(sc_a.objects), "necro", len(sc_n.objects), "paralisia", len(sc_p.objects))
+print("S2 pronto:", [s.name for s in bpy.data.scenes], "objetos fogo", len(sc_f.objects), "agua", len(sc_a.objects), "necro", len(sc_n.objects), "paralisia", len(sc_p.objects), "disco", len(sc_d.objects))

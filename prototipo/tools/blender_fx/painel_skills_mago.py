@@ -6,6 +6,7 @@ SKILLS = [                                   # (cena, rotulo)
     ("MAGO_SKILL1", "1  Shuriken de Vento (Spellhowler)"),
     ("MAGO_ATAQUE", "Ataque padrao (cristais)"),
     ("MAGO_S2_FOGO", "2  Fogo: Meteoro de Magma (Archmage)"),
+    ("MAGO_S2_FOGO_DISCO", "3  Fogo: Disco de Fogo (Archmage)"),
     ("MAGO_S2_AGUA", "2  Agua: Coluna de Agua (Spellsinger)"),
     ("MAGO_S2_NECRO", "2  Morte: Espinhos de Osso (Necromante)"),
     ("MAGO_S2_NECRO_PARALISIA", "2b Morte: Espinho Paralisante (Necromante)"),
