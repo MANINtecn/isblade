@@ -125,7 +125,7 @@
     botoes[id] = b; return b;
   }
   var combo = ['3', '4', '6'], ci = 0, tAtk = 0, modoUsar = false;
-  function rotulo(t){ t = (t || '').toLowerCase(); return /portal|dungeon|entrar|sair|duelo|pvp|arena|retorn/.test(t) ? 'ENTRAR' : (/bau|baú|porta/.test(t) ? 'ABRIR' : 'USAR'); }
+  function rotulo(t){ t = (t || '').toLowerCase(); return /falar/.test(t) ? 'FALAR' : /portal|dungeon|entrar|sair|duelo|pvp|arena|retorn/.test(t) ? 'ENTRAR' : (/bau|baú|porta/.test(t) ? 'ABRIR' : 'USAR'); }
   function montaBotoes(){
     var mb = document.createElement('div'); mb.id = 'mb';
     var atk = botao('atk', 'atk', 'ATACAR', function(){

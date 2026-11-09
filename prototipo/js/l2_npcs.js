@@ -982,6 +982,7 @@
   // =========================================================================
 
   window.L2Npcs = {
+    perto: function(){ return !!currentNPCNear && !activeDialog; },      /* [Claude] NPC perto com o aviso de falar (a cidade nao esconde o aviso; o botao do celular vira FALAR) */
     init: function(scene, gltfLoader){
       initUI();
 

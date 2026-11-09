@@ -7,6 +7,7 @@
    Se alguem perguntar a serio se ele e bot/IA, ele admite (nao enganamos ninguem).
 
    Uso:   node servidor/ia_jogador.js
+   Ligar junto do servidor: servidor/ia_config.json {"ligada": true, "qtd": 1, "modelo": ..., "falasHora": 40}. Chave: ANTHROPIC_API_KEY ou o arquivo <DATA_DIR>/anthropic_api_key.txt (so na VPS).
    Variaveis: IA_SERVIDOR (padrao http://localhost:8000) · IA_QTD (quantos, padrao 1, max 3) · IA_MODELO (padrao claude-opus-5-5;
               para gastar menos: claude-haiku-5-5) · IA_FALAS_HORA (limite de falas pelo Claude por hora, padrao 40)
               DATA_DIR (onde guarda a conta da IA: ia_jogadores.json) · ANTHROPIC_API_KEY (opcional) */
@@ -27,7 +28,7 @@ const ABERTO = {                                                /* mapa do servi
   pantano: { spawn: [14.9, -43.9], portal: 'blazing', nome: 'Pantano Flamejante' }
 };
 const PERSONAS = [
-  { nome: 'Kael', user: 'ia_kael', raca: 'human_m', classe: 'guerreiro', jeito: 'animado, competitivo, gosta de upar rapido e de ajudar iniciante' },
+  { nome: 'SextaFeira', user: 'ia_sextafeira', raca: 'human_m', classe: 'guerreiro', jeito: 'animado, competitivo, gosta de upar rapido e de ajudar iniciante' },
   { nome: 'Lyra', user: 'ia_lyra', raca: 'human_f', classe: 'guerreiro', jeito: 'tranquila, engraçada, curte explorar e conversar' },
   { nome: 'Doran', user: 'ia_doran', raca: 'human_m', classe: 'guerreiro', jeito: 'veterano de Lineage 2, nostalgico, da dicas' }
 ];
@@ -58,6 +59,7 @@ async function contaDe(p){
 
 /* ---------- conversa (Claude ou frases prontas) ---------- */
 let claude = null;
+if(!process.env.ANTHROPIC_API_KEY){ try { const k = fs.readFileSync(path.join(DIR, 'anthropic_api_key.txt'), 'utf8').trim(); if(k) process.env.ANTHROPIC_API_KEY = k; } catch(e){} }      /* chave: variavel ou arquivo so na VPS (fora do git) */
 if(process.env.ANTHROPIC_API_KEY){ try { const Anthropic = require('@anthropic-ai/sdk').default; claude = new Anthropic(); } catch(e){ console.error('ia: sem @anthropic-ai/sdk (rode npm ci no servidor)', e.message); } }
 const FALAS_USADAS = [];
 function podeFalarClaude(){ const t = agora(); while(FALAS_USADAS.length && t - FALAS_USADAS[0] > 3600) FALAS_USADAS.shift(); return FALAS_USADAS.length < FALAS_HORA; }
@@ -119,7 +121,7 @@ class Jogador {
     this.mapa = mapa; this.mobs = []; this.jog.clear(); this.alvo = 0; this.entrando = true; this.morto = false;
     if(mapa === 'cidade'){ const a = Math.random() * 6.28; this.x = Math.sin(a) * 4; this.z = 6 + Math.cos(a) * 4; this.y = 0; this.tCidade = agora() + 40 + Math.random() * 60; this.fazendo = 'na cidade'; }
     else { const A = ABERTO[mapa]; this.x = A.spawn[0] + (Math.random() - .5) * 4; this.z = A.spawn[1] + (Math.random() - .5) * 4; const G = Mobs.grade(mapa), h0 = SPOTS[Mobs.CFG[mapa].spots].spots[0].h; this.y = (G && G.chao(this.x, this.z, h0)) || h0; this.fazendo = 'caçando'; }
-    const ws = this.ws = new WebSocket(WSURL);
+    const ws = this.ws = new WebSocket(WSURL, { headers: { 'x-ia': process.env.IA_SEGREDO || '' } });      /* segredo: o servidor que me ligou aceita sem Origin */
     ws.on('open', () => this.send({ t: 'join', tk: this.tk, cid: this.cid, sid: 'ia_' + this.cid, nome: this.nome, raca: this.p.raca, cls: 'fighter', arma: 'sword', pmax: this.pmax, mapa, canal: 1, x: r2(this.x), z: r2(this.z) }));
     ws.on('message', d => { let m; try { m = JSON.parse(d); } catch(e){ return; } this.msg(m); });
     ws.on('close', () => { if(this.ws === ws){ this.ws = null; setTimeout(() => { if(!this.ws) this.entra(this.mapa); }, 5000); } });
@@ -260,6 +262,7 @@ class Jogador {
 }
 
 module.exports = { Jogador, falaClaude, sistema, _setClaude: c => { claude = c; } };
+if(process.env.IA_PAI) setInterval(() => { try { process.kill(+process.env.IA_PAI, 0); } catch(e){ console.log('[ia] servidor parou: saindo'); process.exit(0); } }, 5000);      /* nao fica orfao */
 if(require.main === module) (async () => {
   console.log('IS BLADE - jogador IA | servidor ' + SRV + ' | ' + QTD + ' jogador(es) | conversa: ' + (claude ? 'Claude (' + MODELO + ', ate ' + FALAS_HORA + ' falas/h)' : 'frases prontas (sem ANTHROPIC_API_KEY)'));
   for(let i = 0; i < QTD; i++){

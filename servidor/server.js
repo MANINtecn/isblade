@@ -247,7 +247,11 @@ const srv = http.createServer((req, res) => {
 });
 
 /* ---- WebSocket ---- */
-const wss = new WebSocketServer({ server: srv, path: '/ws', maxPayload: 16384, verifyClient: info => origemOk(info.origin) });
+/* [ia] jogador IA (servidor/ia_jogador.js): o servidor o liga se servidor/ia_config.json disser "ligada": true. Ele conecta pela propria maquina com um
+   segredo gerado a cada partida (nao precisa de Origin). Se o processo da IA cair, liga de novo em 30 s; ele se desliga sozinho se este servidor parar. */
+const IA_SEGREDO = require('crypto').randomBytes(16).toString('hex');
+const daIA = info => !!info.req && info.req.headers['x-ia'] === IA_SEGREDO && /^(127\.0\.0\.1|::1|::ffff:127\.0\.0\.1)$/.test(info.req.socket.remoteAddress || '');
+const wss = new WebSocketServer({ server: srv, path: '/ws', maxPayload: 16384, verifyClient: info => origemOk(info.origin) || daIA(info) });
 wss.on('connection', ws => {
   let J = null, c = null, msgs = 0;
   const lim = setInterval(() => { msgs = 0; }, 1000);
@@ -430,4 +434,13 @@ setInterval(() => {
   }
 }, 1000);
 
-srv.listen(PORT, () => console.log(`${SERVE_STATIC ? '' : '[so jogo, sem arquivos] '}${ORIGINS.length ? '[origens: ' + ORIGINS.join(', ') + '] ' : ''}Servidor em http://localhost:${PORT}/selecao.html  |  canal: ${CAP} jogadores  |  mapas: cidade (duelo) e pvp (times)  |  dano x${PVP_MULT}  |  AOI ${AOI} m`));
+srv.listen(PORT, () => { ligaIA(); console.log(`${SERVE_STATIC ? '' : '[so jogo, sem arquivos] '}${ORIGINS.length ? '[origens: ' + ORIGINS.join(', ') + '] ' : ''}Servidor em http://localhost:${PORT}/selecao.html  |  canal: ${CAP} jogadores  |  mapas: cidade (duelo) e pvp (times)  |  dano x${PVP_MULT}  |  AOI ${AOI} m`); });
+function ligaIA(){
+  let C = null; try { C = JSON.parse(fs.readFileSync(path.join(__dirname, 'ia_config.json'), 'utf8')); } catch(e){ return; }
+  if(!C || !C.ligada) return;
+  const env = Object.assign({}, process.env, { IA_SERVIDOR: 'http://127.0.0.1:' + PORT, IA_SEGREDO, IA_PAI: String(process.pid), IA_QTD: String(C.qtd || 1),
+    IA_MODELO: C.modelo || 'claude-opus-5-5', IA_FALAS_HORA: String(C.falasHora || 40), DATA_DIR: process.env.DATA_DIR || path.join(__dirname, 'dados') });
+  const sobe = () => { const p = require('child_process').spawn(process.execPath, [path.join(__dirname, 'ia_jogador.js')], { env, stdio: 'inherit' });
+    p.on('exit', cod => { console.log('[ia] jogador IA parou (codigo ' + cod + '); liga de novo em 30 s'); setTimeout(sobe, 30e3); }); };
+  setTimeout(sobe, 3000);
+}

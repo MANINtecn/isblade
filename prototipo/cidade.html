@@ -775,7 +775,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=7"></script>
+<script src="js/mobile.js?v=8"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=2"></script>
@@ -794,7 +794,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/agua_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js?v=2"></script>
-<script src="js/l2_npcs.js?v=2"></script>
+<script src="js/l2_npcs.js?v=3"></script>
 <script src="js/horizonte.js?v=2"></script>
 </head>
 
@@ -15269,7 +15269,7 @@ function frame2(dt,T){
 
 
 
-    if (pPrompt) pPrompt.style.display = 'none';
+    if (pPrompt && !(window.L2Npcs && L2Npcs.perto && L2Npcs.perto())) pPrompt.style.display = 'none';/* [Claude] nao apaga o aviso de falar com NPC (o botao do celular depende dele) */
 
 
 
