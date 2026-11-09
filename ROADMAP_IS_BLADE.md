@@ -103,7 +103,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 - [ ] Ícones Cabal para todas as skills do Guerreiro e as que faltam. **P** (Claude)
 
 ### FASE 4 — Social e PvP (~2 semanas)
-- [x] **Mapas abertos multijogador** (decisão do dono, 08/11: todos os mapas são multijogador): Cruma, Fortaleza e Pântano com canais como a cidade, jogadores se veem; base para o PvP com flag. Mobs continuam de cada jogador até a Fase 6. **M** (Claude) — 1ª parte feita 08/11: canais curuma/fortress/pantano no servidor, jogadores se veem no relevo (altura vai junto da posição). Falta (pedido do dono 08/11): PvP/PK estilo L2 (flag, karma, PK no celular por botão) e party para upar junto (mobs compartilhados no grupo + XP dividido).
+- [x] **Mapas abertos multijogador** (decisão do dono, 08/11: todos os mapas são multijogador): Cruma, Fortaleza e Pântano com canais como a cidade, jogadores se veem; base para o PvP com flag. Mobs continuam de cada jogador até a Fase 6. **M** (Claude) — 1ª parte feita 08/11: canais curuma/fortress/pantano no servidor, jogadores se veem no relevo (altura vai junto da posição). PvP/PK feito 08/11. Mobs no SERVIDOR feito 08/11: todos no canal veem e lutam com os mesmos mobs; XP do abate vai para a party de quem mais bateu (membros a até 40 m, bônus do L2 dividido por igual), drop para quem mais bateu.
 - [x] **PvP com flag e karma nos mapas abertos:** atacar outro jogador deixa o nome roxo; matar inocente dá karma (nome vermelho), quem tem karma pode perder item ao morrer. A casa do Baium segue PvP livre. **M** (Claude) — feito 08/11 (regras do dono): forçar com Ctrl no PC ou botão PK (liga/desliga, celular e PC); flag roxa 30 s; matar quem não reagiu = PK (karma 720, nome vermelho); PK morto perde 1 item da mochila em 25%; karma cai matando monstros (XP/3); morto por jogador não perde XP (PK perde); mesma party não se fere.
 - [ ] **Clã simples:** criar com nome e sigla sobre o nome, chat do clã, lista de membros. **M** (Claude)
 - [x] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude) — feito 08/11: `/api/ranking` (top 50, cache 30 s), `ranking.html` pública e aba Ranking no menu (P). Conta vitórias no PvP e chefes derrotados a partir de agora (antes não eram guardados).
@@ -125,7 +125,7 @@ Divulgação:
 
 ### FASE 6 — Depois do beta
 - [ ] Trocar de mapa sem recarregar a página (uma página só, conexão mantida).
-- [ ] Mobs e DGs simulados no servidor (hoje o líder do grupo comanda os mobs).
+- [~] Mobs e DGs simulados no servidor (hoje o líder do grupo comanda os mobs). — **mapas abertos FEITO 08/11** (adiantado a pedido do dono: `servidor/mobs_mundo.js`); DGs ainda pelo líder.
 - [ ] Clérigo (cura e buff) — fecha a trindade tanque/dano/suporte.
 - [ ] Troca entre jogadores, loja pessoal (private store do L2) e mercado.
 - [ ] Mais DGs e chefes de raide; grau B; encantamento de armadura.

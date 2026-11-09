@@ -188,6 +188,9 @@ export const Net = (function(){
     } else if(m.t === 'duelreq'){
       pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce', '#ffd166'); desenhaPed();
     } else if(m.t === 'duelsent'){ ctx.sysMsg('Desafio enviado para ' + m.nome + '...');
+    } else if(m.t === 'ms'){ if(ctx.ms) ctx.ms(m.m);                   /* [mobs-servidor] mobs do mapa aberto */
+    } else if(m.t === 'mdmg'){ if(ctx.mdmg) ctx.mdmg(m);
+    } else if(m.t === 'mtiro'){ if(ctx.mtiro) ctx.mtiro(m);
     } else if(m.t === 'pkst'){                                          /* [pk] meu estado: 0 normal, 1 flag (roxo), 2 PK (karma) */
       var antes = N.pkSt; N.pkSt = m.st | 0; N.karma = m.karma | 0;
       if(N.pkSt === 1 && antes === 0) ctx.sysMsg('Você atacou um jogador: nome roxo por 30 s (outros podem atacar você).');
@@ -446,6 +449,9 @@ export const Net = (function(){
   N.arm = function(k, o){ if(!N.on) return false; send(Object.assign({ t: 'arm', k: k }, o || {})); return true; };
   N.usar = function(id){ if(!N.on) return false; send({ t: 'usar', id: id }); return true; };
   N.chat = function(txt, c){ if(N.on) send({ t: 'chat', m: String(txt).slice(0, 120), c: c || '' }); return N.on; };      /* chat: '' geral, 'g' grupo */
+  if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) N._dbgSend = send;      /* so testes locais */
+  N.mhit = function(id, d){ if(N.on) send({ t: 'mhit', id: id, d: Math.round(d) }); };      /* [mobs-servidor] dano num mob do servidor */
+  N.mtaunt = function(r){ if(N.on) send({ t: 'mtaunt', r: r }); };
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){
     if(!N.on || !an) return; if(an.magoB) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();

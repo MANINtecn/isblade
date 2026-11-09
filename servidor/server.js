@@ -37,7 +37,8 @@ const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, ra
 
 /* ---- progresso (nivel/xp/pontos): quem decide e o SERVIDOR; o jogo so avisa "matei X" e recebe o resultado (servidor/progressao.js + prototipo/data/progressao.json) ---- */
 const Prog = require('./progressao');
-const Inv = require('./inventario');                         /* inventario e adena com autoridade do servidor */
+const Inv = require('./inventario');
+const Mobs = require('./mobs_mundo');                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 function ganhaXp(J, v){
   if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
   J.lv = J.pers.level; Contas.grava(); envia(J, Object.assign({ t: 'prog', subiu: subiu ? 1 : 0, ganhou: v }, Prog.info(J.pers)));
@@ -124,6 +125,26 @@ function fimPk(c, A, V, inocente){
     if(sol.length){ const it = sol[Math.floor(Math.random() * sol.length)]; inv.items = inv.items.filter(i => i !== it); envia(V, { t: 'inv', inv: inv, aviso: 'Você era PK e perdeu ' + Inv.nome(it.base) + '.' }); }
   }
   Contas.grava();
+}
+/* [mobs-servidor] mundo de mobs do canal (mapas abertos) */
+function mundoDe(c){
+  if(!MAPAS[c.mapa].aberto) return null;
+  if(!c.mundo){
+    const W = c.mundo = new Mobs.Mundo(c.mapa);
+    W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); };
+    W.tiro = (m, Q, s) => difunde(c, { t: 'mtiro', id: m.id, a: Q.id, s: Math.round(s * 100) / 100 });
+    W.aviso = txt => difunde(c, { t: 'pkmsg', m: txt });
+  }
+  return c.mundo;
+}
+function karmaMob(o, v){ if(o.pers && o.pers.karma > 0){ o.pers.karma = Math.max(0, o.pers.karma - Math.ceil(v / 3)); if(!o.pers.karma) envia(o, { t: 'pkmsg', m: 'Seu karma foi limpo: nome normal de novo.' }); } }
+/* abate de mob do servidor: XP para a party de quem mais bateu (membros a ate 40 m, total com bonus do L2 dividido por igual), drop para quem mais bateu */
+function abateMundo(c, W, m){
+  const K = c.jog.get(W.dono(m)); if(!K || !K.pers) return;
+  const quem = [...c.jog.values()].filter(P => P.pers && !P.morto && (P === K || (K.party && P.party === K.party)) && Math.hypot(P.x - m.x, P.z - m.z) <= 40);
+  const n = Math.max(1, quem.length), f = n > 1 ? (Mobs.BONUS_PT[Math.min(n, Mobs.BONUS_PT.length - 1)] / n) : 1, dif = Mobs.dif(c.mapa);
+  for(const P of quem){ const v = Math.max(1, Math.round(Prog.xpAbate(dif, m.tipo, P.pers.level) * f)); ganhaXp(P, v); karmaMob(P, v); }
+  premia(K, m.tipo, dif, Prog.xpAbate(dif, m.tipo, K.pers.level));
 }
 function fimDuelo(c, perdedor, vencedor, motivo){
   const t = agora(); [perdedor, vencedor].forEach(J => { if(J && J.duelo) { J.duelo.fim = t; J.duelo.reset = t + 3; } });
@@ -308,11 +329,17 @@ wss.on('connection', ws => {
       if(J.mortoPorJog && t - J.mortoPorJog < 20 && !temKarma(J)){ envia(J, Object.assign({ t: 'prog', perdeu: 0, pvp: 1 }, Prog.info(J.pers))); return; }      /* [pk] morto por jogador: sem perda de XP (PK perde) */
       const v = Prog.perde(J.pers); Contas.grava(); envia(J, Object.assign({ t: 'prog', perdeu: v }, Prog.info(J.pers)));
     }
-    else if(m.t === 'xp'){                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
+    else if(m.t === 'mhit'){                                        /* [mobs-servidor] dano do jogador num mob do servidor */
+      const W = mundoDe(c); if(!W || J.morto) return; const t = agora(); J.mhT = (J.mhT || []).filter(x => t - x < 1); if(J.mhT.length >= 30) return; J.mhT.push(t);
+      const mo = W.hit(J, m.id | 0, +m.d || 0, t); if(mo) abateMundo(c, W, mo);
+    }
+    else if(m.t === 'mtaunt'){ const W = mundoDe(c); if(W && !J.morto) W.taunt(J, Math.min(12, +m.r || 10), agora()); }
+    else if(m.t === 'xp'){
+      if(MAPAS[c.mapa].aberto) return;                               /* [mobs-servidor] mapa aberto: o XP sai do servidor (abateMundo), nao do "matei X" do cliente */                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
       const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
       const tipo = String(m.tipo || '').slice(0, 24), dif = String((c.dg && c.dg.key) || m.dif || 'normal').slice(0, 12); if(!/^[a-z0-9_]{1,24}$/.test(tipo)) return;
       const quem = (c.mapa === 'masmorra' && c.gid) ? [...c.jog.values()].filter(o => o.pers) : (J.pers ? [J] : []);
-      for(const o of quem){ const v = Prog.xpAbate(dif, tipo, o.pers.level); ganhaXp(o, v); premia(o, tipo, dif, v); if(o.pers.karma > 0){ o.pers.karma = Math.max(0, o.pers.karma - Math.ceil(v / 3)); if(!o.pers.karma) envia(o, { t: 'pkmsg', m: 'Seu karma foi limpo: nome normal de novo.' }); } }      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
+      for(const o of quem){ const v = Prog.xpAbate(dif, tipo, o.pers.level); ganhaXp(o, v); premia(o, tipo, dif, v); karmaMob(o, v); }      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
     }
     else if(m.t === 'dg' && c.mapa === 'masmorra' && c.gid){            /* sincronia da dungeon em grupo: o LIDER manda o estado, os outros mandam o que fizeram */
       const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });
@@ -383,9 +410,10 @@ setInterval(() => {
       }
     }
     const lista = [...c.jog.values()];
+    const W = lista.length ? mundoDe(c) : null; if(W) W.tick(t, TICK / 1000, lista);      /* [mobs-servidor] */
     for(const A of lista){
       const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null, estadoPk(B, t)]); }
-      envia(A, { t: 's', n: tick, p });
+      envia(A, { t: 's', n: tick, p }); if(W) envia(A, { t: 'ms', m: W.snap(A, AOI) });
     }
   }
 }, TICK);

@@ -707,7 +707,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=36';
+import { Net } from './js/net.js?v=37';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -5241,6 +5241,7 @@ function tauntAplica(id,x,z,r){
   var ate=Date.now()/1000+FOCO_S,n=0;
   MOBS.forEach(function(m){if(m.dead||m.net||Math.hypot(m.x-x,m.z-z)>r)return;try{mobAgrIni(m);if(!m.engaj)mobEngaja(m,false);}catch(_){}m.foco={id:id,ate:ate};n++;if(id===0)floatText('PROVOCADO','#f5c451',13,{x:m.x,z:m.z,y:2.6});});
   if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)<=r+3){DG.bossFoco={id:id,ate:ate};n++;}
+  if(MOBSRV&&id===0&&window.Net)Net.mtaunt(r);/* [mobs-servidor] o servidor fixa o foco dos mobs dele */
   return n;
 }
 function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do grupo mais perto */
@@ -5256,6 +5257,35 @@ function grpTick(dt){/* chamado todo quadro (torreTick): o lider envia o estado 
   var ms=[];MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0,m.agr?1:0]);});
   Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});
   if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,ak:(S.en.atk&&S.en.atk.key)||'',dead:S.dead?1:0});
+}
+/* [mobs-servidor] 08/11/2026: nos mapas abertos conectado, os mobs sao do SERVIDOR (servidor/mobs_mundo.js): todos no canal veem os mesmos.
+   Aqui so se desenha (proxy m.net + m.srv), se manda o dano (Net.mhit) e se recebe o golpe (mdmg). Sem servidor: os spots locais de antes. */
+var MOBSRV=false,TIROS=[];
+function mobSrvSnap(L){
+  if(!MAPA_ABERTO)return;
+  if(!MOBSRV){MOBSRV=true;SPOTS=null;MOBS.slice().forEach(function(m){if(!m.net)removeMob(m);});}
+  var vistos={};
+  L.forEach(function(a){
+    var id=a[0],m=mobPorId(id);vistos[id]=1;
+    if(!m){if(a[9]||!DGD.mobs[a[1]])return;var md=DGD.mobs[a[1]].modelo;if(md&&!MOB3D.cache[md]){mob3dCarregar([a[1]]);return;}/* so cria com o modelo 3D carregado (nada de forma provisoria) */m=mkMob(a[1],a[2],a[3]);m.nid=id;m.net=true;m.srv=true;m.spot=1;m.x=a[2];m.z=a[3];m.fy=a[4];m.face=a[5];MOBS.push(m);}
+    m.tx=a[2];m.tz=a[3];m.ty=a[4];m.tf=a[5];m.hp=a[6];m.max=a[7];m.state=a[8]===1?'windup':(a[8]===2?'recover':'chase');m.agr=!!a[10];m.alvoId=a[11];
+    m.fg.scale.x=Math.max(.001,m.hp/(m.max||1));
+    if(a[9]&&!m.dead){if(!Voz.mob(m.type,'death',Math.hypot(m.x-S.px,m.z-S.pz)))SFX.play('mobDie');m.dead=true;m.deadT=0;DG.kills++;S.kills++;
+      if(m._euT&&performance.now()/1000-m._euT<15){try{Expedicao.ev('abate');}catch(_){}}renderHud();}
+  });
+  MOBS.slice().forEach(function(m){if(m.srv&&!vistos[m.nid]&&!m.dead)removeMob(m);});
+}
+function mobSrvDano(m){if(S.pdead)return;playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
+function mobSrvTiro(e){/* projetil angular (cristal) do mob a distancia ate o alvo; o dano chega depois como mdmg */
+  var mo=mobPorId(e.id);if(!mo)return;var cor=parseInt(((mo.T&&mo.T.css)||'#43d9ff').slice(1),16);
+  var g=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),new THREE.MeshBasicMaterial({color:cor}));g.scale.set(.7,.7,1.8);scene.add(g);
+  TIROS.push({g:g,de:mo,a:e.a,t:0,s:Math.max(.15,e.s||.5)});
+}
+function tirosTick(dt){
+  for(var i=TIROS.length-1;i>=0;i--){var p=TIROS[i];p.t+=dt;var k=Math.min(1,p.t/p.s),ax,az;
+    if(window.Net&&p.a===Net.id){ax=S.px;az=S.pz;}else{var o=window.Net&&Net.alvos().filter(function(q){return q.id===p.a;})[0];ax=o?o.x:p.de.x;az=o?o.z:p.de.z;}
+    var y0=(p.de.fy!==undefined&&Torre.on)?p.de.fy-Torre.baseY:0;p.g.position.set(p.de.x+(ax-p.de.x)*k,y0+1.3,p.de.z+(az-p.de.z)*k);p.g.rotation.y=Math.atan2(ax-p.de.x,az-p.de.z);p.g.rotation.x=Math.PI/2;
+    if(k>=1){scene.remove(p.g);p.g.geometry.dispose();TIROS.splice(i,1);}}
 }
 function grpSnap(sn){/* convidado: aplica o estado dos mobs */
   if(!DG._pronto)return;
@@ -5307,7 +5337,7 @@ var GRPHIT=false;
 function damageMob(m,dmg,an){
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
   if(m.dead)return;
-  if(m.net&&window.Net)Net.dg({k:'hit',id:m.nid,d:dmg});/* [dg-grupo] a vida do mob e do lider */
+  if(m.net&&window.Net){if(m.srv){Net.mhit(m.nid,dmg);m._euT=performance.now()/1000;}else Net.dg({k:'hit',id:m.nid,d:dmg});}/* [dg-grupo] a vida do mob e do lider; [mobs-servidor] ou do servidor */
   mobEngaja(m);/* [agressao] apanhou: ataca (e chama so os vizinhos parados) */
 
   if(m.stun>0)dmg=Math.round(dmg*1.35);
@@ -5490,7 +5520,7 @@ function updateMobs(dt){
 
     if(m.pull){var PL=m.pull;PL.t+=dt;var pk=Math.min(1,dt*9);m.x+=(PL.tx-m.x)*pk;m.z+=(PL.tz-m.z)*pk;if(PL.t>=PL.dur)m.pull=null;}/* [puxao] */
 
-    if(m.net){var kn=Math.min(1,dt*12);m.x+=(m.tx-m.x)*kn;m.z+=(m.tz-m.z)*kn;m.face+=angDiff(m.face,m.tf)*kn;m.t+=dt;}/* [dg-grupo] proxy: segue o estado do lider */
+    if(m.net){var kn=Math.min(1,dt*12);m.x+=(m.tx-m.x)*kn;m.z+=(m.tz-m.z)*kn;m.face+=angDiff(m.face,m.tf)*kn;m.t+=dt;if(m.ty!==undefined)m.fy=(m.fy===undefined||Math.abs(m.ty-m.fy)>5)?m.ty:m.fy+(m.ty-m.fy)*kn;}/* [dg-grupo] proxy: segue o estado do lider */
     m.mat.emissiveIntensity=.15+m.flash*1.1+(m.state==='windup'?.45+.45*Math.sin(m.t*30):0);
     if(m.mats){var ei=.3+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q2=0;q2<m.mats.length;q2++)m.mats[q2].emissiveIntensity=ei;}/* [mob3d] */
 
@@ -9062,6 +9092,7 @@ function spotNasce(sp,vg){
   MOBS.push(m);vg.m=m;
 }
 function spotTick(dt){
+  tirosTick(dt);if(MOBSRV)return;/* [mobs-servidor] */
   if(!SPOTS||!Torre.on||!DG.on)return;
   SPOTS.t-=dt;if(SPOTS.t>0)return;SPOTS.t=.5;
   var M=SPOTS.M,now=performance.now()/1000;
@@ -9162,6 +9193,7 @@ try{Expedicao.init({pagina:'arena',mapa:MAPA_ABERTO,S:function(){return S;}});}c
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Cruma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
+  ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,/* [mobs-servidor] */
   getY:function(){return Torre.on?Torre.y:undefined;},alturaRemota:function(y){return Torre.on?y-Torre.baseY:0;},/* [mapas-multi] altura no relevo (mapas abertos e torre) */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
