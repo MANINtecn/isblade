@@ -3042,3 +3042,7 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 08/11/2026 - Modo camera para gravar (PC)
 - `js/modo_camera.js` (arena e cidade): F9 esconde a HUD inteira (fica so o jogo), F10 troca a velocidade normal -> 1/2 -> 1/4 (multiplica o dt do quadro; so neste navegador). Aviso curto no topo. Camera continua a do jogo (mouse gira, roda aproxima); camera livre solta ainda nao.
 - Testado local: cidade e Cruma, fotos com a HUD escondida e camera lenta 1/2, sem erro.
+
+### [Claude] 08/11/2026 - Anuncio do servidor
+- Como usar (dono, na VPS): escrever UMA linha em `<DATA_DIR>/anuncio.txt` (mesma pasta do contas.json; ate 240 letras). Em ate 10 s todos os conectados recebem banner "AVISO DO SERVIDOR" + linha "[Servidor] ..." no chat; quem entra depois recebe no chat (banner so uma vez por sessao). Apagar o arquivo ou deixar vazio = sem aviso. Nao precisa reiniciar o servidor para trocar o texto (so para esta funcao chegar na VPS).
+- `servidor/server.js` [anuncio] e `prototipo/js/net.js` (mensagem `anuncio`). Testado local: aviso escrito com o jogador na cidade chegou no chat.

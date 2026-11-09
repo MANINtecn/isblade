@@ -165,6 +165,10 @@ export const Net = (function(){
     } else if(m.t === 'duelreq'){
       pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce', '#ffd166'); desenhaPed();
     } else if(m.t === 'duelsent'){ ctx.sysMsg('Desafio enviado para ' + m.nome + '...');
+    } else if(m.t === 'anuncio'){                                       /* [anuncio] aviso do servidor: banner na hora; ao trocar de mapa so no chat (uma vez por sessao) */
+      var ja = ''; try { ja = sessionStorage.getItem('isblade.anuncio') || ''; } catch(e){}
+      if(m.novo || ja !== m.txt){ ctx.banner('AVISO DO SERVIDOR', m.txt, '#f5c451'); try { sessionStorage.setItem('isblade.anuncio', m.txt); } catch(e){} }
+      try { if(window.Chat) Chat.sistema('[Servidor] ' + m.txt); else ctx.sysMsg(m.txt); } catch(e){}
     } else if(m.t === 'duelrecusou'){ ctx.sysMsg(m.nome + ' recusou o duelo');
     } else if(m.t === 'duelstart'){
       if(m.a === N.id || m.b === N.id){ N.duelo = { nome: m.a === N.id ? m.nb : m.na, seg: m.seg, ini: Date.now() + m.seg * 1000 }; ctx.banner('DUELO', 'contra ' + N.duelo.nome, '#ffd166'); ctx.sysMsg('Duelo contra ' + N.duelo.nome + ' - comeca em ' + m.seg + ' s'); }

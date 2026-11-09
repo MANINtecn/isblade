@@ -72,6 +72,13 @@ function posSpawn(c, J){
   if(c.mapa === 'pvp'){ const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * ARENA_PVP.r; return { x: ARENA_PVP.x + Math.sin(a) * r, z: ARENA_PVP.z + Math.cos(a) * r }; }
   const s = MAPAS.cidade.spawn, a = Math.random() * 6.283, r = Math.random() * s.r; return { x: s.x + Math.sin(a) * r, z: s.z + Math.cos(a) * r };
 }
+/* [anuncio] aviso do servidor (manutencao, eventos): o dono edita <DATA_DIR>/anuncio.txt na VPS (uma linha; vazio = sem aviso).
+   Ao mudar, todos os conectados recebem na hora; quem entra depois recebe ao conectar. Confere o arquivo a cada 10 s. */
+const ANUNCIO_ARQ = path.join(process.env.DATA_DIR || path.join(__dirname, 'dados'), 'anuncio.txt');
+let ANUNCIO = '';
+function leAnuncio(){ let s = ''; try { s = fs.readFileSync(ANUNCIO_ARQ, 'utf8').replace(/\s+/g, ' ').trim().slice(0, 240); } catch(e){} return s; }
+ANUNCIO = leAnuncio();
+setInterval(() => { const s = leAnuncio(); if(s === ANUNCIO) return; ANUNCIO = s; if(!s) return; const o = JSON.stringify({ t: 'anuncio', txt: s, novo: 1 }); for(const c of todosCanais()) for(const J of c.jog.values()) if(J.ws.readyState === 1) J.ws.send(o); }, 10e3);
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
 const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '' });
@@ -223,7 +230,8 @@ wss.on('connection', ws => {
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
       envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
-      if(pers && Inv.garante(pers)){ Contas.grava(); envia(J, { t: 'inv', inv: pers.inv }); }      /* inventario do servidor */
+      if(pers && Inv.garante(pers)){ Contas.grava(); envia(J, { t: 'inv', inv: pers.inv }); }
+      if(ANUNCIO) envia(J, { t: 'anuncio', txt: ANUNCIO });                 /* [anuncio] */      /* inventario do servidor */
       difunde(c, { t: 'j', p: info(J) }, J); console.log(`+ ${J.nome} (${J.raca}) ${mapa} canal ${c.n} [${c.jog.size}/${CAP}]`); return;
     }
     if(!J) return;
