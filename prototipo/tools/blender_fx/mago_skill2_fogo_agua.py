@@ -13,7 +13,7 @@ bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 FPS = 48
 
 # ------------------------------------------------------------------ limpeza de execucoes anteriores
-for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "TESTE_L2"):
+for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "MAGO_S2_NECRO", "TESTE_L2"):
     s = bpy.data.scenes.get(nome)
     if s:
         for o in list(s.objects): bpy.data.objects.remove(o, do_unlink=True)
@@ -22,7 +22,7 @@ for nome in ("MAGO_S2_FOGO", "MAGO_S2_AGUA", "TESTE_L2"):
         if bpy.context.window.scene is s: bpy.context.window.scene = next(x for x in bpy.data.scenes if x is not s)
         bpy.data.scenes.remove(s)
 for m in list(bpy.data.materials):
-    if m.name.startswith(("S2F_", "S2A_")): bpy.data.materials.remove(m)
+    if m.name.startswith(("S2F_", "S2A_", "S2N_")): bpy.data.materials.remove(m)
 for me in list(bpy.data.meshes):
     if me.users == 0: bpy.data.meshes.remove(me)
 
@@ -207,12 +207,12 @@ def camera(sc, col, nome, loc, alvo, lente=32):
     k = c.constraints.new("TRACK_TO"); k.target = t; k.track_axis = "TRACK_NEGATIVE_Z"; k.up_axis = "UP_Y"; return c
 def chao_e_referencia(sc, ref, col_fx, alvo_y=None):
     bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=30)
-    mc = bpy.data.materials.new("S2F_chao" if "FOGO" in sc.name else "S2A_chao"); mc.use_nodes = True; b = mc.node_tree.nodes["Principled BSDF"]
+    mc = bpy.data.materials.new("S2F_chao" if "FOGO" in sc.name else ("S2N_chao" if "NECRO" in sc.name else "S2A_chao")); mc.use_nodes = True; b = mc.node_tree.nodes["Principled BSDF"]
     b.inputs["Base Color"].default_value = (0.045, 0.05, 0.06, 1); b.inputs["Roughness"].default_value = 0.92
     para_obj(ref, "chao", bm, mc)
     def caixa(nome, loc, dim):
         b2 = bmesh.new(); bmesh.ops.create_cube(b2, size=1.0); bmesh.ops.scale(b2, vec=dim, verts=b2.verts)
-        m2 = bpy.data.materials.new(("S2F_" if "FOGO" in sc.name else "S2A_") + nome); m2.use_nodes = True
+        m2 = bpy.data.materials.new(("S2F_" if "FOGO" in sc.name else ("S2N_" if "NECRO" in sc.name else "S2A_")) + nome); m2.use_nodes = True
         m2.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.35, 0.37, 0.4, 1)
         o = para_obj(ref, nome, b2, m2); o.location = loc; return o
     return caixa
@@ -376,7 +376,81 @@ def montar_agua():
     c1 = camera(sc, ref, "cam_lateral", (13.5, 7.2, 3.0), (0, 7.2, 1.5), 30); c2 = camera(sc, ref, "cam_alvo", (5.5, 9.5, 2.2), (0, 14.0, 1.2), 35); sc.camera = c1
     return sc
 
-sc_f = montar_fogo(); sc_a = montar_agua()
+# ================================================================== NECROMANTE: ESPINHOS DE OSSO (Death Spike / Vampiric Claw do L2)
+def montar_necro():
+    random.seed(55)
+    F_FIM = 112; F_AV = 1; F_ERU = 14; N_ESP = 11; PASSO = 2; F_ALMA = 36
+    sc, col, ref = nova_cena("MAGO_S2_NECRO", F_FIM)
+    caixa = chao_e_referencia(sc, ref, col)
+    caixa("mago_ref_1.7m", (0.0, 0.0, 0.85), (0.5, 0.35, 1.7)); caixa("alvo_ref_1.8m", (0.0, 11.5, 0.9), (0.6, 0.4, 1.8))
+    m_osso = mat_gelo("S2N_osso", (0.40, 0.36, 0.28), (0.96, 0.98, 0.84), 1.2, 1.0)
+    m_verde = mat_emit("S2N_alma", (0.12, 0.85, 0.25), 2.6)
+    m_rach = mat_grad("S2N_rachadura", [(0.0, (0.10, 0.60, 0.20)), (1.0, (0.55, 1.0, 0.55))], 4.0, 1.0)
+    m_aviso = mat_grad("S2N_aviso", [(0.0, (0.15, 0.75, 0.25)), (1.0, (0.70, 1.0, 0.60))], 3.5, 0.9)
+    m_nevoa = mat_flama("S2N_nevoa", TEX2 + "fx_m_t0074.png", (0.30, 0.95, 0.45), 1.6, 0.35)
+    m_sombra = mat_flama("S2N_fumaca_negra", TEX2 + "fx_m_t0074.png", (0.03, 0.06, 0.04), 1.0, 0.35)
+    ys = [1.4 + i * 0.95 for i in range(N_ESP)]
+    # aviso: marcas retas no chao ate o alvo
+    segs = []
+    for i in range(N_ESP):
+        y = ys[i]; segs += [((-0.55, y, .03), (0.0, y + 0.45, .03)), ((0.0, y + 0.45, .03), (0.55, y, .03))]
+    aviso = para_obj(col, "S2N_aviso", bm_linhas(segs, 0.08), m_aviso)
+    esc(aviso, [(F_AV, 0.6), (F_AV + 8, 1.0), (F_ERU + 4, 1.0), (F_ERU + 5, 0.0)])
+    # rachadura em zigue-zague no chao (por onde os espinhos sobem)
+    zz = []; px, py = 0.0, 0.8
+    for i in range(N_ESP * 2):
+        nx, ny = (0.0 if i % 2 else random.uniform(-0.35, 0.35)), 0.8 + (i + 1) * 0.48
+        zz.append(((px, py, .035), (nx, ny, .035))); px, py = nx, ny
+    rach = para_obj(col, "S2N_rachadura", bm_linhas(zz, 0.16), m_rach)
+    esc(rach, [(F_ERU - 1, (1, 0.02, 1)), (F_ERU, (1, 0.05, 1)), (F_ERU + 22, (1, 1.0, 1)), (F_FIM - 20, (1, 1.0, 1)), (F_FIM - 4, (1, 0.02, 1))])
+    # espinhos de osso: brotam em sequencia, ate 10 m
+    espinhos = []
+    for i in range(N_ESP):
+        f0 = F_ERU + i * PASSO; y = ys[i]; x = random.uniform(-0.55, 0.55) * (0.6 + i * 0.05); L = random.uniform(1.7, 2.6) * (0.85 + i * 0.045)
+        for k in range(2):                                                   # um espinho grande e um menor ao lado
+            Lk = L * (1.0 if k == 0 else 0.55); xo = x + (0 if k == 0 else random.choice((-1, 1)) * 0.55)
+            o = para_obj(col, "S2N_espinho%d_%d" % (i, k), bm_cone(0.26 if k == 0 else 0.17, 0.0, Lk, 5), m_osso)
+            o.location = (xo, y + (0 if k == 0 else 0.25), -0.1); apunta(o, (random.uniform(-0.25, 0.25) + (0.0 if k == 0 else xo * 0.4), random.uniform(0.15, 0.55), 1.0))
+            esc(o, [(f0 - 1, (1, 1, 0.01)), (f0, (1, 1, 0.1)), (f0 + 3, (1, 1, 1.25)), (f0 + 6, (1, 1, 1.0)), (F_FIM - 30, (1, 1, 1.0)), (F_FIM - 16, (1, 1, 0.02))])
+            espinhos.append((o, xo, y))
+        n = para_obj(col, "S2N_nevoa%d" % i, bm_lamina(random.uniform(1.8, 2.8), random.uniform(1.0, 1.5), 0.3, i), m_nevoa)
+        n.location = (x, y, 0.0); n.rotation_euler[2] = random.uniform(0, 6.28)
+        esc(n, [(f0, (1, 1, 0.02)), (f0 + 6, (1, 1, 0.9)), (f0 + 30, (1, 1, 0.5)), (f0 + 44, (1, 1, 0.02))])
+        if i % 2 == 0:
+            sm = para_obj(col, "S2N_fumaca%d" % i, bm_lamina(random.uniform(2.4, 3.6), random.uniform(1.2, 1.8), 0.4, i), m_sombra)
+            sm.location = (x, y, 0.0); sm.rotation_euler[2] = random.uniform(0, 6.28)
+            esc(sm, [(f0 + 1, (1, 1, 0.02)), (f0 + 10, (1, 1, 0.9)), (f0 + 50, (1, 1, 1.0)), (f0 + 70, (1, 1, 0.02))])
+    # cacos de osso: o espinho se desfaz no fim
+    for i in range(N_ESP):
+        for j in range(3):
+            xo, y = espinhos[i * 2][1], espinhos[i * 2][2]; d = random.uniform(0, 6.28); vh = random.uniform(.8, 2.4); vz = random.uniform(1.0, 3.0)
+            o = para_obj(col, "S2N_caco%d_%d" % (i, j), bm_lascas(random.uniform(.12, .22) * 2, 3), m_osso); f1 = F_FIM - 30 + (i % 4)
+            for f in list(range(f1, f1 + 34, 3)) + [f1 + 34]:
+                t = (f - f1) / FPS; o.location = (xo + math.cos(d) * vh * t, y + math.sin(d) * vh * t, max(0.04, 1.2 + vz * t - 9.8 * t * t / 2)); o.rotation_euler = (t * 6, t * 5, t * 4)
+                o.scale = (1,) * 3 if f < f1 + 34 else (1e-4,) * 3; o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+            o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f1 - 1)
+    # almas: pedacos verdes sobem dos espinhos e voltam em arco para o mago (vida roubada)
+    C = Vector((0, 0.1, 1.25))
+    for j in range(16):
+        k = random.randrange(N_ESP); xo, y = espinhos[k * 2][1], ys[k]; f0 = F_ALMA + j * 2 + random.randint(0, 2); dur = random.randint(16, 24)
+        o = para_obj(col, "S2N_alma%d" % j, bm_cone(0.15, 0.0, 0.85, 4), m_verde); lado = random.choice((-1, 1)) * random.uniform(.6, 1.6); alt = random.uniform(1.4, 2.6)
+        for f in list(range(f0, f0 + dur, 2)) + [f0 + dur]:
+            t = (f - f0) / dur; p0 = Vector((xo, y, 1.3)); p = p0 + (C - p0) * t
+            p += Vector((lado * math.sin(t * math.pi), 0, alt * math.sin(t * math.pi)))
+            o.location = p; o.rotation_euler = (t * 9, t * 7, t * 5)
+            o.scale = (max((0.2 + math.sin(min(1.0, t * 1.2) * math.pi / 2)) if t < 0.85 else 1.2 * (1.0 - (t - 0.85) / 0.15), 1e-4),) * 3
+            o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f0 - 1); o.keyframe_insert("scale", frame=f0 + dur + 1)
+        fl = para_obj(col, "S2N_absorve%d" % j, bm_cone(0.10, 0.0, 0.6, 4), m_verde); fl.location = (random.uniform(-.25, .25), 0.1, 1.25 + random.uniform(-.3, .5))
+        apunta(fl, (random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(0.1, 1)))
+        esc(fl, [(f0 + dur - 1, 0.0), (f0 + dur, 1.0), (f0 + dur + 4, 0.0)])
+    luz(ref, "S2N_sol", "SUN", (0, 0, 10), 0.7, (0.7, 0.85, 0.8)).rotation_euler = (math.radians(45), 0, math.radians(-25))
+    lv = luz(col, "S2N_brilho", "POINT", (0, 6.0, 1.8), 0, (0.3, 1.0, 0.45))
+    for f, e in ((F_ERU - 1, 0), (F_ERU + 6, 1200), (F_ERU + 30, 600), (F_FIM - 20, 0)): lv.data.energy = e; lv.data.keyframe_insert("energy", frame=f)
+    c1 = camera(sc, ref, "cam_lateral", (12.5, 5.8, 3.2), (0, 5.8, 1.3), 30); camera(sc, ref, "cam_do_mago", (-4.2, -4.5, 2.4), (0, 6.0, 1.2), 32); sc.camera = c1
+    return sc
+
+sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro()
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
 bpy.context.window.scene = sc_f
-print("S2 pronto:", [s.name for s in bpy.data.scenes], "objetos fogo", len(sc_f.objects), "agua", len(sc_a.objects))
+print("S2 pronto:", [s.name for s in bpy.data.scenes], "objetos fogo", len(sc_f.objects), "agua", len(sc_a.objects), "necro", len(sc_n.objects))
