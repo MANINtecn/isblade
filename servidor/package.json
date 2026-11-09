@@ -2,7 +2,15 @@
   "name": "isblade-servidor",
   "private": true,
   "description": "Servidor de jogo (WebSocket) do IS BLADE: canais, duelo, grupo e mapa de PvP. Nome provisorio.",
-  "engines": { "node": ">=20" },
-  "scripts": { "start": "node server.js", "teste": "node teste_bots.js" },
-  "dependencies": { "ws": "^8.22.0" }
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "teste": "node teste_bots.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "ws": "^8.22.0"
+  }
 }

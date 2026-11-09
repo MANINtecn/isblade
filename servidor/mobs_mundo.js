@@ -141,4 +141,4 @@ class Mundo {
     return o;
   }
 }
-module.exports = { Mundo, CFG, BONUS_PT, recarrega: carrega, dif: mapa => (SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa };
+module.exports = { grade, Mundo, CFG, BONUS_PT, recarrega: carrega, dif: mapa => (SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa };

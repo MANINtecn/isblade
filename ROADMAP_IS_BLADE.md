@@ -109,6 +109,8 @@ Guia de desenho de skills (para ficar familiar e divertido):
 - [x] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude) — feito 08/11: `/api/ranking` (top 50, cache 30 s), `ranking.html` pública e aba Ranking no menu (P). Conta vitórias no PvP e chefes derrotados a partir de agora (antes não eram guardados).
 - [ ] Party com papéis: XP dividido por perto, bônus por classe diferente no grupo. **P** (Claude)
 
+- [~] **Jogador IA e NPCs com vida** (ideia do dono, 08/11): `servidor/ia_jogador.js` joga sozinho como humano (caça, sobe, party, PK, chat pelo Claude). Falta: ligar na VPS (chave da API + tarefa agendada) e, depois de validado, NPCs da cidade com rotina e conversa "tipo GTA". **G** (Claude)
+
 ### FASE 5 — Lançar o Beta Demo e divulgar
 **Critérios para abrir o beta** (todos marcados):
 - [ ] Fases 0, 1 e 2 completas; Guardião, Mago e Guerreiro com 6 skills prontas.
