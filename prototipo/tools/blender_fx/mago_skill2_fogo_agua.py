@@ -610,17 +610,6 @@ def montar_agua():
     m_gota = mat_gelo("S2A_gota", (0.12, 0.55, 0.95), (0.92, 1.0, 1.0), 2.0, 0.85)
     m_pico = mat_grad("S2A_pico", [(0.0, (0.95, 1.0, 1.0)), (0.5, (0.35, 0.78, 1.0)), (1.0, (0.08, 0.35, 0.85))], 2.6, 0.9, 0.5, 4.0)
     m_aviso = mat_grad("S2A_aviso", [(0.0, (0.15, 0.55, 1.0)), (1.0, (0.75, 0.97, 1.0))], 3.0, 0.9)
-    # ---- meia aura em volta do mago: calota facetada (so a metade de cima) + lancas de agua subindo em volta
-    gr = bpy.data.objects.new("S2A_aura", None); gr.location = (0, 0, 0.0); col.objects.link(gr)
-    cup = para_obj(col, "S2A_cupula", bm_meia_cupula(1.35, 0.05), m_aura); cup.parent = gr
-    cup2 = para_obj(col, "S2A_cupula_veios", bm_meia_cupula(1.12, 0.05), m_veio); cup2.parent = gr
-    anim(gr, "rotation_euler", F_AV0, F_COL + 16, lambda t: (0, 0, t * math.radians(110)), 6)
-    esc(gr, [(F_AV0 - 1, 0.3), (F_AV0 + 12, 1.0), (F_COL - 4, 1.0), (F_COL + 2, 1.18), (F_COL + 16, 0.2), (F_COL + 17, 0.0)])
-    for i in range(10):
-        a = i * 2 * math.pi / 10 + random.uniform(-.15, .15); Ls = random.uniform(0.9, 1.7)
-        o = para_obj(col, "S2A_aura_lanca%d" % i, bm_cone(0.16, 0.0, Ls, 4), m_pico); o.parent = gr; o.location = (math.cos(a) * 1.05, math.sin(a) * 1.05, 0.0); apunta(o, (math.cos(a) * 0.18, math.sin(a) * 0.18, 1.0))
-        f0 = F_AV0 + 2 + i
-        esc(o, [(f0 - 1, (1, 1, 0.02)), (f0 + 6, (1, 1, 1.0)), (F_COL - 4 + i % 3, (1, 1, 1.0)), (F_COL + 6, (1, 1, 0.3))])
     # ---- aviso no alvo: losango azul de linhas retas ate a coluna subir
     D = 1.9; segs = [((D, 0, .03), (0, D, .03)), ((0, D, .03), (-D, 0, .03)), ((-D, 0, .03), (0, -D, .03)), ((0, -D, .03), (D, 0, .03)),
                      ((D * .55, 0, .03), (0, D * .55, .03)), ((0, D * .55, .03), (-D * .55, 0, .03)), ((-D * .55, 0, .03), (0, -D * .55, .03)), ((0, -D * .55, .03), (D * .55, 0, .03))]
@@ -634,14 +623,6 @@ def montar_agua():
     for o, sg in ((ext, 1), (inte, -1)):
         anim(o, "rotation_euler", F_COL, F_FIM, lambda t, sg=sg: (0, 0, sg * t * math.radians(220)), 6)
         esc(o, [(F_COL - 1, (1, 1, 0.01)), (F_COL + 1, (0.6, 0.6, 0.35)), (F_COL + 5, (1.15, 1.15, 1.15)), (F_COL + 10, (1, 1, 1.0)), (F_COL + 56, (1, 1, 1.0)), (F_COL + 68, (0.6, 0.6, 0.85)), (F_COL + 80, (0.15, 0.15, 0.3)), (F_COL + 81, (1e-3, 1e-3, 1e-3))])
-    for i in range(8):                                                         # coroa: espinhos de agua abrindo no topo
-        a = i * 2 * math.pi / 8 + random.uniform(-.1, .1); Ls = random.uniform(1.0, 1.7)
-        o = para_obj(col, "S2A_coroa%d" % i, bm_cone(0.20, 0.0, Ls, 4), m_pico); o.location = (math.cos(a) * 0.9, 12.0 + math.sin(a) * 0.9, H * 0.9); apunta(o, (math.cos(a) * 0.9, math.sin(a) * 0.9, 0.85))
-        esc(o, [(F_COL + 4, 0.0), (F_COL + 8, 1.0), (F_COL + 56, 1.0), (F_COL + 70, 0.0)])
-    for i in range(12):                                                        # respingo no chao: espinhos baixos para fora
-        a = i * 2 * math.pi / 12 + random.uniform(-.12, .12); Ls = random.uniform(1.5, 2.6)
-        o = para_obj(col, "S2A_respingo%d" % i, bm_cone(0.32, 0.0, Ls, 4), m_pico); o.location = (math.cos(a) * 0.9, 12.0 + math.sin(a) * 0.9, 0.05); apunta(o, (math.cos(a), math.sin(a), 0.28))
-        esc(o, [(F_COL - 1, 0.0), (F_COL, 0.1), (F_COL + 4, 1.0), (F_COL + 14, 0.8), (F_COL + 34, 0.0)])
     for i in range(30):                                                        # gotas facetadas que sobem e caem
         d = random.uniform(0, 6.28); vh = random.uniform(.8, 3.2); vz = random.uniform(4.0, 9.0); rr = random.uniform(.07, .16); vida = random.randint(34, 60); f0 = F_COL + random.randint(0, 10)
         o = para_obj(col, "S2A_gota%d" % i, bm_lascas(rr * 2.0, 3 if i % 2 else 4), m_gota); wx, wy, wz = [random.uniform(-8, 8) for _ in range(3)]
@@ -655,9 +636,7 @@ def montar_agua():
     luz(ref, "S2A_sol", "SUN", (0, 0, 10), 1.0, (0.7, 0.85, 1.0)).rotation_euler = (math.radians(45), 0, math.radians(-30))
     lf = luz(col, "S2A_brilho", "POINT", (0, 12.0, 2.5), 0, (0.5, 0.8, 1.0))
     for f, e in ((F_COL - 1, 0), (F_COL + 3, 5000), (F_COL + 20, 2500), (F_COL + 60, 2500), (F_COL + 84, 0)): lf.data.energy = e; lf.data.keyframe_insert("energy", frame=f)
-    lm = luz(col, "S2A_brilho_mago", "POINT", (0, 0.3, 1.0), 0, (0.4, 0.75, 1.0))
-    for f, e in ((F_AV0, 0), (F_AV0 + 12, 1800), (F_COL, 1800), (F_COL + 16, 0)): lm.data.energy = e; lm.data.keyframe_insert("energy", frame=f)
-    c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 3.4), (0, 6.5, 2.0), 30); camera(sc, ref, "cam_alvo", (10.0, 6.0, 3.6), (0, 12.0, 2.6), 30); camera(sc, ref, "cam_do_mago", (3.4, -3.6, 2.0), (0, 0.3, 1.0), 32); sc.camera = c1
+    c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 3.4), (0, 6.5, 2.0), 30); camera(sc, ref, "cam_alvo", (10.0, 6.0, 3.6), (0, 12.0, 2.6), 30); sc.camera = c1
     return sc
 
 sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro(); sc_p = montar_paralisia()
