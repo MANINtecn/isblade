@@ -730,10 +730,14 @@ def montar_disco_fogo():
     giro.rotation_euler = (0, 0, 0); giro.keyframe_insert("rotation_euler", frame=F_FORMA)
     giro.rotation_euler = (0, 0, math.radians(20 * (F_HIT - F_FORMA))); giro.keyframe_insert("rotation_euler", frame=F_HIT)            # gira deitado, 20 graus por quadro, so duas chaves (linear)
     raiz.location = (0, Y0, ZV); raiz.keyframe_insert("location", frame=F_FORMA); raiz.keyframe_insert("location", frame=F_SAI)
-    for f in range(F_SAI + 2, F_HIT + 1, 2):                                   # voa deitado, quase em espiral lenta (raio some no inicio e no fim: sai da mao e acerta o peito)
-        t = (f - F_SAI) / VOO; fase = t * 1.6 * 2 * math.pi; A = 0.9 * math.sin(math.pi * t)
-        raiz.location = (A * math.cos(fase), Y0 + (Y1 - Y0) * t, ZV + A * math.sin(fase) * 0.8); raiz.rotation_euler = (0.0, 0.18 * math.cos(fase) * math.sin(math.pi * t), 0.0)
-        raiz.keyframe_insert("location", frame=f); raiz.keyframe_insert("rotation_euler", frame=f)               # inclinacao leve para dentro da curva
+    def _caminho(t):                                                           # borda de um vortice: balanca para os lados em volta da linha do alvo (pouco para cima/baixo)
+        A = 1.5 * math.sin(math.pi * t); fase = t * 1.5 * 2 * math.pi
+        return A * math.cos(fase), Y0 + (Y1 - Y0) * t, ZV + 0.20 * A * math.sin(fase), fase
+    for f in range(F_SAI + 2, F_HIT + 1, 2):
+        t = (f - F_SAI) / VOO; x, y, z, fase = _caminho(t); xa = _caminho(min(1.0, t + 0.02))[0]; xb = _caminho(max(0.0, t - 0.02))[0]
+        raiz.location = (x, y, z)
+        raiz.rotation_euler = (0.0, -0.62 * math.cos(fase) * math.sin(math.pi * t), -math.atan2(xa - xb, (Y1 - Y0) * 0.04))   # inclina o disco como se corresse na parede do vortice e aponta para onde curva
+        raiz.keyframe_insert("location", frame=f); raiz.keyframe_insert("rotation_euler", frame=f)
     esc(raiz, [(F_FORMA - 1, 0.05), (F_FORMA + 14, 1.0), (F_HIT - 1, 1.0), (F_HIT, 0.0)])
     # ---- impacto: a serra se parte em 8 pedacos, estrela de espinhos de fogo, anel de chamas no chao, brasas e fumaca
     fim = Vector((0, Y1, ZV))
