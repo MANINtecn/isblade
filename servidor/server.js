@@ -152,7 +152,8 @@ function karmaMob(o, v){ if(o.pers && o.pers.karma > 0){ o.pers.karma = Math.max
 function abateMundo(c, W, m){
   const K = c.jog.get(W.dono(m)); if(!K || !K.pers) return;
   const quem = [...c.jog.values()].filter(P => P.pers && !P.morto && (P === K || (K.party && P.party === K.party)) && Math.hypot(P.x - m.x, P.z - m.z) <= 40);
-  const n = Math.max(1, quem.length), f = n > 1 ? (Mobs.BONUS_PT[Math.min(n, Mobs.BONUS_PT.length - 1)] / n) : 1, dif = Mobs.dif(c.mapa);
+  const n = Math.max(1, quem.length), classes = new Set(quem.map(P => Prog.classeDe(P.pers))).size, bc = 1 + .1 * Math.max(0, classes - 1);      /* [party] +10% por classe diferente (Guardiao + Mago + Guerreiro = +20%) */
+  const f = (n > 1 ? (Mobs.BONUS_PT[Math.min(n, Mobs.BONUS_PT.length - 1)] / n) : 1) * bc, dif = Mobs.dif(c.mapa);
   for(const P of quem){ const v = Math.max(1, Math.round(Prog.xpAbate(dif, m.tipo, P.pers.level) * f)); ganhaXp(P, v); karmaMob(P, v); }
   premia(K, m.tipo, dif, Prog.xpAbate(dif, m.tipo, K.pers.level));
 }
