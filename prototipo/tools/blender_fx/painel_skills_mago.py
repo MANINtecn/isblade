@@ -11,6 +11,13 @@ SKILLS = [                                   # (cena, rotulo)
     ("MAGO_S2_NECRO", "2  Morte: Espinhos de Osso (Necromante)"),
     ("MAGO_S2_NECRO_PARALISIA", "2b Morte: Espinho Paralisante (Necromante)"),
     ("MAGO_ELENCO", "Elenco: 12 personagens"),
+    ("CLERIGO_BASICO", "C0  Lamina de Luz (ataque basico)"),
+    ("CLERIGO_S1_CURA", "C1  Cura Mirada (nv 1)"),
+    ("CLERIGO_S2_GLIFO", "C2  Glifo de Cura (nv 5)"),
+    ("CLERIGO_S3_ESCUDO", "C3  Escudo Astral (nv 10)"),
+    ("CLERIGO_S4_PURIFICA", "C4  Purificacao (nv 20)"),
+    ("CLERIGO_S5_PRECE", "C5  Prece (nv 25)"),
+    ("CLERIGO_S6_RESSUR", "C6  Ressurreicao (nv 30)"),
 ]
 
 class SKILLS_OT_ir(bpy.types.Operator):
