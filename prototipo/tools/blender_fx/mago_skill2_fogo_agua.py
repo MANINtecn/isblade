@@ -675,7 +675,7 @@ def montar_agua():
 
 # ================================================================== FOGO 2: DISCO DE FOGO (Archmage) - projetil giratorio no modelo da Shuriken de Vento
 def bm_disco(R=0.85, dentes=8, esp=0.12):
-    """disco-serra: dentes retos (rampa suave + queda seca), solido com espessura, plano XZ (normal em Y)"""
+    """disco-serra: dentes retos (rampa suave + queda seca), solido com espessura, plano XY, DEITADO (normal em Z)"""
     bm = bmesh.new(); c = bm.verts.new((0, 0, 0)); passo = 2 * math.pi / dentes; ring = []
     for k in range(dentes):
         th = k * passo
@@ -684,7 +684,6 @@ def bm_disco(R=0.85, dentes=8, esp=0.12):
     for i in range(len(ring)): bm.faces.new((c, ring[i], ring[(i + 1) % len(ring)]))
     bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=esp)
     bmesh.ops.translate(bm, vec=(0, 0, -esp / 2), verts=bm.verts)
-    bmesh.ops.rotate(bm, cent=(0, 0, 0), matrix=Matrix.Rotation(math.pi / 2, 3, "X"), verts=bm.verts)   # (x,y,0) -> (x,0,y): normal em Y
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
 def mat_disco(nome):
@@ -720,7 +719,7 @@ def montar_disco_fogo():
     for k in range(8):
         a = k * 2 * math.pi / 8 + 0.5; Lc = random.uniform(1.7, 2.5)
         c = para_obj(col, "S2F_lingua%d" % k, bm_cone(0.40, 0.0, Lc, 4), m_f1 if k % 2 == 0 else m_f2); c.parent = giro
-        c.location = (1.05 * math.cos(a), 0.0, 1.05 * math.sin(a)); apunta(c, (-math.sin(a), 0.15, math.cos(a)))
+        c.location = (1.05 * math.cos(a), 1.05 * math.sin(a), 0.0); apunta(c, (math.sin(a), -math.cos(a), 0.15))
         esc(c, [(F_FORMA + k, 0.0), (F_FORMA + k + 8, 1.0)] + [(F_SAI + 4 * j + k % 4, random.uniform(.85, 1.15)) for j in range(VOO // 4)] + [(F_HIT - 1, 1.0), (F_HIT, 0.0)])
     saia = bpy.data.objects.new("S2F_dsaia", None); col.objects.link(saia); saia.parent = raiz; saia.rotation_euler = (math.pi / 2, 0, 0)
     for k in range(7):                                                         # penacho de chamas atras do disco (nao gira), como o do meteoro
@@ -729,9 +728,12 @@ def montar_disco_fogo():
         b.parent = saia; b.location = (math.cos(a) * 0.55, math.sin(a) * 0.55, 0.1); b.rotation_euler = (math.sin(a) * 0.3, -math.cos(a) * 0.3, a)
         esc(b, [(F_FORMA + 6, 0.0), (F_FORMA + 16, 1.0)] + [(F_SAI + 3 * j, random.uniform(.8, 1.15)) for j in range(VOO // 3)] + [(F_HIT - 1, 1.0), (F_HIT, 0.0)])
     giro.rotation_euler = (0, 0, 0); giro.keyframe_insert("rotation_euler", frame=F_FORMA)
-    giro.rotation_euler = (0, math.radians(26 * (F_HIT - F_FORMA)), 0); giro.keyframe_insert("rotation_euler", frame=F_HIT)            # 26 graus por quadro, so duas chaves (linear)
+    giro.rotation_euler = (0, 0, math.radians(20 * (F_HIT - F_FORMA))); giro.keyframe_insert("rotation_euler", frame=F_HIT)            # gira deitado, 20 graus por quadro, so duas chaves (linear)
     raiz.location = (0, Y0, ZV); raiz.keyframe_insert("location", frame=F_FORMA); raiz.keyframe_insert("location", frame=F_SAI)
-    raiz.location = (0, Y1, ZV); raiz.keyframe_insert("location", frame=F_HIT)                                                          # 20 m em 80 quadros = 12 m/s, como a shuriken
+    for f in range(F_SAI + 2, F_HIT + 1, 2):                                   # voa deitado, quase em espiral lenta (raio some no inicio e no fim: sai da mao e acerta o peito)
+        t = (f - F_SAI) / VOO; fase = t * 1.6 * 2 * math.pi; A = 0.9 * math.sin(math.pi * t)
+        raiz.location = (A * math.cos(fase), Y0 + (Y1 - Y0) * t, ZV + A * math.sin(fase) * 0.8); raiz.rotation_euler = (0.0, 0.18 * math.cos(fase) * math.sin(math.pi * t), 0.0)
+        raiz.keyframe_insert("location", frame=f); raiz.keyframe_insert("rotation_euler", frame=f)               # inclinacao leve para dentro da curva
     esc(raiz, [(F_FORMA - 1, 0.05), (F_FORMA + 14, 1.0), (F_HIT - 1, 1.0), (F_HIT, 0.0)])
     # ---- impacto: a serra se parte em 8 pedacos, estrela de espinhos de fogo, anel de chamas no chao, brasas e fumaca
     fim = Vector((0, Y1, ZV))
@@ -774,8 +776,8 @@ def montar_disco_fogo():
     lv = luz(col, "S2F_dluz_voo", "POINT", (0, Y0, ZV), 0, (1.0, 0.5, 0.15)); lv.parent = raiz; lv.location = (0, 0.3, 0)
     for f, e in ((F_FORMA, 0), (F_FORMA + 14, 900), (F_HIT - 1, 900), (F_HIT, 0)): lv.data.energy = e; lv.data.keyframe_insert("energy", frame=f)
     luz(ref, "S2F_dsol", "SUN", (0, 0, 10), 0.8, (0.55, 0.65, 1.0)).rotation_euler = (math.radians(40), 0, math.radians(30))
-    c1 = camera(sc, ref, "cam_voo", (22.0, 11.0, 4.6), (0, 11.0, 1.6), 28); camera(sc, ref, "cam_alvo", (7.5, 17.0, 3.0), (0, 21.0, 1.5), 34); camera(sc, ref, "cam_do_mago", (4.0, -3.0, 2.2), (0, 6.0, 1.5), 32)
-    cs = bpy.data.objects.new("cam_segue", bpy.data.cameras.new("cam_segue")); cs.data.lens = 40; col.objects.link(cs); cs.parent = raiz; cs.location = (5.0, -2.6, 0.9)
+    c1 = camera(sc, ref, "cam_voo", (22.0, 11.0, 8.0), (0, 11.0, 1.4), 28); camera(sc, ref, "cam_alvo", (7.5, 17.0, 3.0), (0, 21.0, 1.5), 34); camera(sc, ref, "cam_do_mago", (4.0, -3.0, 2.2), (0, 6.0, 1.5), 32)
+    cs = bpy.data.objects.new("cam_segue", bpy.data.cameras.new("cam_segue")); cs.data.lens = 40; col.objects.link(cs); cs.parent = raiz; cs.location = (4.0, -2.8, 2.6)
     kc = cs.constraints.new("TRACK_TO"); kc.target = raiz; kc.track_axis = "TRACK_NEGATIVE_Z"; kc.up_axis = "UP_Y"; sc.camera = c1
     return sc
 
