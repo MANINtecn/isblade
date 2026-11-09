@@ -20,6 +20,12 @@ SKILLS = [                                   # (cena, rotulo)
     ("CLERIGO_S6_RESSUR", "C6  Ressurreicao (nv 30)"),
 ]
 
+def _billboards(sc):
+    """brilhos/sprites do Clerigo (constraint CL_BB) passam a olhar para a camera atual da cena"""
+    for o in sc.objects:
+        for k in o.constraints:
+            if k.name == "CL_BB": k.target = sc.camera
+
 class SKILLS_OT_ir(bpy.types.Operator):
     bl_idname = "skills.ir"; bl_label = "Ver skill"; bl_options = {"REGISTER"}
     cena: bpy.props.StringProperty()
@@ -30,6 +36,7 @@ class SKILLS_OT_ir(bpy.types.Operator):
         context.window.scene = sc; sc.frame_set(sc.frame_start)
         for c in sc.objects:                                   # se a cena nao tem camera ativa, usa a primeira
             if c.type == "CAMERA" and not sc.camera: sc.camera = c
+        _billboards(sc)
         sp = context.space_data
         if sp and sp.type == "VIEW_3D":
             sp.region_3d.view_perspective = "CAMERA"; sp.shading.type = "MATERIAL"; sp.overlay.show_overlays = False
@@ -41,7 +48,7 @@ class SKILLS_OT_camera(bpy.types.Operator):
     def execute(self, context):
         sc = context.scene; cams = [o for o in sc.objects if o.type == "CAMERA"]
         if not cams: return {"CANCELLED"}
-        i = cams.index(sc.camera) if sc.camera in cams else -1; sc.camera = cams[(i + 1) % len(cams)]
+        i = cams.index(sc.camera) if sc.camera in cams else -1; sc.camera = cams[(i + 1) % len(cams)]; _billboards(sc)
         context.space_data.region_3d.view_perspective = "CAMERA"; return {"FINISHED"}
 
 class SKILLS_OT_tocar(bpy.types.Operator):

@@ -13,14 +13,16 @@ FPS = 48
 GAIN = 0.5            # intensidade geral da luz dos materiais (1.0 estourava para branco)
 PREFIXO = "CLERIGO_"
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
-JANELA_ANTES = bpy.context.window.scene
+def _vai(sc):
+    if bpy.context.window: bpy.context.window.scene = sc            # em segundo plano (blender -b) nao ha janela
+JANELA_ANTES = bpy.context.window.scene if bpy.context.window else None
 
 # ------------------------------------------------------------------ limpeza so do que e do Clerigo
 for s in [s for s in bpy.data.scenes if s.name.startswith(PREFIXO)]:
     for o in list(s.objects): bpy.data.objects.remove(o, do_unlink=True)
     for c in list(bpy.data.collections):
         if c.name.startswith(s.name): bpy.data.collections.remove(c)
-    if bpy.context.window.scene is s: bpy.context.window.scene = next(x for x in bpy.data.scenes if not x.name.startswith(PREFIXO))
+    if bpy.context.window and bpy.context.window.scene is s: _vai(next(x for x in bpy.data.scenes if not x.name.startswith(PREFIXO)))
     bpy.data.scenes.remove(s)
 for m in list(bpy.data.materials):
     if m.name.startswith("CL_"): bpy.data.materials.remove(m)
@@ -28,7 +30,7 @@ for me in list(bpy.data.meshes):
     if me.users == 0 and me.name.startswith("CL_"): bpy.data.meshes.remove(me)
 
 def nova_cena(nome, fim):
-    sc = bpy.data.scenes.new(nome); bpy.context.window.scene = sc
+    sc = bpy.data.scenes.new(nome); _vai(sc)
     sc.render.fps = FPS; sc.frame_start = 1; sc.frame_end = fim
     try: sc.render.engine = "BLENDER_EEVEE"
     except TypeError: pass
@@ -146,7 +148,20 @@ def bm_cristal(L, r, lados=4, cauda=0.28):
     p = bm.verts.new((0, 0, L))
     for i in range(lados):
         j = (i + 1) % lados; bm.faces.new((a, anel[j], anel[i])); bm.faces.new((anel[i], anel[j], p))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    try: bmesh.ops.bevel(bm, geom=[e for e in bm.edges if len(e.link_faces) == 2 and e.calc_length() > r * 0.5], offset=r * 0.13, offset_type="OFFSET", segments=1, affect="EDGES")
+    except Exception: pass
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces); uv_z(bm, 0, L); return bm
+def bm_feixe(r1, r2, H, pontas=6):
+    """feixe de luz em prisma de secao ESTRELA (pontas alternadas), aberto, base em z=0: bordas angulares que cintilam ao girar"""
+    bm = bmesh.new(); uvl = bm.loops.layers.uv.verify(); n = pontas * 2; aneis = []
+    for z, r in ((0.0, r1), (H, r2)):
+        aneis.append([bm.verts.new((r * (1.0 if i % 2 == 0 else 0.70) * math.cos(2 * math.pi * i / n), r * (1.0 if i % 2 == 0 else 0.70) * math.sin(2 * math.pi * i / n), z)) for i in range(n)])
+    for i in range(n):
+        j = (i + 1) % n; f = bm.faces.new((aneis[0][i], aneis[0][j], aneis[1][j], aneis[1][i]))
+        for lp in f.loops:
+            k = i if lp.vert in (aneis[0][i], aneis[1][i]) else i + 1; lp[uvl].uv = (k / n, lp.vert.co.z / H)
+    return bm
 def bm_lamina(L, w, wob=0.0, fase=0.0, segs=5):
     """faixa plana em ponta (plano XZ), comprimento em +Z; uv y = ao longo"""
     bm = bmesh.new(); uvl = bm.loops.layers.uv.verify(); linhas = []
@@ -263,14 +278,17 @@ def livro(col, loc, f_abre, f_fecha, ang_aberto=50, ang_fechado=88, esc_=1.5):
         raiz.location = (loc[0], loc[1], loc[2] + z); raiz.keyframe_insert("location", frame=f)
     ll = luz(col, "livro_luz", "POINT", (0, 0.2, 0), 0, (1.0, 0.85, 0.5)); ll.parent = raiz
     pisca(ll, [(1, 0), (f_abre + 8, 0), (f_abre + 14, 60), (f_fecha - 10, 60), (f_fecha, 0)])
+    gl = sprite(col, "livro_brilho", M["spr_estrela_o"], 1.4 * esc_, (0, 0.12, 0)); gl.parent = raiz; esc(gl, [(1, 0.0), (f_abre + 10, 0.0), (f_abre + 16, 1.0), (f_fecha - 10, 1.0), (f_fecha, 0.0)])
     return raiz
 
 # ------------------------------------------------------------------ pecas reutilizaveis
 def particulas_cruz(col, nome, centro, f0, n, mat, alt=2.6, raio=0.9, vida=(34, 52), tam=(.14, .22), espalha=0.0, f_ate=None):
-    """cruzes de cura (+) que sobem girando de leve e some no fim"""
+    """cruzes de cura (+): corpo solido angular + brilho (sprite) por tras; sobem girando de leve e somem no fim"""
+    cor = "v" if mat is M["verde"] else "o"
     for i in range(n):
         a0 = random.uniform(0, 6.28); rr = random.uniform(0.15, raio); ff = f0 + (random.randint(0, f_ate - f0) if f_ate else random.randint(0, 8)); dur = random.randint(*vida)
-        o = para_obj(col, "%s%d" % (nome, i), bm_cruz(random.uniform(*tam), 0.035), mat); h = random.uniform(.5, 1.0) * alt
+        t_ = random.uniform(*tam); o = para_obj(col, "%s%d" % (nome, i), bm_cruz(t_, 0.04), mat); h = random.uniform(.5, 1.0) * alt
+        g = sprite(col, "%s_br%d" % (nome, i), M["spr_cruz_" + cor], t_ * 3.4, (0, 0, 0)); g.parent = o
         for f in list(range(ff, ff + dur, 3)) + [ff + dur]:
             t = (f - ff) / dur; ang = a0 + t * 1.6
             o.location = (centro[0] + math.cos(ang) * rr * (1 + espalha * t), centro[1] + math.sin(ang) * rr * (1 + espalha * t), centro[2] + 0.2 + h * t)
@@ -278,20 +296,26 @@ def particulas_cruz(col, nome, centro, f0, n, mat, alt=2.6, raio=0.9, vida=(34, 
             o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
         o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=ff - 1)
 def particulas_losango(col, nome, centro, f0, n, mat, alt=2.2, raio=0.9, vida=(30, 46), tam=(.05, .09), f_ate=None):
+    """brilhos de 4 pontas (sprite) que sobem em espiral e piscam"""
+    cor = "v" if mat is M["verde"] else ("b" if mat is M["branco"] else "o")
     for i in range(n):
         a0 = random.uniform(0, 6.28); rr = random.uniform(.2, raio); ff = f0 + (random.randint(0, f_ate - f0) if f_ate else random.randint(0, 8)); dur = random.randint(*vida)
-        o = para_obj(col, "%s%d" % (nome, i), bm_octaedro(random.uniform(*tam), 1.5), mat); h = random.uniform(.5, 1.0) * alt
+        o = sprite(col, "%s%d" % (nome, i), M["spr_estrela_" + cor], random.uniform(*tam) * 6.5, (0, 0, 0)); h = random.uniform(.5, 1.0) * alt
         for f in list(range(ff, ff + dur, 3)) + [ff + dur]:
             t = (f - ff) / dur; ang = a0 + t * 2.4
-            o.location = (centro[0] + math.cos(ang) * rr, centro[1] + math.sin(ang) * rr, centro[2] + 0.1 + h * t); o.scale = (max(math.sin(min(1.0, t) * math.pi), 1e-4),) * 3
+            o.location = (centro[0] + math.cos(ang) * rr, centro[1] + math.sin(ang) * rr, centro[2] + 0.1 + h * t); o.scale = (max(math.sin(min(1.0, t) * math.pi) * (0.75 + 0.25 * math.sin(t * 22 + a0)), 1e-4),) * 3
             o.keyframe_insert("location", frame=f); o.keyframe_insert("scale", frame=f)
         o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=ff - 1)
 def estrela_impacto(col, nome, pos, f, n, L, mat, r=0.2, dur=14):
-    """espinhos de luz que abrem em estrela no impacto"""
-    for i in range(n):
-        v = Vector((random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-.2, 1.0))).normalized(); Ls = random.uniform(.6, 1.0) * L
-        o = para_obj(col, "%s%d" % (nome, i), bm_cone(r, 0.0, Ls, 4), mat); o.location = tuple(pos); apunta(o, v)
+    """espinhos finos de luz + clarao de 4 pontas (sprite) + leque de raios no impacto"""
+    cor = "v" if mat is M["verde"] else ("o" if mat in (M["ouro"], M["ouro_vidro"]) else ("a" if mat is M["azul_vidro"] else "b"))
+    for i in range(int(n * 1.6)):
+        v = Vector((random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-.2, 1.0))).normalized(); Ls = random.uniform(.55, 1.0) * L
+        o = para_obj(col, "%s%d" % (nome, i), bm_cone(r * 0.34, 0.0, Ls, 4), M["esp_" + cor]); o.location = tuple(pos); apunta(o, v)
         esc(o, [(f - 1, 0.0), (f, 0.3), (f + 2, 1.0), (f + dur * 0.5, 0.55), (f + dur, 0.0)])
+    sp = sprite(col, nome + "_clarao", M["spr_estrela_" + cor], L * 2.8, tuple(pos)); esc(sp, [(f - 1, 0.0), (f, 0.55), (f + 2, 1.0), (f + dur * 0.6, 0.30), (f + dur, 0.0)])
+    ra = sprite(col, nome + "_leque", M["leque_" + ("v" if cor == "v" else "o")], L * 2.2, (pos[0], pos[1], 0.0), vertical=True); ra.location = (pos[0], pos[1], max(0.0, pos[2] - L * 0.5))
+    esc(ra, [(f - 1, 0.0), (f + 1, 0.6), (f + 4, 1.0), (f + dur, 0.0)])
 def cacos(col, nome, pos, f, n, mat, tam=0.28, vel=5.0, g=9.8, dur=(26, 36)):
     for k in range(n):
         a = k * 2 * math.pi / n + random.uniform(-.2, .2); o = para_obj(col, "%s%d" % (nome, k), bm_lascas(tam, 3), mat); wx, wy, wz = [random.uniform(-9, 9) for _ in range(3)]; vida = random.randint(*dur)
@@ -301,15 +325,90 @@ def cacos(col, nome, pos, f, n, mat, tam=0.28, vel=5.0, g=9.8, dur=(26, 36)):
             o.keyframe_insert("location", frame=ff); o.keyframe_insert("rotation_euler", frame=ff); o.keyframe_insert("scale", frame=ff)
         o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f - 1)
 def onda_hex(col, nome, centro, f, R, mat, dur=20, larg=0.14, n=6, z=0.04):
-    """anel de choque hexagonal no chao: cresce e some (poligono de linhas retas)"""
-    o = para_obj(col, nome, bm_linhas(poligono(1.0, n), larg / R), mat); o.location = (centro[0], centro[1], z)
-    esc(o, [(f - 1, (1e-3, 1e-3, 1e-3)), (f, (0.25 * R, 0.25 * R, 1)), (f + dur, (R, R, 1)), (f + dur + 1, (1e-3, 1e-3, 1e-3))]); return o
+    """anel de choque hexagonal no chao (textura com rastro para dentro): cresce e some"""
+    cor = {"CL_marca": "o", "CL_marca_v": "v", "CL_marca_a": "a"}.get(mat.name.split(".")[0], "o"); o = plano_chao(col, nome, R * 2.1, M["on_" + cor], z); o.location = (centro[0], centro[1], z)
+    esc(o, [(f - 1, (1e-3, 1e-3, 1e-3)), (f, (0.25, 0.25, 1)), (f + dur, (1, 1, 1)), (f + dur + 1, (1e-3, 1e-3, 1e-3))]); return o
 def feixe_reto(col, nome, a, b, f0, f1, mat, larg=0.07, lados=4, sai=6):
     """fio de luz de a ate b: nasce em a, cresce ate b, some de tras para frente"""
     a, b = Vector(a), Vector(b); L = (b - a).length; o = para_obj(col, nome, bm_coluna(larg, larg * 0.6, L, lados), mat); o.location = tuple(a); apunta(o, b - a)
     esc(o, [(f0 - 1, (1, 1, 1e-3)), (f0 + 6, (1, 1, 0.55)), (f0 + 10, (1, 1, 1.0)), (f1 - sai, (1, 1, 1.0)), (f1, (1e-3, 1e-3, 1.0))]); return o
 def cena_final(sc, ref, c1, cams):
     sc.camera = c1; return sc
+
+# ------------------------------------------------------------------ v2: texturas geradas (clerigo_texturas.py), sprites, glifos e feixes refinados
+RAIZ = "C:/TECX SOFTHOUSE/IS ONLINE/"; TEXDIR = RAIZ + "prototipo/assets/fx/"
+def _img(arq): return bpy.data.images.load(TEXDIR + arq, check_existing=True)
+def mat_tex(nome, arq, tint, forca=2.0, quente=(1.0, 0.97, 0.86), repete=False):
+    """textura branca com alfa -> brilho aditivo: cor do material nas bordas, branco-quente no miolo"""
+    m = mat_base(nome); nt = m.node_tree; N = nt.nodes; L = nt.links
+    tc = N.new("ShaderNodeTexCoord"); im = N.new("ShaderNodeTexImage"); im.image = _img(arq); im.extension = "REPEAT" if repete else "CLIP"
+    rp = N.new("ShaderNodeValToRGB"); el = rp.color_ramp.elements; el[0].position = 0.0; el[0].color = (*[c * 0.7 for c in tint], 1); el[1].position = 1.0; el[1].color = (*quente, 1); e2 = el.new(0.45); e2.color = (*tint, 1)
+    em = N.new("ShaderNodeEmission"); em.inputs["Strength"].default_value = forca * GAIN
+    L.new(tc.outputs["UV"], im.inputs["Vector"]); L.new(im.outputs["Alpha"], rp.inputs[0]); L.new(rp.outputs[0], em.inputs["Color"]); _fim(m, em, im.outputs["Alpha"], N); return m
+def mat_feixe_tex(nome, base, topo, forca=2.2, rep_u=3.0, rep_v=1.2, vel=0.7, alfa=0.9, fade=0.55, f0=1, f1=260):
+    """feixe de luz: veios verticais (clerigo_raios) que sobem, base clara -> topo colorido, some no alto"""
+    m = mat_base(nome); nt = m.node_tree; N = nt.nodes; L = nt.links
+    tc = N.new("ShaderNodeTexCoord"); mp = N.new("ShaderNodeMapping"); mp.name = "mapa"; mp.inputs[3].default_value = (rep_u, rep_v, 1.0)
+    im = N.new("ShaderNodeTexImage"); im.image = _img("clerigo_raios.png"); im.extension = "REPEAT"
+    sep = N.new("ShaderNodeSeparateXYZ"); gr = N.new("ShaderNodeValToRGB"); gr.color_ramp.elements[0].color = (*base, 1); gr.color_ramp.elements[1].color = (*topo, 1)
+    inv = N.new("ShaderNodeMath"); inv.operation = "SUBTRACT"; inv.inputs[0].default_value = 1.0; pw = N.new("ShaderNodeMath"); pw.operation = "POWER"; pw.inputs[1].default_value = fade
+    mx = N.new("ShaderNodeMath"); mx.operation = "MULTIPLY_ADD"; mx.inputs[1].default_value = 0.85; mx.inputs[2].default_value = 0.15
+    a1 = N.new("ShaderNodeMath"); a1.operation = "MULTIPLY"; a2 = N.new("ShaderNodeMath"); a2.operation = "MULTIPLY"; a2.inputs[1].default_value = alfa
+    em = N.new("ShaderNodeEmission"); em.inputs["Strength"].default_value = forca * GAIN
+    L.new(tc.outputs["UV"], mp.inputs[0]); L.new(mp.outputs[0], im.inputs["Vector"]); L.new(tc.outputs["UV"], sep.inputs[0]); L.new(sep.outputs[1], gr.inputs[0]); L.new(gr.outputs[0], em.inputs["Color"])
+    L.new(sep.outputs[1], inv.inputs[1]); L.new(inv.outputs[0], pw.inputs[0]); L.new(im.outputs["Alpha"], mx.inputs[0]); L.new(mx.outputs[0], a1.inputs[0]); L.new(pw.outputs[0], a1.inputs[1]); L.new(a1.outputs[0], a2.inputs[0]); _fim(m, em, a2.outputs[0], N)
+    if vel:
+        for fr, v in ((f0, 0.0), (f1, -vel * (f1 - f0) / 48.0)):
+            mp.inputs[1].default_value = (0, v, 0); nt.keyframe_insert('nodes["mapa"].inputs[1].default_value', frame=fr)
+    return m
+def mat_placa(nome, centro, borda, tint, forca=2.0, alfa_c=0.42):
+    """placa de barreira: vidro facetado (fresnel) + favo hexagonal brilhante por cima"""
+    m = mat_base(nome); nt = m.node_tree; N = nt.nodes; L = nt.links
+    lw = N.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.4; rp = N.new("ShaderNodeValToRGB"); rp.color_ramp.elements[0].position = 0.3; rp.color_ramp.elements[1].position = 0.95
+    rp.color_ramp.elements[0].color = (*centro, 1); rp.color_ramp.elements[1].color = (*borda, 1)
+    tc = N.new("ShaderNodeTexCoord"); mp = N.new("ShaderNodeMapping"); mp.inputs[3].default_value = (1.6, 2.2, 1.0); im = N.new("ShaderNodeTexImage"); im.image = _img("clerigo_favo.png"); im.extension = "REPEAT"
+    mix = N.new("ShaderNodeMix"); mix.data_type = "RGBA"; mix.blend_type = "MIX"; mix.inputs[7].default_value = (*tint, 1)
+    al = N.new("ShaderNodeMapRange"); al.inputs[3].default_value = 1.0; al.inputs[4].default_value = alfa_c; mxa = N.new("ShaderNodeMath"); mxa.operation = "MAXIMUM"
+    em = N.new("ShaderNodeEmission"); em.inputs["Strength"].default_value = forca * GAIN
+    L.new(lw.outputs["Facing"], rp.inputs[0]); L.new(tc.outputs["UV"], mp.inputs[0]); L.new(mp.outputs[0], im.inputs["Vector"]); L.new(im.outputs["Alpha"], mix.inputs[0]); L.new(rp.outputs[0], mix.inputs[6]); L.new(mix.outputs[2], em.inputs["Color"])
+    L.new(lw.outputs["Facing"], al.inputs[0]); L.new(al.outputs[0], mxa.inputs[0]); L.new(im.outputs["Alpha"], mxa.inputs[1]); _fim(m, em, mxa.outputs[0], N); return m
+CORES = {"o": OURO, "v": VERDE, "a": AZUL_P, "b": BRANCO}
+def mats2():
+    for c, t in CORES.items():
+        M["gh_" + c] = mat_tex("CL_gh_" + c, "clerigo_glifo_hex.png", t, 2.4); M["go_" + c] = mat_tex("CL_go_" + c, "clerigo_glifo_octa.png", t, 2.4)
+        M["bh_" + c] = mat_tex("CL_bh_" + c, "clerigo_hex_brilho.png", t, 1.5); M["on_" + c] = mat_tex("CL_on_" + c, "clerigo_onda.png", t, 3.0)
+        M["spr_estrela_" + c] = mat_tex("CL_spr_estrela_" + c, "clerigo_estrela.png", t, 3.2); M["spr_cruz_" + c] = mat_tex("CL_spr_cruz_" + c, "clerigo_cruz.png", t, 2.4); M["leque_" + c] = mat_tex("CL_leque_" + c, "clerigo_leque.png", t, 2.6)
+    M["feixe_o"] = mat_feixe_tex("CL_fx_o", BRANCO, (1.0, 0.68, 0.16), 2.4, 3.0, 1.1, 0.7, 0.9)
+    M["feixe_o2"] = mat_feixe_tex("CL_fx_o2", (1.0, 1.0, 0.92), OURO, 2.8, 4.0, 1.6, 1.1, 0.95)
+    M["feixe_v"] = mat_feixe_tex("CL_fx_v", (0.92, 1.0, 0.92), (0.10, 0.78, 0.38), 2.4, 3.0, 1.0, 0.9, 0.9)
+    M["feixe_b"] = mat_feixe_tex("CL_fx_b", (1.0, 1.0, 0.97), (1.0, 0.80, 0.30), 3.2, 3.0, 1.4, 1.3, 0.95)
+    M["pilar"] = mat_feixe_tex("CL_pilar2", (1.0, 0.98, 0.85), (1.0, 0.62, 0.12), 3.0, 2.0, 1.0, 0.6, 0.95, 0.75)
+    for c, t in CORES.items(): M["esp_" + c] = mat_grad("CL_esp_" + c, [(0.0, (1.0, 1.0, 0.96)), (0.45, t), (1.0, tuple(x * 0.55 for x in t))], 3.2, 1.0, 0.9)
+    M["placa_o"] = mat_placa("CL_placa_o", (1.0, 0.62, 0.10), (1.0, 0.95, 0.70), (1.0, 0.97, 0.80)); M["placa_a"] = mat_placa("CL_placa_a", (0.12, 0.45, 0.95), (0.80, 0.95, 1.0), (0.90, 0.98, 1.0))
+    M["halo_v"] = mat_vidro("CL_halo_v", (0.05, 0.85, 0.40), (0.85, 1.0, 0.9), 1.2, 0.18); M["halo_o"] = mat_vidro("CL_halo_o", (1.0, 0.7, 0.15), (1.0, 0.97, 0.8), 1.2, 0.18)
+def sprite(col, nome, mat, tam, loc=(0, 0, 0), vertical=False, alto=None):
+    """quadro com textura que sempre olha para a camera (vertical=True: so gira em Z, base no chao)"""
+    bm = bmesh.new(); uvl = bm.loops.layers.uv.verify(); w = tam; h = alto or tam
+    pts = [(-w / 2, 0, 0), (w / 2, 0, 0), (w / 2, 0, h), (-w / 2, 0, h)] if vertical else [(-w / 2, -h / 2, 0), (w / 2, -h / 2, 0), (w / 2, h / 2, 0), (-w / 2, h / 2, 0)]
+    f = bm.faces.new([bm.verts.new(p) for p in pts])
+    for lp, uv in zip(f.loops, [(0, 0), (1, 0), (1, 1), (0, 1)]): lp[uvl].uv = uv
+    o = para_obj(col, nome, bm, mat); o.location = loc
+    k = o.constraints.new("LOCKED_TRACK" if vertical else "TRACK_TO"); k.name = "CL_BB"
+    if vertical: k.track_axis = "TRACK_Y"; k.lock_axis = "LOCK_Z"
+    else: k.track_axis = "TRACK_Z"; k.up_axis = "UP_Y"
+    return o
+def retarget(sc):
+    for o in sc.objects:
+        for k in o.constraints:
+            if k.name == "CL_BB": k.target = sc.camera
+def plano_chao(col, nome, lado, mat, z=0.02):
+    bm = bmesh.new(); uvl = bm.loops.layers.uv.verify(); h = lado / 2; f = bm.faces.new([bm.verts.new(p) for p in ((-h, -h, 0), (h, -h, 0), (h, h, 0), (-h, h, 0))])
+    for lp, uv in zip(f.loops, [(0, 0), (1, 0), (1, 1), (0, 1)]): lp[uvl].uv = uv
+    o = para_obj(col, nome, bm, mat); o.location = (0, 0, z); return o
+def brilho_chao(col, nome, R, cor, z=0.012): return plano_chao(col, nome, R * 2, M["bh_" + cor], z)
+def glifo_obj(col, nome, R, tipo, cor, z=0.025):
+    """glifo no chao com textura (hexagrama ou octagrama, runas e brilho) + luz hexagonal por baixo (filha: segue a escala e a rotacao)"""
+    g = plano_chao(col, nome, R * 2.06, M[("go_" if tipo == "octa" else "gh_") + cor], z); b = plano_chao(col, nome + "_luz", R * 2.5, M["bh_" + cor], -0.012); b.parent = g; return g
 
 # ================================================================== 0. ATAQUE BASICO: LAMINA DE LUZ
 def montar_basico():
@@ -320,6 +419,7 @@ def montar_basico():
     raiz = bpy.data.objects.new("lamina_raiz", None); col.objects.link(raiz); apunta(raiz, (0, 1, 0)); raiz.rotation_euler = (math.pi / 2, 0, 0)
     corpo = para_obj(col, "lamina_corpo", bm_cristal(1.45, 0.13, 4, 0.22), M["ouro_vidro"]); corpo.parent = raiz
     miolo = para_obj(col, "lamina_miolo", bm_cristal(1.0, 0.055, 4, 0.2), M["branco"]); miolo.parent = raiz; miolo.location = (0, 0, 0.15)
+    halo = para_obj(col, "lamina_halo", bm_cristal(1.9, 0.30, 6, 0.22), M["halo_o"]); halo.parent = raiz; cl = sprite(col, "lamina_clarao", M["spr_estrela_o"], 1.9, (0, 0, 1.45)); cl.parent = raiz
     for k in range(3):
         rst = para_obj(col, "lamina_rastro%d" % k, bm_lamina(2.6 - k * 0.5, 0.30 - k * 0.07), M["rastro"]); rst.parent = raiz; rst.location = (0, 0, -0.1); rst.rotation_euler = (math.pi, 0, k * math.pi / 3)
     F0, F1 = 10, 46; Y0, Y1 = 1.2, 12.0
@@ -334,7 +434,7 @@ def montar_basico():
     # impacto no inimigo: flash, estrela de 8 espinhos de luz, cacos dourados e marca de losango no chao
     estrela_impacto(col, "hit_esp", (0, 12.0, 1.3), F1, 8, 1.5, M["branco"], 0.17, 14)
     cacos(col, "hit_caco", (0, 12.0, 1.3), F1, 7, M["ouro_vidro"], 0.20, 4.0)
-    mc = para_obj(col, "hit_marca", bm_linhas(segs_glifo(1.3, "losango"), 0.06), M["marca"]); mc.location = (0, 12.0, 0.01)
+    mc = glifo_obj(col, "hit_marca", 1.3, "hex", "o"); mc.location = (0, 12.0, 0.01)
     esc(mc, [(F1 - 1, 0.0), (F1, 0.5), (F1 + 4, 1.0), (F1 + 14, 1.0), (F1 + 24, 0.0)])
     fl = luz(col, "hit_flash", "POINT", (0, 11.2, 1.8), 0, (1.0, 0.85, 0.5)); pisca(fl, [(F1 - 1, 0), (F1, 3200), (F1 + 5, 1600), (F1 + 16, 0)])
     camera(sc, ref, "cam_lateral", (11.0, 6.0, 2.6), (0, 6.0, 1.5), 32); camera(sc, ref, "cam_alvo", (5.0, 9.0, 2.2), (0, 12.0, 1.4), 32); sc.camera = camera(sc, ref, "cam_do_clerigo", (3.0, -2.5, 1.8), (0, 4.0, 1.3), 32)
@@ -346,6 +446,7 @@ def projetil_cura(col, nome, f0, voo, p0, p1, z=1.3):
     raiz = bpy.data.objects.new(nome, None); col.objects.link(raiz); raiz.rotation_euler = (math.pi / 2, 0, math.atan2(d.y, d.x) - math.pi / 2)   # +Z do filho aponta para frente
     ext = para_obj(col, nome + "_cristal", bm_cristal(2.0, 0.30, 6, 0.24), M["verde_vidro"]); ext.parent = raiz
     nuc = para_obj(col, nome + "_nucleo", bm_cristal(1.25, 0.12, 6, 0.2), M["branco"]); nuc.parent = raiz; nuc.location = (0, 0, 0.18)
+    halo = para_obj(col, nome + "_halo", bm_cristal(2.8, 0.50, 6, 0.24), M["halo_v"]); halo.parent = raiz; cl = sprite(col, nome + "_clarao", M["spr_estrela_v"], 2.4, (0, 0, 1.9)); cl.parent = raiz
     for k in range(3):
         r = para_obj(col, nome + "_rastro%d" % k, bm_lamina(3.4 - k * 0.7, 0.34 - k * 0.08), M["rastro_v"]); r.parent = raiz; r.location = (0, 0, -0.05); r.rotation_euler = (math.pi, 0, k * math.pi / 3)
     for k in range(4):                                                         # 4 estilhacos de ouro presos ao corpo, orbitando devagar
@@ -359,10 +460,10 @@ def projetil_cura(col, nome, f0, voo, p0, p1, z=1.3):
 def cura_burst(col, nome, pos, f):
     """cura no aliado: pilar de luz verde-dourado sobe do chao, cruzes sobem, hexagono de choque e luz verde"""
     x, y = pos[0], pos[1]
-    pil = para_obj(col, nome + "_pilar", bm_coluna(0.80, 0.55, 4.4, 6), M["feixe_v"]); pil.location = (x, y, 0)
+    pil = para_obj(col, nome + "_pilar", bm_feixe(0.80, 0.55, 4.4, 6), M["feixe_v"]); pil.location = (x, y, 0)
     esc(pil, [(f - 1, (1, 1, 1e-3)), (f + 3, (1.15, 1.15, 0.55)), (f + 8, (1, 1, 1.0)), (f + 46, (1, 1, 1.0)), (f + 62, (0.4, 0.4, 0.9)), (f + 63, (1e-3,) * 3)])
     anim(pil, "rotation_euler", f, f + 62, lambda t: (0, 0, t * math.radians(160)), 6)
-    pil2 = para_obj(col, nome + "_pilar2", bm_coluna(0.42, 0.28, 4.0, 6), M["feixe_o2"]); pil2.location = (x, y, 0)
+    pil2 = para_obj(col, nome + "_pilar2", bm_feixe(0.42, 0.28, 4.0, 6), M["feixe_o2"]); pil2.location = (x, y, 0)
     esc(pil2, [(f - 1, (1, 1, 1e-3)), (f + 4, (1.1, 1.1, 0.6)), (f + 9, (1, 1, 1.0)), (f + 40, (1, 1, 1.0)), (f + 56, (0.3, 0.3, 0.9)), (f + 57, (1e-3,) * 3)])
     particulas_cruz(col, nome + "_cruz", (x, y, 0), f + 2, 12, M["verde"], 3.0, 0.9, (36, 56), (.16, .26), 0.25, f + 24)
     particulas_losango(col, nome + "_mote", (x, y, 0), f + 1, 14, M["ouro"], 2.8, 1.0, (30, 48), (.04, .08), f + 24)
@@ -384,7 +485,7 @@ def montar_cura():
     ali = caixa(ref, "aliado_ref_1.8m", (-3.6, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_a"]); ini = caixa(ref, "inimigo_ref_1.8m", (4.2, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, F_FIM - 8)
     # ---- no conjurador: losango de ouro nos pes + 6 estilhacos de luz soltando do livro (so efeito leve)
-    mc = para_obj(col, "cj_marca", bm_linhas(segs_glifo(0.95, "losango"), 0.06), M["marca"]); mc.location = (0, 0, 0.03)
+    mc = glifo_obj(col, "cj_marca", 0.95, "hex", "o"); mc.location = (0, 0, 0.03)
     esc(mc, [(1, 0.0), (8, 1.0), (30, 1.0), (40, 0.0), (90, 0.0), (98, 1.0), (118, 1.0), (128, 0.0)]); anim(mc, "rotation_euler", 1, 128, lambda t: (0, 0, t * math.radians(90)), 6)
     particulas_losango(col, "cj_mote", (0.0, 0.0, 0.0), 6, 10, M["ouro"], 2.0, 0.8, (30, 44), (.04, .07), 110)
     # ---- tiro 1: aliado (cura)
@@ -402,26 +503,26 @@ def montar_glifo():
     for i, (x, y) in enumerate(aliados): caixa(ref, "aliado_ref_%d" % i, (x, y, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
     caixa(ref, "inimigo_fora_ref", (7.2, 9.0, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, 30)
-    mc = para_obj(col, "cj_marca", bm_linhas(segs_glifo(0.95, "losango"), 0.06), M["marca"]); mc.location = (0, 0, 0.03); esc(mc, [(1, 0.0), (8, 1.0), (24, 1.0), (32, 0.0)])
+    mc = glifo_obj(col, "cj_marca", 0.95, "hex", "o"); mc.location = (0, 0, 0.03); esc(mc, [(1, 0.0), (8, 1.0), (24, 1.0), (32, 0.0)])
     F0 = 16; F_PULSOS = [44, 92, 140, 188]; F_SAI = 206
-    gl = para_obj(col, "glifo", bm_linhas(segs_glifo(3.3, "hex"), 0.10), M["marca_v"]); gl.location = (C[0], C[1], 0.025)
+    gl = glifo_obj(col, "glifo", 3.3, "hex", "v"); gl.location = (C[0], C[1], 0.025)
     esc(gl, [(F0 - 1, 0.0), (F0 + 12, 1.0), (F_SAI, 1.0), (F_SAI + 12, 0.0)]); anim(gl, "rotation_euler", F0, F_SAI + 12, lambda t: (0, 0, t * math.radians(90)), 6)
-    ex = para_obj(col, "glifo_borda", bm_linhas(poligono(3.55, 6, 0.0, 0.02), 0.22), M["marca"]); ex.location = (C[0], C[1], 0.0)
+    ex = brilho_chao(col, "glifo_borda", 3.9, "o", 0.0); ex.location = (C[0], C[1], 0.0)
     esc(ex, [(F0 - 1, 0.0), (F0 + 12, 1.0), (F_SAI, 1.0), (F_SAI + 12, 0.0)])
-    fill = para_obj(col, "glifo_brilho", bm_estrela_fill(3.3), M["marca_v"]); fill.location = (C[0], C[1], 0.012)
+    fill = brilho_chao(col, "glifo_brilho", 3.7, "v", 0.012); fill.location = (C[0], C[1], 0.012)
     esc(fill, [(F0 - 1, 0.0), (F0 + 12, 0.7), (F_SAI, 0.7), (F_SAI + 12, 0.0)])
     for k in range(6):                                                         # 6 pilares finos nos cantos do hexagono: luz que sobe
-        a = k * math.pi / 3; p = para_obj(col, "pilar%d" % k, bm_coluna(0.14, 0.03, 3.4, 4), M["pilar"]); p.location = (C[0] + math.cos(a) * 3.3, C[1] + math.sin(a) * 3.3, 0)
+        a = k * math.pi / 3; p = para_obj(col, "pilar%d" % k, bm_feixe(0.14, 0.03, 3.4, 4), M["pilar"]); p.location = (C[0] + math.cos(a) * 3.3, C[1] + math.sin(a) * 3.3, 0)
         esc(p, [(F0 + 4 + k, (1, 1, 1e-3)), (F0 + 18 + k, (1, 1, 1.0)), (F_SAI, (1, 1, 1.0)), (F_SAI + 12, (1, 1, 1e-3))])
     particulas_cruz(col, "amb_cruz", (C[0], C[1], 0), F0 + 10, 26, M["verde"], 3.0, 3.0, (44, 70), (.15, .24), 0.0, F_SAI - 40)
     particulas_losango(col, "amb_mote", (C[0], C[1], 0), F0 + 8, 24, M["ouro"], 3.2, 3.0, (36, 60), (.04, .08), F_SAI - 40)
     for n, fp in enumerate(F_PULSOS):                                          # cada pulso de cura: hexagono de choque + flash verde no chao + cruzes em cada aliado
         onda_hex(col, "pulso%d" % n, C, fp, 3.5, M["marca_v"], 22, 0.2)
-        fl = para_obj(col, "pulso_chao%d" % n, bm_estrela_fill(3.3), M["verde"]); fl.location = (C[0], C[1], 0.035); esc(fl, [(fp - 1, 0.0), (fp + 2, 1.0), (fp + 14, 0.0)])
+        fl = brilho_chao(col, "pulso_chao%d" % n, 4.0, "v", 0.035); fl.location = (C[0], C[1], 0.035); esc(fl, [(fp - 1, 0.0), (fp + 2, 1.0), (fp + 14, 0.0)])
         lz = luz(col, "pulso_luz%d" % n, "POINT", (C[0], C[1], 1.8), 0, VERDE); pisca(lz, [(fp - 1, 0), (fp + 2, 4500), (fp + 18, 0)])
         for j, (x, y) in enumerate(aliados):
             particulas_cruz(col, "p%d_a%d" % (n, j), (x, y, 0), fp + 2 + j * 2, 4, M["verde"], 2.4, 0.5, (26, 38), (.12, .2))
-            pb = para_obj(col, "p%d_pil%d" % (n, j), bm_coluna(0.5, 0.32, 3.0, 6), M["feixe_v"]); pb.location = (x, y, 0); esc(pb, [(fp + 1 + j * 2, (1, 1, 1e-3)), (fp + 5 + j * 2, (1, 1, 1.0)), (fp + 16 + j * 2, (1, 1, 1.0)), (fp + 24 + j * 2, (0.4, 0.4, 1e-3))])
+            pb = para_obj(col, "p%d_pil%d" % (n, j), bm_feixe(0.5, 0.32, 3.0, 6), M["feixe_v"]); pb.location = (x, y, 0); esc(pb, [(fp + 1 + j * 2, (1, 1, 1e-3)), (fp + 5 + j * 2, (1, 1, 1.0)), (fp + 16 + j * 2, (1, 1, 1.0)), (fp + 24 + j * 2, (0.4, 0.4, 1e-3))])
     camera(sc, ref, "cam_alto", (9.0, 0.5, 10.5), (0, 8.8, 0.8), 30); camera(sc, ref, "cam_lateral", (11.0, 3.0, 3.0), (0, 9.0, 1.6), 30); sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.2, 2.2), (0, 7.5, 1.0), 30)
     return sc
 def bm_estrela_fill(R):
@@ -439,13 +540,13 @@ def montar_escudo():
     ali = caixa(ref, "aliado_ref_1.8m", (A.x, A.y, 0.9), (0.6, 0.4, 1.8), M["ref_a"]); ini = caixa(ref, "inimigo_ref_1.8m", (7.0, 8.0, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, 36)
     feixe_reto(col, "fio", (0.45, 0.3, 1.3), (A.x, A.y - 0.2, 1.2), 8, 34, M["rastro"], 0.06)                            # fio de luz do livro ao aliado
-    mc = para_obj(col, "cj_marca", bm_linhas(segs_glifo(0.95, "losango"), 0.06), M["marca_a"]); mc.location = (0, 0, 0.03); esc(mc, [(1, 0.0), (8, 1.0), (28, 1.0), (36, 0.0)])
-    marca = para_obj(col, "ali_marca", bm_linhas(segs_glifo(1.5, "losango"), 0.07), M["marca_a"]); marca.location = (A.x, A.y, 0.03)
+    mc = glifo_obj(col, "cj_marca", 0.95, "hex", "a"); mc.location = (0, 0, 0.03); esc(mc, [(1, 0.0), (8, 1.0), (28, 1.0), (36, 0.0)])
+    marca = glifo_obj(col, "ali_marca", 1.5, "hex", "a"); marca.location = (A.x, A.y, 0.03)
     esc(marca, [(20, 0.0), (30, 1.0), (140, 1.0), (152, 0.0)]); anim(marca, "rotation_euler", 20, 152, lambda t: (0, 0, t * math.radians(-120)), 6)
     N = 8; R = 1.05; placas = []
     for i in range(N):                                                         # 8 placas (hexagonos altos) em octogono em volta do aliado, de frente para fora
         a = i * 2 * math.pi / N; alt = 1.0 + (i % 2) * 0.35
-        p = para_obj(col, "placa%d" % i, bm_placa(0.78, 1.55 * alt, 0.045), M["azul_vidro"] if i % 2 else M["ouro_vidro"])
+        p = para_obj(col, "placa%d" % i, bm_placa(0.78, 1.55 * alt, 0.045), M["placa_a"] if i % 2 else M["placa_o"])
         pos = (A.x + math.cos(a) * R, A.y + math.sin(a) * R, 1.0 + (i % 2) * 0.12); p.rotation_euler = (0, 0, a - math.pi / 2)
         f0 = 22 + i * 2
         for f, k in ((f0 - 1, 3.0), (f0 + 12, 1.0)):                           # chegam de longe, de fora para dentro
@@ -487,16 +588,16 @@ def montar_purifica():
     for o, a, z, v, L in esp:
         o.scale = (1, 1, 1); o.keyframe_insert("scale", frame=FI - 1); o.scale = (1.25, 1.25, 1.25); o.keyframe_insert("scale", frame=FI + 1); o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=FI + 4)
     cacos(col, "poeira", (A.x, A.y, 1.1), FI, 14, M["osso"], 0.12, 3.2, 3.0, (24, 34))
-    pil = para_obj(col, "pilar", bm_coluna(0.95, 0.75, 3.4, 6), M["feixe_b"]); pil.location = (A.x, A.y, 0)
+    pil = para_obj(col, "pilar", bm_feixe(0.95, 0.75, 3.4, 6), M["feixe_b"]); pil.location = (A.x, A.y, 0)
     esc(pil, [(FI - 1, (1, 1, 1e-3)), (FI + 2, (1.25, 1.25, 0.7)), (FI + 7, (1, 1, 1.0)), (FI + 18, (1, 1, 1.0)), (FI + 30, (0.45, 0.45, 0.9)), (FI + 31, (1e-3,) * 3)])
     anim(pil, "rotation_euler", FI, FI + 31, lambda t: (0, 0, t * math.radians(120)), 6)
     onda_hex(col, "onda1", (A.x, A.y), FI, 5.0, M["marca"], 20, 0.24); onda_hex(col, "onda2", (A.x, A.y), FI + 4, 3.6, M["marca_a"], 22, 0.16); onda_hex(col, "onda3", (A.x, A.y), FI + 9, 2.4, M["marca"], 20, 0.12)
     estrela_impacto(col, "estrela", (A.x, A.y, 1.1), FI, 12, 2.2, M["branco"], 0.18, 16)
     fl = luz(col, "flash", "POINT", (A.x, A.y, 1.7), 0, (1.0, 0.95, 0.75)); pisca(fl, [(FI - 1, 0), (FI, 7000), (FI + 6, 3000), (FI + 24, 0)])
     # imunidade: bainha fina de luz (prisma translucido) em volta dele + losango flutuando acima da cabeca, ate o quadro 134
-    ba = para_obj(col, "imune_bainha", bm_coluna(0.95, 0.85, 2.3, 6), M["feixe_o"]); ba.location = (A.x, A.y, 0)
+    ba = para_obj(col, "imune_bainha", bm_feixe(0.95, 0.85, 2.3, 6), M["feixe_o"]); ba.location = (A.x, A.y, 0)
     esc(ba, [(FI + 4, (1, 1, 1e-3)), (FI + 14, (1, 1, 1.0)), (122, (1, 1, 1.0)), (136, (0.9, 0.9, 0.3)), (137, (1e-3,) * 3)]); anim(ba, "rotation_euler", FI + 4, 137, lambda t: (0, 0, t * math.radians(-140)), 6)
-    mc = para_obj(col, "imune_marca", bm_linhas(segs_glifo(1.3, "losango"), 0.06), M["marca"]); mc.location = (A.x, A.y, 0.03)
+    mc = glifo_obj(col, "imune_marca", 1.3, "hex", "o"); mc.location = (A.x, A.y, 0.03)
     esc(mc, [(FI + 4, 0.0), (FI + 14, 1.0), (122, 1.0), (136, 0.0)]); anim(mc, "rotation_euler", FI + 4, 136, lambda t: (0, 0, t * math.radians(100)), 6)
     ic = para_obj(col, "imune_icone", bm_octaedro(0.18, 1.5), M["ouro_vidro"]); ic.location = (A.x, A.y, 2.7); esc(ic, [(FI + 10, 0.0), (FI + 18, 1.0), (122, 1.0), (136, 0.0)]); anim(ic, "rotation_euler", FI + 10, 136, lambda t: (0, 0, t * math.radians(360)), 6)
     particulas_losango(col, "imune_mote", (A.x, A.y, 0.0), FI + 6, 14, M["branco"], 2.4, 0.9, (30, 44), (.04, .08), 110)
@@ -511,9 +612,9 @@ def montar_prece():
     aliados = [(-3.6, 3.4), (3.6, 3.2), (0.2, -4.2), (-3.0, -2.8)]
     for i, (x, y) in enumerate(aliados): caixa(ref, "aliado_ref_%d" % i, (x, y, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
     livro(col, (0.55, 0.3, 1.25), 2, 56)
-    gl = para_obj(col, "glifo", bm_linhas(segs_glifo(5.2, "octa"), 0.12), M["marca"]); gl.location = (0, 0, 0.025)
+    gl = glifo_obj(col, "glifo", 5.2, "octa", "o"); gl.location = (0, 0, 0.025)
     esc(gl, [(F_G - 1, 0.0), (F_G + 14, 1.0), (F_SAI, 1.0), (F_SAI + 14, 0.0)]); anim(gl, "rotation_euler", F_G, F_SAI + 14, lambda t: (0, 0, t * math.radians(70)), 6)
-    gl2 = para_obj(col, "glifo_int", bm_linhas(segs_glifo(2.2, "hex"), 0.08), M["marca_v"]); gl2.location = (0, 0, 0.03)
+    gl2 = glifo_obj(col, "glifo_int", 2.2, "hex", "v"); gl2.location = (0, 0, 0.03)
     esc(gl2, [(F_G, 0.0), (F_G + 14, 1.0), (F_SAI, 1.0), (F_SAI + 14, 0.0)]); anim(gl2, "rotation_euler", F_G, F_SAI + 14, lambda t: (0, 0, t * math.radians(-110)), 6)
     for k in range(8):                                                         # 8 raios de luz no chao saindo do conjurador (sol baixo)
         a = k * math.pi / 4
@@ -522,9 +623,9 @@ def montar_prece():
         esc(b, [(F_G + 4, 0.0), (F_G + 20, 1.0), (F_SAI - 6, 1.0), (F_SAI + 10, 0.0)])
     for i, (x, y) in enumerate(aliados):                                       # sobre cada aliado: feixe do ceu, setas de buff subindo, losango de status sobre a cabeca
         fb = F_G + 24 + i * 5
-        fx = para_obj(col, "feixe%d" % i, bm_coluna(0.85, 0.7, 9.0, 6), M["feixe_o"]); fx.location = (x, y, 0)
+        fx = para_obj(col, "feixe%d" % i, bm_feixe(0.85, 0.7, 9.0, 6), M["feixe_o"]); fx.location = (x, y, 0)
         esc(fx, [(fb - 1, (1, 1, 1e-3)), (fb + 5, (1.1, 1.1, 1.0)), (fb + 10, (1, 1, 1.0)), (F_SAI - 20, (1, 1, 1.0)), (F_SAI - 4, (0.3, 0.3, 1.0)), (F_SAI - 3, (1e-3,) * 3)]); anim(fx, "rotation_euler", fb, F_SAI - 3, lambda t: (0, 0, t * math.radians(170)), 6)
-        fi = para_obj(col, "feixe_int%d" % i, bm_coluna(0.38, 0.30, 8.0, 6), M["feixe_b"]); fi.location = (x, y, 0); esc(fi, [(fb - 1, (1, 1, 1e-3)), (fb + 4, (1, 1, 1.0)), (F_SAI - 20, (1, 1, 1.0)), (F_SAI - 4, (0.3, 0.3, 1.0)), (F_SAI - 3, (1e-3,) * 3)])
+        fi = para_obj(col, "feixe_int%d" % i, bm_feixe(0.38, 0.30, 8.0, 6), M["feixe_b"]); fi.location = (x, y, 0); esc(fi, [(fb - 1, (1, 1, 1e-3)), (fb + 4, (1, 1, 1.0)), (F_SAI - 20, (1, 1, 1.0)), (F_SAI - 4, (0.3, 0.3, 1.0)), (F_SAI - 3, (1e-3,) * 3)])
         for j in range(7):
             a0 = j * 2 * math.pi / 7 + i; ff = fb + 8 + j * 9; o = para_obj(col, "seta%d_%d" % (i, j), bm_seta(0.20, 0.04), M["ouro"])
             for rep in range(3):
@@ -547,22 +648,22 @@ def montar_ressur():
     ali.rotation_euler = (math.pi / 2, 0, 0); ali.location = (A.x, A.y, 0.2); ali.keyframe_insert("location", frame=1); ali.keyframe_insert("rotation_euler", frame=1)
     for f, z, rot in ((F_CLIM - 12, 0.2, math.pi / 2), (F_CLIM + 14, 1.5, 0.45), (F_CLIM + 34, 1.0, 0.0), (F_CLIM + 46, 0.9, 0.0)):
         ali.location = (A.x, A.y, z); ali.rotation_euler = (rot, 0, 0); ali.keyframe_insert("location", frame=f); ali.keyframe_insert("rotation_euler", frame=f)
-    mc = para_obj(col, "cj_marca", bm_linhas(segs_glifo(0.95, "losango"), 0.06), M["marca"]); mc.location = (0, 0, 0.03); esc(mc, [(1, 0.0), (8, 1.0), (100, 1.0), (112, 0.0)])
+    mc = glifo_obj(col, "cj_marca", 0.95, "hex", "o"); mc.location = (0, 0, 0.03); esc(mc, [(1, 0.0), (8, 1.0), (100, 1.0), (112, 0.0)])
     feixe_reto(col, "fio", (0.45, 0.3, 1.3), (A.x, A.y - 0.4, 0.5), 8, F_CLIM + 8, M["rastro"], 0.06, 4, 10)                          # fio de luz da conjuracao (dura toda a canalizacao)
     # canalizacao: glifo grande no chao sob o aliado, linhas de luz convergem
-    gl = para_obj(col, "glifo", bm_linhas(segs_glifo(3.8, "octa"), 0.12), M["marca"]); gl.location = (A.x, A.y, 0.025)
+    gl = glifo_obj(col, "glifo", 3.8, "octa", "o"); gl.location = (A.x, A.y, 0.025)
     esc(gl, [(14, 0.0), (36, 1.0), (F_CLIM + 70, 1.0), (F_CLIM + 90, 0.0)]); anim(gl, "rotation_euler", 14, F_CLIM + 90, lambda t: (0, 0, t * math.radians(120)), 6)
-    gl2 = para_obj(col, "glifo_int", bm_linhas(segs_glifo(2.0, "hex"), 0.08), M["marca_v"]); gl2.location = (A.x, A.y, 0.03)
+    gl2 = glifo_obj(col, "glifo_int", 2.0, "hex", "v"); gl2.location = (A.x, A.y, 0.03)
     esc(gl2, [(20, 0.0), (40, 1.0), (F_CLIM + 70, 1.0), (F_CLIM + 90, 0.0)]); anim(gl2, "rotation_euler", 20, F_CLIM + 90, lambda t: (0, 0, t * math.radians(-160)), 6)
     for k in range(6):                                                         # pilares nos cantos do hexagono, mais altos que os do glifo de cura
-        a = k * math.pi / 3; p = para_obj(col, "pilar%d" % k, bm_coluna(0.16, 0.03, 4.2, 4), M["pilar"]); p.location = (A.x + math.cos(a) * 3.8, A.y + math.sin(a) * 3.8, 0)
+        a = k * math.pi / 3; p = para_obj(col, "pilar%d" % k, bm_feixe(0.16, 0.03, 4.2, 4), M["pilar"]); p.location = (A.x + math.cos(a) * 3.8, A.y + math.sin(a) * 3.8, 0)
         esc(p, [(30 + k * 3, (1, 1, 1e-3)), (50 + k * 3, (1, 1, 1.0)), (F_CLIM + 60, (1, 1, 1.0)), (F_CLIM + 78, (1, 1, 1e-3))])
     particulas_losango(col, "canal_mote", (A.x, A.y, 0.0), 30, 26, M["ouro"], 3.0, 3.4, (36, 56), (.05, .09), F_CLIM - 6)
     # luz do ceu: feixe largo desce em cima do corpo e pinta tudo de branco-dourado
-    fx = para_obj(col, "feixe", bm_coluna(1.35, 1.15, 16.0, 6), M["feixe_o"]); fx.location = (A.x, A.y, 0)
+    fx = para_obj(col, "feixe", bm_feixe(1.35, 1.15, 16.0, 6), M["feixe_o"]); fx.location = (A.x, A.y, 0)
     esc(fx, [(F_CLIM - 38, (1, 1, 1e-3)), (F_CLIM - 22, (1, 1, 0.5)), (F_CLIM - 8, (1.1, 1.1, 1.0)), (F_CLIM + 50, (1.1, 1.1, 1.0)), (F_CLIM + 66, (0.4, 0.4, 1.0)), (F_CLIM + 67, (1e-3,) * 3)])
     anim(fx, "rotation_euler", F_CLIM - 38, F_CLIM + 67, lambda t: (0, 0, t * math.radians(190)), 6)
-    fi = para_obj(col, "feixe_int", bm_coluna(0.55, 0.45, 15.0, 6), M["feixe_b"]); fi.location = (A.x, A.y, 0)
+    fi = para_obj(col, "feixe_int", bm_feixe(0.55, 0.45, 15.0, 6), M["feixe_b"]); fi.location = (A.x, A.y, 0)
     esc(fi, [(F_CLIM - 34, (1, 1, 1e-3)), (F_CLIM - 18, (1, 1, 1.0)), (F_CLIM + 44, (1, 1, 1.0)), (F_CLIM + 60, (0.3, 0.3, 1.0)), (F_CLIM + 61, (1e-3,) * 3)])
     # asas de luz: 3 laminas de cada lado abrem em leque atras do aliado quando ele se levanta
     for lado in (-1, 1):
@@ -580,8 +681,9 @@ def montar_ressur():
     camera(sc, ref, "cam_lateral", (12.0, 4.0, 3.6), (0, 8.0, 2.2), 30); camera(sc, ref, "cam_aliado", (4.8, 3.8, 2.6), (0, 8.0, 1.6), 32); sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.2, 2.2), (0, 6.5, 1.8), 30)
     return sc
 
-mats(); ref_mats()
+mats(); mats2(); ref_mats()
 cenas = [montar_basico(), montar_cura(), montar_glifo(), montar_escudo(), montar_purifica(), montar_prece(), montar_ressur()]
+for _s in cenas: retarget(_s)
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
-bpy.context.window.scene = cenas[1]
+_vai(cenas[1])
 print("Clerigo pronto:", [(s.name, len(s.objects), s.frame_end) for s in cenas])
