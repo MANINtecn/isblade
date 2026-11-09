@@ -3046,3 +3046,7 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 08/11/2026 - Anuncio do servidor
 - Como usar (dono, na VPS): escrever UMA linha em `<DATA_DIR>/anuncio.txt` (mesma pasta do contas.json; ate 240 letras). Em ate 10 s todos os conectados recebem banner "AVISO DO SERVIDOR" + linha "[Servidor] ..." no chat; quem entra depois recebe no chat (banner so uma vez por sessao). Apagar o arquivo ou deixar vazio = sem aviso. Nao precisa reiniciar o servidor para trocar o texto (so para esta funcao chegar na VPS).
 - `servidor/server.js` [anuncio] e `prototipo/js/net.js` (mensagem `anuncio`). Testado local: aviso escrito com o jogador na cidade chegou no chat.
+
+### [Claude] 08/11/2026 - Mapas abertos multijogador (1a parte)
+- Decisao do dono: todos os mapas multijogador. Servidor: canais `curuma`, `fortress`, `pantano` (50 por canal, como a cidade); posicao inicial vem do cliente; mensagem `st` leva a altura `y` e o snapshot repassa (indice 9). Cliente: arena entra no canal do mapa (antes era a masmorra solo); `net.js` desenha o remoto em `y - Torre.baseY` (suave; salto grande = teleporte). HUD "Torre de Cruma · canal 1 · N online". Ninguem fere ninguem ainda; mobs ainda de cada jogador.
+- Testado local: 2 jogadores na Cruma, mesmo canal, cada um ve o outro no chao com nome e vida. Proximo (pedido do dono no meio): PvP/PK estilo L2 (flag/karma; no celular botao de PK) e party para upar (mobs do grupo compartilhados + XP dividido).

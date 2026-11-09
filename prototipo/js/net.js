@@ -36,7 +36,7 @@ export const Net = (function(){
   function atualizaHud(){
     if(!hudEl) return;
     if(!N.on){ hudEl.textContent = N.tentando ? 'Conectando...' : ''; return; }
-    var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
+    var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : ({ curuma: 'Torre de Cruma', fortress: 'Fortaleza', pantano: 'Pântano Flamejante' })[N.mapa] || 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
     var duelo = N.duelo ? '<br><span style="color:#ffd166">Duelo com ' + N.duelo.nome + (N.duelo.seg > 0 ? ' em ' + Math.ceil(N.duelo.seg) + '...' : '  (H desiste)') + '</span>' : '';
     if(N.mapa === 'masmorra'){ hudEl.innerHTML = ''; return; } var ajuda = N.mapa === 'cidade' && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
     hudEl.innerHTML = nome + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online' + t + duelo + ajuda;
@@ -119,6 +119,7 @@ export const Net = (function(){
     if(recalc){ lista = []; remotos.forEach(function(e){ lista.push({ e: e, d: Math.hypot(e.x - S.px, e.z - S.pz) }); }); lista.sort(function(a, b){ return a.d - b.d; }); lista.forEach(function(o, i){ o.e.vis = i < MAXV && o.e.dentro; o.e.grp.visible = o.e.vis; }); }
     remotos.forEach(function(e){
       var k = Math.min(1, dt * 11); e.x += (e.tx - e.x) * k; e.z += (e.tz - e.z) * k; e.f = angLerp(e.f, e.tf, Math.min(1, dt * 12)); e.grp.position.x = e.x; e.grp.position.z = e.z; e.grp.rotation.y = e.f;
+      if(ctx.alturaRemota){ var yy = typeof e.ty === 'number' ? ctx.alturaRemota(e.ty) : 0; e.gy = (e.gy === undefined || Math.abs(yy - e.gy) > 6) ? yy : e.gy + (yy - e.gy) * k; e.grp.position.y = e.gy; }      /* [mapas-multi] relevo: altura que o outro mandou */
       if(!e.vis || !e.rig) return;
       if(e.hp !== e.hpDes) desenhaTag(e);
       tocar(e, e.morto ? 'death' : e.a); if(e.rig.drv.cur && e.rig.drv.cur.timeScale !== (e.ts || 1)) e.rig.drv.cur.timeScale = e.ts || 1;
@@ -139,7 +140,7 @@ export const Net = (function(){
       m.jog.forEach(addRemoto); ctx.onEntrou(m); atualizaHud(); ctx.sysMsg((m.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' - canal ' + m.canal + (m.eu.team ? ' - Time ' + (m.eu.team === 'A' ? 'Azul' : 'Vermelho') : ''));
     } else if(m.t === 's'){
       var vistos = {}; m.p.forEach(function(p){
-        e = remotos.get(p[0]); if(!e) return; vistos[p[0]] = 1; e.dentro = true; e.tx = p[1]; e.tz = p[2]; e.tf = p[3]; e.a = p[4]; e.hp = p[5]; e.g = p[6]; var morreu = !!p[7]; e.ts = p[8] || 1;
+        e = remotos.get(p[0]); if(!e) return; vistos[p[0]] = 1; e.dentro = true; e.tx = p[1]; e.tz = p[2]; e.tf = p[3]; e.a = p[4]; e.hp = p[5]; e.g = p[6]; var morreu = !!p[7]; e.ts = p[8] || 1; e.ty = p[9];
         if(morreu !== e.morto){ e.morto = morreu; e.curA = ''; if(e.tag) desenhaTag(e); }
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
@@ -284,7 +285,7 @@ export const Net = (function(){
     if(!N.on){ h += '<p>Sem conexão com o servidor. O jogo segue sozinho; duelo e grupo precisam do servidor online.</p>'; }
     else if(aba === 'duelo'){
       h += '<h4>DUELO</h4>'; if(pedDuelo && Date.now() < pedDuelo.ate) h += linhaPed('duelo', pedDuelo);
-      if(N.mapa !== 'cidade') h += '<p>Duelo só na cidade. Aqui a arena é livre: todos contra todos.</p>';
+      if(N.mapa !== 'cidade') h += '<p>Duelo só na cidade.' + (N.mapa === 'pvp' ? ' Aqui a arena é livre: todos contra todos.' : '') + '</p>';
       else if(N.duelo) h += '<p>Em duelo com <b>' + esc(N.duelo.nome) + '</b>. <kbd>H</kbd> desiste.</p>';
       else { var L = perto(40); if(!L.length) h += '<p>Ninguém por perto (até 40 m).</p>'; L.forEach(function(o){ h += '<div class="r"><span class="n">' + esc(o.e.nome) + ' <small>' + esc(bonito(o.e.raca)) + ' · ' + Math.round(o.d) + ' m</small></span><button data-a="duelar" data-v="' + o.e.id + '"' + (o.d > 20 ? ' disabled title="Chegue a 20 m"' : '') + '>Desafiar</button></div>'; }); h += '<p>O duelo não mata: quem chega a 1 de vida perde. Vida cheia ao fim.</p>'; }
     } else if(aba === 'rank'){                                         /* [ranking] top 10 (pagina completa: ranking.html) */
@@ -405,7 +406,7 @@ export const Net = (function(){
     if(!ctx || !N.on) return; tEnv += dt; tHud += dt;
     if(tEnv >= 1 / 12){
       tEnv = 0; var S = ctx.getS(), v = ctx.getVrm(), d = v && v.drv;
-      send({ t: 'st', x: r2(S.px), z: r2(S.pz), f: r2(S.face), h: Math.round(S.php), a: d ? d.curName : 'idle', ts: d && d.cur ? r2(d.cur.timeScale || 1) : 1, g: S.guard ? 1 : 0, w: ctx.getWPN() });
+      send({ t: 'st', x: r2(S.px), z: r2(S.pz), f: r2(S.face), h: Math.round(S.php), a: d ? d.curName : 'idle', ts: d && d.cur ? r2(d.cur.timeScale || 1) : 1, g: S.guard ? 1 : 0, w: ctx.getWPN(), y: ctx.getY ? r2(ctx.getY()) : undefined });
     }
     if(N.duelo && N.duelo.seg > 0){ N.duelo.seg = Math.max(0, (N.duelo.ini - Date.now()) / 1000); }
     if(pedido && Date.now() > pedido.ate) pedido = null;

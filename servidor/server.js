@@ -18,7 +18,10 @@ const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__di
 const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 14;                                                   /* m/s: corrida ~4,3, esquiva 4,6 m em 0,4 s = 11,5; folga de latencia */
-const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } } };     /* masmorra = instancia SOLO (dungeon, duelo com o Baium): um canal por jogador */
+const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } }, curuma: { aberto: 1 }, fortress: { aberto: 1 }, pantano: { aberto: 1 } };
+/* [mapas-multi] 08/11/2026 (dono: todos os mapas multijogador): Cruma, Fortaleza e Pantano tem canais como a cidade (50 por canal); o jogador entra onde o
+   jogo o coloca (posicao inicial vem do cliente) e manda a altura (y) para os outros o desenharem no relevo. Ninguem fere ninguem la (PvP com flag vem depois);
+   mobs continuam de cada jogador ate a Fase 6. */     /* masmorra = instancia SOLO (dungeon, duelo com o Baium): um canal por jogador */
 const ARENA_PVP = { x: -28.4, z: -53.85, r: +process.env.PVP_R || 34 };               /* PvP livre: todos nascem em pontos aleatorios dentro deste raio (parte andavel do circulo do Baium) */
 const SPAWN_TIME = null;    /* mapa de PvP = circulo gigante do Baium (3o andar da Torre, centro -28,4/-53,85, raio 62): cada time nasce num lado, 72 m de distancia */
 const CAP_PVP = +process.env.CAP_PVP || 500;                        /* arena livre: entra quem quiser (limite so de seguranca) */
@@ -49,7 +52,7 @@ function enviaProg(J){ if(J.pers) envia(J, Object.assign({ t: 'prog' }, Prog.inf
 const pmaxMax = p => Prog.pmaxMax(p || { level: 1 });                 /* vida maxima aceita: base + equipamento + nivel + vitalidade (o cliente nao pode declarar mais que isso) */
 
 /* ---- estado ---- */
-let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
+let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [], curuma: [], fortress: [], pantano: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
 function canalLivre(mapa, pedido){
   const L = canais[mapa];
   const cap = mapa === 'pvp' ? CAP_PVP : (mapa === 'masmorra' ? 1 : CAP);
@@ -65,7 +68,7 @@ function canalMasmorra(gid){
   for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; c.dg = null; return c; }
   const c = { mapa: 'masmorra', n: L.length + 1, jog: new Map(), gid: gid || 0 }; L.push(c); return c;
 }
-const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra);
+const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra, canais.curuma, canais.fortress, canais.pantano);
 const r2 = v => Math.round(v * 100) / 100, agora = () => Date.now() / 1000;
 const angDif = (a, b) => { let d = a - b; while(d > Math.PI) d -= 2 * Math.PI; while(d < -Math.PI) d += 2 * Math.PI; return d; };
 function posSpawn(c, J){
@@ -225,7 +228,7 @@ wss.on('connection', ws => {
       J = { id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
             sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
       const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = Math.PI;
-      if(mapa === 'cidade' && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 600 && Math.abs(m.z) < 600){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
+      if((mapa === 'cidade' || MAPAS[mapa].aberto) && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 3000 && Math.abs(m.z) < 3000){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J); J.enV = Inv.encArma(pers);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
       envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
@@ -241,7 +244,8 @@ wss.on('connection', ws => {
         const dx = m.x - J.x, dz = m.z - J.z, d = Math.hypot(dx, dz), max = VMAX * dt + .5;
         if(d > max){ J.x += dx / d * max; J.z += dz / d * max; } else { J.x = m.x; J.z = m.z; }          /* limita a velocidade; se andou demais, so chega mais devagar */
       }
-      if(c.mapa === 'masmorra' && typeof m.h === 'number') J.hp = Math.max(0, Math.min(J.pmax, m.h | 0));      /* so para a barra do grupo: na masmorra o combate e do jogo */
+      if(typeof m.y === 'number' && isFinite(m.y)) J.y = Math.max(-5000, Math.min(5000, m.y));      /* [mapas-multi] altura no relevo (so para desenhar) */
+      if((c.mapa === 'masmorra' || MAPAS[c.mapa].aberto) && typeof m.h === 'number') J.hp = Math.max(0, Math.min(J.pmax, m.h | 0));      /* so para a barra do grupo: na masmorra o combate e do jogo */
       if(typeof m.f === 'number') J.f = m.f; J.a = String(m.a || 'idle').slice(0, 24); J.ts = Math.max(.2, Math.min(5, +m.ts || 1)); J.guarda = !!m.g;
       if(SKILLS[m.w] && m.w !== J.arma && !J.morto){ J.arma = m.w; }
     } else if(m.t === 'atk') ataque(c, J, m);
@@ -359,7 +363,7 @@ setInterval(() => {
     }
     const lista = [...c.jog.values()];
     for(const A of lista){
-      const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts]); }
+      const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null]); }
       envia(A, { t: 's', n: tick, p });
     }
   }

@@ -103,6 +103,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 - [ ] Ícones Cabal para todas as skills do Guerreiro e as que faltam. **P** (Claude)
 
 ### FASE 4 — Social e PvP (~2 semanas)
+- [x] **Mapas abertos multijogador** (decisão do dono, 08/11: todos os mapas são multijogador): Cruma, Fortaleza e Pântano com canais como a cidade, jogadores se veem; base para o PvP com flag. Mobs continuam de cada jogador até a Fase 6. **M** (Claude) — 1ª parte feita 08/11: canais curuma/fortress/pantano no servidor, jogadores se veem no relevo (altura vai junto da posição). Falta (pedido do dono 08/11): PvP/PK estilo L2 (flag, karma, PK no celular por botão) e party para upar junto (mobs compartilhados no grupo + XP dividido).
 - [ ] **PvP com flag e karma nos mapas abertos:** atacar outro jogador deixa o nome roxo; matar inocente dá karma (nome vermelho), quem tem karma pode perder item ao morrer. A casa do Baium segue PvP livre. **M** (Claude)
 - [ ] **Clã simples:** criar com nome e sigla sobre o nome, chat do clã, lista de membros. **M** (Claude)
 - [x] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude) — feito 08/11: `/api/ranking` (top 50, cache 30 s), `ranking.html` pública e aba Ranking no menu (P). Conta vitórias no PvP e chefes derrotados a partir de agora (antes não eram guardados).
@@ -113,12 +114,12 @@ Guia de desenho de skills (para ficar familiar e divertido):
 - [ ] Fases 0, 1 e 2 completas; Guardião, Mago e Guerreiro com 6 skills prontas.
 - [ ] Teste de carga com bots (`servidor/teste_bots.js`): 50 jogadores por canal sem travar.
 - [ ] Rodando bem em 2 celulares de referência (um médio e um fraco), medido pelo log.
-- [ ] Recuperação de conta (o admin redefine a senha) e aviso "beta: o progresso pode ser zerado no lançamento".
+- [ ] Recuperação de conta (o admin redefine a senha) — **deixar para o final** (dono, 08/11) e aviso "beta: o progresso pode ser zerado no lançamento".
 
 Divulgação:
 - [ ] **Página do beta** no site L2 IKARUS: botão Jogar, vídeo curto, Discord, requisitos. **M** (Claude)
 - [x] **Modo câmera para gravar** (esconde a HUD, câmera livre, câmera lenta). **P** (Claude) — feito 08/11 (PC): F9 esconde/mostra a HUD, F10 câmera lenta (1/2, 1/4); câmera livre solta do personagem ainda não.
-- [x] **Anúncio do servidor** dentro do jogo (manutenção, eventos). **P** (Claude) — feito 08/11: escrever uma linha em `<DATA_DIR>/anuncio.txt` na VPS (apagar = sem aviso); em até 10 s todos os conectados veem o banner e a linha no chat; quem entra depois recebe no chat.
+- [x] **Anúncio do servidor** dentro do jogo (manutenção, eventos). **P** (Claude) — feito 08/11: escrever uma linha em `<DATA_DIR>/anuncio.txt` na VPS (apagar = sem aviso); em até 10 s todos os conectados veem o banner e a linha no chat; quem entra depois recebe no chat. **Agenda (dono, 08/11):** substituir o arquivo por um painel no site (admin escreve o aviso lá).
 - [ ] **Roteiro de vídeos** (pode começar JÁ como diário de desenvolvimento): skill do Blender ao jogo · luta do Baium · PvP na casa do Baium · DG em party · "MMO do L2 no navegador, abre no celular". (Dono)
 - [ ] Evento de abertura do beta (ex.: primeiro a matar o Baium ganha título). (Dono)
 
