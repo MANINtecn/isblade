@@ -40,6 +40,7 @@ function ganhaXp(J, v){
   J.lv = J.pers.level; Contas.grava(); envia(J, Object.assign({ t: 'prog', subiu: subiu ? 1 : 0, ganhou: v }, Prog.info(J.pers)));
 }
 function premia(J, tipo, dif, xp){                                   /* adena (e itens do chefe) no abate: o servidor sorteia, guarda e avisa */
+  if(tipo === 'boss' || /^chefe_/.test(tipo)) J.pers.chefes = (J.pers.chefes | 0) + 1;      /* [ranking] chefes derrotados (Baium, chefes de DG e de campo) */
   const r = Inv.abate(J.pers, tipo, dif, xp); if(!r) return; Contas.grava();
   envia(J, { t: 'drop', adena: r.adena, itens: r.itens, cheia: r.cheia ? 1 : 0 }); envia(J, { t: 'inv', inv: J.pers.inv });
 }
@@ -111,7 +112,8 @@ function fere(c, A, V, base, t, pid){
   V.hp = Math.max(duelo ? 1 : 0, V.hp - dano);                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
   difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0, p: pid || 0 });
   if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
-  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; ganhaXp(A, Math.round(Prog.xpMob(V.lv || 1) * 3)); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
+  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; if(A.pers){ A.pers.pvp = (A.pers.pvp | 0) + 1; }      /* [ranking] vitorias no PvP (persistem) */
+    ganhaXp(A, Math.round(Prog.xpMob(V.lv || 1) * 3)); difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
 }
 
 /* ---- projeteis: o servidor faz o projetil VOAR na velocidade da skill e so acerta quem estiver no caminho; esquiva (imune) e guarda valem ---- */

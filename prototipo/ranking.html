@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IS BLADE · Ranking</title>
+<!-- [ranking] 08/11/2026: pagina publica (abre sem conta). Dados: GET /api/ranking do servidor de jogo (top 50 por nivel, vitorias no PvP e chefes derrotados; cache de 30 s). -->
+<style>
+  :root{--fundo:#060a14;--painel:#0d1628;--borda:#2b3a63;--texto:#e4edf8;--fraco:#8fa0bf;--ouro:#f5c451;--prata:#cfd8e8;--bronze:#d08a4e}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#16233f 0%,var(--fundo) 60%);color:var(--texto);font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:720px;margin:0 auto;padding:28px 16px 48px}
+  h1{margin:0;font-size:26px;letter-spacing:.22em;color:var(--ouro);text-align:center}
+  .sub{text-align:center;color:var(--fraco);margin:6px 0 22px;font-size:13px}
+  .abas{display:flex;gap:6px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+  .abas button{font:inherit;font-weight:700;letter-spacing:.08em;color:var(--texto);background:#111c33;border:1px solid var(--borda);border-radius:6px;padding:8px 14px;cursor:pointer}
+  .abas button.on{background:#24355c;border-color:#5a7ea6;color:var(--ouro)}
+  table{width:100%;border-collapse:collapse;background:var(--painel);border:1px solid var(--borda);border-radius:8px;overflow:hidden}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(90,126,166,.2)}
+  th{font-size:11px;letter-spacing:.12em;color:var(--fraco);font-weight:600;background:#0a1222}
+  td.n{width:44px;font-weight:700;color:var(--fraco)}
+  td.v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  th.v{text-align:right}
+  tr.p1 td.n{color:var(--ouro)} tr.p2 td.n{color:var(--prata)} tr.p3 td.n{color:var(--bronze)}
+  .cl{color:var(--fraco);font-size:12px}
+  .msg{text-align:center;color:var(--fraco);padding:26px 0}
+  .rodape{display:flex;justify-content:space-between;gap:10px;margin-top:12px;color:var(--fraco);font-size:12px;flex-wrap:wrap}
+  .rodape a{color:var(--ouro);text-decoration:none;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <h1>RANKING</h1>
+  <div class="sub">IS BLADE · Beta</div>
+  <div class="abas">
+    <button type="button" data-k="nivel" class="on">NÍVEL</button>
+    <button type="button" data-k="pvp">PVP</button>
+    <button type="button" data-k="chefes">CHEFES</button>
+  </div>
+  <div id="tab"><div class="msg">Carregando...</div></div>
+  <div class="rodape"><span id="info"></span><a href="index.html">Jogar</a></div>
+</main>
+<script>
+(function(){
+  var CL = { guardiao: 'Guardião', mago: 'Mago', guerreiro: 'Guerreiro', clerico: 'Clérigo' };
+  var COL = { nivel: 'NÍVEL', pvp: 'VITÓRIAS', chefes: 'CHEFES' };
+  var aba = 'nivel', dados = null;
+  function base(){
+    try { var v = localStorage.getItem('isblade.srv'); if(v){ var m = /^wss?:\/\/([^\/]+)/.exec(v); if(m) return (v.indexOf('wss') === 0 ? 'https://' : 'http://') + m[1]; } } catch(e){}
+    if(/^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname)) return location.origin;
+    return 'https://play.isblade.tecx.pro';
+  }
+  function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function desenha(){
+    var el = document.getElementById('tab');
+    if(!dados){ el.innerHTML = '<div class="msg">Servidor fora do ar. Tente de novo em instantes.</div>'; return; }
+    var L = dados[aba] || [];
+    if(!L.length){ el.innerHTML = '<div class="msg">' + (aba === 'pvp' ? 'Ninguém venceu no PvP ainda.' : 'Ninguém derrotou um chefe ainda.') + '</div>'; return; }
+    var h = '<table><tr><th>#</th><th>PERSONAGEM</th><th class="v">' + COL[aba] + '</th>' + (aba !== 'nivel' ? '<th class="v">NÍVEL</th>' : '') + '</tr>';
+    L.forEach(function(p, i){
+      h += '<tr class="p' + (i + 1) + '"><td class="n">' + (i + 1) + '</td><td>' + esc(p.nome) + ' <span class="cl">' + esc(CL[p.classe] || '') + '</span></td><td class="v">' + p[aba] + '</td>' + (aba !== 'nivel' ? '<td class="v">' + p.nivel + '</td>' : '') + '</tr>';
+    });
+    el.innerHTML = h + '</table>';
+  }
+  function carrega(){
+    fetch(base() + '/api/ranking').then(function(r){ return r.json(); }).then(function(j){
+      dados = j; desenha();
+      document.getElementById('info').textContent = (j.total || 0) + ' personagens · atualizado ' + new Date(j.quando || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }).catch(function(){ dados = null; desenha(); });
+  }
+  [].forEach.call(document.querySelectorAll('.abas button'), function(b){
+    b.onclick = function(){ aba = b.getAttribute('data-k'); [].forEach.call(document.querySelectorAll('.abas button'), function(x){ x.classList.toggle('on', x === b); }); desenha(); };
+  });
+  carrega(); setInterval(carrega, 60e3);
+})();
+</script>
+</body>
+</html>

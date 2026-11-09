@@ -706,7 +706,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=32';
+import { Net } from './js/net.js?v=33';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -725,7 +725,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 import { Torre } from './js/torre.js?v=10';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=17';
+import { MuHud } from './js/mu_hud.js?v=18';
 
 window.THREE = THREE;
 

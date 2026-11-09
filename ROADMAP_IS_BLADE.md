@@ -105,7 +105,7 @@ Guia de desenho de skills (para ficar familiar e divertido):
 ### FASE 4 — Social e PvP (~2 semanas)
 - [ ] **PvP com flag e karma nos mapas abertos:** atacar outro jogador deixa o nome roxo; matar inocente dá karma (nome vermelho), quem tem karma pode perder item ao morrer. A casa do Baium segue PvP livre. **M** (Claude)
 - [ ] **Clã simples:** criar com nome e sigla sobre o nome, chat do clã, lista de membros. **M** (Claude)
-- [ ] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude)
+- [x] **Ranking** (nível, PvP, abates do Baium) no jogo e numa página pública — bom para vídeo. **P** (Claude) — feito 08/11: `/api/ranking` (top 50, cache 30 s), `ranking.html` pública e aba Ranking no menu (P). Conta vitórias no PvP e chefes derrotados a partir de agora (antes não eram guardados).
 - [ ] Party com papéis: XP dividido por perto, bônus por classe diferente no grupo. **P** (Claude)
 
 ### FASE 5 — Lançar o Beta Demo e divulgar

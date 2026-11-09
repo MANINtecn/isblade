@@ -3032,3 +3032,9 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 ### [Claude] 08/11/2026 - Ameaca do Guardiao (Rugido = Aggression do L2)
 - `arena.html` [ameaca]: skill com `taunt` (Rugido do Guardiao, range 10) marca `m.foco` nos mobs do raio e `DG.bossFoco` no chefe por 6 s; `mobAlvo`/`bossAlvo` respeitam o foco antes de "o mais perto". Mob passivo no raio entra em combate (sem chamar o grupinho). Guardiao convidado do grupo: o lider recebe o efeito da skill (skillFxRemoto) e aplica com o id dele. "PROVOCADO" aparece sobre os mobs.
 - Testado local (sozinho, Cruma): 3 mobs passivos a <10 m entraram em combate e vieram para cima. NAO testado: DG em grupo com Guardiao convidado (precisa 2 jogadores), chefe, celular.
+
+### [Claude] 08/11/2026 - Ranking
+- Servidor: o personagem passa a guardar `pvp` (vitorias no PvP, em `fere`) e `chefes` (Baium, chefes de DG e de campo, em `premia`); `GET /api/ranking` publico em contas.js: top 50 por nivel, PvP e chefes, cache de 30 s. Contagem comeca agora (nada disso era guardado antes).
+- `prototipo/ranking.html`: pagina publica (abre sem conta, boa para video/site), abas Nivel/PvP/Chefes, atualiza a cada minuto. No jogo: a aba "Ranking" do menu P (que existia desligada) mostra o top 10 e o link da pagina.
+- De quebra: o HUD mostrava "Guardiao" quando faltava `isblade.weapon` no navegador; agora usa a classe que vem do servidor (`js/mu_hud.js`).
+- Testado local: chefe abatido entrou no ranking de chefes; menu e pagina conferidos na foto. VPS: reiniciar o servidor.

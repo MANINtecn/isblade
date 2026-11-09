@@ -723,7 +723,7 @@ export const MuHud = {
     var lvlEl = document.getElementById('muPlayerLvl');
     if (lvlEl && S.lvl) lvlEl.textContent = 'Nv. ' + S.lvl;
 
-    var wpn = localStorage.getItem('isblade.weapon') || 'shield';
+    var wpn = ({ guardiao: 'shield', mago: 'staff', guerreiro: 'sword' })[S.classe] || localStorage.getItem('isblade.weapon') || 'shield';   /* classe do servidor primeiro */
     var clsEl = document.getElementById('muPlayerClass');
     if (clsEl) {
       clsEl.textContent = (wpn === 'shield' ? 'Guardião' : (wpn === 'staff' ? 'Místico' : 'Guerreiro'));

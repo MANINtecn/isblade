@@ -123,6 +123,7 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
   }
   function validaToken(tk){ if(!/^[a-f0-9]{64}$/.test(String(tk || ''))) return null; const h = sha(tk); for(const u in DB.contas){ const c = DB.contas[u]; if(c.tokens.some(t => t.h === h)){ migra(c); return c; } } return null; }
 
+  const RK = { t: 0, v: null };
   async function http(req, res, url){
     cors(req, res);
     if(req.method === 'OPTIONS'){ res.writeHead(204); return res.end(); }
@@ -155,6 +156,16 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
         if(!linha.texto.trim()) return resp(res, 400, { erro: 'Escreva o que aconteceu.' });
         fs.appendFile(path.join(DIR, 'relatos.jsonl'), JSON.stringify(linha) + '\n', e => { if(e) console.error('relato: falha ao gravar', e.message); });
         return resp(res, 200, { ok: true });
+      }
+      if(url === '/api/ranking' && req.method === 'GET'){      /* [ranking] publico: top 50 por nivel, PvP e chefes (cache de 30 s) */
+        const agora = Date.now();
+        if(!RK.v || agora - RK.t > 30e3){
+          const todos = [];
+          for(const u in DB.contas) for(const p of (DB.contas[u].pers || [])) todos.push({ nome: p.name, classe: p.classe || '', nivel: p.level | 0 || 1, pvp: p.pvp | 0, chefes: p.chefes | 0 });
+          const top = k => todos.slice().sort((a, b) => (b[k] - a[k]) || (b.nivel - a.nivel)).filter(x => k === 'nivel' || x[k] > 0).slice(0, 50);
+          RK.v = { nivel: top('nivel'), pvp: top('pvp'), chefes: top('chefes'), total: todos.length, quando: agora }; RK.t = agora;
+        }
+        return resp(res, 200, RK.v);
       }
       if(url === '/api/dados'){
         const c = quem(req); if(!c) return resp(res, 401, { erro: 'Entre na conta.' });
