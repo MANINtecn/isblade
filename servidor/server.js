@@ -49,7 +49,8 @@ function premia(J, tipo, dif, xp){                                   /* adena (e
   const r = Inv.abate(J.pers, tipo, dif, xp); if(!r) return; Contas.grava();
   envia(J, { t: 'drop', adena: r.adena, itens: r.itens, cheia: r.cheia ? 1 : 0 }); envia(J, { t: 'inv', inv: J.pers.inv });
 }
-function avisaEnc(c, J){ const e = Inv.encArma(J.pers); if(e !== (J.enV | 0)){ J.enV = e; difunde(c, { t: 'en', v: J.id, en: e }, J); } }       /* brilho da arma: os outros veem */
+function avisaEnc(c, J){ const e = Inv.encArma(J.pers); if(e !== (J.enV | 0)){ J.enV = e; difunde(c, { t: 'en', v: J.id, en: e }, J); }
+  const wb = Inv.armaBase(J.pers); if(wb !== (J.wbV || '')){ J.wbV = wb; difunde(c, { t: 'wb', v: J.id, b: wb }, J); } }       /* [graus] modelo da arma pelo grau: os outros veem */       /* brilho da arma: os outros veem */
 function enviaProg(J){ if(J.pers) envia(J, Object.assign({ t: 'prog' }, Prog.info(J.pers))); }
 const pmaxMax = p => Prog.pmaxMax(p || { level: 1 });                 /* vida maxima aceita: base + equipamento + nivel + vitalidade (o cliente nao pode declarar mais que isso) */
 
@@ -86,7 +87,7 @@ ANUNCIO = leAnuncio();
 setInterval(() => { const s = leAnuncio(); if(s === ANUNCIO) return; ANUNCIO = s; if(!s) return; const o = JSON.stringify({ t: 'anuncio', txt: s, novo: 1 }); for(const c of todosCanais()) for(const J of c.jog.values()) if(J.ws.readyState === 1) J.ws.send(o); }, 10e3);
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
-const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '', cla: Clas.sigla(J.pers) });
+const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '', cla: Clas.sigla(J.pers), wb: Inv.armaBase(J.pers) });
 
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */

@@ -105,6 +105,7 @@ function encantar(pers, uid){
   return { erro: '', ok: false, quebrou: true, nivel: atual, nome: b.name, slot: b.slot, equipado: eq };
 }
 /* encantamento da arma equipada (para o brilho que os outros jogadores veem) */
+function armaBase(pers){ const inv = pers && pers.inv; if(!inv || !inv.equip) return ''; const it = (inv.items || []).find(i => i.uid === inv.equip.weapon); return it ? it.base : ''; }      /* [graus] arma equipada (os outros veem o modelo do grau) */
 function encArma(pers){ const inv = pers && pers.inv; if(!inv || !inv.equip) return 0; const it = (inv.items || []).find(i => i.uid === inv.equip.weapon); return (it && it.en) | 0; }
 
 /* ---- armazem do Wilford (data/loja.json -> armazem): bau da CONTA {items, adena}, todos os personagens da conta usam o mesmo ----
@@ -176,4 +177,4 @@ function abate(pers, tipo, dif, xpDoAbate){
   return { adena, itens, cheia: n > itens.length && inv.items.length >= D.bagMax };
 }
 
-module.exports = { nome: id => (baseDe(id) || { name: id }).name, recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, armazem, tiro, garanteArm, loja: () => LJ };
+module.exports = { armaBase, nome: id => (baseDe(id) || { name: id }).name, recarrega: carrega, garante, pedido, abate, comprar, vender, usar, encantar, encArma, armazem, tiro, garanteArm, loja: () => LJ };

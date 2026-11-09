@@ -3095,3 +3095,7 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 
 ### [Claude] 09/11/2026 - Party: bonus por classe diferente
 - `server.js abateMundo`: alem do bonus de grupo do L2 (x1,3 com 2, x1,39 com 3... dividido), +10% de XP por classe diferente na party perto (Guardiao + Mago = +10%; as 3 classes = +20%). Incentiva party com tanque/dano/magia. Testado local (guerreiro + mago em party na Cruma): os dois ganharam XP no abate, sem erro.
+
+### [Claude] 09/11/2026 - Outros jogadores veem a arma do grau
+- Servidor: `Inv.armaBase` (base da arma equipada) vai no info do jogador (`wb`) e muda em tempo real (`avisaEnc` difunde `wb`, junto do brilho do encantamento). Cliente: `net.js aplicaArma` chama `ctx.armaRemota` -> `ArmaGrau.aplica` no boneco do outro jogador (arena e cidade).
+- Testado local (2 jogadores + SextaFeira na cidade): o guerreiro ve o Cajado Fantasma do mago, o mago ve a Claymore do guerreiro, os dois veem a Two-Handed Sword (Sem grau) da SextaFeira.

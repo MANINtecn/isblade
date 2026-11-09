@@ -1329,7 +1329,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=38';
+import { Net } from './js/net.js?v=39';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -17861,6 +17861,7 @@ setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.
 try{Musica.init({lugar:function(){return 'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 try{Expedicao.init({pagina:'cidade',mapa:null,S:function(){return S;}});}catch(_){}/* [expedicao] */
 Net.init({
+  armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},

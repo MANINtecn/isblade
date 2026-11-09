@@ -115,10 +115,11 @@ export const Net = (function(){
   function aplicaArma(e){
     var r = e.rig; if(!r) return; var a = e.arma;
     if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = false;
+    if(ctx.armaRemota) ctx.armaRemota(r, e.wb || '');      /* [graus] modelo da arma pelo grau */
   }
   function addRemoto(p){
     if(remotos.has(p.id)) return;
-    var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, cla: p.cla || '', raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
+    var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, cla: p.cla || '', wb: p.wb || '', raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
     e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e); e.en = p.en | 0; brilho(e);
     ctx.loadL2(heroUrl(p.raca), function(r){
       if(!remotos.has(e.id)){ return; }
@@ -222,6 +223,7 @@ export const Net = (function(){
     else if(m.t === 'arm'){ if(ctx.arm) ctx.arm(m); }
     else if(m.t === 'ss'){ if(ctx.ss) ctx.ss(m); }
     else if(m.t === 'en'){ e = remotos.get(m.v); if(e){ e.en = m.en | 0; brilho(e); } }
+    else if(m.t === 'wb'){ e = remotos.get(m.v); if(e){ e.wb = m.b || ''; aplicaArma(e); } }
     else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp); } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); } } }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
@@ -475,7 +477,7 @@ export const Net = (function(){
   N.arm = function(k, o){ if(!N.on) return false; send(Object.assign({ t: 'arm', k: k }, o || {})); return true; };
   N.usar = function(id){ if(!N.on) return false; send({ t: 'usar', id: id }); return true; };
   N.chat = function(txt, c){ if(N.on) send({ t: 'chat', m: String(txt).slice(0, 120), c: c || '' }); return N.on; };      /* chat: '' geral, 'g' grupo */
-  if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) N._dbgSend = send;      /* so testes locais */
+  if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){ N._dbgSend = send; N._dbgRemotos = remotos; }      /* so testes locais */
   N.mhit = function(id, d){ if(N.on) send({ t: 'mhit', id: id, d: Math.round(d) }); };      /* [mobs-servidor] dano num mob do servidor */
   N.mtaunt = function(r){ if(N.on) send({ t: 'mtaunt', r: r }); };
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
