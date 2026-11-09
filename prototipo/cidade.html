@@ -791,6 +791,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
+<script src="js/mundo_campo.js?v=1"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -3233,6 +3234,7 @@ function getGroundHeight(x, z) {
 
 
   var dist = Math.hypot(x, z);
+  if (dist > 92 && window.MundoCampo && MundoCampo.pronto) { var hm = MundoCampo.altura(x, z); if (hm !== null) return hm; }/* [mundo] fora da muralha: terreno do mapa-mundi (js/mundo_campo.js) */
 
 
 
@@ -3481,6 +3483,12 @@ islandMesh.receiveShadow = true;
 
 
 scene.add(islandMesh);
+/* [mundo] 09/11/2026: terreno real de fora da muralha (mapa-mundi do Blender). A placa da cidade fica so dentro da muralha (fora dela afunda e some). */
+if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).then(function(){
+  var pa = islandGeo.attributes.position; for (var ii = 0; ii < pa.count; ii++) { if (Math.hypot(pa.getX(ii), pa.getZ(ii)) > 92) pa.setY(ii, pa.getY(ii) - 8); }
+  pa.needsUpdate = true; islandGeo.computeVertexNormals();
+  var esconde = setInterval(function(){ if (window.Horizonte && Horizonte.itens) Horizonte.itens.forEach(function(it){ it.grupo.visible = false; }); }, 500); setTimeout(function(){ clearInterval(esconde); }, 8000);
+}).catch(function(e){ console.warn('mundo', e); });
 
 
 

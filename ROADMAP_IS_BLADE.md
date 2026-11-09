@@ -128,7 +128,8 @@ Divulgação:
 ### FASE 6 — Depois do beta
 - [~] **Mundo aberto estilo Priston Tale** (dono, 09/11; substitui "trocar de mapa sem recarregar"): cidade no centro, mapas ligados a cada saída, carregados por proximidade (no máximo cidade + 1 mapa na memória), sem tela de carregamento ao atravessar.
   - [x] Mapa-múndi no Blender (`tools/blender_mundo/mapa_mundi.py` -> `mapa_mundi.blend`, local): mapas posicionados por fora do anel na direção de cada portão, estradas guia, `data/mundo.json` (exporta). Dono ajusta terreno/posições.
-  - [ ] **Campo de Talking Island** (a emenda): anel em volta da muralha com mobs Nv 1–20 (spots por faixa já marcados), terreno esculpido pelo dono.
+  - [x] Mundo no jogo, etapa 1 (09/11): `tools/blender_mundo/exporta_mundo.py` -> `assets/mundo/` (grade de 3 m com altura, bioma, região e andável + texturas); `js/mundo_campo.js` monta o terreno fora da muralha na cidade com a textura fundida; `getGroundHeight` usa o terreno real.
+  - [ ] **Campo de Talking Island** (a emenda): anel em volta da muralha com mobs Nv 1–20 (spots por faixa já marcados), terreno esculpido pelo dono. — próximo: abrir os portões, portais no fim das estradas, mobs do servidor nos spots.
   - [ ] Página única (cidade + mapas no mesmo jogo, conexão mantida) — esperar o dono terminar as skills (arena.html) e trazer o log do celular.
   - [ ] Carregar o mapa vizinho perto do portão e soltar o que ficou longe; servidor troca o canal ao cruzar a divisa.
 - [~] Mobs e DGs simulados no servidor (hoje o líder do grupo comanda os mobs). — **mapas abertos FEITO 08/11** (adiantado a pedido do dono: `servidor/mobs_mundo.js`); DGs ainda pelo líder.
