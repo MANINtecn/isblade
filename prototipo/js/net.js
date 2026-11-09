@@ -173,9 +173,10 @@ export const Net = (function(){
     } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
     } else if(m.t === 'prog'){ if(ctx.prog) ctx.prog(m);
     } else if(m.t === 'proj'){ if(ctx.projRemoto) ctx.projRemoto(m);
-    } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && !e.morto){ if(m.k === 's' && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f); else if(m.k === 'b' && ctx.fxBasico) ctx.fxBasico(e, m.v, m.f, m); }
+    } else if(m.t === 'atk'){ e = remotos.get(m.id); if(e && !e.morto){ if(m.k === 's' && ctx.fxSkill) ctx.fxSkill(e, m.v, m.f, m); else if(m.k === 'b' && ctx.fxBasico) ctx.fxBasico(e, m.v, m.f, m); }
     } else if(m.t === 'j'){ addRemoto(m.p); atualizaHud();
     } else if(m.t === 'l'){ removeRemoto(m.id); atualizaHud();
+    } else if(m.t === 'cc'){ if(ctx.cc) ctx.cc(m);      /* paralisia / zona de espinhos (servidor) */
     } else if(m.t === 'hit'){
       if(m.p && ctx.projFim) ctx.projFim(m.p);
       var ratio = 0;
@@ -487,8 +488,8 @@ export const Net = (function(){
   N.mtaunt = function(r){ if(N.on) send({ t: 'mtaunt', r: r }); };
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){
-    if(!N.on || !an) return; if(an.magoB) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();
-    if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; send({ t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }); }
+    if(!N.on || !an) return; if(an.magoB || an._tarde) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();
+    if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; var om = { t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }; if(an.skill.area && an.alvo){ om.x = r2(an.alvo.x); om.z = r2(an.alvo.z); om.d = r2(an.skill.area.delay || .8); } send(om); }      /* skill de area (meteoro, coluna): ponto mirado + tempo do aviso */
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };
   /* ---- dungeon em grupo ---- */

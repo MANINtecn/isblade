@@ -72,3 +72,9 @@ Corrija este arquivo (`.claude/skills/skill-pronta/SKILL.md`) no mesmo commit e 
 ## Pronta = o jogo inteiro (regra do dono, 02/11)
 - Skill ou ataque padrao pronto vale em TODO lugar onde ha combate, nao so na arena. Hoje as unicas paginas com combate ao vivo sao `arena.html` (Torre, DG, duelo, mapas abertos `?mapa=`) e `cidade.html` (espantalho, PvP da cidade); `combate.html` e legado, sem link. Ao ligar uma skill, conferir as DUAS: `grep -c "<Classe>FX\|magoBasicoIni" prototipo/arena.html prototipo/cidade.html` e testar nas duas (e num mapa aberto). Se surgir pagina nova de combate, entra nesta lista.
 - Nada de entregar so onde foi pedido primeiro: a rota inteligente e perguntar "onde mais o jogador luta?" antes de dizer que esta pronta.
+
+## Skills do mago 2 a 5 (o que o Meteoro/Disco/Coluna/Espinho ensinaram)
+- Efeito em JS procedural quando o desenho do Blender e so formas simples: `js/mago_fx2.js` (`MagoFX2.meteoro/coluna` para ponto mirado com aviso; `MagoFX2.cria[proj.visual]` para projetil; `paralisia/zona` para estados). O projetil recebe `p` em `update(dt, prog, p)` e pode trazer `impacto(p)` (ganchos em `spawnProj`/`updateProj`).
+- Skill de AREA em ponto mirado: no json `mira:true, mira_min, mira_max, raio:[r], area:{delay, raio}` + `golpe` (CC). `applyHit` faz duas passadas (`an._tarde`): na 1a comeca o efeito e agenda; na 2a, `delay` s depois, cai o dano (mobs/chefe). O servidor (`areaSkill`) usa x,z,d enviados por `Net.atacou`. Na CIDADE o `castSkill` precisa do trecho `[mira]` (ja tem).
+- Paralisia/zona: `proj.paralisa` (s) + `zona:{raio,dur,tick,dmg}`; cliente (`paralisaAlvo`, `zonasTick`) para PvE e servidor (`paralisa`, aviso `cc`) para PvP.
+- Teste: `python tools/teste_mago_skills2.py <prints> <url> arena|cidade` e `tools/teste_mago_skills2_pvp.py` (cria o mago com `weapon:'staff'`; se criar com 'sword' ele joga com skills de espada).

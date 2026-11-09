@@ -30,7 +30,7 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
-try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASICO = {};                                              /* arma -> ataque padrao em ponto mirado (data/armas/<arma>.json -> basico), ex.: cajado/mago */
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.basico && j.basico.niveis) BASICO[j.id] = j.basico; }); } catch(e){ console.log('basico:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
@@ -183,7 +183,7 @@ function fere(c, A, V, base, t, pid){
 let proxProj = 1;
 function criaProj(c, A, d, idx){
   const p = d.proj, dx = Math.sin(A.f), dz = Math.cos(A.f);
-  const pr = { id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora() };
+  const pr = { id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora(), par: +p.paralisa || 0, zona: d.zona || null };
   (c.proj = c.proj || []).push(pr); if(c.proj.length > 200) c.proj.shift();
   difunde(c, { t: 'proj', pid: pr.id, a: A.id, ar: A.arma, i: idx, x: r2(pr.x), z: r2(pr.z), dx: r2(dx), dz: r2(dz), v: pr.v, r: pr.range }, A);
 }
@@ -194,12 +194,35 @@ function passaProj(c, t){
     for(const V of c.jog.values()){
       if(V === p.A || V.morto || p.hit.has(V.id) || t < V.imune || !podeFerir(c, p.A, V, t)) continue;
       const sx = nx - p.x, sz = nz - p.z, l2 = sx * sx + sz * sz || 1e-6, u = Math.max(0, Math.min(1, ((V.x - p.x) * sx + (V.z - p.z) * sz) / l2)), qx = p.x + sx * u, qz = p.z + sz * u;      /* trecho percorrido neste quadro: nao atravessa ninguem em alta velocidade */
-      if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id); if(!p.pierce){ p.d = p.range + 1; break; } }
+      if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id); if(p.par) paralisa(c, p.A, V, p.par, p.zona); if(!p.pierce){ p.d = p.range + 1; break; } }
     }
     p.x = nx; p.z = nz; p.d += passo; if(p.d >= p.range) L.splice(i, 1);
   }
 }
 
+/* ---- mago: paralisia (espinho paralisante) e zona de espinhos no chao; data/armas/staff.json -> proj.paralisa / zona ---- */
+function paralisa(c, A, V, seg, zona){
+  const x0 = V.x, z0 = V.z; difunde(c, { t: 'cc', k: 'par', v: V.id, x: r2(x0), z: r2(z0), s: seg });      /* o cliente da vitima fica sem agir; todos veem os espinhos */
+  if(!zona) return;
+  setTimeout(() => {
+    difunde(c, { t: 'cc', k: 'zona', x: r2(x0), z: r2(z0), r: zona.raio, d: zona.dur, tk: zona.tick });
+    let n = 0; const total = Math.max(1, Math.round(zona.dur / zona.tick)), iv = setInterval(() => {
+      if(++n > total){ clearInterval(iv); return; } const t2 = agora();
+      for(const W of c.jog.values()){ if(W === A || W.morto || t2 < W.imune || !podeFerir(c, A, W, t2)) continue; if(Math.hypot(W.x - x0, W.z - z0) <= zona.raio + .45) fere(c, A, W, zona.dmg, t2, 0); }
+    }, zona.tick * 1000);
+  }, seg * 1000);
+}
+/* ---- skill de area em ponto mirado (meteoro, coluna): aviso de `area.delay` s; quem ainda estiver no raio leva o dano ---- */
+function areaSkill(c, A, d, m){
+  let x = +m.x, z = +m.z; if(!isFinite(x) || !isFinite(z)){ x = A.x + Math.sin(A.f) * 6; z = A.z + Math.cos(A.f) * 6; }
+  const dx = x - A.x, dz = z - A.z, dd = Math.hypot(dx, dz) || 1, dist = Math.max(2, Math.min(d.range || 10, dd)); x = A.x + dx / dd * dist; z = A.z + dz / dd * dist;
+  const dl = Math.max(.3, Math.min(1.5, d.area.delay || .8));
+  difunde(c, { t: 'atk', id: A.id, k: 's', v: m.i | 0, f: r2(A.f), x: r2(x), z: r2(z), d: r2(dl) });
+  setTimeout(() => {
+    if(A.morto) return; const t2 = agora();
+    for(const V of c.jog.values()){ if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue; if(Math.hypot(V.x - x, V.z - z) <= (d.area.raio || 2) + .45) fere(c, A, V, d.dmg, t2, 0); }
+  }, dl * 1000);
+}
 function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
 /* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
 function ataqueMira(c, A, m, t){
@@ -227,10 +250,11 @@ function ataque(c, A, m){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
     if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > 3) return; parte2 = true; }            /* 2o golpe da mesma skill: sem nova recarga */
     else { if((A.cd[A.arma + i] || 0) > t + .9) return; A.cd[A.arma + i] = t + s.cd; A.ultSk = A.arma + i; A.ultSkT = t; }
-    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj };
+    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona };
   } else return;
   A.f = typeof m.f === 'number' ? m.f : A.f;
   const ss = parte2 ? (A.ssUlt || 0) : (A.ssUlt = tiro(A)); if(ss) d = Object.assign({}, d, { dmg: Math.round(d.dmg * (1 + ss)) });      /* soulshot: o 2o golpe da skill usa o mesmo tiro */
+  if(d.area){ if(!parte2) areaSkill(c, A, d, m); return; }                                                    /* [mago] skill de area: aviso e dano no ponto mirado */
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
   if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
   for(const V of c.jog.values()){
