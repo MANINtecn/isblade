@@ -3159,3 +3159,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Dono vendo/esculpindo no Blender (janela separada; a do mage_skills do outro chat ficou intacta).
 
 - (09/11) Dono: "voce fez uma ponte; eu quero terreno, espaco para fazer mais coisa". PASSARELA_PANTANO trocada por TERRA_PANTANO (`tools/blender_mundo/terra_pantano.py`): area organica ~116 x 136 m (~12.400 m2) preenchendo o vale de lava (-32 m) entre as duas areas grandes; chao ondulado de +0,6 m (lado da entrada) a -2,6 m (outro lado), dois morros (9 m e 6,5 m) para relevo/conteudo, borda em penhasco ate a lava. Presa ao MUNDO_pantano. Dono vai esculpir.
+
+### [Claude] 09/11/2026 - Mapa-mundi fechado (dono: "fechar o mapa porem emendando")
+- Dono fez a descida/subida do Pantano no proprio Terreno.002 (a TERRA_PANTANO saiu) e reposicionou Fortaleza/Pantano/Torre. Sculpt rasgando em losangos = malha importada (glb) com vertices soltos em toda face (21.810 vertices para 17.480 faces); restaurei so o Terreno.002 original da copia das 11:23 e soldei (Merge by Distance 1 cm -> 8.928 vertices): agora esculpe sem rasgar. Pontos de restauracao: mapa_mundi_ponto_HHMM.blend (o dono pede "salva um ponto").
+- `tools/blender_mundo/fechar_mundo.py`: TERRA_FUNDO (grade de 6 m, 1500 x 1570 m): onde ja ha chao copia a altura 0,6 m abaixo (escondido); nos vaos interpola das bordas (emenda sem degrau); longe de chao vira cordilheira (ondas em varias direcoes + cristas angulosas, pico ~86 m) = borda do mundo. Primeira versao tinha relevo quadriculado (ondas alinhadas aos eixos), refeito.
+- Visualizar no MCP nao funciona com cena de 1,5 km (imagem vazia); prévias por render em segundo plano. Vista 3D do dono com clip_end 20 km.
