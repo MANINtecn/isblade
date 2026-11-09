@@ -610,6 +610,26 @@ def montar_agua():
     m_gota = mat_gelo("S2A_gota", (0.12, 0.55, 0.95), (0.92, 1.0, 1.0), 2.0, 0.85)
     m_pico = mat_grad("S2A_pico", [(0.0, (0.95, 1.0, 1.0)), (0.5, (0.35, 0.78, 1.0)), (1.0, (0.08, 0.35, 0.85))], 2.6, 0.9, 0.5, 4.0)
     m_aviso = mat_grad("S2A_aviso", [(0.0, (0.15, 0.55, 1.0)), (1.0, (0.75, 0.97, 1.0))], 3.0, 0.9)
+    # ---- efeito leve no conjurador (sem domo, sem espinhos): marca de losango nos pes, fitas de agua subindo e gotas facetadas
+    Dc = 0.95; sc_ = [((Dc, 0, .03), (0, Dc, .03)), ((0, Dc, .03), (-Dc, 0, .03)), ((-Dc, 0, .03), (0, -Dc, .03)), ((0, -Dc, .03), (Dc, 0, .03)),
+                      ((Dc * .5, 0, .03), (0, Dc * .5, .03)), ((0, Dc * .5, .03), (-Dc * .5, 0, .03)), ((-Dc * .5, 0, .03), (0, -Dc * .5, .03)), ((0, -Dc * .5, .03), (Dc * .5, 0, .03))]
+    marca = para_obj(col, "S2A_marca_mago", bm_linhas(sc_, 0.06), m_aviso)
+    esc(marca, [(F_AV0 - 1, 0.0), (F_AV0 + 6, 1.0), (F_COL - 2, 1.0), (F_COL + 6, 0.0)])
+    anim(marca, "rotation_euler", F_AV0, F_COL + 6, lambda t: (0, 0, t * math.radians(70)), 6)
+    for i in range(7):
+        a = i * 2 * math.pi / 7 + random.uniform(-.2, .2); f0 = F_AV0 + 2 + i * 2
+        o = para_obj(col, "S2A_fita_mago%d" % i, bm_lamina(random.uniform(1.0, 1.5), 0.55, 0.12, i), m_veio); o.location = (math.cos(a) * 0.8, math.sin(a) * 0.8, 0.0); o.rotation_euler[2] = a + math.pi / 2
+        esc(o, [(f0 - 1, (1, 1, 0.02)), (f0 + 8, (1, 1, 1.0)), (F_COL - 2, (1, 1, 1.0)), (F_COL + 8, (1, 1, 0.3)), (F_COL + 12, (1, 1, 0.02))])
+    for i in range(12):
+        a0 = random.uniform(0, 6.28); f0 = F_AV0 + random.randint(0, F_COL - 16); dur = random.randint(24, 34); rr = random.uniform(0.5, 1.0)
+        o = para_obj(col, "S2A_gota_mago%d" % i, bm_lascas(random.uniform(.06, .12) * 2, 3 if i % 2 else 4), m_gota); wx, wy, wz = [random.uniform(-6, 6) for _ in range(3)]
+        for f in list(range(f0, f0 + dur, 3)) + [f0 + dur]:
+            t = (f - f0) / dur; ang = a0 + t * 2.4; o.location = (math.cos(ang) * rr, math.sin(ang) * rr, 0.2 + 2.0 * t)
+            o.rotation_euler = (wx * t, wy * t, wz * t); o.scale = (max(math.sin(min(1.0, t) * math.pi), 1e-4),) * 3
+            o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+        o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f0 - 1); o.keyframe_insert("scale", frame=f0 + dur + 1)
+    lm = luz(col, "S2A_brilho_mago", "POINT", (0, 0.2, 1.0), 0, (0.4, 0.75, 1.0))
+    for f, e in ((F_AV0, 0), (F_AV0 + 10, 700), (F_COL, 700), (F_COL + 10, 0)): lm.data.energy = e; lm.data.keyframe_insert("energy", frame=f)
     # ---- aviso no alvo: losango azul de linhas retas ate a coluna subir
     D = 1.9; segs = [((D, 0, .03), (0, D, .03)), ((0, D, .03), (-D, 0, .03)), ((-D, 0, .03), (0, -D, .03)), ((0, -D, .03), (D, 0, .03)),
                      ((D * .55, 0, .03), (0, D * .55, .03)), ((0, D * .55, .03), (-D * .55, 0, .03)), ((-D * .55, 0, .03), (0, -D * .55, .03)), ((0, -D * .55, .03), (D * .55, 0, .03))]
@@ -636,7 +656,7 @@ def montar_agua():
     luz(ref, "S2A_sol", "SUN", (0, 0, 10), 1.0, (0.7, 0.85, 1.0)).rotation_euler = (math.radians(45), 0, math.radians(-30))
     lf = luz(col, "S2A_brilho", "POINT", (0, 12.0, 2.5), 0, (0.5, 0.8, 1.0))
     for f, e in ((F_COL - 1, 0), (F_COL + 3, 5000), (F_COL + 20, 2500), (F_COL + 60, 2500), (F_COL + 84, 0)): lf.data.energy = e; lf.data.keyframe_insert("energy", frame=f)
-    c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 3.4), (0, 6.5, 2.0), 30); camera(sc, ref, "cam_alvo", (10.0, 6.0, 3.6), (0, 12.0, 2.6), 30); sc.camera = c1
+    c1 = camera(sc, ref, "cam_lateral", (13.0, 6.5, 3.4), (0, 6.5, 2.0), 30); camera(sc, ref, "cam_alvo", (10.0, 6.0, 3.6), (0, 12.0, 2.6), 30); camera(sc, ref, "cam_do_mago", (3.4, -3.6, 2.0), (0, 0.3, 1.0), 32); sc.camera = c1
     return sc
 
 sc_f = montar_fogo(); sc_a = montar_agua(); sc_n = montar_necro(); sc_p = montar_paralisia()
