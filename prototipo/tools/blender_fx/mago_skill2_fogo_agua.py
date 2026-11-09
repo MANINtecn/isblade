@@ -597,6 +597,21 @@ def mat_coluna(nome, base, topo, forca=2.4, esticar=0.7, escala=5.0, alfa=0.95, 
             mp.inputs[1].default_value = (0, 0, z); nt.keyframe_insert('nodes["mapa"].inputs[1].default_value', frame=fr)
     return m
 
+def bm_corrente(r0, r1, H, voltas, larg, fase, passos=22):
+    """faixa de agua em helice: sobe enroscada em volta de um eixo (cinto de agua), largura vertical; uv x = largura, y = ao longo (0 base .. 1 topo)"""
+    bm = bmesh.new(); uvl = bm.loops.layers.uv.verify(); lin = []
+    for k in range(passos + 1):
+        t = k / passos; a = fase + t * voltas * 2 * math.pi; r = r0 + (r1 - r0) * t; z = t * H; w = larg * (0.55 + 0.45 * math.sin(min(1.0, t * 1.3) * math.pi / 2)) * (1.0 - 0.35 * t)
+        lin.append((bm.verts.new((math.cos(a) * r, math.sin(a) * r, z - w * 0.5)), bm.verts.new((math.cos(a) * r, math.sin(a) * r, z + w * 0.5))))
+    for k in range(passos):
+        f = bm.faces.new((lin[k][0], lin[k + 1][0], lin[k + 1][1], lin[k][1]))
+        for lp, uv in zip(f.loops, [(0, k / passos), (0, (k + 1) / passos), (1, (k + 1) / passos), (1, k / passos)]): lp[uvl].uv = uv
+    return bm
+def bm_gota_agua(r):
+    bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=1, radius=r)
+    for v in bm.verts: v.co.z *= 1.3
+    return bm
+
 def montar_agua():
     random.seed(33)
     F_AV0, F_COL, F_FIM = 1, 40, 124
@@ -616,17 +631,16 @@ def montar_agua():
     marca = para_obj(col, "S2A_marca_mago", bm_linhas(sc_, 0.06), m_aviso)
     esc(marca, [(F_AV0 - 1, 0.0), (F_AV0 + 6, 1.0), (F_COL - 2, 1.0), (F_COL + 6, 0.0)])
     anim(marca, "rotation_euler", F_AV0, F_COL + 6, lambda t: (0, 0, t * math.radians(70)), 6)
-    for i in range(7):
-        a = i * 2 * math.pi / 7 + random.uniform(-.2, .2); f0 = F_AV0 + 2 + i * 2
-        o = para_obj(col, "S2A_fita_mago%d" % i, bm_lamina(random.uniform(1.0, 1.5), 0.55, 0.12, i), m_veio); o.location = (math.cos(a) * 0.8, math.sin(a) * 0.8, 0.0); o.rotation_euler[2] = a + math.pi / 2
-        esc(o, [(f0 - 1, (1, 1, 0.02)), (f0 + 8, (1, 1, 1.0)), (F_COL - 2, (1, 1, 1.0)), (F_COL + 8, (1, 1, 0.3)), (F_COL + 12, (1, 1, 0.02))])
-    for i in range(12):
-        a0 = random.uniform(0, 6.28); f0 = F_AV0 + random.randint(0, F_COL - 16); dur = random.randint(24, 34); rr = random.uniform(0.5, 1.0)
-        o = para_obj(col, "S2A_gota_mago%d" % i, bm_lascas(random.uniform(.06, .12) * 2, 3 if i % 2 else 4), m_gota); wx, wy, wz = [random.uniform(-6, 6) for _ in range(3)]
+    for i in range(3):                                                         # correntes de agua enroscadas em volta do mago, subindo
+        c = para_obj(col, "S2A_corrente_mago%d" % i, bm_corrente(0.78, 0.55, 1.9, 1.15, 0.42, i * 2 * math.pi / 3), m_veio); f0 = F_AV0 + 2 + i * 3
+        esc(c, [(f0 - 1, (1, 1, 0.02)), (f0 + 14, (1, 1, 1.0)), (F_COL - 2, (1, 1, 1.0)), (F_COL + 8, (1.0, 1.0, 0.25)), (F_COL + 12, (1, 1, 0.02))])
+        anim(c, "rotation_euler", f0, F_COL + 12, lambda t, i=i: (0, 0, (1 if i % 2 == 0 else 1) * t * math.radians(260)), 6)
+    for i in range(10):                                                        # gotas de agua que se soltam e sobem
+        a0 = random.uniform(0, 6.28); f0 = F_AV0 + 4 + random.randint(0, F_COL - 20); dur = random.randint(24, 34); rr = random.uniform(0.55, 0.95)
+        o = para_obj(col, "S2A_gota_mago%d" % i, bm_gota_agua(random.uniform(.05, .09)), m_gota)
         for f in list(range(f0, f0 + dur, 3)) + [f0 + dur]:
-            t = (f - f0) / dur; ang = a0 + t * 2.4; o.location = (math.cos(ang) * rr, math.sin(ang) * rr, 0.2 + 2.0 * t)
-            o.rotation_euler = (wx * t, wy * t, wz * t); o.scale = (max(math.sin(min(1.0, t) * math.pi), 1e-4),) * 3
-            o.keyframe_insert("location", frame=f); o.keyframe_insert("rotation_euler", frame=f); o.keyframe_insert("scale", frame=f)
+            t = (f - f0) / dur; ang = a0 + t * 2.4; o.location = (math.cos(ang) * rr, math.sin(ang) * rr, 0.2 + 1.9 * t); o.scale = (max(math.sin(min(1.0, t) * math.pi), 1e-4),) * 3
+            o.keyframe_insert("location", frame=f); o.keyframe_insert("scale", frame=f)
         o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f0 - 1); o.keyframe_insert("scale", frame=f0 + dur + 1)
     lm = luz(col, "S2A_brilho_mago", "POINT", (0, 0.2, 1.0), 0, (0.4, 0.75, 1.0))
     for f, e in ((F_AV0, 0), (F_AV0 + 10, 700), (F_COL, 700), (F_COL + 10, 0)): lm.data.energy = e; lm.data.keyframe_insert("energy", frame=f)
