@@ -275,10 +275,10 @@ function suporteSkill(c, A, d, m, t){
   } else if(S.tipo === 'purifica'){
     V.ccAte = t + (S.imune || 2); ajudaFlag(c, A, V, t);
     difunde(c, { t: 'sup', k: 'purifica', v: V.id, de: A.id, dur: S.imune || 2 });
-  } else if(S.tipo === 'prece'){
+  } else if(S.tipo === 'prece' || S.tipo === 'grito'){                                    /* [guerreiro] Grito de Guerra: mesmo buff em area da Prece, com o proprio visual (k: 'grito') */
     const R = (S.raio || 5) + .45, L = [];
     for(const W of c.jog.values()){ if(!aliado(W) || Math.hypot(W.x - A.x, W.z - A.z) > R) continue; W.preceAte = t + (S.dur || 20); W.preceAtk = (S.atk || .15) * fatorInt(A); W.preceDef = (S.def || .15) * fatorInt(A); ajudaFlag(c, A, W, t); L.push(W.id); }
-    difunde(c, { t: 'sup', k: 'prece', de: A.id, x: r2(A.x), z: r2(A.z), l: L, dur: S.dur || 20, atk: S.atk || .15, def: S.def || .15 });
+    difunde(c, { t: 'sup', k: S.tipo === 'grito' ? 'grito' : 'prece', de: A.id, x: r2(A.x), z: r2(A.z), l: L, dur: S.dur || 20, atk: S.atk || .15, def: S.def || .15 });
   }
 }
 function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */

@@ -78,3 +78,10 @@ Corrija este arquivo (`.claude/skills/skill-pronta/SKILL.md`) no mesmo commit e 
 - Skill de AREA em ponto mirado: no json `mira:true, mira_min, mira_max, raio:[r], area:{delay, raio}` + `golpe` (CC). `applyHit` faz duas passadas (`an._tarde`): na 1a comeca o efeito e agenda; na 2a, `delay` s depois, cai o dano (mobs/chefe). O servidor (`areaSkill`) usa x,z,d enviados por `Net.atacou`. Na CIDADE o `castSkill` precisa do trecho `[mira]` (ja tem).
 - Paralisia/zona: `proj.paralisa` (s) + `zona:{raio,dur,tick,dmg}`; cliente (`paralisaAlvo`, `zonasTick`) para PvE e servidor (`paralisa`, aviso `cc`) para PvP.
 - Teste: `python tools/teste_mago_skills2.py <prints> <url> arena|cidade` e `tools/teste_mago_skills2_pvp.py` (cria o mago com `weapon:'staff'`; se criar com 'sword' ele joga com skills de espada).
+
+## Skills do Guerreiro (espada 2 maos, Humano M): o que a Furia/Redemoinho ensinaram
+- Clipes baked no Blender (`tools/blender_fx/guerreiro_skills.py` -> acoes W_*), exportados por `guerreiro_clips_export.py` para `assets/personagens/guerreiro_clips/<PSA>.glb` (clipes `w_s1,w_s3,w_s4,w_s5,w_s6`; `medidas.json` = duracoes). O jogo anexa com `Guardiao.anexarGuerreiro` (so rotacoes + delta do quadril e da raiz) e usa `vrm.wClips[pose]` em `getClipConfig`. Outras racas caem nos clipes de reserva da tabela de poses (`w_s*`).
+- Redemoinho multi-golpe: `hits` no json = instantes medidos / duracao do clipe; cada golpe e uma "parte" enviada ao servidor (janela de 3 s desde o 1o). Instantes (s): 0,424 0,691 0,957 1,223 1,489 1,756 2,022 2,288 2,554 2,821.
+- Grito de Guerra = `suporte:{tipo:'grito'}` (mesmo caminho da Prece do Clerigo, mensagem `sup k:'grito'`), efeito em `GuerreiroFX.hit('w_s5')`/`grito`.
+- `js/guerreiro_fx.js`: trilha da espada pelo caminho real da ponta (`swd2h`), fenda/ondas/colunas/lascas; hooks `[guerreiro]` em arena.html e cidade.html (`tools/patch_guerreiro_paginas.py`).
+- No Blender 5.1: acao de um objeto nao toca em copia dele sem `animation_data.action_slot = acao.slots[0]`.

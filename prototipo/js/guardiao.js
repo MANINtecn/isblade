@@ -98,10 +98,49 @@ export const Guardiao = (function(){
     });
   };
 
+  /* ---------- Guerreiro (espada 2 maos), skills 1,3,4,5,6: clipes baked do Blender (tools/blender_fx/guerreiro_clips_export.py -> assets/personagens/guerreiro_clips/<PSA>.glb)
+     so o Humano M por enquanto. Mesmo retarget do anexarCast: so rotacoes + movimento (delta) do quadril e do osso raiz. hit/cut = fracao do clipe (medidos no Blender) */
+  var W_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter' };
+  var W_T = { w_s1:{hit:.269,cut:.449,sp:1}, w_s3:{hit:.356,cut:.60,sp:1.12}, w_s4:{hit:.097,cut:.869,sp:1}, w_s5:{hit:.368,cut:.653,sp:1}, w_s6:{hit:.05,cut:.544,sp:1} };
+  var wCache = {};
+  G.anexarGuerreiro = function(rig, THREE){
+    if(!rig || !rig.clips) return;
+    var tipo = rig.tipo || ''; if(!tipo){ try { tipo = localStorage.getItem('isblade.char_type') || ''; } catch(e){} }
+    var psa = W_PSA[String(tipo).toLowerCase()]; if(!psa) return;
+    var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
+    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=1', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); }));
+    pr.then(function(list){
+      if(!list || !list.length) return;
+      var nos = {}; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis' || o.name === 'Bip01') nos[o.name] = o; });
+      rig.wClips = rig.wClips || {};
+      list.forEach(function(src){
+        if(!W_T[src.name]) return;
+        var c = src.clone(), tr = [];
+        c.tracks.forEach(function(t){
+          var dot = t.name.lastIndexOf('.'), node = t.name.slice(0, dot), prop = t.name.slice(dot + 1);
+          if(prop === 'scale') return;
+          if(prop === 'position'){
+            var ref = nos[node];
+            if(ref){
+              var v = t.values.slice(), x0 = v[0], y0 = v[1], z0 = v[2];
+              for(var i = 0; i < v.length; i += 3){ v[i] = ref.position.x + (v[i] - x0); v[i + 1] = ref.position.y + (v[i + 1] - y0); v[i + 2] = ref.position.z + (v[i + 2] - z0); }
+              tr.push(new THREE.VectorKeyframeTrack(t.name, t.times, v));
+            }
+            return;
+          }
+          tr.push(t);
+        });
+        c.tracks = tr; rig.clips[src.name] = c;
+        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: 0, psa: psa };
+      });
+    });
+  };
+
   /* junta os clipes g_* aos do personagem (mesmos nomes de osso); os clipes entram depois de ~100 ms, e sao usados por nome na hora de tocar */
   G.anexarClipes = function(rig, THREE){
     if(!rig || !rig.clips) return;
     G.anexarCast(rig, THREE);
+    G.anexarGuerreiro(rig, THREE);
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
     G.carregarClipes(THREE, loader).then(function(list){
       /* retarget por rotacao: os clipes foram gravados no corpo do humano. Posicao e escala de osso do humano esticam as outras racas,
