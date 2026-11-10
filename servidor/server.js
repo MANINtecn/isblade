@@ -30,7 +30,7 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
-try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0 })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0, suporte: s.suporte || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASICO = {};                                              /* arma -> ataque padrao em ponto mirado (data/armas/<arma>.json -> basico), ex.: cajado/mago */
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.basico && j.basico.niveis) BASICO[j.id] = j.basico; }); } catch(e){ console.log('basico:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
@@ -119,6 +119,8 @@ const estadoPk = (J, t) => temKarma(J) ? 2 : (temFlag(J, t) ? 1 : 0);
 const FORA_MURALHA = 96;
 const abertoAqui = (c, J) => !!MAPAS[c.mapa].aberto || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA);
 const emDuelo = (A, V, t) => { const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim); };
+/* [clerigo] quem pode receber cura/buff (como no L2: qualquer jogador; na arena PvP so o proprio grupo; nunca o adversario do duelo). Ajudar quem esta em PvP flaga (ajudaFlag). */
+const aliadoDe = (c, A, V, t) => V === A || (c.mapa === 'pvp' ? !!(A.party && A.party === V.party) : !emDuelo(A, V, t));
 function podeFerir(c, A, V, t){
   if(c.mapa === 'pvp') return !(A.party && A.party === V.party);          /* PvP livre: todos contra todos; so o mesmo grupo nao se fere */
   if(abertoAqui(c, A) && abertoAqui(c, V) && !emDuelo(A, V, t)){ if(A.party && A.party === V.party) return false; return temKarma(V) || temFlag(V, t) || !!A.pk; }      /* [pk] */
@@ -172,6 +174,9 @@ function fimDuelo(c, perdedor, vencedor, motivo){
 function fere(c, A, V, base, t, pid){
   let dano = Math.max(1, Math.round(base * (.92 + Math.random() * .16) * PVP_MULT)), bloqueio = false;
   if(V.guarda && Math.abs(angDif(Math.atan2(A.x - V.x, A.z - V.z), V.f)) < 1.1){ dano = Math.max(1, Math.round(dano * .2)); bloqueio = true; }   /* guarda de frente */
+  if((A.preceAte || 0) > t) dano = Math.round(dano * (1 + (A.preceAtk || 0)));                  /* [clerigo] Prece: +ataque */
+  if((V.preceAte || 0) > t) dano = Math.max(1, Math.round(dano / (1 + (V.preceDef || 0))));      /* [clerigo] Prece: +defesa */
+  if(V.escudo && V.escudo.ate > t && V.escudo.hp > 0){ const ab = Math.min(V.escudo.hp, dano); V.escudo.hp -= ab; dano -= ab; difunde(c, { t: 'sup', k: 'escudo', v: V.id, hp: V.escudo.hp, max: V.escudo.max }); if(V.escudo.hp <= 0) V.escudo = null; }      /* [clerigo] Escudo Astral absorve */
   const duelo = c.mapa === 'cidade' && emDuelo(A, V, t), aberto = !duelo && abertoAqui(c, A) && abertoAqui(c, V), inocente = aberto && !temKarma(V) && !temFlag(V, t);
   if(aberto && !temKarma(V)) A.flagAte = t + FLAG_S;                 /* [pk] bateu em quem nao e PK: fica roxo */
   V.hp = Math.max(duelo ? 1 : 0, V.hp - dano); V.pvpHitT = t;                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
@@ -197,8 +202,8 @@ function passaProj(c, t){
     const p = L[i], dt = Math.min(.25, t - p.tl), passo = p.v * dt, nx = p.x + p.dx * passo, nz = p.z + p.dz * passo; p.tl = t;
     for(const V of c.jog.values()){
       if(V === p.A || V.morto || p.hit.has(V.id)) continue;
-      const aliado = !podeFerir(c, p.A, V, t);                                  /* [clerigo] projetil de cura: aliado (quem nao pode ferir) e curado */
-      if(aliado ? !p.cura : t < V.imune) continue;
+      const aliado = p.cura > 0 && aliadoDe(c, p.A, V, t) && !(p.A.pk && podeFerir(c, p.A, V, t));      /* [clerigo] projetil de cura: aliado e curado; so fere jogador com ataque forcado (Ctrl / PK) */
+      if(!aliado && (t < V.imune || !podeFerir(c, p.A, V, t))) continue;      /* inimigo: so quem pode ferir (e sem esquiva) */
       const sx = nx - p.x, sz = nz - p.z, l2 = sx * sx + sz * sz || 1e-6, u = Math.max(0, Math.min(1, ((V.x - p.x) * sx + (V.z - p.z) * sz) / l2)), qx = p.x + sx * u, qz = p.z + sz * u;      /* trecho percorrido neste quadro: nao atravessa ninguem em alta velocidade */
       if(aliado && Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); curaJog(c, p.A, V, p.cura, t); if(!p.passaAliado){ p.d = p.range + 1; break; } continue; }
       if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id); if(p.par) paralisa(c, p.A, V, p.par, p.zona); if(!p.pierce){ p.d = p.range + 1; break; } }
@@ -209,6 +214,7 @@ function passaProj(c, t){
 
 /* ---- mago: paralisia (espinho paralisante) e zona de espinhos no chao; data/armas/staff.json -> proj.paralisa / zona ---- */
 function paralisa(c, A, V, seg, zona){
+  if((V.ccAte || 0) > agora()) return;                                     /* [clerigo] Purificacao: imune a controle */
   const x0 = V.x, z0 = V.z; difunde(c, { t: 'cc', k: 'par', v: V.id, x: r2(x0), z: r2(z0), s: seg });      /* o cliente da vitima fica sem agir; todos veem os espinhos */
   if(!zona) return;
   setTimeout(() => {
@@ -227,7 +233,7 @@ function areaSkill(c, A, d, m){
   difunde(c, { t: 'atk', id: A.id, k: 's', v: m.i | 0, f: r2(A.f), x: r2(x), z: r2(z), d: r2(dl) });
   if(d.area.cura){                                                           /* [clerigo] glifo de cura: pulsos em quem esta dentro (o proprio clerigo e os aliados); nao fere */
     const n = Math.max(1, Math.min(8, d.area.pulsos | 0 || 4)), iv = Math.max(.3, Math.min(3, +d.area.iv || 1)), R = (d.area.raio || 3) + .45;
-    for(let k = 0; k < n; k++) setTimeout(() => { const t2 = agora(); for(const V of c.jog.values()){ if(V.morto || Math.hypot(V.x - x, V.z - z) > R) continue; if(V === A || !podeFerir(c, A, V, t2)) curaJog(c, A, V, d.area.cura, t2); } }, (dl + k * iv) * 1000);
+    for(let k = 0; k < n; k++) setTimeout(() => { const t2 = agora(); for(const V of c.jog.values()){ if(V.morto || Math.hypot(V.x - x, V.z - z) > R) continue; if(aliadoDe(c, A, V, t2)) curaJog(c, A, V, d.area.cura, t2); } }, (dl + k * iv) * 1000);
     return;
   }
   setTimeout(() => {
@@ -241,6 +247,25 @@ function curaJog(c, A, V, base, t){
   const antes = V.hp; V.hp = Math.min(V.pmax, V.hp + q);
   if(V !== A && abertoAqui(c, V) && (temFlag(V, t) || temKarma(V)) && !temKarma(A)) A.flagAte = Math.max(A.flagAte || 0, t + FLAG_S);
   difunde(c, { t: 'cura', v: V.id, hp: V.hp, q: V.hp - antes, de: A.id });
+}
+/* [clerigo] fase 2: skills de suporte. Alvo = aliado que o jogo mirou (m.al), se estiver perto; senao o proprio Clerigo. Ajudar quem esta em PvP flaga o Clerigo. */
+const fatorInt = A => 1 + Math.max(0, (A.pers ? (Prog.statsDe(A.pers).int | 0) : 18) - 18) / 100;
+function ajudaFlag(c, A, V, t){ if(V !== A && abertoAqui(c, V) && (temFlag(V, t) || temKarma(V)) && !temKarma(A)) A.flagAte = Math.max(A.flagAte || 0, t + FLAG_S); }
+function suporteSkill(c, A, d, m, t){
+  const S = d.suporte, aliado = V => V && !V.morto && aliadoDe(c, A, V, t);
+  let V = c.jog.get(m.al | 0); if(!aliado(V) || Math.hypot(V.x - A.x, V.z - A.z) > (d.range || 12) + 1.5) V = A;
+  difunde(c, { t: 'atk', id: A.id, k: 's', v: m.i | 0, f: r2(A.f) });
+  if(S.tipo === 'escudo'){
+    const max = Math.round(V.pmax * (S.parte || .25) * fatorInt(A)); V.escudo = { hp: max, max, ate: t + (S.dur || 10) }; ajudaFlag(c, A, V, t);
+    difunde(c, { t: 'sup', k: 'escudo', v: V.id, de: A.id, hp: max, max, dur: S.dur || 10, n: S.placas || 8 });
+  } else if(S.tipo === 'purifica'){
+    V.ccAte = t + (S.imune || 2); ajudaFlag(c, A, V, t);
+    difunde(c, { t: 'sup', k: 'purifica', v: V.id, de: A.id, dur: S.imune || 2 });
+  } else if(S.tipo === 'prece'){
+    const R = (S.raio || 5) + .45, L = [];
+    for(const W of c.jog.values()){ if(!aliado(W) || Math.hypot(W.x - A.x, W.z - A.z) > R) continue; W.preceAte = t + (S.dur || 20); W.preceAtk = (S.atk || .15) * fatorInt(A); W.preceDef = (S.def || .15) * fatorInt(A); ajudaFlag(c, A, W, t); L.push(W.id); }
+    difunde(c, { t: 'sup', k: 'prece', de: A.id, x: r2(A.x), z: r2(A.z), l: L, dur: S.dur || 20, atk: S.atk || .15, def: S.def || .15 });
+  }
 }
 function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
 /* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
@@ -273,10 +298,11 @@ function ataque(c, A, m){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
     if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > 3) return; parte2 = true; }            /* 2o golpe da mesma skill: sem nova recarga */
     else { if((A.cd[A.arma + i] || 0) > t + .9) return; A.cd[A.arma + i] = t + s.cd; A.ultSk = A.arma + i; A.ultSkT = t; }
-    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona, cura: s.cura };
+    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona, cura: s.cura, suporte: s.suporte };
   } else return;
   A.f = typeof m.f === 'number' ? m.f : A.f;
   const ss = parte2 ? (A.ssUlt || 0) : (A.ssUlt = tiro(A)); if(ss) d = Object.assign({}, d, { dmg: Math.round(d.dmg * (1 + ss)) });      /* soulshot: o 2o golpe da skill usa o mesmo tiro */
+  if(d.suporte){ if(!parte2) suporteSkill(c, A, d, m, t); return; }                                          /* [clerigo] escudo / purificacao / prece */
   if(d.area){ if(!parte2) areaSkill(c, A, d, m); return; }                                                    /* [mago] skill de area: aviso e dano no ponto mirado */
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
   if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }                                                /* skill de projetil: voa de verdade (da para ver e desviar) */

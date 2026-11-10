@@ -1,7 +1,7 @@
 {
  "id": "book",
  "name": "Livro Astral",
- "_nota": "Arma do Clerigo (healer). Fase 1 (10/11/2026): ataque basico Lamina de Luz + Cura Mirada + Glifo de Cura. Fonte unica: cliente (arena/cidade) e servidor leem daqui. dmg = dano no PvP; cura = vida curada no aliado (o servidor soma +1% por ponto de INT acima de 18). Aliado = quem voce nao pode ferir (grupo, cidade, quem nao esta em PvP). Curar aliado com flag/karma deixa o Clerigo com flag (como no L2). Visual: js/clerigo_fx.js (desenho do dono no Blender: clerigo_skills.blend).",
+ "_nota": "Arma do Clerigo (healer). Fase 1 (10/11/2026): Lamina de Luz + Cura Mirada + Glifo de Cura; fase 2: Escudo Astral, Purificacao, Prece (suporte: alvo = aliado na mira, senao o proprio Clerigo). Fonte unica: cliente (arena/cidade) e servidor leem daqui. dmg = dano no PvP; cura = vida curada no aliado (o servidor soma +1% por ponto de INT acima de 18). Aliado = quem voce nao pode ferir (grupo, cidade, quem nao esta em PvP). Curar aliado com flag/karma deixa o Clerigo com flag (como no L2). Visual: js/clerigo_fx.js (desenho do dono no Blender: clerigo_skills.blend).",
  "mastery": {
   "xpHit": 1,
   "xpSkill": 2,
@@ -97,6 +97,71 @@
    "unlock": 5,
    "icon": "glifo_cura",
    "desc": "Desenha um glifo hexagonal no chao onde voce mira (ate 10 m): 4 pulsos de cura (30 cada, +INT, 1 por segundo) em voce e nos aliados dentro (raio 3,3 m). Nao fere ninguem."
+  },
+  {
+   "name": "Escudo Astral",
+   "pose": "c_s3",
+   "cd": 18,
+   "dmg": 0,
+   "dur": 0.3,
+   "range": 14,
+   "half": 0.45,
+   "ifr": 0,
+   "intr": 0,
+   "hitk": 0.5,
+   "css": "#bfe4ff",
+   "suporte": {
+    "tipo": "escudo",
+    "parte": 0.25,
+    "dur": 10,
+    "placas": 8
+   },
+   "unlock": 10,
+   "icon": "escudo_astral",
+   "desc": "8 placas de luz em volta do aliado na mira (ou de voce): absorvem dano ate 25% da vida dele (+INT) por 10 s. Cada golpe quebra placas."
+  },
+  {
+   "name": "Purificação",
+   "pose": "c_s4",
+   "cd": 15,
+   "dmg": 0,
+   "dur": 0.3,
+   "range": 14,
+   "half": 0.45,
+   "ifr": 0,
+   "intr": 0,
+   "hitk": 0.5,
+   "css": "#fff6dc",
+   "suporte": {
+    "tipo": "purifica",
+    "imune": 2
+   },
+   "unlock": 20,
+   "icon": "purificacao",
+   "desc": "Raio de luz no aliado na mira (ou em você): tira stun e paralisia e deixa imune a controle por 2 s."
+  },
+  {
+   "name": "Prece",
+   "pose": "c_s5",
+   "cd": 40,
+   "dmg": 0,
+   "dur": 0.35,
+   "range": 5,
+   "half": 3.14,
+   "ifr": 0,
+   "intr": 0,
+   "hitk": 0.5,
+   "css": "#ffd977",
+   "suporte": {
+    "tipo": "prece",
+    "raio": 5,
+    "dur": 20,
+    "atk": 0.15,
+    "def": 0.15
+   },
+   "unlock": 25,
+   "icon": "prece",
+   "desc": "Octagrama de luz em volta de voce: voce e os aliados a ate 5 m ganham +15% de ataque e de defesa (+INT) por 20 s."
   }
  ]
 }

@@ -16,7 +16,7 @@
   function kf(k, t){ if(t <= k[0][0]) return k[0][1]; for(var i = 1; i < k.length; i++) if(t <= k[i][0]){ var a = k[i - 1], b = k[i], u = (t - a[0]) / Math.max(1e-6, b[0] - a[0]); return a[1] + (b[1] - a[1]) * u; } return k[k.length - 1][1]; }
   C.init = function(THREE_, cena_){
     if(T) return; T = THREE_; cena = cena_; var tl = new T.TextureLoader(), v = '?v=1';
-    ['cruz', 'estrela', 'glifo_hex', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas'].forEach(function(n){ TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v); });
+    ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo'].forEach(function(n){ TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v); });
     rastro = new T.Group(); cena.add(rastro);                 /* rastro em coordenadas do mundo (fica na origem: sem suporte de chao) */
     C.pronto = true;
     if(window.MagoFX2 && MagoFX2.cria){ MagoFX2.cria.lamina_luz = C.criarLamina; MagoFX2.cria.cura_mirada = C.criarCristal; }
@@ -106,6 +106,63 @@
     var on = plano(TX.onda, VERDE, 1, 1, .95, true); on.position.y = .1; g.add(on); var cz = cruzes(g, leve() ? 3 : 6, VERDE, raio * .8, 1.8, .8), sub = new T.Group(); g.add(sub);
     seq(.8, function(u){ on.scale.setScalar(.5 + raio * 2 * u); on.material.opacity = .95 * (1 - u); cz(u); }, function(){ g.remove(on); on.material.dispose(); });
   }
+
+  /* ================= fase 2 (10/11/2026): efeitos que seguem um jogador. pos(): {x, y, z} do alvo a cada quadro (a pagina sabe onde cada um esta) ================= */
+  function segue(pos, fn, dur, fimFn){ var g = new T.Group(); rastro.add(g); var p0 = pos(); if(p0) g.position.set(p0.x, p0.y, p0.z);
+    seq(dur, function(u, t){ var p = pos(); if(p) g.position.set(p.x, p.y, p.z); fn(g, u, t); }, function(){ rastro.remove(g); g.traverse(function(o){ if(o.material && !isShared(o.material) && o.material.dispose) o.material.dispose(); }); if(fimFn) fimFn(); }); return g; }
+  function losango(cor, tam){ var m = new T.Mesh(new T.OctahedronGeometry(tam, 0), aditivo(cor, null, .9).clone()); m.scale.set(1, 1.6, 1); return m; }
+  /* ---------------- Escudo Astral: 8 placas hexagonais (ouro e azul palido) em octogono em volta do aliado; cada golpe absorvido quebra placas ---------------- */
+  var ESC = {};
+  C.escudo = function(id, pos, dur, n){
+    if(!T) return; C.escudoFim(id, true); n = n || 8; var placas = [], E = { n: n, vivo: true, placas: placas };
+    for(var i = 0; i < n; i++){ var pl = new T.Group(), a = i * 6.2832 / n;
+      var hx = new T.Mesh(new T.CylinderGeometry(.34, .34, .04, 6, 1), new T.MeshBasicMaterial({ color: i % 2 ? 0xbfe4ff : OURO, transparent: true, opacity: .55, side: T.DoubleSide, depthWrite: false })); hx.rotation.x = Math.PI / 2; pl.add(hx);
+      var fv = plano(TX.favo, i % 2 ? 0xbfe4ff : OURO, .7, .7, .8); pl.add(fv); pl.userData = { a: a }; placas.push(pl); }
+    E.g = segue(pos, function(g, u, t){
+      if(!placas[0].parent) placas.forEach(function(pl){ g.add(pl); });
+      var ab = Math.min(1, t / .4), fe = t > dur - .5 ? Math.max(0, (dur - t) / .5) : 1;
+      placas.forEach(function(pl, k){ if(!pl.visible) return; var a = pl.userData.a + t * .5, r = .95 + (1 - ab) * 2.5; pl.position.set(Math.cos(a) * r, 1.15 + .12 * Math.sin(t * 2 + k) + (1 - fe) * 1.5, Math.sin(a) * r); pl.rotation.y = -a + Math.PI / 2; pl.children.forEach(function(o){ if(o.material) o.material.opacity = (o === pl.children[0] ? .55 : .8) * Math.min(ab, fe); }); });
+    }, dur, function(){ if(ESC[id] === E) delete ESC[id]; });
+    ESC[id] = E;
+  };
+  /* parte (0..1) = vida que sobra no escudo: quebra as placas que passaram */
+  C.escudoParte = function(id, parte, pos){
+    var E = ESC[id]; if(!E) return; var vivas = Math.ceil(Math.max(0, parte) * E.n);
+    E.placas.forEach(function(pl, k){ if(k >= vivas && pl.visible){ pl.visible = false; var w = new T.Vector3(); pl.getWorldPosition(w); quebra(w); } });
+    if(vivas <= 0) C.escudoFim(id, true);
+  };
+  C.escudoFim = function(id, ja){ var E = ESC[id]; if(!E) return; delete ESC[id]; E.placas.forEach(function(pl){ pl.visible = false; }); };
+  function quebra(w){ var s = sprite(TX.estrela, 0xdff2ff, .3), h = sprite(TX.onda, 0x9fd4ff, .3, .8); s.position.copy(w); h.position.copy(w); rastro.add(s); rastro.add(h);
+    seq(.35, function(u){ s.scale.setScalar(1.6 * Math.sin(u * Math.PI)); h.scale.setScalar(.4 + 1.4 * u); h.material.opacity = .8 * (1 - u); }, function(){ rastro.remove(s); rastro.remove(h); s.material.dispose(); h.material.dispose(); }); }
+  /* ---------------- Purificacao: pilar branco-dourado + 3 hexagonos de choque; imunidade: losango dourado girando sobre a cabeca ---------------- */
+  C.purifica = function(pos, dur){
+    if(!T) return; dur = dur || 2;
+    var pil = [], ons = [], lo = losango(OURO, .16), chao = plano(TX.hex_brilho, BRANCO, 1.6, 1.6, .6, true);
+    segue(pos, function(g, u, t){
+      if(!lo.parent){ for(var i = 0; i < 2; i++){ var p = plano(TX.raios, i ? OURO : BRANCO, 1.3, 3.6, .8); p.position.y = 1.8; p.rotation.y = i * Math.PI / 2; g.add(p); pil.push(p); }
+        for(var k = 0; k < 3; k++){ var o = plano(TX.onda, k === 1 ? OURO : BRANCO, 1, 1, .9, true); o.position.y = .2 + k * .7; g.add(o); ons.push(o); } lo.position.y = 2.35; g.add(lo); chao.position.y = .06; chao.rotation.z = Math.PI / 4; g.add(chao); }
+      var tp = Math.min(1, t / .7);
+      pil.forEach(function(p){ p.scale.set(kf([[0, .2], [.15, 1], [1, .2]], tp), 1, 1); p.material.opacity = .8 * (1 - tp); });
+      ons.forEach(function(o, k){ var uu = Math.max(0, Math.min(1, (t - k * .1) / .6)); o.scale.setScalar(.4 + 2.4 * uu); o.material.opacity = .9 * (1 - uu); });
+      var fe = t > dur + .2 ? Math.max(0, (dur + .7 - t) / .5) : 1; lo.rotation.y = t * 3; lo.material.opacity = .9 * fe; chao.material.opacity = .5 * fe; chao.rotation.z = Math.PI / 4 + t;
+    }, dur + .7);
+  };
+  /* ---------------- Prece: octagrama dourado no chao do Clerigo + feixe do ceu e setas douradas em cada aliado; losango de buff sobre a cabeca ---------------- */
+  C.prece = function(x, z, raio, alvos, dur){
+    if(!T) return; raio = raio || 5; var g = grupo(x, 0, z), oc = plano(TX.glifo_octa, OURO, raio * 2.1, raio * 2.1, .85, true), lq = plano(TX.leque, OURO, raio * 1.4, raio * 1.4, .6, true); oc.position.y = .08; lq.position.y = .1; g.add(oc); g.add(lq);
+    seq(1.6, function(u){ oc.scale.setScalar(kf([[0, .2], [.25, 1], [1, 1]], u)); oc.rotation.z = u * .6; oc.material.opacity = .85 * kf([[0, 0], [.15, 1], [.7, 1], [1, 0]], u); lq.rotation.z = -u; lq.material.opacity = .6 * (1 - u); }, function(){ some(g); });
+    (alvos || []).forEach(function(pos){
+      var fe = [], se = [], lo = losango(OURO, .13);
+      segue(pos, function(gg, u, t){
+        if(!lo.parent){ for(var i = 0; i < 2; i++){ var p = plano(TX.raios, i ? OURO : BRANCO, .9, 6, .7); p.position.y = 3; p.rotation.y = i * Math.PI / 2; gg.add(p); fe.push(p); }
+          for(var k = 0; k < (leve() ? 3 : 6); k++){ var s = new T.Mesh(new T.ConeGeometry(.08, .32, 4), aditivo(OURO, null, .9)); var a = k * 6.28 / 6; s.position.set(Math.cos(a) * .55, .3, Math.sin(a) * .55); s.userData = { y0: .3 + Math.random() * .3, d: Math.random() * .3 }; gg.add(s); se.push(s); }
+          lo.position.y = 2.4; gg.add(lo); }
+        var tb = Math.min(1, t / 1.2); fe.forEach(function(p){ p.scale.set(kf([[0, .1], [.2, 1], [1, .2]], tb), kf([[0, .3], [.25, 1], [1, 1]], tb), 1); p.material.opacity = .7 * (1 - tb); });
+        se.forEach(function(s){ var uu = Math.max(0, Math.min(1, (t - s.userData.d) / 1)); s.position.y = s.userData.y0 + 1.8 * uu; s.visible = uu < 1; });
+        var fim = t > dur - .5 ? Math.max(0, (dur - t) / .5) : 1; lo.rotation.y = t * 2.4; lo.position.y = 2.4 + .08 * Math.sin(t * 3); lo.material.opacity = .9 * fim;
+      }, dur);
+    });
+  };
 
   /* ---------------- Livro Astral (arma do Clerigo): aberto em V, lombada vertical, paginas brilhando para a frente ---------------- */
   C.livro = function(esc){
