@@ -7,11 +7,23 @@ window.MundoCampo = (function(){
   var M = { pronto: false, dados: null }, H = null, P = null, RG = null, AN = null, nx = 0, nz = 0, x0 = 0, z0 = 0, ps = 3;
   var BASE = 'assets/mundo/';
   function cel(x, z){ return [(x - x0) / ps, (z - z0) / ps]; }
-  M.altura = function(x, z){
+  var SM = 2;                                      /* passo da malha DESENHADA em celulas (2 = 6 m; 4 = 12 m no modo baixa) */
+  /* altura da grade fina de 3 m (bilinear): para ferramentas e testes */
+  M.alturaFina = function(x, z){
     if(!H) return null; var c = cel(x, z), i = Math.floor(c[0]), j = Math.floor(c[1]);
     if(i < 0 || j < 0 || i >= nx - 1 || j >= nz - 1) return null;
     var fx = c[0] - i, fz = c[1] - j, k = j * nx + i;
     var a = H[k] + (H[k + 1] - H[k]) * fx, b = H[k + nx] + (H[k + nx + 1] - H[k + nx]) * fx; return a + (b - a) * fz;
+  };
+  /* [malha] 10/11/2026: o personagem pisa na MESMA superficie que e desenhada (mesmos vertices e mesma diagonal dos triangulos): antes a altura vinha da
+     grade fina e a malha era mais grossa (6 m; 12 m no celular basico), entao em encostas o personagem entrava no chao ou flutuava (em 12 m: 5% dos pontos
+     com mais de 1 m de erro, em penhasco ate dezenas de metros) */
+  function hv(i, j){ return H[Math.min(nz - 1, j * SM) * nx + Math.min(nx - 1, i * SM)]; }
+  M.altura = function(x, z){
+    if(!H) return null; var c = cel(x, z); if(c[0] < 0 || c[1] < 0 || c[0] >= nx - 1 || c[1] >= nz - 1) return null;
+    var gx = Math.floor((nx - 1) / SM) + 1, gz = Math.floor((nz - 1) / SM) + 1, u = c[0] / SM, v = c[1] / SM, i = Math.min(gx - 2, Math.floor(u)), j = Math.min(gz - 2, Math.floor(v)), tx = u - i, tz = v - j;
+    var h00 = hv(i, j), h10 = hv(i + 1, j), h01 = hv(i, j + 1), h11 = hv(i + 1, j + 1);
+    return tx + tz <= 1 ? h00 + (h10 - h00) * tx + (h01 - h00) * tz : h11 + (h01 - h11) * (1 - tx) + (h10 - h11) * (1 - tz);      /* triangulo (a,c,b) ou (b,c,d) da malha */
   };
   function amostra(A, x, z){ if(!A) return 0; var c = cel(x, z), i = Math.round(c[0]), j = Math.round(c[1]); if(i < 0 || j < 0 || i >= nx || j >= nz) return 0; return A[j * nx + i]; }
   M.regiao = function(x, z){ return amostra(RG, x, z); };
@@ -24,7 +36,7 @@ window.MundoCampo = (function(){
       H = new Float32Array(n); P = new Uint8Array(n * 5); RG = new Uint8Array(n); AN = new Uint8Array(n);
       for(var k = 0; k < n; k++){ var o = k * B; H[k] = dv.getInt16(o, true) / 100; for(var b = 0; b < 5; b++) P[k * 5 + b] = dv.getUint8(o + 2 + b); RG[k] = dv.getUint8(o + 7); AN[k] = dv.getUint8(o + 8); }
       /* malha (passo de s celulas) */
-      var s = opt.baixa ? 4 : 2, gx = Math.floor((nx - 1) / s) + 1, gz = Math.floor((nz - 1) / s) + 1, N = gx * gz;
+      var s = SM = opt.baixa ? 4 : 2, gx = Math.floor((nx - 1) / s) + 1, gz = Math.floor((nz - 1) / s) + 1, N = gx * gz;
       var pos = new Float32Array(N * 3), p1 = new Float32Array(N * 4), p2 = new Float32Array(N), idx = [];
       for(var j = 0; j < gz; j++) for(var i = 0; i < gx; i++){
         var ci = Math.min(nx - 1, i * s), cj = Math.min(nz - 1, j * s), kk = cj * nx + ci, t = j * gx + i, x = x0 + ci * ps, z = z0 + cj * ps;

@@ -793,8 +793,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
-<script src="js/mundo_campo.js?v=2"></script>
-<script src="js/mapa_vivo.js?v=4"></script>
+<script src="js/mundo_campo.js?v=3"></script>
+<script src="js/mapa_vivo.js?v=6"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -3498,7 +3498,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
   MUNDO_ABERTO = true; ARENA = 3000;
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
-  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa' })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
+  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); });
 

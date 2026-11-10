@@ -56,58 +56,111 @@ window.MapaVivo = (function(){
     return b !== null ? b : (perto !== null ? perto : baixo);
   }
 
-  function carrega(M){
-    M.estado = 1; var base = 'assets/maps/' + M.C.pasta + '/', C = M.C;
-    fetch(base + C.grid + '.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
-      var v = '?v=' + (j.versao || 0);
-      return fetch(base + C.grid + '.bin' + v).then(function(r){ return r.arrayBuffer(); }).then(function(bin){
-        M.G = { n: j.n, cel: j.celula, x0: j.x0, y0: j.y0, hs: j.altura_escala, ls: j.livre_escala, base: 4 * (j.n * j.n + 1), stride: j.bytes_por_camada || 3 };
-        M.offs = new Uint32Array(bin, 0, j.n * j.n + 1); M.dv = new DataView(bin);
-        return new Promise(function(ok, falha){
-          new THREE.GLTFLoader().load(base + C.glb + v, function(g){
-            if(M.estado !== 1){ libera(g.scene); return ok(); }                    /* desistiu (o jogador se afastou) */
-            g.scene.traverse(function(o){ if(o.isMesh){ o.castShadow = false; o.receiveShadow = !opt.baixa; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ m.side = THREE.DoubleSide; }); } });
-            var gr = new THREE.Group(); gr.add(g.scene); gr.position.set(M.X.x, M.X.y, M.X.z); gr.rotation.y = M.X.r; gr.name = 'MAPA_' + M.id;
-            scene.add(gr); gr.updateMatrixWorld(true); gr.traverse(function(o){ o.matrixAutoUpdate = false; });
-            M.grupo = gr; M.estado = 2; ok();
-          }, undefined, falha);
-        });
+  /* [etapas] 10/11/2026 (dono: "quando vai carregar a outra parte do mapa trava"): o carregamento era um bloco so (baixar + ler o GLB + subir tudo para a placa
+     de uma vez no primeiro quadro). Agora: 1) baixa os bytes de longe (so rede, nada na cena); 2) le o GLB perto; 3) sobe para a placa aos poucos, o mais
+     perto do jogador primeiro, com limite de triangulos/texturas por quadro. A distancia e ate a BORDA DA REGIAO do mapa (antes era ate a entrada). */
+  function lg(M, m){ if(window.__MV_LOG) console.log('[mapa-vivo] ' + M.id + ' ' + m + ' @' + Math.round(performance.now())); }
+  function ab(r){ if(!r.ok) throw new Error('http ' + r.status + ' ' + r.url); return r.arrayBuffer(); }
+  function baixa(M){
+    if(M.bytes) return Promise.resolve(M.bytes);
+    if(M.bpend) return M.bpend;
+    var base = 'assets/maps/' + M.C.pasta + '/', C = M.C, t0 = performance.now(), tk = M.tok;
+    M.bpend = fetch(base + C.grid + '.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
+      var v = '?v=' + (j.versao || 0), op = { priority: 'low' };
+      return Promise.all([fetch(base + C.grid + '.bin' + v, op).then(ab), fetch(base + C.glb + v, op).then(ab)]).then(function(q){
+        M.bpend = null; if(M.tok !== tk) return null;
+        M.bytes = { j: j, bin: q[0], glb: q[1], v: v }; lg(M, 'baixou ' + Math.round(q[1].byteLength / 1e5) / 10 + ' MB em ' + Math.round(performance.now() - t0) + ' ms'); return M.bytes;
       });
-    }).catch(function(e){ console.warn('[mapa-vivo] ' + M.id, e); M.estado = 0; M.erroT = performance.now(); });
+    }).catch(function(e){ M.bpend = null; M.erroT = performance.now(); console.warn('[mapa-vivo] ' + M.id, e); return null; });
+    return M.bpend;
+  }
+  function carrega(M){
+    M.estado = 1; var tk = ++M.tok, base = 'assets/maps/' + M.C.pasta + '/';
+    baixa(M).then(function(B){
+      if(!B || M.tok !== tk || M.estado !== 1){ if(!B && M.tok === tk) M.estado = 0; return; }
+      var j = B.j; M.G = { n: j.n, cel: j.celula, x0: j.x0, y0: j.y0, hs: j.altura_escala, ls: j.livre_escala, base: 4 * (j.n * j.n + 1), stride: j.bytes_por_camada || 3 };
+      M.offs = new Uint32Array(B.bin, 0, j.n * j.n + 1); M.dv = new DataView(B.bin);
+      var t0 = performance.now();
+      new THREE.GLTFLoader().parse(B.glb, base, function(g){
+        B.glb = null;                                                                     /* bytes do GLB nao precisam mais ficar na memoria */
+        if(M.tok !== tk || M.estado !== 1){ libera(g.scene); return; }
+        lg(M, 'leu o GLB em ' + Math.round(performance.now() - t0) + ' ms');
+        var fila = [], vistos = new Map(), dup = 0, tot = 0;
+        g.scene.traverse(function(o){ if(o.isMesh){ o.castShadow = false; o.receiveShadow = !opt.baixa; o.visible = false; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ m.side = THREE.DoubleSide; }); fila.push(o);
+          /* o three cria UMA textura por referencia do GLB (mesma imagem usada em varios materiais = varias subidas para a placa); junta as repetidas */
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ MAPS_TEX.forEach(function(k){
+            var t = m[k]; if(!t || !t.isTexture) return; tot++; var im = t.image || (t.source && t.source.data); if(!im) return; var L = vistos.get(im); if(!L){ vistos.set(im, [t]); return; }
+            for(var q = 0; q < L.length; q++){ var u = L[q]; if(u === t){ dup++; return; } if(u.wrapS === t.wrapS && u.wrapT === t.wrapT && u.flipY === t.flipY && u.minFilter === t.minFilter && u.magFilter === t.magFilter && u.colorSpace === t.colorSpace && u.offset.equals(t.offset) && u.repeat.equals(t.repeat) && u.rotation === t.rotation){ m[k] = u; dup++; return; } }
+            L.push(t); }); });
+        } });
+        lg(M, 'texturas: ' + tot + ' referencias, ' + dup + ' repetidas juntadas');
+        var gr = new THREE.Group(); gr.add(g.scene); gr.position.set(M.X.x, M.X.y, M.X.z); gr.rotation.y = M.X.r; gr.name = 'MAPA_' + M.id;
+        scene.add(gr); gr.updateMatrixWorld(true); gr.traverse(function(o){ o.matrixAutoUpdate = false; });
+        var c = new THREE.Vector3();
+        fila.forEach(function(o){ var gm = o.geometry; if(!gm.boundingSphere) gm.computeBoundingSphere(); c.copy(gm.boundingSphere.center); o.localToWorld(c); o.userData.mvx = c.x; o.userData.mvz = c.z; o.userData.mvr = gm.boundingSphere.radius * o.matrixWorld.getMaxScaleOnAxis(); o.userData.mvtri = (gm.index ? gm.index.count : (gm.attributes.position ? gm.attributes.position.count : 0)) / 3; });
+        M.grupo = gr; M.fila = fila; M.tri0 = fila.length; M.tSubir = performance.now(); ordena(M, V.px, V.pz);
+      }, function(e){ console.warn('[mapa-vivo] ' + M.id, e); M.estado = 0; M.erroT = performance.now(); });
+    });
+  }
+  function dSup(o, x, z){ var u = o.userData; return Math.max(0, Math.hypot(u.mvx - x, u.mvz - z) - (u.mvr || 0)); }      /* distancia ate a SUPERFICIE da esfera da peca: o chao grande embaixo do jogador conta como perto */
+  function ordena(M, x, z){ M.tOrd = performance.now(); M.xOrd = x; M.zOrd = z; M.fila.sort(function(a, b){ return dSup(b, x, z) - dSup(a, x, z); }); }   /* o ultimo da fila e o mais perto */
+  var MAPS_TEX = ['map', 'normalMap', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'lightMap', 'alphaMap'];
+  function sobe(M){
+    var f = M.fila; if(!f || !f.length) return;
+    if(Math.hypot(V.px - M.xOrd, V.pz - M.zOrd) > 60) ordena(M, V.px, V.pz);                      /* o jogador andou: refaz a ordem */
+    var t0 = performance.now(), orc = opt.baixa ? 2.5 : 5, rd = opt.renderer, n = 0;
+    while(f.length && (n === 0 || performance.now() - t0 < orc)){                              /* orcamento de TEMPO por quadro (pelo menos 1 peca) */
+      var o = f[f.length - 1], mats = Array.isArray(o.material) ? o.material : [o.material];
+      if(rd && rd.initTexture) mats.forEach(function(m){ MAPS_TEX.forEach(function(k){ var t = m[k]; if(t && t.isTexture && !t.userData._mv){ t.userData._mv = 1; rd.initTexture(t); } }); });
+      f.pop(); o.visible = true; n++;
+    }
+    if(!M.usavel && (!f.length || dSup(f[f.length - 1], V.px, V.pz) > 90)){ M.usavel = true; lg(M, 'entorno pronto (a ' + Math.round(performance.now() - M.tSubir) + ' ms, faltam ' + f.length + ' pecas longe)'); }
+    if(!f.length){ M.fila = null; M.estado = 2; lg(M, 'pronto: ' + M.tri0 + ' pecas subiram em ' + Math.round(performance.now() - M.tSubir) + ' ms'); }
   }
   function libera(o){
     o.traverse(function(n){ if(n.geometry) n.geometry.dispose(); if(n.material) (Array.isArray(n.material) ? n.material : [n.material]).forEach(function(m){ for(var k in m){ if(m[k] && m[k].isTexture) m[k].dispose(); } m.dispose(); }); });
   }
   function solta(M){
-    if(M.grupo){ scene.remove(M.grupo); libera(M.grupo); M.grupo = null; }
-    M.G = null; M.offs = null; M.dv = null; M.estado = 0;
+    M.tok++; if(M.grupo){ scene.remove(M.grupo); libera(M.grupo); M.grupo = null; }
+    M.G = null; M.offs = null; M.dv = null; M.estado = 0; M.usavel = false; M.fila = null; M.bytes = null; M.bpend = null;
   }
   V.init = function(T, sc, o){
     THREE = T; scene = sc; opt = o || {}; var D = window.MundoCampo && MundoCampo.dados; if(!D || !D.mapas) return false;
     Object.keys(CFG).forEach(function(id){
       var P = D.mapas[id]; if(!P) return; var C = CFG[id];
-      var M = V.mapas[id] = { id: id, C: C, estado: 0, X: { x: P.pos[0], y: P.pos[1], z: P.pos[2], r: P.rotY, c: Math.cos(P.rotY), s: Math.sin(P.rotY) } };
+      var M = V.mapas[id] = { id: id, C: C, estado: 0, tok: 0, pts: [], dReg: 1e9, X: { x: P.pos[0], y: P.pos[1], z: P.pos[2], r: P.rotY, c: Math.cos(P.rotY), s: Math.sin(P.rotY) } };
       M.centro = mundo(M, C.spawn[0], C.spawn[1]);
     });
+    /* pontos de amostra da regiao de cada mapa (a cada 12 m) para medir a distancia ate a borda dela */
+    var porReg = {}; for(var id in CFG) porReg[CFG[id].regiao] = id;
+    for(var x = D.x0; x < D.x0 + D.nx * D.passo; x += 12) for(var z = D.z0; z < D.z0 + D.nz * D.passo; z += 12){ var r = MundoCampo.regiao(x, z); if(r >= 1 && r <= 3 && V.mapas[porReg[r]]) V.mapas[porReg[r]].pts.push(x, z); }
     V.on = true; return true;
   };
-  /* carrega perto (entrada do mapa a ate PERTO m), solta longe; nunca dois carregando juntos (celular) */
+  V.px = 0; V.pz = 0; var tReg = 0;
+  /* baixa os bytes de longe (PRE), le o GLB perto (PERTO), solta longe; um mapa por vez na memoria da placa */
   V.tick = function(x, z){
-    if(!V.on) return; var perto = opt.baixa ? 170 : 230, longe = perto + 120, ocupado = false, now = performance.now(), fora = Math.hypot(x, z) > 90;      /* so carrega depois de sair da muralha: na cidade a rede e a placa ficam para a cidade */
-    for(var id in V.mapas) if(V.mapas[id].estado === 1) ocupado = true;
-    for(var id2 in V.mapas){
-      var M = V.mapas[id2], d = Math.hypot(x - M.centro[0], z - M.centro[1]);
+    if(!V.on) return; V.px = x; V.pz = z;
+    var pre = opt.baixa ? 300 : 450, perto = opt.baixa ? 130 : 200, longe = perto + 160, now = performance.now(), fora = Math.hypot(x, z) > 90, ocupado = false, id;
+    if(now - tReg > 400){ tReg = now;
+      for(id in V.mapas){ var M0 = V.mapas[id], P = M0.pts, md = 1e18; for(var k = 0; k < P.length; k += 2){ var dd = (P[k] - x) * (P[k] - x) + (P[k + 1] - z) * (P[k + 1] - z); if(dd < md) md = dd; } M0.dReg = Math.sqrt(md); }
+    }
+    for(id in V.mapas){ var Mq = V.mapas[id]; if(Mq.estado === 1) ocupado = true; if(Mq.fila) sobe(Mq); }
+    for(id in V.mapas){
+      var M = V.mapas[id], d = M.dReg;
       if(M.estado === 0 && fora && d < perto && !ocupado && !(M.erroT && now - M.erroT < 15000)){ carrega(M); ocupado = true; }
+      else if(M.estado === 0 && fora && d < pre && !M.bytes && !M.bpend && !(M.erroT && now - M.erroT < 15000)){ var baixando = false; for(var q in V.mapas) if(V.mapas[q].bpend) baixando = true; if(!baixando) baixa(M); }
       else if(M.estado === 2 && d > longe) solta(M);
-      else if(M.estado === 1 && d > longe + 100) M.estado = 0;                 /* o carregamento em curso e descartado no fim */
+      else if(M.estado === 1 && d > longe + 100) solta(M);                         /* o carregamento em curso e descartado */
+      else if(M.estado === 0 && M.bytes && d > pre + 150) M.bytes = null;           /* afastou-se: larga os bytes baixados */
     }
   };
-  V.pronto = function(id){ var M = V.mapas[id]; return !!(M && M.estado === 2); };
+  V.info = function(){ var o = {}; for(var id in V.mapas){ var M = V.mapas[id]; o[id] = { estado: M.estado, bytes: !!M.bytes, baixando: !!M.bpend, fila: M.fila ? M.fila.length : 0, usavel: !!M.usavel, dReg: Math.round(M.dReg) }; } return o; };
+  V.pronto = function(id){ var M = V.mapas[id]; return !!(M && (M.estado === 2 || M.usavel)); };
   V.porRegiao = function(r){ for(var id in CFG) if(CFG[id].regiao === r) return id; return null; };
   V.chao = function(x, z, y){
     var best = null;
     for(var id in V.mapas){
-      var M = V.mapas[id]; if(M.estado !== 2) continue;
+      var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
       var l = local(M, x, z), h = chaoLocal(M, l[0], l[1], (y === undefined ? 1e4 : y) - M.X.y);
       if(h !== null){ h += M.X.y; if(best === null || (y !== undefined ? Math.abs(h - y) < Math.abs(best - y) : h > best)) best = h; }
     }
@@ -116,7 +169,7 @@ window.MapaVivo = (function(){
   /* movimento do jogador de (x0,z0) para (x1,z1) na altura y: so vale quando o destino tem chao de um mapa carregado */
   V.bloq = function(x0, z0, x1, z1, y){
     for(var id in V.mapas){
-      var M = V.mapas[id]; if(M.estado !== 2) continue;
+      var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
       var b = local(M, x1, z1), yl = y - M.X.y, h = chaoLocal(M, b[0], b[1], yl);
       if(h === null || Math.abs(h - yl) > 3.5) continue;
       var a = local(M, x0, z0);
