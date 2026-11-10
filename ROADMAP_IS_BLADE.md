@@ -133,7 +133,8 @@ Divulgação:
   - [ ] Página única (cidade + mapas no mesmo jogo, conexão mantida) — esperar o dono terminar as skills (arena.html) e trazer o log do celular.
   - [ ] Carregar o mapa vizinho perto do portão e soltar o que ficou longe; servidor troca o canal ao cruzar a divisa.
 - [~] Mobs e DGs simulados no servidor (hoje o líder do grupo comanda os mobs). — **mapas abertos FEITO 08/11** (adiantado a pedido do dono: `servidor/mobs_mundo.js`); DGs ainda pelo líder.
-- [ ] Clérigo (cura e buff) — fecha a trindade tanque/dano/suporte.
+- [ ] Clérigo (cura e buff) — fecha a trindade tanque/dano/suporte. **Fase 1 no jogo (10/11)**: Lâmina de Luz, Cura Mirada, Glifo de Cura; usa os cajados do mago (igual no L2) + Livro Astral na mão esquerda. Falta: fase 2 (Escudo Astral, Purificação, Prece) e fase 3 (Ressurreição).
+- [ ] **Conferir a pose com cajado em TODAS as raças/gêneros** (mago e clérigo): ex. a Dark Elf segura o cajado como se fosse espada de 2 mãos (dono, 10/11). Usar a pose/idle de cajado do L2 de cada raça.
 - [ ] Troca entre jogadores, loja pessoal (private store do L2) e mercado.
 - [ ] Mais DGs e chefes de raide; grau B; encantamento de armadura.
 - [ ] Cerco/castelo (o grande evento de clã do L2).
