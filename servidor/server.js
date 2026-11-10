@@ -331,6 +331,7 @@ wss.on('connection', ws => {
         const dx = m.x - J.x, dz = m.z - J.z, d = Math.hypot(dx, dz), max = VMAX * dt + .5;
         if(d > max){ J.x += dx / d * max; J.z += dz / d * max; } else { J.x = m.x; J.z = m.z; }          /* limita a velocidade; se andou demais, so chega mais devagar */
       }
+      if(typeof m.pm === 'number' && isFinite(m.pm)){ const pm = Math.max(50, Math.min(J.pers ? pmaxMax(J.pers) : 5000, m.pm | 0)); if(pm !== J.pmax){ const cheio = J.hp >= J.pmax; J.pmax = pm; J.hp = cheio && !J.morto ? pm : Math.min(J.hp, pm); } }      /* vida maxima atual do jogo (nivel/equipamento carregam depois de entrar); limitada pelo que o personagem pode ter */
       if(typeof m.y === 'number' && isFinite(m.y)) J.y = Math.max(-5000, Math.min(5000, m.y));      /* [mapas-multi] altura no relevo (so para desenhar) */
       if((c.mapa === 'masmorra' || abertoAqui(c, J)) && typeof m.h === 'number' && !J.morto){ const h = Math.max(0, Math.min(J.pmax, m.h | 0)); if(h <= J.hp || !(t - (J.pvpHitT || 0) < 3)) J.hp = h; }      /* [pk] logo depois de golpe de jogador so aceita vida menor (pacote atrasado nao desfaz o dano) */      /* so para a barra do grupo: na masmorra o combate e do jogo */
       if(typeof m.f === 'number') J.f = m.f; J.a = String(m.a || 'idle').slice(0, 24); J.ts = Math.max(.2, Math.min(5, +m.ts || 1)); J.guarda = !!m.g;

@@ -469,7 +469,7 @@ export const Net = (function(){
     if(!ctx || !N.on) return; tEnv += dt; tHud += dt;
     if(tEnv >= 1 / 12){
       tEnv = 0; var S = ctx.getS(), v = ctx.getVrm(), d = v && v.drv;
-      send({ t: 'st', x: r2(S.px), z: r2(S.pz), f: r2(S.face), h: Math.round(S.php), a: d ? d.curName : 'idle', ts: d && d.cur ? r2(d.cur.timeScale || 1) : 1, g: S.guard ? 1 : 0, w: ctx.getWPN(), y: ctx.getY ? r2(ctx.getY()) : undefined });
+      send({ t: 'st', x: r2(S.px), z: r2(S.pz), f: r2(S.face), h: Math.round(S.php), pm: Math.round(S.pmax || 0) || undefined, a: d ? d.curName : 'idle', ts: d && d.cur ? r2(d.cur.timeScale || 1) : 1, g: S.guard ? 1 : 0, w: ctx.getWPN(), y: ctx.getY ? r2(ctx.getY()) : undefined });
     }
     if(N.duelo && N.duelo.seg > 0){ N.duelo.seg = Math.max(0, (N.duelo.ini - Date.now()) / 1000); }
     if(pedido && Date.now() > pedido.ate) pedido = null;
