@@ -322,18 +322,16 @@
     subTitle: 'Gatekeeper de Talking Island',
     avatar: '🔮',
     greeting: 'Que as bênçãos de Einhasad iluminem seu caminho. Posso dobrar as linhas ley do espaço para transportá-lo instantaneamente aos recantos de Talking Island ou aos perigos da Torre da Insolência. Para onde deseja viajar?',
-    options: [
+    options: [/* [gk] 10/11/2026 (dono): a GK leva para a DG e suas dificuldades e para as areas novas do mundo aberto; os pontos locais vazios (porto, guilda, igreja, farol) sairam */
       {
         icon: '🏰',
-        label: 'Torre da Insolência - Masmorras (Normal / Médio / Hard)',
+        label: 'Torre da Insolência - Dungeons (escolher a dificuldade)',
         tag: 'Dungeon',
         action: function(){
           closeDialog();
-          if(window.L2Teleport){
-            window.L2Teleport.teleportTo('Torre da Insolência (Masmorra)', 'arena.html?mode=dungeon&go=normal');
-          } else {
-            window.location.href = 'arena.html?mode=dungeon&go=normal';
-          }
+          if(window.openPortalMenu){ window.openPortalMenu(); }
+          else if(window.L2Teleport){ window.L2Teleport.teleportTo('Torre da Insolência (Masmorra)', 'arena.html?mode=dungeon&go=normal'); }
+          else { window.location.href = 'arena.html?mode=dungeon&go=normal'; }
         }
       },
       {
@@ -342,11 +340,8 @@
         tag: 'Chefe',
         action: function(){
           closeDialog();
-          if(window.L2Teleport){
-            window.L2Teleport.teleportTo('Salão do Imperador Baium', 'arena.html?mode=duel');
-          } else {
-            window.location.href = 'arena.html?mode=duel';
-          }
+          if(window.L2Teleport){ window.L2Teleport.teleportTo('Salão do Imperador Baium', 'arena.html?mode=duel'); }
+          else { window.location.href = 'arena.html?mode=duel'; }
         }
       },
       {
@@ -355,64 +350,27 @@
         tag: 'Online',
         action: function(){
           closeDialog();
-          if(window.L2Teleport){
-            window.L2Teleport.teleportTo('Arena PvP de Guerra', 'arena.html?mode=dungeon&go=pvp');
-          } else {
-            window.location.href = 'arena.html?mode=dungeon&go=pvp';
-          }
+          if(window.L2Teleport){ window.L2Teleport.teleportTo('Arena PvP de Guerra', 'arena.html?mode=dungeon&go=pvp'); }
+          else { window.location.href = 'arena.html?mode=dungeon&go=pvp'; }
         }
       },
       {
-        icon: '⛵',
-        label: 'Porto de Talking Island',
-        tag: 'Local',
-        action: function(){
-          closeDialog();
-          if(window.L2Teleport && window.teleportTo){
-            window.L2Teleport.warpLocal('Porto de Talking Island', function(){
-              window.teleportTo('port');
-            });
-          }
-        }
+        icon: '⛰️',
+        label: 'Torre de Cruma (Nv 1-15)',
+        tag: 'Mapa',
+        action: function(){ closeDialog(); if(window.irArea) window.irArea('curuma'); }
       },
       {
-        icon: '🏛️',
-        label: 'Guilda dos Guerreiros',
-        tag: 'Local',
-        action: function(){
-          closeDialog();
-          if(window.L2Teleport && window.teleportTo){
-            window.L2Teleport.warpLocal('Guilda dos Guerreiros', function(){
-              window.teleportTo('fighter');
-            });
-          }
-        }
+        icon: '🏯',
+        label: 'Fortaleza (Nv 15-30)',
+        tag: 'Mapa',
+        action: function(){ closeDialog(); if(window.irArea) window.irArea('fortress'); }
       },
       {
-        icon: '⛪',
-        label: 'Igreja de Einhasad',
-        tag: 'Local',
-        action: function(){
-          closeDialog();
-          if(window.L2Teleport && window.teleportTo){
-            window.L2Teleport.warpLocal('Igreja de Einhasad', function(){
-              window.teleportTo('church');
-            });
-          }
-        }
-      },
-      {
-        icon: '🗼',
-        label: 'Farol do Penhasco',
-        tag: 'Local',
-        action: function(){
-          closeDialog();
-          if(window.L2Teleport && window.teleportTo){
-            window.L2Teleport.warpLocal('Farol do Penhasco', function(){
-              window.teleportTo('lighthouse');
-            });
-          }
-        }
+        icon: '🔥',
+        label: 'Pântano Flamejante (Nv 30-45)',
+        tag: 'Mapa',
+        action: function(){ closeDialog(); if(window.irArea) window.irArea('pantano'); }
       }
     ]
   };

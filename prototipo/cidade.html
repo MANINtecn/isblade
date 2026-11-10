@@ -800,7 +800,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/agua_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js?v=2"></script>
-<script src="js/l2_npcs.js?v=3"></script>
+<script src="js/l2_npcs.js?v=4"></script>
 <script src="js/horizonte.js?v=2"></script>
 </head>
 
@@ -1102,43 +1102,14 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-    <button class="tp-btn" onclick="teleportTo('arena')">Arena</button>
-
-
-
     <button class="tp-btn" onclick="teleportTo('portal')">Portal DG</button>
 
 
 
-    <button class="tp-btn" onclick="teleportTo('church')">Porta Igreja</button>
-
-
-
-    <button class="tp-btn" onclick="teleportTo('church_inside')">Dentro Igreja</button>
-
-
-
-    <button class="tp-btn" onclick="teleportTo('fighter')">Guilda</button>
-
-
-
     <button class="tp-btn" onclick="teleportTo('shops')">Lojas</button>
-
-
-
-    <button class="tp-btn" onclick="teleportTo('gate1')">Portão</button>
-
-
-
-    <button class="tp-btn" onclick="teleportTo('hill')">Colina</button>
-
-
-
-    <button class="tp-btn" onclick="teleportTo('port')">Porto</button>
-
-
-
-    <button class="tp-btn" onclick="teleportTo('lighthouse')">Farol</button>
+    <button class="tp-btn" onclick="irArea('curuma')">Torre de Cruma</button>
+    <button class="tp-btn" onclick="irArea('fortress')">Fortaleza</button>
+    <button class="tp-btn" onclick="irArea('pantano')">Pântano</button>
 
 
 
@@ -3510,6 +3481,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   var esconde = setInterval(function(){ if (window.Horizonte && Horizonte.itens) Horizonte.itens.forEach(function(it){ it.grupo.visible = false; }); }, 500); setTimeout(function(){ clearInterval(esconde); }, 8000);
   /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
   MUNDO_ABERTO = true; ARENA = 3000;
+  if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
   if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa' })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); });
@@ -4660,6 +4632,14 @@ function openPortalMenu(){
   });});
   document.getElementById('diffX').addEventListener('click',closePortalMenu);
 }
+/* [gk] 10/11/2026: ir para a entrada de um mapa do mundo aberto (GK e botao LOCAIS): reposiciona e reconecta (o servidor so aceita a posicao nova na entrada) */
+window.irArea=function(id){
+  if(!window.MapaVivo||!MapaVivo.on){location.href='cidade.html?local='+id;return;}
+  var sp=MapaVivo.spawn(id),C=MapaVivo.CFG[id];if(!sp)return;
+  var vai=function(){S.px=sp[0];S.pz=sp[1];S.py=sp[2];S.vx=0;S.vz=0;MUNDO_ULT=[S.px,S.pz];try{if(window.Net&&Net.on)Net.entrar('cidade');}catch(_){}};
+  if(window.L2Teleport)L2Teleport.warpLocal(C.nome,vai);else vai();
+};
+window.openPortalMenu=function(){openPortalMenu();};
 function closePortalMenu(){PORTAL_MENU=false;document.getElementById('diff').classList.remove('open');}
 /* <<< CLAUDE [portal-cidade] */
 
