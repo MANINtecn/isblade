@@ -241,13 +241,21 @@ def brilho_chao(col, nome, centro, f, R, cor="o", dur=40):
     o = plano_chao(col, nome, R * 2 * U, M["bh_" + cor], 0.3); o.location = (centro[0], centro[1], 0.3)
     esc(o, [(f - 1, (1e-3,) * 3), (f + 1, (0.3, 0.3, 1)), (f + 6, (1, 1, 1)), (f + dur, (0.8, 0.8, 1)), (f + dur + 12, (1e-3,) * 3)]); return o
 def lascas(col, nome, pos, f, n, tam=0.18, vel=4.0, mat="pedra", dur=(30, 44), g=9.8):
+    """lascas de pedra com fisica: lancamento, gravidade, quique no chao (restituicao 0,35, atrito 0,6) e rolagem ate parar"""
     for k in range(n):
-        a = k * 2 * math.pi / n + random.uniform(-.3, .3); v = random.uniform(.5, 1.0) * vel * U; vz = random.uniform(2.0, 5.5) * U; vida = random.randint(*dur); w = [random.uniform(-8, 8) for _ in range(3)]
+        a = k * 2 * math.pi / n + random.uniform(-.3, .3); v = random.uniform(.5, 1.0) * vel * U; vz = random.uniform(2.0, 5.5) * U; vida = random.randint(*dur) + 20; w = [random.uniform(-8, 8) for _ in range(3)]
         o = para_obj(col, "%s%d" % (nome, k), bm_lasca_pedra(tam * U), M[mat if k % 3 else "pedra2"])
-        for ff in list(range(f, f + vida, 2)) + [f + vida]:
-            s = (ff - f) / FPS; o.location = (pos[0] + math.cos(a) * v * s, pos[1] + math.sin(a) * v * s, max(0.5, pos[2] + vz * s - g * U * s * s / 2))
-            o.rotation_euler = (w[0] * s, w[1] * s, w[2] * s); o.scale = ((1,) * 3 if ff < f + vida else (1e-4,) * 3)
-            o.keyframe_insert("location", frame=ff); o.keyframe_insert("rotation_euler", frame=ff); o.keyframe_insert("scale", frame=ff)
+        p = Vector((pos[0], pos[1], max(0.5, pos[2]))); vv = Vector((math.cos(a) * v, math.sin(a) * v, vz)); piso = tam * U * 0.6; dt = 1.0 / FPS
+        for ff in range(f, f + vida + 1):
+            for _ in range(1):
+                vv.z -= g * U * dt; p += vv * dt
+                if p.z < piso:
+                    p.z = piso
+                    if abs(vv.z) > 0.6 * U: vv.z = -vv.z * 0.35; vv.x *= 0.6; vv.y *= 0.6
+                    else: vv.z = 0.0; vv.x *= 0.85; vv.y *= 0.85
+            o.location = tuple(p); sp = vv.length / max(U, 1); o.rotation_euler = (w[0] * (ff - f) * dt * min(1, sp), w[1] * (ff - f) * dt * min(1, sp), w[2] * (ff - f) * dt * min(1, sp))
+            o.scale = ((1,) * 3 if ff < f + vida else (1e-4,) * 3)
+            if (ff - f) % 2 == 0 or ff == f + vida: o.keyframe_insert("location", frame=ff); o.keyframe_insert("rotation_euler", frame=ff); o.keyframe_insert("scale", frame=ff)
         o.scale = (1e-4,) * 3; o.keyframe_insert("scale", frame=f - 1)
 def bm_lasca_pedra(r):
     bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=1, radius=r)

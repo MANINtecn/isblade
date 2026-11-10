@@ -13,7 +13,7 @@ SKILLS = [                                   # (cena, rotulo)
     ("MAGO_ELENCO", "Elenco: 12 personagens"),
     ("ARQUEIRO_BASICO", "A0  Flecha / Dupla / Leque (basico)"),
     ("ARQUEIRO_S1_PERFURANTE", "A1  Tiro Perfurante (nv 1)"),
-    ("ARQUEIRO_S2_EVASIVO", "A2  Salto Evasivo (nv 5)"),
+    ("ARQUEIRO_S2_GANCHO", "A2  Flecha-Gancho (nv 5)"),
     ("ARQUEIRO_S3_ATORDOANTE", "A3  Tiro Atordoante (nv 10)"),
     ("ARQUEIRO_S4_CHUVA", "A4  Chuva de Flechas (nv 20)"),
     ("ARQUEIRO_S5_FALCAO", "A5  Olho de Falcao (nv 25)"),

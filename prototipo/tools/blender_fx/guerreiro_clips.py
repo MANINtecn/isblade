@@ -64,6 +64,12 @@ def gira_raiz(arm, graus, pivo_xy=None):
     R = Matrix.Translation(Vector((p.x, p.y, 0))) @ Matrix.Rotation(math.radians(graus), 4, "Z") @ Matrix.Translation(Vector((-p.x, -p.y, 0)))
     pb.matrix = R @ M; BASE["sc"].view_layers[0].update()
 
+def inclina_tronco(arm, graus):
+    """inclina o tronco (coluna e tudo acima) para tras em torno do eixo lateral do personagem: o arco sobe junto (frente do clipe = -Y, lateral = X)"""
+    pb = arm.pose.bones["bip01_spine"]; M = pb.matrix.copy(); p = M.translation.copy()
+    Rm = Matrix.Translation(p) @ Matrix.Rotation(math.radians(-graus), 4, "X") @ Matrix.Translation(-p)
+    pb.matrix = Rm @ M; BASE["sc"].view_layers[0].update()
+
 def bake(arm, nome, partes, emenda=5):
     """partes: lista de dict(acao=, de=, ate=, saida=quadros de saida, giro=funcao(t 0..1)->graus extras  ou None)
     A pose de cada pedaco e amostrada na acao nativa (de..ate em quadros de 48 fps) e esticada para 'saida' quadros; entre pedacos ha uma emenda suave de 'emenda' quadros.
@@ -79,6 +85,7 @@ def bake(arm, nome, partes, emenda=5):
             arm.animation_data.action = bpy.data.actions[p["acao"]]
             prim = pose_da_acao(arm, p["acao"], p["de"])
             if p.get("giro"): aplica(arm, prim); gira_raiz(arm, p["giro"](0.0)); prim = captura(arm)
+            if p.get("inclina"): aplica(arm, prim); inclina_tronco(arm, p["inclina"](0.0)); prim = captura(arm)
             for k in range(1, emenda + 1): poses.append(mistura(ultima, prim, k / (emenda + 1)))
             ini = len(poses)
         for i in range(n):
@@ -86,6 +93,8 @@ def bake(arm, nome, partes, emenda=5):
             ps = pose_da_acao(arm, p["acao"], q)
             if p.get("giro"):
                 aplica(arm, ps); gira_raiz(arm, p["giro"](t)); ps = captura(arm)
+            if p.get("inclina"):
+                aplica(arm, ps); inclina_tronco(arm, p["inclina"](t)); ps = captura(arm)
             poses.append(ps)
         ultima = poses[-1]; faixas.append((ini + 1, len(poses))); aplica(arm, ultima); BASE["sc"].view_layers[0].update(); yaw_ult = yaw_raiz(arm)
     nova = bpy.data.actions.new(nome); nova.use_fake_user = True; arm.animation_data.action = nova
