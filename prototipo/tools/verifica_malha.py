@@ -116,7 +116,7 @@ def main():
     for s in spots:
         i, j = celula_de(J, s['x'], s['z'])
         if not (0 <= i < nx and 0 <= j < nz): continue
-        ok = alc[j, i]
+        ok = alc[j, i] or dist_g[j, i] <= 45          # spot em agua funda: o servidor leva para a margem mais proxima (ate 60 m)
         if not ok: sem.append({'faixa': s['faixa'], 'x': s['x'], 'z': s['z'], 'perto_m': round(float(dist_g[j, i]), 1)})
     print('   spots do campo fora da area ligada a cidade: %d de %d' % (len(sem), len(spots)))
     for q in sem: print('     faixa %s em (%.1f, %.1f), a %.1f m da area ligada' % (q['faixa'], q['x'], q['z'], q['perto_m']))

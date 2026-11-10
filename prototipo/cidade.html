@@ -795,6 +795,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/moradores.js?v=1"></script>
 <script src="js/mundo_campo.js?v=5"></script>
 <script src="js/mapa_vivo.js?v=12"></script>
+<script src="js/lagos.js?v=1"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -3498,6 +3499,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
   MUNDO_ABERTO = true; ARENA = 3000;
   if (/[?&]malha=1/.test(location.search)) MundoCampo.verMalha(true);/* [malha] */
+  if (window.Lagos) Lagos.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).catch(function(e){ console.warn('lagos', e); });/* [lagos] bacias fechadas do terreno, com agua propria (nao e o mar) */
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
   if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
@@ -4604,6 +4606,7 @@ function mundoTick(dt){
   if(r!==MUNDO_REG.r){MUNDO_REG.r=r;MUNDO_REG.t=0;}else MUNDO_REG.t+=dt;
   if(r!==4)MUNDO_REG.torre=false;
   if(window.MapaVivo&&MapaVivo.on)MapaVivo.tick(S.px,S.pz);
+  if(window.Lagos)Lagos.tick(dt);
   if(r!==MUNDO_REG.aviso&&MUNDO_REG.t>.35&&r!==4){MUNDO_REG.aviso=r;var _id=MapaVivo.porRegiao(r),_C=_id&&MapaVivo.CFG[_id];if(_C){banner(_C.nome.toUpperCase(),'Niveis '+_C.niveis+': os monstros mais fortes ficam longe da entrada','#f5c451');try{Chat.sistema('Você entrou em: '+_C.nome);}catch(_){}}else if(d>100){try{Chat.sistema('Você entrou em: Campo de Talking Island');}catch(_){}}}/* [pagina-unica] o mapa ja esta no mundo: so avisa */
   if(r===4&&!MUNDO_REG.torre&&MUNDO_REG.t>.35){MUNDO_REG.torre=true;openPortalMenu();}
 }

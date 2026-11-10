@@ -35,7 +35,9 @@ function campo(){
       if(i < 0 || j < 0 || i >= J.nx - 1 || j >= J.nz - 1 || !A[Math.round(fz) * J.nx + Math.round(fx)]) return null;
       const ax = fx - i, az = fz - j, k = j * J.nx + i, a = H[k] + (H[k + 1] - H[k]) * ax, b = H[k + J.nx] + (H[k + J.nx + 1] - H[k + J.nx]) * ax; return a + (b - a) * az;
     };
-    const spots = (J.spots || []).map((s, i) => { const L = CAMPO_TIPOS[s.faixa] || CAMPO_TIPOS['1-5'], h = chao(s.x, s.z); return { tipo: L[i % L.length], n: 4, raio: 7, agr: CAMPO_AGR[s.faixa] || 0, x: s.x, z: s.z, h: h === null ? s.y : h }; });
+    /* [lagos] ponto de monstro que caiu em agua funda (celula nao andavel) vai para a margem mais proxima */
+    const margem = s => { if(chao(s.x, s.z) !== null) return [s.x, s.z]; for(let r = 4; r <= 60; r += 4) for(let a = 0; a < 360; a += 15){ const x = s.x + Math.cos(a * Math.PI / 180) * r, z = s.z + Math.sin(a * Math.PI / 180) * r; if(chao(x, z) !== null && chao(x + 5, z) !== null && chao(x - 5, z) !== null && chao(x, z + 5) !== null && chao(x, z - 5) !== null) return [x, z]; } return [s.x, s.z]; };
+    const spots = (J.spots || []).map((s, i) => { const L = CAMPO_TIPOS[s.faixa] || CAMPO_TIPOS['1-5'], m = margem(s), h = chao(m[0], m[1]); return { tipo: L[i % L.length], n: 4, raio: 7, agr: CAMPO_AGR[s.faixa] || 0, x: m[0], z: m[1], h: h === null ? s.y : h }; });
     CAMPO = { G: { chao: (x, z) => chao(x, z) }, M: { dif: 'campo', respawn: 30, ativa: 90, solta: 120, spots } };
   } catch(e){ console.error('mobs_mundo: sem o campo do mundo aberto', e.message); CAMPO = false; }
   return CAMPO;

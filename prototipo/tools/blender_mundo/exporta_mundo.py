@@ -73,3 +73,4 @@ cab = {"_nota": "Mundo aberto (tools/blender_mundo/exporta_mundo.py). Celula = i
        "x0": round(x0, 3), "z0": round(z0, 3), "passo": PASSO, "nx": nx, "nz": nz, "bytes_celula": 9, "biomas": [b[0] for b in BIOMAS], "texturas": tex, "mapas": mapas, "spots": spots}
 json.dump(cab, open(os.path.join(OUT, "mundo_grade.json"), "w", encoding="utf-8"), indent=1)
 print("mundo exportado: %d x %d celulas de %.0f m, %.1f MB, andavel %.0f%%, regioes %s, spots %d" % (nx, nz, PASSO, len(buf) / 1e6, anda.mean() * 100, {r: int((regiao == r).sum()) for r in range(5)}, len(spots)))
+print('LEMBRETE: rode `python tools/lagos_mundo.py --aplicar` (fora do Blender) para refazer os lagos e marcar a agua funda como nao andavel neste mundo_grade.bin')
