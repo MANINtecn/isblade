@@ -794,7 +794,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
 <script src="js/mundo_campo.js?v=4"></script>
-<script src="js/mapa_vivo.js?v=6"></script>
+<script src="js/mapa_vivo.js?v=9"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -4636,7 +4636,7 @@ function malhaComando(t){
 }
 /* <<< CLAUDE [malha] */
 function mundoPode(x0,z0,x,z){
-  var b=window.MapaVivo&&MapaVivo.on?MapaVivo.bloq(x0,z0,x,z,S.py||0):null;if(b!==null){MALHA.mot='mapa';return !b;}
+  var b=window.MapaVivo&&MapaVivo.on?MapaVivo.bloq(x0,z0,x,z,S.py||0):null;if(b!==null){MALHA.mot=MapaVivo.motivo||'mapa';return !b;}
   var r=MundoCampo.regiao(x,z),id=r>=1&&r<=3&&window.MapaVivo&&MapaVivo.porRegiao(r);
   if(id&&!MapaVivo.pronto(id)&&MapaVivo.mapas[id]){MALHA.mot='carregando';if(!MUNDO_REG.esp||performance.now()-MUNDO_REG.esp>4000){MUNDO_REG.esp=performance.now();try{floatText('Carregando '+MapaVivo.CFG[id].nome+'...','#cfe6ff',16,'p');}catch(_){}}return false;}
   MALHA.mot='terreno';return MundoCampo.anda(x,z);

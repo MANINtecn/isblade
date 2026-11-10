@@ -56,6 +56,17 @@ window.MapaVivo = (function(){
     return b !== null ? b : (perto !== null ? perto : baixo);
   }
 
+  /* [emenda] 10/11/2026: o terreno esculpido e o chao do mapa nao coincidem (desencontro tipico de 3,5 a 6 m): quando o chao do mapa ficava acima do terreno, o
+     personagem andava ENTERRADO no terreno por baixo do mapa ("caiu num buraco"). Dentro de um mapa vale o chao do mapa ate TOL m de diferenca (sobe/desce ate ele);
+     onde a coluna tem chao do mapa mas so mais longe que isso, a passagem e bloqueada (motivo 'estrutura') em vez de deixar andar enterrado. */
+  var TOL = 6.5;
+  function chaoProx(M, x, z, y){
+    var c = celula(M, x, z), L = camadas(M, c[0], c[1]); if(!L) return { h: null, acima: false }; var b = null, bd = 1e9, up = 1e9;
+    for(var i = 0; i < L.length; i++){ var h = L[i].h; if(h < M.C.chaoMin + .3 || L[i].l < ALTURA) continue; var d = Math.abs(h - y); if(d < bd){ bd = d; b = h; } if(h > y && h - y < up) up = h - y; }
+    /* acima = o chao do mapa fica ACIMA do terreno entre TOL e 14 m (a superficie visivel e a dele: o personagem andaria enterrado). Chao mais alto que isso (sobre um
+       penhasco) ou abaixo do terreno (colina por cima do mapa) nao conta: ali o terreno e o que se ve e se pisa */
+    return { h: (b !== null && bd <= TOL) ? b : null, acima: up > TOL && up <= 14 };
+  }
   /* [etapas] 10/11/2026 (dono: "quando vai carregar a outra parte do mapa trava"): o carregamento era um bloco so (baixar + ler o GLB + subir tudo para a placa
      de uma vez no primeiro quadro). Agora: 1) baixa os bytes de longe (so rede, nada na cena); 2) le o GLB perto; 3) sobe para a placa aos poucos, o mais
      perto do jogador primeiro, com limite de triangulos/texturas por quadro. A distancia e ate a BORDA DA REGIAO do mapa (antes era ate a entrada). */
@@ -147,7 +158,9 @@ window.MapaVivo = (function(){
     for(id in V.mapas){ var Mq = V.mapas[id]; if(Mq.estado === 1) ocupado = true; if(Mq.fila) sobe(Mq); }
     for(id in V.mapas){
       var M = V.mapas[id], d = M.dReg;
-      if(M.estado === 0 && fora && d < perto && !ocupado && !(M.erroT && now - M.erroT < 15000)){ carrega(M); ocupado = true; }
+      if(M.estado === 0 && fora && d < perto && !ocupado && !(M.erroT && now - M.erroT < 15000)){
+        if(opt.baixa) for(var o in V.mapas) if(o !== id && V.mapas[o].estado !== 0 && V.mapas[o].dReg > 40) solta(V.mapas[o]);      /* celular basico: um mapa so na memoria da placa */
+        carrega(M); ocupado = true; }
       else if(M.estado === 0 && fora && d < pre && !M.bytes && !M.bpend && !(M.erroT && now - M.erroT < 15000)){ var baixando = false; for(var q in V.mapas) if(V.mapas[q].bpend) baixando = true; if(!baixando) baixa(M); }
       else if(M.estado === 2 && d > longe) solta(M);
       else if(M.estado === 1 && d > longe + 100) solta(M);                         /* o carregamento em curso e descartado */
@@ -161,7 +174,8 @@ window.MapaVivo = (function(){
     var best = null;
     for(var id in V.mapas){
       var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
-      var l = local(M, x, z), h = chaoLocal(M, l[0], l[1], (y === undefined ? 1e4 : y) - M.X.y);
+      var l = local(M, x, z), yy = (y === undefined ? 1e4 : y) - M.X.y, h = chaoLocal(M, l[0], l[1], yy);
+      if(h === null && y !== undefined) h = chaoProx(M, l[0], l[1], yy).h;                /* [emenda] chao do mapa um pouco acima/abaixo do terreno */
       if(h !== null){ h += M.X.y; if(best === null || (y !== undefined ? Math.abs(h - y) < Math.abs(best - y) : h > best)) best = h; }
     }
     return best;
@@ -171,9 +185,11 @@ window.MapaVivo = (function(){
     for(var id in V.mapas){
       var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
       var b = local(M, x1, z1), yl = y - M.X.y, h = chaoLocal(M, b[0], b[1], yl);
-      if(h === null || Math.abs(h - yl) > 3.5) continue;
-      var a = local(M, x0, z0);
-      return !(livre(M, b[0], b[1], h) && !cruza(M, a[0], a[1], b[0], b[1], Math.min(yl, h + PASSO)));
+      if(h === null){ var cp = chaoProx(M, b[0], b[1], yl); h = cp.h; if(h === null){ if(cp.acima && MundoCampo.regiao(x1, z1) === M.C.regiao){ V.motivo = 'estrutura'; return true; } continue; } }      /* [emenda] so chao do mapa longe demais: nao deixa andar enterrado */
+      if(Math.abs(h - yl) > TOL) continue;
+      var a = local(M, x0, z0), yr = Math.min(Math.max(yl, h - PASSO), h + PASSO);
+      V.motivo = 'parede';
+      return !(livre(M, b[0], b[1], h) && !cruza(M, a[0], a[1], b[0], b[1], yr));
     }
     return null;
   };
