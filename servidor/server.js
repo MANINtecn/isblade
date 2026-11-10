@@ -39,6 +39,7 @@ const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, ra
 const Prog = require('./progressao');
 const Inv = require('./inventario');
 const Mobs = require('./mobs_mundo');
+const { Baium, baiumOk } = require('./baium');      /* [baium-servidor] a luta do Baium roda aqui */
 const Moradores = require('./moradores').cria({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [moradores] NPCs com rotina e conversa na cidade */
 const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 function ganhaXp(J, v){
@@ -69,7 +70,7 @@ function canalLivre(mapa, pedido){
 function canalMasmorra(gid){
   const L = canais.masmorra;
   if(gid){ for(const c of L) if(c.gid === gid && c.jog.size < PARTY_MAX) return c; }
-  for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; c.dg = null; return c; }
+  for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; c.dg = null; c.dgsW = null; c.baium = null; return c; }
   const c = { mapa: 'masmorra', n: L.length + 1, jog: new Map(), gid: gid || 0 }; L.push(c); return c;
 }
 const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra, canais.curuma, canais.fortress, canais.pantano);
@@ -492,14 +493,32 @@ wss.on('connection', ws => {
         envia(J, c.dgsW.estado('ok'));
       }
       else if(k === 'reset'){ if(c.dgsW && c.jog.size === 1) c.dgsW.reiniciar(); }        /* so quando esta sozinho: em grupo o mundo continua e quem caiu volta no inicio */
-      else if(k === 'fim') c.dgsW = null;
+      else if(k === 'fim'){ c.dgsW = null; c.baium = null; }
+      else if(k === 'baium'){                                                          /* [baium-servidor] o cliente acordou o Baium e pede a luta ao servidor */
+        const chave = String(m.dif || 'duelo').slice(0, 8); if(!baiumOk(chave)){ envia(J, { t: 'dgs', k: 'bnao' }); return; }
+        if(!c.baium || c.baium.chave !== chave || (m.novo && c.baium.dead)){            /* luta nova: primeira vez, outra dificuldade, ou recomeco depois de morrer/ganhar */
+          const B = c.baium = new Baium(chave, +m.x, +m.z);
+          B.dano = (P, ev) => { if(c.jog.get(P.id) === P && !P.morto) envia(P, ev); };
+          B.raio = (x, z, t) => difunde(c, { t: 'dg', k: 'bolt', x, z, t });
+          B.snapFn = o => difunde(c, o);
+        }
+        envia(J, { t: 'dgs', k: 'bok', hp: Math.round(c.baium.hp), mx: c.baium.max, dead: c.baium.dead ? 1 : 0 });
+      }
+      else if(k === 'bhit'){                                                           /* golpe no Baium: d = dano, gd = dano na guarda dele, l = lanca */
+        const B = c.baium; if(!B || J.morto) return; const t = agora(); J.bhT = (J.bhT || []).filter(x => t - x < 1); if(J.bhT.length >= 30) return; J.bhT.push(t);
+        if(B.hit(+m.d || 0, +m.gd || 6, !!m.l)){                                    /* morreu: recompensa (item garantido + adena) para quem esta na luta; o Baium nao da XP */
+          for(const P of c.jog.values()){ if(!P.pers) continue; const v = Math.max(1, Prog.xpAbate(B.dif, 'boss', P.pers.level)); premia(P, 'boss', B.dif, v); }
+        }
+      }
+      else if(k === 'parry'){ if(c.baium) c.baium.parry(J.id); }
+      else if(k === 'taunt'){ if(c.baium && !J.morto) c.baium.provoca(J, Math.min(12, +m.r || 10), agora()); }
     }
     else if(m.t === 'dg' && c.mapa === 'masmorra' && c.gid){            /* sincronia da dungeon em grupo: o LIDER manda o estado, os outros mandam o que fizeram */
       const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });
       if(souLider){
         if(!/^(start|snap|clear|end|boss|mdmg|proj|bsnap|room|bolt)$/.test(k)) return;
         if(k === 'start'){ c.dg = { key: String(m.key || '').slice(0, 12), id: ++dgSeq }; g.dg = { key: c.dg.key, id: c.dg.id, canal: c.n }; for(const mm of g.membros.values()) if(mm.J && mm.J !== J && mm.J.canalRef !== c) envia(mm.J, { t: 'dgconvite', key: c.dg.key, id: c.dg.id, nome: J.nome }); envieGrupo(g); }      /* puxa os membros AGORA; o estado do grupo repete (reforco) */
-        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end'){ c.dg = null; c.dgsW = null; g.dg = null; envieGrupo(g); }
+        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end'){ c.dg = null; c.dgsW = null; c.baium = null; g.dg = null; envieGrupo(g); }
         if(k === 'mdmg'){ o.dmg = Math.max(0, Math.min(800, +m.dmg || 0)); const V = c.jog.get(m.to | 0); if(V) envia(V, o); return; }
         difunde(c, o, J);
       } else {
@@ -570,6 +589,7 @@ setInterval(() => {
     }
     const lista = [...c.jog.values()];
     const W = lista.length ? mundoDe(c) : null; if(W) W.tick(t, TICK / 1000, lista);      /* [mobs-servidor] */
+    if(c.baium && lista.length) c.baium.tick(t, TICK / 1000, lista);                       /* [baium-servidor] */
     for(const A of lista){
       const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null, estadoPk(B, t)]); }
       envia(A, { t: 's', n: tick, p }); if(MOR && c.mapa === 'cidade' && A.ws.readyState === 1) A.ws.send(MOR); if(W && tick % 2 === 0) envia(A, { t: 'ms', m: W.snap(A, AOI) });      /* mobs a 6/s (o jogo suaviza) */

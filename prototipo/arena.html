@@ -712,7 +712,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=18';
-import { Net } from './js/net.js?v=47';
+import { Net } from './js/net.js?v=48';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4365,7 +4365,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
 
   var big=!!an.sk||(an.skill&&an.skill.intr>=1),color=an.skill?an.skill.css:(an.sk?(an.sk.secret?'#b79cff':'#f5c451'):(an.perfect?'#f5c451':'#e8f0ff'));
 
-  if(DG.grp==='guest')Net.dg({k:'bhit',d:dmg});else S.hp=Math.max(0,S.hp-dmg);/* [dg-grupo] */
+  if(DG.srvBoss)Net.dgs({k:'bhit',d:dmg,gd:gd,l:(an.skill&&an.skill.launch)?1:0});else if(DG.grp==='guest')Net.dg({k:'bhit',d:dmg});else S.hp=Math.max(0,S.hp-dmg);/* [dg-grupo] [baium-servidor] a vida e a guarda do chefe sao do servidor */
   /* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=(an.grp)?0:Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
 
   floatText(tag+(an.perfect?'PERFEITO ':'')+dmg,color,big?30:(an.perfect?24:20));
@@ -4384,7 +4384,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
 
   }
 
-  if(S.hp<=0&&DG.grp!=='guest'){
+  if(S.hp<=0&&DG.grp!=='guest'&&!DG.srvBoss){
     S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();gainXp(180+S.lvl*30,'boss');S.kills++;dropLoot();
 
     if(DG.on)dgBossDown();
@@ -4405,7 +4405,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
 /* guarda do chefe: golpes comuns so arranham; quando zera, ele e atordoado e pode ser lancado */
 
 function hitGauge(gd,launch){
-  var E=S.en;if(DG.grp==='guest')return;
+  var E=S.en;if(DG.grp==='guest'||DG.srvBoss)return;/* [baium-servidor] */
 
   S.gT=3;
 
@@ -4744,8 +4744,8 @@ function startAttack(d){
 }
 
 function enemyThink(dt){
-  var E=S.en;if(DG.grp==='guest'){E.t+=dt;return;}/* [dg-grupo] o chefe e do lider; no convidado so o relogio dos avisos no chao */
-  if(S.dead)return;
+  var E=S.en;if(DG.grp==='guest'||DG.srvBoss){E.t+=dt;return;}/* [dg-grupo] o chefe e do lider; no convidado so o relogio dos avisos no chao; [baium-servidor] ou do servidor */
+  if(S.dead||DG._bossEspera)return;
   var TGB=bossAlvo();if(!TGB)return;
 
   if(Torre.on&&!Torre.chefeAtivo())return;/* o Baium so acorda no 3o andar */
@@ -4994,7 +4994,7 @@ function spawnBaiumBolt(x,z,so_visual){
 
 function triggerBaiumThunderStorm(){
   S.shake=Math.max(S.shake,.55);
-  if(DG.grp==='guest')return;/* os raios vem do lider (mensagem 'bolt') */
+  if(DG.grp==='guest'||DG.srvBoss)return;/* os raios vem do lider ou do servidor (mensagem 'bolt') */
   var ps=[];if(!S.pdead)ps.push({x:S.px,z:S.pz});
   if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(!a.morto)ps.push({x:a.x,z:a.z});});
   if(!ps.length)ps.push({x:S.px,z:S.pz});
@@ -5083,8 +5083,8 @@ function resolveEnemyHit(atk){
 
   }
 
-  if(DG.grp==='host'&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto||!inAtkXY(atk,a.x,a.z))return;Net.dg({k:'mdmg',to:a.id,dmg:atk.dmg,cost:atk.cost||30,parry:!!atk.parry,aoe:atk.type==='circ',interrupt:false,stun:.45});});/* [dg-grupo] o chefe acerta o grupo todo */
-  if(DG.grp==='guest'||S.pdead)return;/* convidado: so o efeito; o dano chega como mdmg */
+  if(DG.grp==='host'&&!DG.srvBoss&&window.Net&&Net.alvos)Net.alvos().forEach(function(a){if(a.morto||!inAtkXY(atk,a.x,a.z))return;Net.dg({k:'mdmg',to:a.id,dmg:atk.dmg,cost:atk.cost||30,parry:!!atk.parry,aoe:atk.type==='circ',interrupt:false,stun:.45});});/* [dg-grupo] o chefe acerta o grupo todo */
+  if(DG.grp==='guest'||DG.srvBoss||S.pdead)return;/* convidado (ou chefe do servidor): so o efeito; o dano chega como mdmg */
   if(!inAtk(atk)){floatText('Errou','#7f8db0',16,'p');return;}
 
   if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){
@@ -5426,7 +5426,7 @@ function focoAlvo(fc){
 function tauntAplica(id,x,z,r){
   var ate=Date.now()/1000+FOCO_S,n=0;
   MOBS.forEach(function(m){if(m.dead||m.net||Math.hypot(m.x-x,m.z-z)>r)return;try{mobAgrIni(m);if(!m.engaj)mobEngaja(m,false);}catch(_){}m.foco={id:id,ate:ate};n++;if(id===0)floatText('PROVOCADO','#f5c451',13,{x:m.x,z:m.z,y:2.6});});
-  if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)<=r+3){DG.bossFoco={id:id,ate:ate};n++;}
+  if(BOSS_ON&&!S.dead&&Math.hypot(S.ex-x,S.ez-z)<=r+3){DG.bossFoco={id:id,ate:ate};n++;if(DG.srvBoss&&id===0&&window.Net)Net.dgs({k:'taunt',r:r});}/* [baium-servidor] */
   if(MOBSRV&&id===0&&window.Net)Net.mtaunt(r);/* [mobs-servidor] o servidor fixa o foco dos mobs dele */
   return n;
 }
@@ -5442,7 +5442,7 @@ function grpTick(dt){/* chamado todo quadro (torreTick): o lider envia o estado 
   DG._sn=(DG._sn||0)-dt;if(DG._sn>0)return;DG._sn=.1;
   var ms=[];if(!DG.srvMobs)MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0,m.agr?1:0]);});
   if(!DG.srvMobs)Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});/* [dg-servidor] com mobs no servidor so o chefe e do lider */
-  if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,ak:(S.en.atk&&S.en.atk.key)||'',dead:S.dead?1:0});
+  if(BOSS_ON&&!DG.srvBoss)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,ak:(S.en.atk&&S.en.atk.key)||'',dead:S.dead?1:0});
 }
 /* [mobs-servidor] 08/11/2026: nos mapas abertos conectado, os mobs sao do SERVIDOR (servidor/mobs_mundo.js): todos no canal veem os mesmos.
    Aqui so se desenha (proxy m.net + m.srv), se manda o dano (Net.mhit) e se recebe o golpe (mdmg). Sem servidor: os spots locais de antes. */
@@ -5450,6 +5450,15 @@ var MOBSRV=false,TIROS=[];
 /* >>> CLAUDE [dg-servidor] 10/11/2026: as ondas da DG da Torre vem do SERVIDOR (servidor/mobs_mundo.js MundoDg): mobs, respawn, meta, limpeza e tempo. Aqui so se desenha (mobSrvSnap),
    se manda o golpe (Net.mhit) e se recebe o dano (mdmg). O chefe Baium segue no cliente do lider. Sem resposta do servidor em 2,5 s = a simulacao local de antes. */
 DG.srvMobs=false;
+/* >>> CLAUDE [baium-servidor] 10/11/2026: a luta do BAIUM roda no SERVIDOR (servidor/baium.js, port fiel). O cliente so desenha (grpBossSnap), manda o golpe (bhit), o parry e a provocacao;
+   o dano chega como mdmg e os raios como bolt. Sem resposta em 2,5 s (servidor antigo/sem conexao) = a luta local de antes (DG.srvBoss falso). */
+DG.srvBoss=false;DG._bossEspera=false;
+function baiumPede(novo){
+  if(!(window.Net&&Net.on&&Net.mapa==='masmorra')){DG.srvBoss=false;return;}
+  DG._bossEspera=true;clearTimeout(DG._bT);DG._bT=setTimeout(function(){if(DG._bossEspera){DG._bossEspera=false;DG.srvBoss=false;}},2500);
+  Net.dgs({k:'baium',dif:(DG.run&&DG.diff)?DG.diff:'duelo',novo:novo?1:0,x:r1(S.ex),z:r1(S.ez)});
+}
+/* <<< CLAUDE [baium-servidor] */
 function dgsPede(key,cont){
   if(!(window.Net&&Net.on&&Net.mapa==='masmorra')){DG.srvMobs=false;cont();return;}
   DG._dgsCont=cont;clearTimeout(DG._dgsT);DG._dgsT=setTimeout(function(){if(DG._dgsCont){var f=DG._dgsCont;DG._dgsCont=null;DG.srvMobs=false;f();}},2500);
@@ -5458,6 +5467,8 @@ function dgsPede(key,cont){
 function dgsEstado(m){DG.kr=m.kr;DG.total=m.tot;DG.nReg=m.nr;DG.tLeft=m.tl;if(DG.torre)renderHud();}
 function dgsRecebe(m){
   var k=m.k,f;
+  if(k==='bok'||k==='bnao'){clearTimeout(DG._bT);DG._bossEspera=false;DG.srvBoss=(k==='bok');return;}/* [baium-servidor] */
+  if(k==='bsnap'){if(DG.srvBoss)grpBossSnap(m);return;}
   if(k==='ok'||k==='nao'){if(!DG._dgsCont)return;clearTimeout(DG._dgsT);f=DG._dgsCont;DG._dgsCont=null;DG.srvMobs=(k==='ok');if(k==='ok'){dgsEstado(m);DG._srvLimpo=!!m.limpo;}f();return;}
   if(!DG.srvMobs||!DG.torre)return;
   if(k==='estado'||k==='reiniciou')dgsEstado(m);
@@ -5508,14 +5519,14 @@ function grpSnap(sn){/* convidado: aplica o estado dos mobs */
 }
 function grpBossSnap(b){/* convidado: espelha o chefe */
   if(!BOSS_ON)return;
-  S.ex=b.ex;S.ez=b.ez;S.eh=b.eh;S.maxhp=b.mx;S.hp=b.hp;
+  S.ex=b.ex;S.ez=b.ez;S.eh=b.eh;S.maxhp=b.mx;S.hp=b.hp;if(b.ey!==undefined)S.ey=b.ey;/* [baium-servidor] o chefe lancado sobe */
   var A0=ATK[b.ak]||null;
   if(S.en.state!==b.st){
     if(A0)S.en.atk=A0;
     setEnemy(b.st,b.st==='stagger'?2.6:(b.st==='windup'&&A0?A0.wind:(b.st==='strike'&&A0?(A0.dash?.32:.2):(b.st==='recover'&&A0?A0.rec:0))));
     if(b.st==='strike'&&A0){try{resolveEnemyHit(A0);}catch(_){}}/* efeito do golpe (o dano chega como mdmg) */
   }
-  if(b.dead&&!S.dead){S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();S.kills++;dropLoot();if(DG.on)dgBossDown();SFX.play('roar');
+  if(b.dead&&!S.dead){S.dead=true;S.deadT=0;S.air=false;S.ey=0;rankFight();S.kills++;dropLoot();if(DG.on)dgBossDown();else if(DG.srvBoss)dgBossDuelDefeated();/* [baium-servidor] a vitoria (bau, aviso) como no lider */SFX.play('roar');
     setTimeout(function(){SFX.play('smash');S.shake=Math.max(S.shake,.6);burst(S.ex,1.2,S.ez,55,0xff5500,5);burst(S.ex,1.5,S.ez,40,0x110522,4.0);},1800);
     if(boss&&boss.drv)playClip(boss,'death',{once:true,speed:1.0,fade:.1,hold:99999});}
 }
@@ -5523,15 +5534,15 @@ function grpRecebe(m){
   var k=m.k;
   if(k==='start'){if(DG.grp||DG.run)return;DG.grp='guest';banner('O LIDER INICIOU A DUNGEON','Entrando junto com o grupo...','#7fe08a');torreDgStart(m.key);}
   else if(k==='snap'&&DG.grp==='guest')grpSnap(m);
-  else if(k==='bsnap'&&DG.grp==='guest')grpBossSnap(m);
+  else if(k==='bsnap'&&DG.grp==='guest'&&!DG.srvBoss)grpBossSnap(m);
   else if((k==='clear'||k==='boss')&&DG.grp==='guest'&&!DG._pronto){DG._pend[k]=1;}/* entrou no meio: aplica quando carregar */
   else if(k==='clear'&&DG.grp==='guest'){if(!DG.cleared)torreClear();}
   else if(k==='boss'&&DG.grp==='guest'){try{Torre.abrirPorta();}catch(_){}torreAcordaBaium();}
   else if(k==='end'&&DG.grp==='guest'){banner('DUNGEON ENCERRADA','O lider saiu da dungeon','#ff6b6b');setTimeout(function(){sairDg();},900);}
   else if(k==='hit'&&DG.grp==='host'){var mm=mobPorId(m.id);if(mm&&!mm.dead){GRPHIT=true;try{damageMob(mm,m.d,{dome:true,part:1,parts:1,noRange:true});}finally{GRPHIT=false;}}}
   else if(k==='bhit'&&DG.grp==='host'&&BOSS_ON&&!S.dead){GRPHIT=true;try{applyHit({id:'dome',dmg:m.d,sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1,grp:true});}finally{GRPHIT=false;}}
-  else if(k==='bolt'&&DG.grp==='guest'){setTimeout(function(){spawnBaiumBolt(m.x,m.z,true);},m.t||0);}
-  else if(k==='mdmg'){playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
+  else if(k==='bolt'&&(DG.grp==='guest'||DG.srvBoss)){setTimeout(function(){spawnBaiumBolt(m.x,m.z,true);},m.t||0);}
+  else if(k==='mdmg'){playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){if(DG.srvBoss&&window.Net)Net.dgs({k:'parry'});}});}/* [baium-servidor] parry atordoa o chefe do servidor */
   else if(k==='proj'&&DG.grp==='guest'){var pm=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),new THREE.MeshBasicMaterial({color:parseInt(m.css.slice(1),16)}));pm.position.set(m.x,1.3,m.z);scene.add(pm);EPROJ.push({m:pm,x:m.x,z:m.z,dx:m.dx,dz:m.dz,v:m.v,dmg:0,life:m.life,vis:true});}
 }
 /* <<< CLAUDE [dg-grupo] */
@@ -6243,6 +6254,7 @@ function startBaiumDirectFight(){
   }
   banner('TRONO DO IMPERADOR BAIUM','Raid Boss Lv 75 despertou!','#f5c451');
   renderHud();
+  DG.srvBoss=false;baiumPede(true);/* [baium-servidor] */
   setTimeout(function(){if(window.arenaSoltaLoading)arenaSoltaLoading();},700);/* [sem-santuario] */
 }
 window.startBaiumDirectFight = startBaiumDirectFight;
@@ -6415,10 +6427,11 @@ function torreAcordaBaium(){
   setEnemy('idle');S.en.wait=1.8;resetFight();
   DG.portalPos=[p[0]+3,p[1]];
   banner('BAIUM','O Imperador despertou!','#ff5500');
+  baiumPede(DG.grp!=='guest');/* [baium-servidor] */
 }
 function torreSair(){
   if(!DG.torre&&!DG.pvpTorre)return;
-  if(DG.srvMobs){if(DG.grp!=='guest'&&window.Net)Net.dgs({k:'fim'});DG.srvMobs=false;MOBSRV=false;}/* [dg-servidor] */
+  if(DG.srvMobs||DG.srvBoss){if(DG.grp!=='guest'&&window.Net)Net.dgs({k:'fim'});DG.srvMobs=false;DG.srvBoss=false;DG._bossEspera=false;MOBSRV=false;}/* [dg-servidor] [baium-servidor] */
   DG.torre=null;DG.pvpTorre=false;DG.portalPos=null;if(DG._salas){DGD.rooms=DG._salas;DG._salas=null;}
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();

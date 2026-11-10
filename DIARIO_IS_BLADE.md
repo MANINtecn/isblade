@@ -3380,3 +3380,9 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
   - Em `prototipo/cidade.html`, removida a criacao da textura, material e malha `duelLogo` e sua adicao a `scene`. A variavel foi mantida como `var duelLogo = null;` para seguranca de escopo global.
   - Atualizada a checagem em `aplicaQualidade()` para `if(typeof duelLogo!=='undefined'&&duelLogo)duelLogo.visible=false;` evitando qualquer referencia nula.
 - Resultado: a logo/medalhao da IS Labs nao e mais carregada nem exibida no centro da vila de Talking Island, nem no PC nem no celular (mobile), em qualquer perfil grafico.
+
+### [Claude] 10/11/2026 - Luta do Baium no servidor
+- Pedido do dono: levar a luta para o servidor (sem mudar numeros/padroes) e seguir com mercado e loja.
+- Feito: servidor/baium.js (IA, guarda, lancamento, parry, provocacao, tempestade de 6 raios); server.js trata dgs baium/bhit/parry/taunt; cliente (arena.html) so desenha e envia golpes; sem resposta em 2,5 s volta ao modo local. Baium nao da XP, so recompensa.
+- Testado: servidor/teste_baium.js com 2 jogadores em grupo (duelo e hard): vida inicial correta, ambos veem o mesmo chefe, dano e morte chegam aos dois; tempestade conferida por teste unitario (6 raios).
+- NAO testado: o cliente no navegador (arena.html) com a luta do servidor, parry real e premiacao no navegador.
