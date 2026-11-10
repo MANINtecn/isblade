@@ -86,6 +86,7 @@ def bake(arm, nome, partes, emenda=5):
             prim = pose_da_acao(arm, p["acao"], p["de"])
             if p.get("giro"): aplica(arm, prim); gira_raiz(arm, p["giro"](0.0)); prim = captura(arm)
             if p.get("inclina"): aplica(arm, prim); inclina_tronco(arm, p["inclina"](0.0)); prim = captura(arm)
+            if p.get("retoque"): aplica(arm, prim); p["retoque"](arm, 0.0); prim = captura(arm)
             for k in range(1, emenda + 1): poses.append(mistura(ultima, prim, k / (emenda + 1)))
             ini = len(poses)
         for i in range(n):
@@ -95,6 +96,8 @@ def bake(arm, nome, partes, emenda=5):
                 aplica(arm, ps); gira_raiz(arm, p["giro"](t)); ps = captura(arm)
             if p.get("inclina"):
                 aplica(arm, ps); inclina_tronco(arm, p["inclina"](t)); ps = captura(arm)
+            if p.get("retoque"):
+                aplica(arm, ps); p["retoque"](arm, t); ps = captura(arm)
             poses.append(ps)
         ultima = poses[-1]; faixas.append((ini + 1, len(poses))); aplica(arm, ultima); BASE["sc"].view_layers[0].update(); yaw_ult = yaw_raiz(arm)
     nova = bpy.data.actions.new(nome); nova.use_fake_user = True; arm.animation_data.action = nova

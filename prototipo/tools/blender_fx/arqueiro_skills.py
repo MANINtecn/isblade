@@ -10,6 +10,7 @@ from mathutils import Vector, Matrix, Quaternion
 AQUI = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, AQUI)
 import guerreiro_clips as G
 import guerreiro_fx as X
+import pose_arqueiro as PA
 PREF = "ARQUEIRO_"; YAW = math.pi; U = X.U; GA = 22.0                                   # gravidade de jogo (m/s2)
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 ONLY = os.environ.get("ARQ_ONLY", "")
@@ -20,7 +21,7 @@ M["haste"] = X.mat_emit("AR_haste", (0.50, 0.32, 0.14), 1.6); M["ponta"] = X.mat
 M["corda"] = X.mat_emit("AR_corda", (0.80, 0.62, 0.30), 2.0); M["poste"] = X.mat_pedra("AR_poste", (0.16, 0.10, 0.06))
 BASE_ARM = bpy.data.objects["HumanFighter_Armature"]; BASE_ARCO = bpy.data.objects["Arco"]
 G.BASE.update(sc=bpy.context.scene, arm=BASE_ARM, corpo=[o for o in bpy.data.objects if o.type == "MESH" and o.parent == BASE_ARM], espada=BASE_ARCO, ponta_local=Vector((0, 0, 0)), ossos=[b.name for b in BASE_ARM.data.bones])
-BSC = G.BASE["sc"]; DT = 1.0 / 48.0
+BSC = G.BASE["sc"]; DT = 1.0 / 48.0; PA.SC["sc"] = BSC
 
 def R(p): return Vector((-p.x, -p.y, p.z))
 _cache = {}
@@ -216,17 +217,19 @@ def montar_atordoante():
 
 # ================================================================== S4 CHUVA DE FLECHAS (nv 20): arco apontado para cima; a flecha sobe, para no apice e cai acelerando
 def montar_chuva():
-    random.seed(5); TILT = 42.0
-    incl = lambda t: TILT * min(1.0, t / 0.5) * (1.0 if t < 0.95 else max(0.0, 1.0 - (t - 0.95) / 0.05))
-    pt = lambda g: [dict(acao="W_SpAtk02_Bow", de=40, ate=128, saida=89, inclina=incl, giro=g), dict(acao="W_SpAtk02_Bow", de=128, ate=128, saida=22, giro=g)]
-    acao, fx = G.bake(BASE_ARM, "W_Chuva", pt(None), emenda=0); N = fx[-1][1]; mf = maos("W_Chuva", N); f_rel = fx[0][0] + (123 - 40)
+    random.seed(5)
+    def peso(t):                                                                           # sobe a mira ao puxar a corda, segura ate soltar e relaxa
+        u = min(1.0, t / 0.5); u = u * u * (3 - 2 * u)
+        return u * (1.0 if t < 0.76 else max(0.0, 1.0 - (t - 0.76) / 0.12))
+    pt = [dict(acao="W_Atk01_Bow", de=6, ate=73, saida=76, retoque=lambda arm, t: PA.mira_para_cima(arm, peso(t))), dict(acao="W_Atk01_Bow", de=73, ate=73, saida=22)]
+    acao, fx = G.bake(BASE_ARM, "W_Chuva", pt, emenda=0); N = fx[-1][1]; mf = maos("W_Chuva", N); f_rel = fx[0][0] + int((56 - 6) / (67 / 76.0))
     d0 = dir_mira(mf, f_rel); delta = 90.0 - math.degrees(math.atan2(d0.y, d0.x)); Rz = Matrix.Rotation(math.radians(delta), 3, "Z")
     mf = {f: (Rz @ a, Rz @ b) for f, (a, b) in mf.items()}                     # o personagem inteiro gira (rigido) para o arco apontar para +Y; o corpo nao e torcido
     print("CHUVA giro rigido do personagem", round(delta), "graus; release", f_rel, "total", N)
     sc, col, ref, arm = cena("S4_CHUVA", N + 130, acao); arm.rotation_euler = (0, 0, YAW + math.radians(delta))
     D0 = dir_mira(mf, f_rel); print("CHUVA inclinacao do arco no disparo (graus):", round(math.degrees(math.asin(D0.z))))
-    r = voo(col, "sinal", mf, fx[0][0] + 20, f_rel, 24.0, dir_fixa=D0, esc=1.1, parar_chao=False, max_q=48, fica=0)
-    path = r["path"]; i_ap = max(range(len(path)), key=lambda i: path[i][1].z); f_ap, P_ap = path[i_ap]; cx, cy = P_ap.x / U, P_ap.y / U; print("CHUVA area em", round(cx, 1), round(cy, 1), "apice m", round(P_ap.z / U, 1), "quadro", f_ap); cams(sc, ref, (cx * 0.55, cy * 0.55, 1.6), 1.5)
+    r = voo(col, "sinal", mf, fx[0][0] + 8, f_rel, 24.0, dir_fixa=D0, esc=1.1, parar_chao=False, max_q=48, fica=0)
+    path = r["path"]; i_ap = max(range(len(path)), key=lambda i: path[i][1].z); f_ap, P_ap = path[i_ap]; cx, cy = P_ap.x / U, P_ap.y / U; print("CHUVA area em", round(cx, 1), round(cy, 1), "apice m", round(P_ap.z / U, 1), "quadro", f_ap); cams(sc, ref, (cx * 0.55, cy * 0.55, 1.6), 1.5); X.camera(sc, ref, "cam_chuva", (11.0 * U, (cy - 3.0) * U, 3.2 * U), (0.0, cy * U, 4.2 * U), 26); sc.camera = X.camera(sc, ref, "cam_pose", (7.0 * U, 0.0, 1.6 * U), (0.0, 1.2 * U, 1.5 * U), 36)
     X.brilho_chao(col, "area", (cx * U, cy * U), f_rel, 4.2, "c", f_ap - f_rel + 60); X.onda(col, "av", (cx * U, cy * U), f_rel + 4, 4.4, "c", 20, 0.6)
     X.clarao(col, "abre", P_ap, f_ap, 4.0, "b", 18); X.espinhos(col, "abre_e", P_ap, f_ap, 14, 1.4, "b", 0.04, 14)
     ds = [dummy(ref, "inimigo%d" % i, (cx + x, cy + y)) for i, (x, y) in enumerate(((-1.4, 0.6), (1.5, -0.8), (0.2, 1.8)))]
