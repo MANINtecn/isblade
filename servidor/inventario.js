@@ -28,6 +28,7 @@ function mkItem(baseId, rar){
   return { uid: novoUid(), base: baseId, rar, stats };
 }
 const armaDaClasse = pers => (pers && pers.weapon === 'swordshield') ? 'shield' : ((pers && pers.weapon) || 'sword');
+const armaItem = pers => armaDaClasse(pers) === 'book' ? 'staff' : armaDaClasse(pers);      /* [clerigo] o Clerigo usa os mesmos cajados do mago (as skills dele seguem separadas: arma 'book') */
 const equipado = (inv, uid) => Object.keys(inv.equip).some(s => inv.equip[s] === uid);
 
 /* garante um inventario valido: kit inicial da classe (arma equipada + armaduras na mochila) e limpa itens de bases que sairam do json */
@@ -36,7 +37,7 @@ function garante(pers){
   let inv = pers.inv;
   if(!inv || !Array.isArray(inv.items) || !inv.equip || typeof inv.equip !== 'object'){
     inv = { items: [], equip: {}, adena: 0 };
-    const arma = D.bases.find(b => b.slot === 'weapon' && b.weapon === armaDaClasse(pers) && grauDe(b) === 'sem') || D.bases[0], it = mkItem(arma.id, 'normal');
+    const arma = D.bases.find(b => b.slot === 'weapon' && b.weapon === armaItem(pers) && grauDe(b) === 'sem') || D.bases[0], it = mkItem(arma.id, 'normal');
     inv.items.push(it); inv.equip.weapon = it.uid;
     for(const b of D.bases) if(b.slot !== 'weapon' && grauDe(b) === 'sem') inv.items.push(mkItem(b.id, 'normal'));
     pers.inv = inv;
@@ -44,7 +45,7 @@ function garante(pers){
   inv.items = inv.items.filter(i => i && baseDe(i.base) && D.rarities[i.rar]);
   const mx = (LJ && LJ.encantar && LJ.encantar.max) || 16; for(const i of inv.items){ const e = Math.floor(+i.en || 0); if(e > 0) i.en = Math.min(mx, e); else delete i.en; }
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
-  if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaDaClasse(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaDaClasse(pers) && grauDe(x) === 'sem'); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
+  if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaItem(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaItem(pers) && grauDe(x) === 'sem'); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
   inv.adena = Math.max(0, Math.floor(+inv.adena || 0));
   if(!inv.consum || typeof inv.consum !== 'object') inv.consum = {};
   for(const k of Object.keys(inv.consum)){ const n = Math.floor(+inv.consum[k] || 0); if(n > 0 && LJ && LJ.consumiveis[k]) inv.consum[k] = n; else delete inv.consum[k]; }
@@ -138,7 +139,7 @@ function pedido(pers, m){
   const inv = garante(pers); if(!inv) return 'Inventario indisponivel.';
   if(m.k === 'equip'){
     const it = inv.items.find(i => i.uid === m.uid); if(!it) return 'Item nao encontrado.';
-    const b = baseDe(it.base); if(b.slot === 'weapon' && b.weapon !== armaDaClasse(pers)) return 'Sua classe nao usa essa arma.';
+    const b = baseDe(it.base); if(b.slot === 'weapon' && b.weapon !== armaItem(pers)) return 'Sua classe nao usa essa arma.';
     const nv = nivelGrau(b); if((pers.level | 0 || 1) < nv) return (D.graus[grauDe(b)].name) + ': precisa do nivel ' + nv + '.';
     inv.equip[b.slot] = it.uid; return '';
   }
@@ -165,7 +166,7 @@ function abate(pers, tipo, dif, xpDoAbate){
     const peso = k => R[k].weight * (k === 'normal' ? 1 : boost);
     const GT = (C ? Q.grausChefe : Q.graus) || {}, pg = GT[dif] || (Q.graus || {})[dif] || { sem: 1 };      /* grau pelo mapa / dificuldade (chefe: tabela propria) */
     const grau = () => { let tot = 0; for(const g in pg) tot += pg[g]; let r = Math.random() * tot; for(const g in pg){ r -= pg[g]; if(r <= 0) return g; } return 'sem'; };
-    const daClasse = D.bases.filter(b => b.slot !== 'weapon' || b.weapon === armaDaClasse(pers));
+    const daClasse = D.bases.filter(b => b.slot !== 'weapon' || b.weapon === armaItem(pers));
     for(let i = 0; i < n; i++){
       if(inv.items.length >= D.bagMax) break;
       let tot = 0; ks.forEach(k => { tot += peso(k); }); let roll = Math.random() * tot, rar = ks[0];

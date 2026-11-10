@@ -5728,7 +5728,7 @@ function twoHandIK(rig){
 
 
 
-  if(WPN==='staff'){if(!rig.stf.visible)return;obj=rig.stf;loc=_ik.D.set(0,-.5,0);}
+  if(wpnCaster()){if(!rig.stf.visible)return;obj=rig.stf;loc=_ik.D.set(0,-.5,0);}
 
 
 
@@ -5857,7 +5857,10 @@ var FORCE_READY=/[?&]ready=1/.test(location.search);
 
 
 /* >>> CLAUDE [clerigo] 10/11/2026: Livro Astral (arma do Clerigo) na mao esquerda: desenho de js/clerigo_fx.js; o livro fica em pe e aberto para a frente no osso do escudo */
-function wpnCaster(){return WPN==='staff'||WPN==='book';}/* conjuradores: mesmas animacoes do cajado (idle, corrida, CastShort da raca) */
+function wpnCaster(){return WPN==='staff'||WPN==='book';}
+function souClerigo(){if(S&&S.classe==='clerico')return true;try{return localStorage.getItem('isblade.weapon')==='book';}catch(_){return false;}}
+function wpnDoItem(w){return (w==='staff'&&souClerigo())?'book':w;}/* [clerigo] usa os cajados do mago: o item e 'staff', o jeito de lutar (skills) e 'book' */
+function itemDaArma(w){return w==='book'?'staff':w;}/* conjuradores: mesmas animacoes do cajado (idle, corrida, CastShort da raca) */
 function livroNoRig(rig,on){
   if(!rig||!rig.root)return;
   if(on&&!rig.livro&&window.ClerigoFX&&ClerigoFX.pronto){var bo=rig.root.getObjectByName('Shield_L_Bone')||rig.root.getObjectByName('Bip01_L_Hand')||rig.root.getObjectByName('Bip01_L_Forearm');
@@ -5888,7 +5891,7 @@ function applyWeaponVis(rig){
 
 
 
-  var isStaff = (WPN === 'staff');
+  var isStaff = wpnCaster();/* [clerigo] o Clerigo segura o cajado tambem */
 
 
 
@@ -12738,7 +12741,7 @@ var INV_SRV=false,ADENA=0,CONSUM={};
 function invDoServidor(m){
   if(!m||!m.inv||!Array.isArray(m.inv.items))return;
   INV={items:m.inv.items,equip:m.inv.equip||{}};ADENA=m.inv.adena|0;CONSUM=m.inv.consum||{};INV_SRV=true;
-  var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&b.weapon!==WPN)setWeapon(b.weapon);
+  var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&wpnDoItem(b.weapon)!==WPN)setWeapon(wpnDoItem(b.weapon));
   try{Brilho.aplica('eu',function(){return vrm;},w?(w.en|0):0);}catch(_){}/* [ferreiro] brilho da arma a partir de +4 */
   armaGrau(vrm);/* [graus] modelo da arma pelo grau */
   applyStats();renderInv();if(m.erro){som(/insuficiente|taxa|nao tem essa adena/i.test(m.erro)?'falta':'impossivel');gestMsg(m.erro);try{Loja.aviso(m.erro);}catch(_){}}
@@ -12854,7 +12857,7 @@ function equipItem(uid){som('equipar');/* [sons-l2] */
 
 
 
-  if(b.slot==='weapon'){setWeapon(b.weapon);armaGrau();}
+  if(b.slot==='weapon'){setWeapon(wpnDoItem(b.weapon));armaGrau();}
 
 
 
@@ -13335,8 +13338,8 @@ function initInv(){
   if(WPN!=='none'&&!/[?&]wpn=/.test(location.search)){
     var _cur=baseOf(findItem(INV.equip.weapon).base).weapon;
     if(_cur!==WPN){
-      var _alvo=INV.items.filter(function(i){return baseOf(i.base).weapon===WPN;})[0];
-      if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===WPN;})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
+      var _alvo=INV.items.filter(function(i){return baseOf(i.base).weapon===itemDaArma(WPN);})[0];
+      if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===itemDaArma(WPN);})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
       if(_alvo){INV.equip.weapon=_alvo.uid;saveInv();}
     }
   }

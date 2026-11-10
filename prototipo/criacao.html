@@ -664,8 +664,9 @@ function attachWeapon(){
   if(staffObj && staffObj.parent) staffObj.parent.remove(staffObj); staffObj = null;
   if(currentWeapon === 'staff' && wpBone){
     staffObj = makeStaff(); wpBone.add(staffObj);
-  } else if(currentWeapon === 'book' && shdBone){/* [clerigo] Livro Astral aberto na mao esquerda */
+  } else if(currentWeapon === 'book' && shdBone){/* [clerigo] cajado na mao direita (os mesmos do mago) + Livro Astral aberto na esquerda */
     staffObj = makeBook(); shdBone.add(staffObj);
+    if(wpBone){ weaponObj = makeStaff(); wpBone.add(weaponObj); }
   } else if(currentWeapon === 'dragon_slayer' && wpBone){
     weaponObj = attachL2Item(wpBone, null, 'assets/personagens/dragon_slayer.glb');
   } else if(currentWeapon === 'shield'){/* CLAUDE [guardiao]: era swordshield */
