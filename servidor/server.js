@@ -477,7 +477,7 @@ wss.on('connection', ws => {
       const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
       const tipo = String(m.tipo || '').slice(0, 24), dif = String((c.dg && c.dg.key) || m.dif || 'normal').slice(0, 12); if(!/^[a-z0-9_]{1,24}$/.test(tipo)) return;
       const quem = (c.mapa === 'masmorra' && c.gid) ? [...c.jog.values()].filter(o => o.pers) : (J.pers ? [J] : []);
-      for(const o of quem){ const v = Prog.xpAbate(dif, tipo, o.pers.level); ganhaXp(o, v); premia(o, tipo, dif, v); karmaMob(o, v); }      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
+      for(const o of quem){ const v = Prog.xpAbate(dif, tipo, o.pers.level); if(tipo !== 'boss') ganhaXp(o, v); premia(o, tipo, dif, v); karmaMob(o, v); }      /* [baium] o Baium nao da XP, so a recompensa (item garantido + adena); v so entra na conta da adena */      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
     }
     else if(m.t === 'dgs' && c.mapa === 'masmorra'){                      /* [dg-servidor] o cliente pede os mobs da DG da Torre ao servidor (ini), reinicia sozinho (reset) ou sai (fim) */
       const k = String(m.k || '').slice(0, 8);
