@@ -30,7 +30,7 @@
     requestAnimationFrame(laco);
     if(t - tConf > 500){ tConf = t; for(var k in REG) confere(k); }
     var p = .78 + .22 * Math.sin(t * .004);
-    for(var k2 in REG){ var r = REG[k2], f = forca(r.n) * p; for(var i = 0; i < r.ms.length; i++) r.ms[i].material.emissiveIntensity = f; }
+    for(var k2 in REG){ var r = REG[k2], f = forca(r.n) * p; for(var i = 0; i < r.ms.length; i++){ var m = r.ms[i]; if(m.userData && m.userData.__ssActive) continue; m.material.emissiveIntensity = f; } }
   }
   requestAnimationFrame(laco);
 })();

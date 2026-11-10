@@ -47,8 +47,13 @@ function garante(pers){
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
   if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaItem(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaItem(pers) && grauDe(x) === 'sem'); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
   inv.adena = Math.max(0, Math.floor(+inv.adena || 0));
+  if(inv.adena < 1000) inv.adena = 1000;      /* adena inicial para compras/testes */
   if(!inv.consum || typeof inv.consum !== 'object') inv.consum = {};
   for(const k of Object.keys(inv.consum)){ const n = Math.floor(+inv.consum[k] || 0); if(n > 0 && LJ && LJ.consumiveis[k]) inv.consum[k] = n; else delete inv.consum[k]; }
+  if(inv.consum.soulshot === undefined && inv.consum.spiritshot === undefined){
+    const sId = (armaDaClasse(pers) === 'staff' || armaDaClasse(pers) === 'book') ? 'spiritshot' : 'soulshot';
+    inv.consum[sId] = 500;                    /* [soulshot] carga inicial de 500 tiros (como no L2) */
+  }
   return inv;
 }
 

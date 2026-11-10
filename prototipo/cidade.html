@@ -797,6 +797,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mapa_vivo.js?v=12"></script>
 <script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
+<script src="js/soulshot_fx.js?v=1"></script>
 <script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
 <script src="js/agua_l2.js?v=1"></script>
@@ -9449,7 +9450,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-    slashArc(S.px,S.pz,S.face,an.skill?parseInt(an.skill.css.slice(1),16):0xcfe6ff,clamp(rng*.38,1.1,2.2),1.4);}
+    slashArc(S.px,S.pz,S.face,an.ss?0x52d4ff:(an.skill?parseInt(an.skill.css.slice(1),16):0xcfe6ff),clamp(rng*.38,1.1,2.2),1.4);}
 
 
 
@@ -9591,6 +9592,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
   if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');if(an.ss)SFX.play('soulshot_hit');}
+  if(an.ss && window.SoulshotFX) SoulshotFX.impacto(hx, 1.8, hz, wpnCaster());
 
 
 
@@ -11593,6 +11595,7 @@ function damageMob(m,dmg,an){
 
 
   if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');if(an.ss)SFX.play('soulshot_hit');}
+  if(an.ss && window.SoulshotFX) SoulshotFX.impacto(m.x, 1.4*m.T.size, m.z, wpnCaster());
 
 
 
@@ -12838,9 +12841,17 @@ function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario ch
   if(m.ok){banner('ENCANTAMENTO +'+m.nivel,m.nome+' ficou mais forte.',(window.Brilho&&Brilho.cor(m.nivel))||'#7dff9a');if(!som('enc_ok'))try{SFX.play('levelup');}catch(_){}}
   else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');if(!som('enc_falha'))try{SFX.play('hit');}catch(_){}}
 }
-function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no dano local (mobs/chefe) e marca o estalo */
-  if(REMOTEFX||!INV_SRV||!window.Loja||!Loja.dados())return;var id=wpnCaster()?'spiritshot':'soulshot',c=Loja.dados().consumiveis[id];
-  if(!c||!(CONSUM[id]>0))return;an.ss=1;an.dmg=Math.round(an.dmg*(1+(c.bonus||0)));
+function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no dano e ativa o brilho L2 na arma */
+  if(REMOTEFX)return;
+  var id=wpnCaster()?'spiritshot':'soulshot',c=(window.Loja&&Loja.dados()&&Loja.dados().consumiveis[id])||{bonus:0.25};
+  var temConsum = (typeof CONSUM!=='undefined') && (CONSUM[id]>0);
+  if(!INV_SRV && !temConsum){ CONSUM = CONSUM || {}; CONSUM[id] = 500; temConsum = true; } /* fallback para teste solo/offline */
+  if(!temConsum)return;
+  an.ss=1;
+  an.dmg=Math.round(an.dmg*(1+(c.bonus||0.25)));
+  if(!INV_SRV && CONSUM[id]>0) CONSUM[id]--;
+  /* ATIVA O BRILHO CANONICO DO SOULSHOT NA ARMA (PC e Mobile) */
+  if(window.SoulshotFX) SoulshotFX.ativar(vrm, wpnCaster(), an.dur || 0.45);
 }
 function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
 function curaDoServidor(hp,m){if(typeof hp==='number'){S.php=hp;renderHud();if(m&&m.de&&(m.q|0)>0)floatText('+'+(m.q|0),'#7dff9a',22,'p');}}/* [clerigo] cura de outro jogador mostra o valor */
@@ -16323,7 +16334,7 @@ function frame2(dt,T){
 
 
 
-  if(vrm&&vrm.drv){playerLoco();updateRig(vrm,dt);swordPts(vrm);trailStep(trailP,!!S.anim&&!S.pdead,_ta,_tb);}
+  if(vrm&&vrm.drv){playerLoco();updateRig(vrm,dt);swordPts(vrm);if(trailP&&trailP.c){if(S.anim&&S.anim.ss)trailP.c.setHex(0x52d4ff);else trailP.c.setHex(0x8bc1ff);}trailStep(trailP,!!S.anim&&!S.pdead,_ta,_tb);}
 
 
 
