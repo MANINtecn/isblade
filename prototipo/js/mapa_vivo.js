@@ -51,7 +51,7 @@ window.MapaVivo = (function(){
     var c = celula(M, x, z), L = camadas(M, c[0], c[1]); if(!L) return null; var b = null, baixo = null, perto = null;
     for(var i = 0; i < L.length; i++){ var h = L[i].h; if(h < M.C.chaoMin + .3 || L[i].l < ALTURA) continue;
       if(h <= y + PASSO && h >= y - 3 && (b === null || h > b)) b = h;
-      if(h <= y + PASSO && (baixo === null || h > baixo)) baixo = h;
+      if(h <= y + PASSO && h >= y - 6 && (baixo === null || h > baixo)) baixo = h;      /* queda curta; mais fundo que isso (subsolo da Cruma, buraco na grade) nao conta: vale o terreno */
       if(Math.abs(h - y) <= 2.5 && (perto === null || Math.abs(h - y) < Math.abs(perto - y))) perto = h; }      /* emenda terreno/mapa: o chao do mapa pode ficar um pouco acima do terreno */
     return b !== null ? b : (perto !== null ? perto : baixo);
   }
