@@ -4146,7 +4146,16 @@ function castSkill(i){
 
 }
 
-function applyHit(an){Net.atacou(an);
+/* >>> CLAUDE [regen] 10/11/2026: regeneracao natural de vida estilo L2 (pedido do dono): fora de combate ~1%/s andando e ~3%/s parado; 6 s depois de levar ou dar golpe, nada. */
+var REGEN={ult:-1,comb:0,acc:0};
+function regenTick(dt){
+  var now=performance.now()/1000,rdt=Math.min(.5,Math.max(0,now-(REGEN.t||now)));REGEN.t=now;if(S.php<REGEN.ult-.01)REGEN.comb=now;REGEN.ult=S.php;
+  if(S.pdead||S.php<=0||S.php>=S.pmax||now-REGEN.comb<6)return;
+  var anda=Math.hypot(S.vx||0,S.vz||0)>.3;REGEN.acc+=S.pmax*(anda?.01:.03)*rdt;/* relogio real: nao depende do fps */
+  if(REGEN.acc>=1){var q=Math.floor(REGEN.acc);REGEN.acc-=q;S.php=Math.min(S.pmax,S.php+q);REGEN.ult=S.php;try{renderHud();}catch(_){}}
+}
+/* <<< CLAUDE [regen] */
+function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;
 if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange))return;/* [mago] skill de projetil desenha o proprio disparo tambem no PvP/santuario */
 
   if(an.skill&&an.skill.area&&!an.noRange&&!an._tarde){/* [mago] skills de area com aviso (meteoro, coluna): o efeito comeca agora e o dano cai quando o aviso termina */
@@ -8115,6 +8124,7 @@ function frame2(dt,T){
 
 
   if(S.stDelay>0)S.stDelay-=dt;else S.st=Math.min(100,S.st+(S.guard?6:20)*STAM_REGEN*(1+ST.estamina/100)*dt);
+  regenTick(dt);/* [regen] */
 
 
 
