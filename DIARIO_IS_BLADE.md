@@ -3293,3 +3293,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Realizado o git push para sincronização com o repositório remoto (`origin/main`), garantindo o envio dos commits locais (incluindo `3780bbb` e subsequentes).
 - Operação restrita exclusivamente ao push e registro no diário, sem alterações de código ou regras do jogo.
 
+
+### [Claude] 10/11/2026 - Arqueiro (arco): plano das 6 skills + ataque padrao (pedido do dono)
+- Pedido do dono: o push do Guerreiro ja foi feito pelo Gemini (commit fc4f85e registra); "traga pra mim o plano para as 6 skills para archer e seu ataque padrao".
+- Levantado: NAO existe classe Arqueiro (progressao.json tem Guardiao, Mago, Guerreiro, Clerigo); todas as racas tem os clipes de arco no PSA (Atk01_Bow 1,53 s; SpAtk01_Bow ~4,0 s e SpAtk02_Bow ~4,0 s, exceto algumas racas so com SpAtk02; Walk/Run/Wait/AtkWait_Bow); modelos de arco do L2 existem (bow, akat_long_bow, bow_of_forest, bow_of_halisha...); o jogo ja tem projetil de verdade (Lamina de Luz do Clerigo) e skill de area em ponto mirado (Meteoro/Glifo) para reaproveitar.
+- Plano entregue ao dono (aguardando decisoes de raca, arco da vitrine, paleta e municao antes de criar).
