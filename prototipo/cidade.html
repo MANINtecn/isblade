@@ -782,7 +782,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=3"></script>
 <script src="js/guerreiro_fx.js?v=2"></script>
-<script src="js/perf_log.js?v=3"></script>
+<script src="js/perf_log.js?v=4"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
 <script src="js/musica.js?v=1"></script>
@@ -793,7 +793,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
-<script src="js/mundo_campo.js?v=3"></script>
+<script src="js/mundo_campo.js?v=4"></script>
 <script src="js/mapa_vivo.js?v=6"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
@@ -3497,6 +3497,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   var esconde = setInterval(function(){ if (window.Horizonte && Horizonte.itens) Horizonte.itens.forEach(function(it){ it.grupo.visible = false; }); }, 500); setTimeout(function(){ clearInterval(esconde); }, 8000);
   /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
   MUNDO_ABERTO = true; ARENA = 3000;
+  if (/[?&]malha=1/.test(location.search)) MundoCampo.verMalha(true);/* [malha] */
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
   if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
@@ -4607,11 +4608,38 @@ function mundoTick(dt){
   if(r===4&&!MUNDO_REG.torre&&MUNDO_REG.t>.35){MUNDO_REG.torre=true;openPortalMenu();}
 }
 /* [pagina-unica] pode ir de (x0,z0) para (x,z)? mapa carregado = parede do walkgrid; terreno = encosta; regiao de mapa ainda carregando = espera na borda */
+/* >>> CLAUDE [malha] 10/11/2026: verificacao da malha do mundo aberto (pedido do dono: "tem lugares que nao da pra andar ou subir").
+   /malha liga/desliga a vista (vermelho = nao anda; azul = dentro de um mapa); /travas lista os pontos onde o jogador empurrou o personagem e ele nao saiu do lugar
+   (anotados sozinhos; vao junto no "Reportar problema" do Config e ficam em localStorage isblade.malha_travas). */
+var MALHA={mot:'',t:0,ult:0,lista:[],avisos:0};
+try{MALHA.lista=JSON.parse(localStorage.getItem('isblade.malha_travas')||'[]').slice(-40);}catch(_){}
+function malhaTrava(bloq,x,z){
+  var now=performance.now(),dt=Math.min(.2,Math.max(0,(now-MALHA.ult)/1000));MALHA.ult=now;
+  if(!bloq||Math.hypot(S.vx||0,S.vz||0)<1){MALHA.t=Math.max(0,MALHA.t-dt*2);return;}
+  MALHA.t+=dt;if(MALHA.t<1.3||MALHA.mot==='carregando')return;MALHA.t=0;
+  var k=Math.round(x/12)+','+Math.round(z/12);for(var i=0;i<MALHA.lista.length;i++)if(MALHA.lista[i].k===k)return;
+  var reg=MundoCampo.regiao(x,z),pt={k:k,x:Math.round(x*10)/10,z:Math.round(z*10)/10,y:Math.round((S.py||0)*10)/10,reg:reg,mot:MALHA.mot,q:(window.QUAL&&QUAL.nivel)||'?',t:new Date().toISOString().slice(11,19)};
+  MALHA.lista.push(pt);if(MALHA.lista.length>40)MALHA.lista.shift();try{localStorage.setItem('isblade.malha_travas',JSON.stringify(MALHA.lista));}catch(_){}
+  console.log('[malha] ponto sem passagem',JSON.stringify(pt));
+  if(MALHA.avisos++<3){try{Chat.sistema('Ponto sem passagem anotado em ('+pt.x+', '+pt.z+') - '+({terreno:'encosta ou cordilheira',mapa:'parede do mapa'}[pt.mot]||pt.mot)+'. /malha mostra onde nao se anda; /travas lista.');}catch(_){}}
+}
+window.__malha={M:MALHA,trava:malhaTrava,cmd:function(t){return malhaComando(t);}};/* depuracao dos testes */
+window.__malhaResumo=function(){
+  var L=['=== MALHA (pontos sem passagem anotados no aparelho) ==='];
+  if(!MALHA.lista.length)L.push('(nenhum)');MALHA.lista.forEach(function(p){L.push('x '+p.x+' z '+p.z+' y '+p.y+' regiao '+p.reg+' motivo '+p.mot+' qualidade '+p.q+' '+p.t);});return L.join('\n');};
+function malhaComando(t){
+  t=String(t||'').trim().toLowerCase();
+  if(t==='/malha'){var on=MundoCampo.verMalha();Chat.sistema(on?'Malha ligada: VERMELHO = nao se anda, AZUL = dentro de um mapa (vale a malha dele). /malha de novo desliga.':'Malha desligada.');return true;}
+  if(t==='/travas'){Chat.sistema(MALHA.lista.length?('Pontos sem passagem anotados ('+MALHA.lista.length+'): '+MALHA.lista.slice(-6).map(function(p){return '('+p.x+', '+p.z+') '+p.mot;}).join(' | ')):'Nenhum ponto sem passagem anotado ainda.');return true;}
+  if(t==='/travas limpar'){MALHA.lista=[];try{localStorage.removeItem('isblade.malha_travas');}catch(_){}Chat.sistema('Lista de pontos apagada.');return true;}
+  return false;
+}
+/* <<< CLAUDE [malha] */
 function mundoPode(x0,z0,x,z){
-  var b=window.MapaVivo&&MapaVivo.on?MapaVivo.bloq(x0,z0,x,z,S.py||0):null;if(b!==null)return !b;
+  var b=window.MapaVivo&&MapaVivo.on?MapaVivo.bloq(x0,z0,x,z,S.py||0):null;if(b!==null){MALHA.mot='mapa';return !b;}
   var r=MundoCampo.regiao(x,z),id=r>=1&&r<=3&&window.MapaVivo&&MapaVivo.porRegiao(r);
-  if(id&&!MapaVivo.pronto(id)&&MapaVivo.mapas[id]){if(!MUNDO_REG.esp||performance.now()-MUNDO_REG.esp>4000){MUNDO_REG.esp=performance.now();try{floatText('Carregando '+MapaVivo.CFG[id].nome+'...','#cfe6ff',16,'p');}catch(_){}}return false;}
-  return MundoCampo.anda(x,z);
+  if(id&&!MapaVivo.pronto(id)&&MapaVivo.mapas[id]){MALHA.mot='carregando';if(!MUNDO_REG.esp||performance.now()-MUNDO_REG.esp>4000){MUNDO_REG.esp=performance.now();try{floatText('Carregando '+MapaVivo.CFG[id].nome+'...','#cfe6ff',16,'p');}catch(_){}}return false;}
+  MALHA.mot='terreno';return MundoCampo.anda(x,z);
 }
 function saidaPerto(){if(MUNDO_ABERTO)return null;for(var i=0;i<SAIDAS.length;i++){var l=saidaLocal(SAIDAS[i]);if(l.a<SAIDAS[i].w/2+.6&&l.n>-5.5)return SAIDAS[i];}return null;}
 var _saidaCd=0;
@@ -10187,7 +10215,7 @@ function separate(){
 
 
   if(OBST.length){var q=obstPush(S.px,S.pz,.55);S.px=q[0];S.pz=q[1];}
-  if(MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>94&&MUNDO_ULT){if(!mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],S.px,S.pz)){if(mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],S.px,MUNDO_ULT[1]))S.pz=MUNDO_ULT[1];else if(mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],MUNDO_ULT[0],S.pz))S.px=MUNDO_ULT[0];else{S.px=MUNDO_ULT[0];S.pz=MUNDO_ULT[1];}}MUNDO_ULT=[S.px,S.pz];}else MUNDO_ULT=[S.px,S.pz];/* [mundo] encosta ingreme e cordilheira bloqueiam */
+  if(MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>94&&MUNDO_ULT){var _mpx=S.px,_mpz=S.pz,_mbl=!mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],S.px,S.pz);malhaTrava(_mbl,_mpx,_mpz);if(_mbl){if(mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],S.px,MUNDO_ULT[1]))S.pz=MUNDO_ULT[1];else if(mundoPode(MUNDO_ULT[0],MUNDO_ULT[1],MUNDO_ULT[0],S.pz))S.px=MUNDO_ULT[0];else{S.px=MUNDO_ULT[0];S.pz=MUNDO_ULT[1];}}MUNDO_ULT=[S.px,S.pz];}else MUNDO_ULT=[S.px,S.pz];/* [mundo] encosta ingreme e cordilheira bloqueiam */
 
 
 
@@ -18166,7 +18194,7 @@ Guardiao.init({
 try{MagoFX.init(THREE,FXCENA);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
 try{MagoFX2.init(THREE,FXCENA);}catch(_){}try{ClerigoFX.init(THREE,FXCENA);}catch(_){}try{GuerreiroFX.init(THREE,FXCENA);}catch(_){}/* [guerreiro] *//* [clerigo] *//* [mago] skills 2 a 5 (js/mago_fx2.js) */
 try{PerfLog.init(renderer,scene,function(){var o={pg:'cidade'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
-try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
+try{Chat.init({enviar:function(t,c){if(malhaComando(t))return;/* [malha] */if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
 try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot],ico:window.InvUI?InvUI.icone(b,{tam:30}):''};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
 try{SomL2.ambiente('cidade');}catch(_){}/* [sons-l2] vento, ondas e gaivotas de Talking Island */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */

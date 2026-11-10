@@ -27,6 +27,10 @@ window.MundoCampo = (function(){
   };
   function amostra(A, x, z){ if(!A) return 0; var c = cel(x, z), i = Math.round(c[0]), j = Math.round(c[1]); if(i < 0 || j < 0 || i >= nx || j >= nz) return 0; return A[j * nx + i]; }
   M.regiao = function(x, z){ return amostra(RG, x, z); };
+  /* [malha] 10/11/2026: vista de verificacao. Vermelho = terreno onde NAO se anda (encosta de mais de 40 graus, cordilheira, fundo); azul = dentro de um mapa (vale a malha
+     do proprio mapa, nao a do terreno). Liga com /malha no chat ou ?malha=1. */
+  M.UVM = { uMalha: { value: 0 }, tMalha: { value: null }, vMalha: { value: [0, 0, 1, 1, 1] } };
+  M.verMalha = function(on){ if(on === undefined) on = !M.UVM.uMalha.value; M.UVM.uMalha.value = on ? 1 : 0; return !!on; };
   M.anda = function(x, z){ return !!amostra(AN, x, z); };
   M.carregar = function(THREE, scene, opt){
     opt = opt || {};
@@ -48,19 +52,23 @@ window.MundoCampo = (function(){
       var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('peso1', new THREE.BufferAttribute(p1, 4)); g.setAttribute('peso2', new THREE.BufferAttribute(p2, 1));
       g.setIndex(N > 65535 ? new THREE.Uint32BufferAttribute(idx, 1) : new THREE.Uint16BufferAttribute(idx, 1)); g.computeVertexNormals(); g.computeBoundingSphere();
       /* textura fundida */
+      var dm = new Uint8Array(n * 4); for(var q = 0; q < n; q++){ dm[q * 4] = AN[q] ? 255 : 0; dm[q * 4 + 1] = RG[q] * 60; dm[q * 4 + 3] = 255; }
+      var tm = new THREE.DataTexture(dm, nx, nz, THREE.RGBAFormat); tm.minFilter = tm.magFilter = THREE.NearestFilter; tm.needsUpdate = true; M.UVM.tMalha.value = tm; M.UVM.vMalha.value = [x0, z0, ps, nx, nz];
       var tl = new THREE.TextureLoader(), U = {};
       J.texturas.forEach(function(tx, i){ var t = tl.load(BASE + tx.arquivo + v); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = opt.baixa ? 1 : 4; U['tSolo' + i] = { value: t }; U['eSolo' + i] = { value: 1 / tx.metros }; });
       var mat = new THREE.MeshStandardMaterial({ roughness: .95, metalness: 0 });
       mat.onBeforeCompile = function(sh){
-        Object.keys(U).forEach(function(k){ sh.uniforms[k] = U[k]; });
+        Object.keys(U).forEach(function(k){ sh.uniforms[k] = U[k]; }); sh.uniforms.uMalha = M.UVM.uMalha; sh.uniforms.tMalha = M.UVM.tMalha; sh.uniforms.vMalha = M.UVM.vMalha;
         sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec4 peso1; attribute float peso2; varying vec4 vP1; varying float vP2; varying vec3 vMW; varying vec3 vNW;')
           .replace('#include <begin_vertex>', '#include <begin_vertex>\nvP1 = peso1; vP2 = peso2; vMW = (modelMatrix * vec4(transformed, 1.0)).xyz; vNW = normalize(mat3(modelMatrix) * objectNormal);');
-        var dec = 'varying vec4 vP1; varying float vP2; varying vec3 vMW; varying vec3 vNW;\n'; for(var i = 0; i < 6; i++) dec += 'uniform sampler2D tSolo' + i + '; uniform float eSolo' + i + ';\n';
+        var dec = 'varying vec4 vP1; varying float vP2; varying vec3 vMW; varying vec3 vNW; uniform float uMalha; uniform sampler2D tMalha; uniform float vMalha[5];\n'; for(var i = 0; i < 6; i++) dec += 'uniform sampler2D tSolo' + i + '; uniform float eSolo' + i + ';\n';
         dec += 'vec3 solo(sampler2D t, float e){ return pow(texture2D(t, vMW.xz * e).rgb, vec3(2.2)); }\n';
         sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + dec).replace('#include <map_fragment>',
           'vec3 cS = solo(tSolo0, eSolo0) * vP1.x + solo(tSolo1, eSolo1) * vP1.y + solo(tSolo2, eSolo2) * vP1.z + solo(tSolo3, eSolo3) * vP1.w + solo(tSolo4, eSolo4) * vP2;\n' +
           'float rocha = max(smoothstep(.92, .72, vNW.y), smoothstep(28.0, 55.0, vMW.y));\n' +
-          'cS = mix(cS, solo(tSolo5, eSolo5), rocha);\n diffuseColor.rgb *= cS;');
+          'cS = mix(cS, solo(tSolo5, eSolo5), rocha);\n diffuseColor.rgb *= cS;\n' +
+          'if(uMalha > .5){ vec2 uvm = ((vMW.xz - vec2(vMalha[0], vMalha[1])) / vMalha[2] + .5) / vec2(vMalha[3], vMalha[4]); vec4 am = texture2D(tMalha, uvm); float reg = floor(am.g * 255.0 / 60.0 + .5);\n' +
+          '  if(reg > .5 && reg < 3.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.1, .35, 1.0), .38); else if(am.r < .5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1.0, .05, .05), .7); }');
       };
       var me = new THREE.Mesh(g, mat); me.receiveShadow = true; me.frustumCulled = false; me.name = 'MUNDO_TERRENO'; scene.add(me); M.mesh = me;
       M.pronto = true; return M;

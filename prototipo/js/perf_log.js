@@ -73,6 +73,7 @@
     if(meta.bateria) L.push('Bateria: ' + meta.bateria.nivel + '%' + (meta.bateria.carregando ? ' (carregando)' : ''));
     if(meta.carga) L.push('Carga da pagina: dom ' + meta.carga.dom_ms + ' ms, completa ' + meta.carga.load_ms + ' ms, ' + meta.carga.transferido_kb + ' KB');
     L.push('Pagina: ' + meta.pagina + ' | sessoes salvas: ' + meta.sessoes);
+    try{ if(window.__malhaResumo) L.push('', window.__malhaResumo()); }catch(e){}      /* [malha] pontos sem passagem anotados (vao junto no relato) */
     if(!A.length){ L.push('(sem amostras ainda: jogue alguns segundos com a aba aberta)'); return L.join('\n'); }
     var tot = A.reduce(function(s, a){ return s + a.n; }, 0), fpsM = media(A, 'fps'), baixo30 = A.filter(function(a){ return a.fps < 30; }).length, baixo20 = A.filter(function(a){ return a.fps < 20; }).length;
     var pior = A.slice().sort(function(a, b){ return a.fps - b.fps; })[0], calls = A.map(function(a){ return a.calls || 0; }), tris = A.map(function(a){ return a.tris || 0; });
