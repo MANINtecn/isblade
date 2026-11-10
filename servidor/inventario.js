@@ -80,9 +80,11 @@ function usar(pers, J, id, agora){
   const c = LJ.consumiveis[id]; if(!c) return { erro: 'Item desconhecido.' };
   if(c.ss) return { erro: c.nome + ' e automatico: gasta 1 por ataque enquanto voce tiver.' };
   if(!(inv.consum[id] > 0)) return { erro: 'Voce nao tem ' + c.nome + '.' };
+  if(c.revive && !(J.morto || J.hp <= 0)) return { erro: c.nome + ' so vale quando voce caiu.' };      /* [pergaminho-res] */
+  if(!c.revive && (J.morto || J.hp <= 0)) return { erro: 'Voce caiu: so o pergaminho de ressurreicao ou um clerigo levantam voce.' };
   J.usoT = J.usoT || {}; const falta = (J.usoT[id] || 0) - agora; if(falta > 0) return { erro: c.nome + ': aguarde ' + Math.ceil(falta) + ' s.' };
   J.usoT[id] = agora + (c.recarga || 0); inv.consum[id]--; if(!inv.consum[id]) delete inv.consum[id];
-  return { erro: '', id, nome: c.nome, cura: c.cura || 0, volta: !!c.volta };
+  return { erro: '', id, nome: c.nome, cura: c.cura || 0, volta: !!c.volta, revive: c.revive || 0 };
 }
 
 /* soulshot / spiritshot automatico: gasta 1 por ataque se tiver (mago usa spiritshot); devolve {id, n, bonus} ou null */

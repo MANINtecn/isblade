@@ -28,6 +28,7 @@
       '<polygon points="9,32 36,32 36,36 9,36" fill="' + e + '"/><polyline points="13,10 25,10" stroke="' + e + '" stroke-width="1.2"/>'; },
     pocao_vida: function(){ return '<polygon points="16,3 24,3 24,9 31,16 31,33 26,37 14,37 9,33 9,16 16,9" fill="#2a1418" stroke="#c9d1de" stroke-width="1.4"/><polygon points="11,20 29,20 29,32 25,35 15,35 11,32" fill="#e8343f"/><polygon points="13,22 17,22 15,32" fill="#ffffff" opacity=".35"/><polygon points="15,1 25,1 25,4 15,4" fill="#8a6a44"/>'; },
     pergaminho_volta: function(){ return '<polygon points="6,8 34,8 30,14 34,20 30,26 34,32 6,32 10,26 6,20 10,14" fill="#e9dcb8" stroke="#8a6a44" stroke-width="1.3"/><polygon points="14,15 26,15 22,20 26,25 14,25 18,20" fill="#3f8cff"/>'; },
+    pergaminho_res: function(){ return '<polygon points="6,8 34,8 30,14 34,20 30,26 34,32 6,32 10,26 6,20 10,14" fill="#f3ecc8" stroke="#b8862a" stroke-width="1.3"/><polygon points="20,10 23,17 20,30 17,17" fill="#ffd977"/><polyline points="13,20 27,20" stroke="#7dffa8" stroke-width="1.6"/>'; },
     soulshot: function(){ return '<polygon points="20,3 31,17 20,37 9,17" fill="#ffd34d" stroke="#b8862a" stroke-width="1.3"/><polygon points="20,7 26,17 20,30" fill="#ffffff" opacity=".45"/>'; },
     spiritshot: function(){ return '<polygon points="20,3 31,17 20,37 9,17" fill="#5ab4ff" stroke="#2a5fb8" stroke-width="1.3"/><polygon points="20,7 26,17 20,30" fill="#ffffff" opacity=".45"/>'; },
     item: function(m, e){ return '<polygon points="20,4 34,20 20,36 6,20" fill="' + m + '" stroke="' + e + '" stroke-width="1.4"/>'; }

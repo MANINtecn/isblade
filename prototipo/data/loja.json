@@ -3,6 +3,7 @@
   "consumiveis": {
     "pocao_vida": { "nome": "Poção de Vida", "preco": 40, "cura": 0.3, "recarga": 10, "desc": "Recupera 30% da vida. Tecla H." },
     "pergaminho_volta": { "nome": "Pergaminho de Volta", "preco": 150, "volta": true, "recarga": 5, "desc": "Leva você de volta para Talking Island." },
+    "pergaminho_res": { "nome": "Pergaminho de Ressurreição", "preco": 300, "revive": 0.3, "recarga": 5, "desc": "Só vale caído: você levanta onde está com 30% da vida e 2 s de proteção." },
     "soulshot": { "nome": "Soulshot", "preco": 3, "ss": "fighter", "bonus": 0.25, "desc": "Automático: gasta 1 por ataque e dá +25% de dano (guerreiro e guardião)." },
     "spiritshot": { "nome": "Spiritshot", "preco": 3, "ss": "magic", "bonus": 0.25, "desc": "Automático: gasta 1 por ataque e dá +25% de dano (mago)." }
   },
@@ -18,7 +19,7 @@
   },
   "armazem": { "_nota": "Wilford: bau da CONTA (todos os personagens usam o mesmo). max = itens; taxa = adena por item guardado (retirar e de graca).", "max": 60, "taxa": 10 },
   "lojas": {
-    "galladucci": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot", "sword_long", "shield_guardian", "staff_arcane", "helmet_iron", "chest_plate", "gloves_hide", "boots_swift"],
-    "mammon": ["pocao_vida", "pergaminho_volta", "soulshot", "spiritshot", "sword_long_d", "shield_guardian_d", "staff_arcane_d", "helmet_iron_d", "chest_plate_d", "gloves_hide_d", "boots_swift_d"]
+    "galladucci": ["pocao_vida", "pergaminho_volta", "pergaminho_res", "soulshot", "spiritshot", "sword_long", "shield_guardian", "staff_arcane", "helmet_iron", "chest_plate", "gloves_hide", "boots_swift"],
+    "mammon": ["pocao_vida", "pergaminho_volta", "pergaminho_res", "soulshot", "spiritshot", "sword_long_d", "shield_guardian_d", "staff_arcane_d", "helmet_iron_d", "chest_plate_d", "gloves_hide_d", "boots_swift_d"]
   }
 }

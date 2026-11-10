@@ -9401,9 +9401,11 @@ function supFiltra(d){/* dano de mob no PvE: Prece (defesa) e Escudo Astral */
 /* >>> CLAUDE [clerigo] fase 3: no mundo aberto quem cai fica no chao (como no L2) esperando uma Ressurreicao; botao para voltar a cidade (sozinho em 3 min) */
 function esperaRes(){return MUNDO_ABERTO&&!DG.on&&window.Net&&Net.on&&Math.hypot(S.px,S.pz)>96&&S.pdT<180;}
 function painelMorte(on){var el=document.getElementById('painelMorte');
-  if(on&&!el){el=document.createElement('div');el.id='painelMorte';el.style.cssText='position:fixed;left:50%;top:62%;transform:translateX(-50%);z-index:70;padding:10px 14px;background:linear-gradient(rgba(30,12,14,.92),rgba(12,6,8,.92));box-shadow:inset 0 0 0 1px #8a3a3a,0 0 18px rgba(0,0,0,.6);color:#f2dede;font:13px system-ui,sans-serif;text-align:center;border-radius:4px';
+  if(on&&!el){el=document.createElement('div');el.id='painelMorte';el.style.cssText='position:fixed;left:50%;top:48%;transform:translateX(-50%);z-index:70;padding:10px 14px;background:linear-gradient(rgba(30,12,14,.92),rgba(12,6,8,.92));box-shadow:inset 0 0 0 1px #8a3a3a,0 0 18px rgba(0,0,0,.6);color:#f2dede;font:13px system-ui,sans-serif;text-align:center;border-radius:4px';
     el.innerHTML='<div style="margin-bottom:8px">Você caiu. Espere um Clérigo usar <b style="color:#ffe9a8">Ressurreição</b> ou volte para a cidade.</div><button type="button" style="font:700 12px system-ui;padding:7px 14px;background:#3a1a1a;color:#ffd6d6;border:1px solid #a04848;border-radius:3px;cursor:pointer">VOLTAR PARA A CIDADE</button>';
-    el.querySelector('button').addEventListener('click',function(e){e.stopPropagation();S.pdT=999;});document.body.appendChild(el);}
+    var _bs=el.querySelector('button');_bs.addEventListener('click',function(e){e.stopPropagation();S.pdT=999;});
+    if((CONSUM.pergaminho_res|0)>0){var _br=document.createElement('button');_br.type='button';_br.style.cssText='font:700 12px system-ui;padding:7px 14px;margin-right:8px;background:#2a2410;color:#ffe9a8;border:1px solid #b8862a;border-radius:3px;cursor:pointer';_br.textContent='RESSUSCITAR AQUI (pergaminho x'+(CONSUM.pergaminho_res|0)+')';_br.addEventListener('click',function(e){e.stopPropagation();usarConsumivel('pergaminho_res');});_bs.parentNode.insertBefore(_br,_bs);}
+    document.body.appendChild(el);}
   else if(!on&&el)el.remove();}
 /* <<< CLAUDE [clerigo] fase 3 */
 /* >>> CLAUDE [regen] 10/11/2026: regeneracao natural de vida estilo L2 (pedido do dono): fora de combate ~1%/s andando e ~3%/s parado; 6 s depois de levar ou dar golpe, nada. */
@@ -12849,10 +12851,11 @@ function invDoServidor(m){
 }
 /* [loja] consumiveis e loja (js/loja.js + data/loja.json): o servidor gasta e devolve o efeito */
 function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,vm:(ArmaGrau.info(ITM,b).venda||1),ico:window.InvUI?InvUI.icone(b,{tam:30}):''};})};}
-function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead)return;Net.usar(id);}
+function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead&&id!=='pergaminho_res')return;Net.usar(id);}/* [pergaminho-res] caido so usa o pergaminho de ressurreicao */
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
   if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');if(!som('pocao'))try{SFX.play('ui');}catch(_){}renderHud();}
+  if(m.revive){som('pergaminho');banner('RESSUSCITADO','Pergaminho de Ressurreição','#ffe9a8');}/* [pergaminho-res] o estado volta pelo aviso resp do servidor */
   if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
 }
 function som(n){try{return !!(window.SomL2&&SomL2.ui(n));}catch(_){return false;}}/* [sons-l2] som de interface do L2 (js/sons_l2.js); false = usa o som antigo */

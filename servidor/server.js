@@ -423,7 +423,8 @@ wss.on('connection', ws => {
       if(r.erro){ envia(J, { t: 'inv', inv: J.pers.inv, erro: r.erro }); return; }
       Contas.grava(); let hp;
       if(r.cura && c.mapa !== 'masmorra' && !J.morto){ J.hp = Math.min(J.pmax, J.hp + Math.round(J.pmax * r.cura)); hp = J.hp; difunde(c, { t: 'cura', v: J.id, hp: J.hp }); }      /* PvP e cidade: a vida e do servidor */
-      envia(J, { t: 'usou', id: r.id, nome: r.nome, cura: r.cura, volta: r.volta ? 1 : 0, hp }); envia(J, { t: 'inv', inv: J.pers.inv });
+      if(r.revive){ const t2 = agora(); J.morto = false; J.hp = Math.max(1, Math.round(J.pmax * r.revive)); J.imune = t2 + 2; hp = J.hp; difunde(c, { t: 'resp', id: J.id, x: r2(J.x), z: r2(J.z), hp: J.hp, pm: J.pmax, keep: 1 }); }      /* [pergaminho-res] levanta onde caiu */
+      envia(J, { t: 'usou', id: r.id, nome: r.nome, cura: r.cura, volta: r.volta ? 1 : 0, revive: r.revive ? 1 : 0, hp }); envia(J, { t: 'inv', inv: J.pers.inv });
     }
     else if(m.t === 'attr'){                                         /* distribuir pontos de atributo: o servidor valida e devolve o estado (prog) */
       const t = agora(); if(t - (J.attrT || 0) < .1) return; J.attrT = t; if(J.pers && Prog.distribui(J.pers, m.v)) Contas.grava(); enviaProg(J);
