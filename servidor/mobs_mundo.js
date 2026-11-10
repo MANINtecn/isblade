@@ -92,7 +92,7 @@ class Mundo {
   /* jogadores vivos do canal (lista de J do server.js) */
   tick(t, dt, jog){
     if(!this.ok()) return;
-    const vivos = jog.filter(P => !P.morto);
+    const vivos = jog.filter(P => !P.morto && !(P.hp <= 0));      /* caido no mundo aberto (vida 0) nao e alvo */
     this.tSpot -= dt;
     if(this.tSpot <= 0){ this.tSpot = .5;
       for(const sp of this.L){

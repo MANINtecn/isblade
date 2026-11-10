@@ -468,7 +468,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=3"></script>
 <script src="js/mago_fx2.js?v=1"></script>
-<script src="js/clerigo_fx.js?v=2"></script>
+<script src="js/clerigo_fx.js?v=3"></script>
 <script src="js/perf_log.js?v=3"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
@@ -711,7 +711,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=17';
-import { Net } from './js/net.js?v=45';
+import { Net } from './js/net.js?v=46';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -1111,6 +1111,8 @@ var SFX=(function(){
     c_s4_hit:function(){return smp('blessthebody_shot',.6,1.05) || smp(F.gL,.4,1);},
     c_s5_swing:function(){return smp('might_cast',.6,1.1) || smp(F.las,.28,1.4);},
     c_s5_hit:function(){return smp('might_shot',.65,1) || smp(F.gL,.4,1);},
+    c_s6_swing:function(){return smp('resurrection_cast',.65,1) || smp(F.las,.28,1.2);},
+    c_s6_hit:function(){return smp('resurrection_shot',.7,1) || smp(F.gL,.4,1);},
     m_s1_swing:function(){return (smp('doublewind_shot',.8,1.25) && smp(L2.shing,.5,1.4)) || smp(F.las,.28,1.6);},
 
     m_s1_hit:function(){return (smp('energywave_shot',.7,1.3) && smp(L2.shing,.45,1.2)) || smp(F.gL,.4,1.2);},
@@ -1551,6 +1553,7 @@ function iconSVG(id,size){
 
 }
 var SKILL_ICONS={
+  ressurreicao:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M14 3h4v26h-4z" fill="#fff6dc" opacity=".7"/><path d="M15 21L5 12M15 21L6 17M17 21L27 12M17 21L26 17" stroke="#ffe082" stroke-width="1.5" stroke-linecap="square"/><polygon points="16,8 19,12 16,16 13,12" fill="#ffe082"/><path d="M8 27h16" stroke="#7dffa8" stroke-width="1.4"/><path d="M16 23v4M14 25h4" stroke="#7dffa8" stroke-width="1.2"/></svg>',/* [clerigo] feixe de luz + asas de laminas */
   escudo_astral:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><g fill="#16283d" stroke="#bfe4ff" stroke-width="1"><polygon points="16,3.5 19.5,5.5 19.5,9.5 16,11.5 12.5,9.5 12.5,5.5"/><polygon points="25,9 28.5,11 28.5,15 25,17 21.5,15 21.5,11"/><polygon points="25,17.5 28.5,19.5 28.5,23.5 25,25.5 21.5,23.5 21.5,19.5"/><polygon points="16,21 19.5,23 19.5,27 16,29 12.5,27 12.5,23"/><polygon points="7,17.5 10.5,19.5 10.5,23.5 7,25.5 3.5,23.5 3.5,19.5"/><polygon points="7,9 10.5,11 10.5,15 7,17 3.5,15 3.5,11"/></g><polygon points="16,12 19,16 16,20 13,16" fill="#ffe082"/></svg>',/* [clerigo] placas hexagonais em volta */
   purificacao:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M13 3h6l-1.5 22h-3z" fill="#fff6dc" opacity=".85"/><path d="M6 27h20" stroke="#ffe082" stroke-width="1.4"/><polygon points="16,4 20,9 16,14 12,9" fill="none" stroke="#ffe082" stroke-width="1.2"/><path d="M7 20l3-3M25 20l-3-3M8 13l2 1M24 13l-2 1" stroke="#c8d6e5" stroke-width="1.2"/></svg>',/* [clerigo] raio de luz + losango */
   prece:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,4 19,12 27,9 21,16 27,23 19,20 16,28 13,20 5,23 11,16 5,9 13,12" fill="#2a2410" stroke="#ffe082" stroke-width="1.1" stroke-linejoin="miter"/><path d="M16 22v-9M13 15.5l3-3 3 3" stroke="#fff6dc" stroke-width="1.6" fill="none"/></svg>',/* [clerigo] octagrama + seta de buff */
@@ -2610,6 +2613,7 @@ var CM={
   c_s3:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
   c_s4:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
   c_s5:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
+  c_s6:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
   m_s1:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0}
 
 };
@@ -2661,6 +2665,7 @@ function getClipConfig(pose){
       c_s3:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
       c_s4:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
       c_s5:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
+      c_s6:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
       m_s1:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0}
 
     };
@@ -3982,6 +3987,7 @@ var POSE={
   c_s3:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   c_s4:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   c_s5:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  c_s6:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   m_s1:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false}
 
 };
@@ -4160,6 +4166,7 @@ function miraAtualiza(){
 function castSkill(i){
 
   var sk=SK[i];
+  if(sk&&sk.suporte&&sk.suporte.tipo==='revive'&&!alvoSuporte(sk)){floatText('Nenhum aliado caído na mira','#ffe9a8',18,'p');return 'no';}/* [clerigo] Ressurreicao precisa de um caido na frente */
 
   if(!sk)return 'no';
 
@@ -4202,8 +4209,8 @@ function supChao(x,z,y){return 0;}
 var SUP={escudo:null,ccAte:0,preceAte:0,atk:0,def:0};window.__sup=function(){return SUP;};window.__alvoSup=function(sk){return alvoSuporte(sk);};/* depuracao dos testes */
 function posDe(id){if(window.Net&&id===Net.id)return {x:S.px,y:supChao(S.px,S.pz,S.py),z:S.pz};var o=window.Net&&Net.alvos().filter(function(q){return q.id===id;})[0];return o?{x:o.x,y:supChao(o.x,o.z),z:o.z}:null;}
 function alvoSuporte(sk){/* aliado na mira: o outro jogador mais alinhado com a frente, dentro do alcance; 0 = o proprio clerigo (o servidor confere) */
-  if(!sk||!sk.suporte||sk.suporte.tipo==='prece'||!window.Net)return 0;var b=0,bd=.5;
-  Net.alvos().forEach(function(o){if(o.morto)return;var dx=o.x-S.px,dz=o.z-S.pz,d=Math.hypot(dx,dz);if(d>(sk.range||14)+1||d<.3)return;var a=Math.abs(angDiff(S.face,Math.atan2(dx,dz)));if(a<bd){bd=a;b=o.id;}});return b;}
+  if(!sk||!sk.suporte||sk.suporte.tipo==='prece'||!window.Net)return 0;var b=0,bd=.5,rev=sk.suporte.tipo==='revive';
+  Net.alvos().forEach(function(o){var caido=o.morto||o.hp<=0;if(rev?!caido:caido)return;/* Ressurreicao: so quem caiu */var dx=o.x-S.px,dz=o.z-S.pz,d=Math.hypot(dx,dz);if(d>(sk.range||14)+1||d<.3)return;var a=Math.abs(angDiff(S.face,Math.atan2(dx,dz)));if(a<bd){bd=a;b=o.id;}});return b;}
 function suporteRecebe(m){try{
   var eu=window.Net&&m.v===Net.id,now=performance.now()/1000;
   if(m.k==='escudo'){
@@ -4214,6 +4221,10 @@ function suporteRecebe(m){try{
   }else if(m.k==='prece'){
     var L=m.l||[];if(window.Net&&L.indexOf(Net.id)>=0){SUP.preceAte=now+(m.dur||20);SUP.atk=m.atk||.15;SUP.def=m.def||.15;floatText('PRECE','#ffd977',22,'p');}
     ClerigoFX.prece(m.x,m.z,5,L.map(function(id){return function(){return posDe(id);};}),m.dur||20);SFX.play('c_s5_hit');
+  }else if(m.k==='revini'){ClerigoFX.reviveIni(function(){return posDe(m.v);},m.dur||2);SFX.play('c_s6_swing');
+  }else if(m.k==='revive'){ClerigoFX.reviveFim(function(){return posDe(m.v);});SFX.play('c_s6_hit');if(eu){banner('RESSUSCITADO','Um clerigo trouxe voce de volta','#ffe9a8');}
+  }else if(m.k==='revfalha'){floatText('Nenhum aliado caído na mira','#ffe9a8',18,'p');for(var _i=0;_i<SK.length;_i++)if(SK[_i].suporte&&SK[_i].suporte.tipo==='revive')S.cd[_i]=0;
+  }else if(m.k==='revcancel'){if(window.Net&&m.de===Net.id)floatText('Ressurreição interrompida','#ff9a7a',18,'p');
   }
 }catch(_){}}
 function supFiltra(d){/* dano de mob no PvE: Prece (defesa) e Escudo Astral */
@@ -5099,7 +5110,7 @@ function resolveEnemyHit(atk){
 
 }
 
-function hurtPlayer(d,soft,quiet){
+function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo nao conta (antes zerava o tempo de morte) */
   /* >>> CLAUDE [guardiao] 2026-10-27 — dano recebido: marca combate e aplica reducoes do Guardiao */ Guardiao.tocar('dano recebido'); d=Guardiao.filtrarDano(d);d=supFiltra(d);/* [clerigo] */ if(d<=0&&Guardiao.canalAtivo()){SFX.play('block');S.shake=Math.max(S.shake,.1);return;}/* absorvido pelo domo: sem dano nem interrupcao */ /* <<< CLAUDE [guardiao] */
 
 

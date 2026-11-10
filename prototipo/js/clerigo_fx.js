@@ -164,6 +164,35 @@
     });
   };
 
+  /* ================= fase 3 (10/11/2026): Ressurreicao ================= */
+  /* canalizacao: octagrama sob o caido, 6 pilares altos e o feixe largo do ceu descendo (dur = tempo de canalizar) */
+  C.reviveIni = function(pos, dur){
+    if(!T) return; dur = dur || 2; var oc = null, pil = [], fe = [];
+    segue(pos, function(g, u, t){
+      if(!oc){ oc = plano(TX.glifo_octa, OURO, 3.6, 3.6, .9, true); oc.position.y = .08; g.add(oc);
+        for(var i = 0; i < 6; i++){ var a = i * Math.PI / 3, p = plano(TX.raios, i % 2 ? OURO : BRANCO, .3, 4, .75); p.position.set(Math.cos(a) * 1.6, 2, Math.sin(a) * 1.6); p.rotation.y = -a; g.add(p); pil.push(p); }
+        for(var k = 0; k < 2; k++){ var f = plano(TX.raios, k ? OURO : BRANCO, 2.2, 14, .7); f.position.y = 7; f.rotation.y = k * Math.PI / 2; g.add(f); fe.push(f); } }
+      oc.rotation.z = t * .8; oc.scale.setScalar(Math.min(1, t / .4)); oc.material.opacity = .9 * (u > .9 ? (1 - u) * 10 : 1);
+      pil.forEach(function(p, k){ p.scale.set(1, Math.min(1, Math.max(.01, (t - k * .08) / .35)), 1); });
+      fe.forEach(function(f){ var q = Math.min(1, Math.max(0, (u - .35) / .5)); f.scale.set(q, 1, 1); f.position.y = 7 + (1 - q) * 5; f.material.opacity = .7 * q; });
+    }, dur);
+  };
+  /* levanta: 4 laminas de luz de cada lado abrindo como asas atras, 16 espinhos de luz, 3 hexagonos de choque, cruzes subindo */
+  C.reviveFim = function(pos){
+    if(!T) return; var asas = [], esp = [], ons = [], cz = null;
+    segue(pos, function(g, u, t){
+      if(!asas.length){
+        for(var l = -1; l <= 1; l += 2) for(var i = 0; i < 4; i++){ var la = new T.Mesh(new T.ConeGeometry(.12, 1.6 + i * .25, 4), aditivo(i % 2 ? OURO : BRANCO, null, .9).clone()); la.userData = { l: l, i: i }; g.add(la); asas.push(la); }
+        for(var k = 0; k < (leve() ? 8 : 16); k++){ var v = new T.Vector3(Math.cos(k * .3927), .2 + (k % 3) * .25, Math.sin(k * .3927)).normalize(), e = new T.Mesh(new T.ConeGeometry(.05, 1.2, 4), aditivo(k % 2 ? OURO : BRANCO, null, .95).clone()); e.position.y = 1.2; e.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v); g.add(e); esp.push(e); }
+        for(var h = 0; h < 3; h++){ var o = plano(TX.onda, h === 1 ? VERDE : OURO, 1, 1, .9, true); o.position.y = .15 + h * .6; g.add(o); ons.push(o); }
+        cz = cruzes(g, leve() ? 5 : 10, VERDE, .8, 2.6, 1); }
+      asas.forEach(function(la){ var d = la.userData, ab = Math.min(1, t / .35), a = (.35 + d.i * .32) * ab; la.position.set(d.l * (.2 + Math.sin(a) * .9), 1.4 + Math.cos(a) * .9, -.35); la.rotation.set(0, 0, -d.l * a); la.material.opacity = .9 * (1 - u); });
+      esp.forEach(function(e){ e.scale.setScalar(kf([[0, .2], [.12, 1], [.5, .6], [1, 0]], u)); });
+      ons.forEach(function(o, k){ var uu = Math.max(0, Math.min(1, (t - k * .12) / .7)); o.scale.setScalar(.4 + 3.2 * uu); o.material.opacity = .9 * (1 - uu); });
+      cz(u);
+    }, 1.6);
+  };
+
   /* ---------------- Livro Astral (arma do Clerigo): aberto em V, lombada vertical, paginas brilhando para a frente ---------------- */
   C.livro = function(esc){
     esc = esc || 1; var L = .2 * esc, W = .014 * esc, H = .3 * esc, raiz = new T.Group();

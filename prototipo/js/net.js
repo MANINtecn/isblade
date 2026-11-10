@@ -185,7 +185,7 @@ export const Net = (function(){
     } else if(m.t === 'die'){
       if(m.v === N.id) ctx.sysMsg(m.na + ' derrotou voce'); else { e = remotos.get(m.v); if(e){ e.morto = true; e.curA = ''; if(e.tag) desenhaTag(e); } ctx.sysMsg(m.na + ' derrotou ' + m.nv); }
     } else if(m.t === 'resp'){
-      if(m.id === N.id){ ctx.meResp(m.x, m.z, m.hp / (N.eu.pmax || 100), !!m.keep); }
+      if(m.id === N.id){ ctx.meResp(m.x, m.z, m.hp / (m.pm || N.eu.pmax || 100), !!m.keep); }
       else { e = remotos.get(m.id); if(e){ e.morto = false; e.hp = m.hp; e.curA = ''; if(!m.keep){ e.x = e.tx = m.x; e.z = e.tz = m.z; } if(e.tag) desenhaTag(e); } }
     } else if(m.t === 'duelreq'){
       pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce', '#ffd166'); desenhaPed();
@@ -495,7 +495,7 @@ export const Net = (function(){
   };
   /* ---- dungeon em grupo ---- */
   N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
-  N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto, nome: e.nome }); }); return l; };
+  N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto, nome: e.nome, hp: e.hp }); }); return l; };
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
   N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && N.grupo.m.length > 1); };      /* lider de um grupo: dono da dungeon mesmo que os outros ainda estejam entrando */
   N.soyConvidado = function(){ return !!(N.on && N.mapa === 'masmorra' && N.grupo && !N.soyLider() && remotos.size > 0); };

@@ -253,6 +253,20 @@ const fatorInt = A => 1 + Math.max(0, (A.pers ? (Prog.statsDe(A.pers).int | 0) :
 function ajudaFlag(c, A, V, t){ if(V !== A && abertoAqui(c, V) && (temFlag(V, t) || temKarma(V)) && !temKarma(A)) A.flagAte = Math.max(A.flagAte || 0, t + FLAG_S); }
 function suporteSkill(c, A, d, m, t){
   const S = d.suporte, aliado = V => V && !V.morto && aliadoDe(c, A, V, t);
+  if(S.tipo === 'revive'){                                                   /* [clerigo] fase 3: Ressurreicao (aliado caido na mira, canaliza `canal` s) */
+    const V = c.jog.get(m.al | 0), caido = V && V !== A && (V.morto || V.hp <= 0);
+    if(!caido || !aliadoDe(c, A, V, t) || Math.hypot(V.x - A.x, V.z - A.z) > (d.range || 10) + 1.5){ A.cd[A.arma + (m.i | 0)] = 0; envia(A, { t: 'sup', k: 'revfalha' }); return; }
+    const x0 = A.x, z0 = A.z, canal = Math.max(.5, Math.min(4, +S.canal || 2));
+    difunde(c, { t: 'atk', id: A.id, k: 's', v: m.i | 0, f: r2(A.f) }); difunde(c, { t: 'sup', k: 'revini', v: V.id, de: A.id, dur: canal });
+    setTimeout(() => {
+      const t2 = agora();
+      if(A.morto || c.jog.get(A.id) !== A || Math.hypot(A.x - x0, A.z - z0) > 3){ difunde(c, { t: 'sup', k: 'revcancel', v: V.id, de: A.id }); return; }
+      if(c.jog.get(V.id) !== V || !(V.morto || V.hp <= 0)) return;
+      V.morto = false; V.hp = Math.max(1, Math.round(V.pmax * (S.vida || .3))); V.imune = t2 + (S.imune || 2); ajudaFlag(c, A, V, t2);
+      difunde(c, { t: 'resp', id: V.id, x: r2(V.x), z: r2(V.z), hp: V.hp, pm: V.pmax, keep: 1 }); difunde(c, { t: 'sup', k: 'revive', v: V.id, de: A.id, hp: V.hp });
+    }, canal * 1000);
+    return;
+  }
   let V = c.jog.get(m.al | 0); if(!aliado(V) || Math.hypot(V.x - A.x, V.z - A.z) > (d.range || 12) + 1.5) V = A;
   difunde(c, { t: 'atk', id: A.id, k: 's', v: m.i | 0, f: r2(A.f) });
   if(S.tipo === 'escudo'){

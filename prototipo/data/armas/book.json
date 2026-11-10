@@ -162,6 +162,28 @@
    "unlock": 25,
    "icon": "prece",
    "desc": "Octagrama de luz em volta de voce: voce e os aliados a ate 5 m ganham +15% de ataque e de defesa (+INT) por 20 s."
+  },
+  {
+   "name": "Ressurreição",
+   "pose": "c_s6",
+   "cd": 120,
+   "dmg": 0,
+   "dur": 0.4,
+   "range": 10,
+   "half": 0.6,
+   "ifr": 0,
+   "intr": 0,
+   "hitk": 0.5,
+   "css": "#ffe9a8",
+   "suporte": {
+    "tipo": "revive",
+    "vida": 0.3,
+    "canal": 2,
+    "imune": 2
+   },
+   "unlock": 30,
+   "icon": "ressurreicao",
+   "desc": "Mire um aliado caído (até 10 m) e canalize 2 s: ele levanta ali mesmo com 30% da vida e 2 s de proteção. Na arena PvP, só do seu grupo. Se você morrer ou se afastar, a prece se perde."
   }
  ]
 }
