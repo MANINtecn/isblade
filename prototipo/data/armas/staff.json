@@ -17,6 +17,7 @@
   "skills": [
     {
       "name": "Passo Arcano",
+      "icon": "avanco",
       "pose": "dash",
       "cd": 5,
       "dmg": 40,

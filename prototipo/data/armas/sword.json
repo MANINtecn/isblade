@@ -17,6 +17,7 @@
   "skills": [
     {
       "name": "Avanco",
+      "icon": "avanco",
       "pose": "dash",
       "cd": 4,
       "dmg": 60,

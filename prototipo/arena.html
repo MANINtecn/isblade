@@ -481,7 +481,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
-<script src="js/sons_l2.js?v=1"></script>
+<script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
 <script src="js/l2_teleport.js"></script>
@@ -1564,6 +1564,7 @@ function iconSVG(id,size){
 
 }
 var SKILL_ICONS={
+  avanco:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M2 10h9M3 16h11M2 22h9" stroke="#4fc3f7" stroke-width="1.4" stroke-linecap="square" opacity=".7"/><polygon points="12,7 28,16 12,25 16,16" fill="#22344d" stroke="#c8d6e5" stroke-width="1.2" stroke-linejoin="miter"/><path d="M16 16h9" stroke="#ffe082" stroke-width="1.6" stroke-linecap="square"/></svg>',/* [icones] passo/avanco: seta de lamina com rastro de velocidade */
 w_poderoso:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="6,5 9,4 23,19 20,22" fill="#cfd8e6"/><polygon points="19,19 25,25 22,28 16,22" fill="#ffb04a"/><polyline points="9,27 13,24 16,28 20,25" stroke="#f0402a" stroke-width="2" fill="none"/></svg>',
 w_atordoante:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,3 19,7 19,19 16,22 13,19 13,7" fill="#cfd8e6"/><rect x="9" y="21" width="14" height="2.4" fill="#ffb04a"/><polyline points="16,25 10,29 6,26" stroke="#f0402a" stroke-width="2" fill="none"/><polyline points="16,25 22,29 26,26" stroke="#f0402a" stroke-width="2" fill="none"/><polyline points="16,25 16,29" stroke="#f0402a" stroke-width="2" fill="none"/><polygon points="6,8 8,5 10,8 8,11" fill="#ffe082"/><polygon points="22,9 24,6 26,9 24,12" fill="#ffe082"/></svg>',
 w_redemoinho:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><g transform="rotate(0 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(90 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(180 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(270 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><polygon points="14,14 16,12 18,14 16,16" fill="#f0402a"/></svg>',
@@ -9381,6 +9382,7 @@ try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{lo
 try{Expedicao.init({pagina:'arena',mapa:MAPA_ABERTO,S:function(){return S;}});}catch(_){}/* [expedicao] tutorial ate o Nv 20 (js/expedicao.js) */
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Cruma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
+try{SomL2.ambiente('dungeon');}catch(_){}/* [ambiente-zonas] Torre do Baium e DGs: vento fundo, gotas, tremor ao longe */
 Net.init({
   suporte:suporteRecebe,alvoSuporte:alvoSuporte,/* [clerigo] fase 2 */
   curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,on);},/* [clerigo] */

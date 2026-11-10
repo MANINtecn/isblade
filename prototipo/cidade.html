@@ -795,9 +795,9 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/moradores.js?v=1"></script>
 <script src="js/mundo_campo.js?v=5"></script>
 <script src="js/mapa_vivo.js?v=12"></script>
-<script src="js/lagos.js?v=1"></script>
+<script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
-<script src="js/sons_l2.js?v=1"></script>
+<script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
 <script src="js/agua_l2.js?v=1"></script>
 <script src="js/status.js?v=1"></script>
@@ -2899,6 +2899,7 @@ function iconSVG(id,size){
 }
 
 var SKILL_ICONS={
+  avanco:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M2 10h9M3 16h11M2 22h9" stroke="#4fc3f7" stroke-width="1.4" stroke-linecap="square" opacity=".7"/><polygon points="12,7 28,16 12,25 16,16" fill="#22344d" stroke="#c8d6e5" stroke-width="1.2" stroke-linejoin="miter"/><path d="M16 16h9" stroke="#ffe082" stroke-width="1.6" stroke-linecap="square"/></svg>',/* [icones] passo/avanco: seta de lamina com rastro de velocidade */
 w_poderoso:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="6,5 9,4 23,19 20,22" fill="#cfd8e6"/><polygon points="19,19 25,25 22,28 16,22" fill="#ffb04a"/><polyline points="9,27 13,24 16,28 20,25" stroke="#f0402a" stroke-width="2" fill="none"/></svg>',
 w_atordoante:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,3 19,7 19,19 16,22 13,19 13,7" fill="#cfd8e6"/><rect x="9" y="21" width="14" height="2.4" fill="#ffb04a"/><polyline points="16,25 10,29 6,26" stroke="#f0402a" stroke-width="2" fill="none"/><polyline points="16,25 22,29 26,26" stroke="#f0402a" stroke-width="2" fill="none"/><polyline points="16,25 16,29" stroke="#f0402a" stroke-width="2" fill="none"/><polygon points="6,8 8,5 10,8 8,11" fill="#ffe082"/><polygon points="22,9 24,6 26,9 24,12" fill="#ffe082"/></svg>',
 w_redemoinho:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><g transform="rotate(0 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(90 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(180 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(270 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><polygon points="14,14 16,12 18,14 16,16" fill="#f0402a"/></svg>',
@@ -18200,6 +18201,14 @@ try{PerfLog.init(renderer,scene,function(){var o={pg:'cidade'};try{var st=Net.st
 try{Chat.init({enviar:function(t,c){if(malhaComando(t))return;/* [malha] */if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
 try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot],ico:window.InvUI?InvUI.icone(b,{tam:30}):''};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
 try{SomL2.ambiente('cidade');}catch(_){}/* [sons-l2] vento, ondas e gaivotas de Talking Island */
+/* [ambiente-zonas] a cada 1,5 s escolhe a zona: cidade (dentro da muralha), campo (dia/noite), Cruma, Fortaleza, Pantano, mais a camada de lago por perto */
+function ambZona(){
+  if(!MUNDO_ABERTO||Math.hypot(S.px,S.pz)<100)return 'cidade';
+  var r=MundoCampo.regiao(S.px,S.pz),noite=false;try{noite=window.CeuL2&&CeuL2.noite(CeuL2.hora())>.55;}catch(_){}
+  var base=r===1?'curuma':(r===2?'fortaleza':(r===3?'pantano':(noite?'campo_noite':'campo_dia')));
+  return base+((r===0||r===4)&&window.Lagos&&Lagos.pronto&&Lagos.distancia(S.px,S.pz)<30?'+lago':'');
+}
+setInterval(function(){if(document.hidden)return;try{SomL2.ambiente(ambZona());}catch(_){}},1500);
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var r=MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>100?MundoCampo.regiao(S.px,S.pz):0;return ['cidade','curuma','fortress','blazing_swamp','cidade'][r]||'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 try{Expedicao.init({pagina:'cidade',unica:true,mapa:function(){var r=MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>100?MundoCampo.regiao(S.px,S.pz):0;return window.MapaVivo&&MapaVivo.porRegiao(r);},S:function(){return S;}});}catch(_){}/* [expedicao] */

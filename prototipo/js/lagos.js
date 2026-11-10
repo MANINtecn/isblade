@@ -8,6 +8,8 @@ window.Lagos = (function(){
   L.profundidade = function(x, z){
     if(!nivelEm) return 0; var k = nivelEm(x, z); if(k === null) return 0; var h = window.MundoCampo && MundoCampo.altura(x, z); return (h === null || h === undefined) ? 0 : Math.max(0, k - h);
   };
+  /* distancia (m) da margem do lago mais proximo (aproximada: centro menos o raio da area); 1e9 sem lagos */
+  L.distancia = function(x, z){ var d = 1e9; for(var i = 0; i < L.lagos.length; i++){ var q = L.lagos[i], k = Math.hypot(x - q.cx, z - q.cz) - q.raio; if(k < d) d = k; } return d; };
   L.carregar = function(THREE, scene, opt){
     opt = opt || {};
     return fetch('assets/mundo/lagos.json?v=' + Date.now().toString().slice(0, -5)).then(function(r){ return r.json(); }).then(function(J){
