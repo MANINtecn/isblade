@@ -36,20 +36,20 @@
   function matHalo(){
     return new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending,
       vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.2); gl_FragColor = vec4(vec3(0.75, 1.0, 0.90) * 0.8, f * 0.9); }' });
+      fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(clamp(1.0 - abs(dot(normalize(vN + vec3(1e-6)), normalize(vV + vec3(1e-6)))), 0.0, 1.0), 2.2); gl_FragColor = vec4(vec3(0.75, 1.0, 0.90) * 0.8, f * 0.9); }' });
   }
   function matDisco(u){
     return new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, uniforms: u,
       vertexShader: VERT_UV,
       fragmentShader: 'uniform float uT; varying vec2 vUv; void main(){ float r = vUv.x, a = vUv.y; float n = 0.5 + 0.5 * sin(a * 37.7 + r * 9.0 - uT * 3.0) * (0.6 + 0.4 * sin(a * 12.5 + uT));' +
-        ' float al = pow(1.0 - r, 1.4) * (0.35 + 0.65 * n); vec3 c = mix(vec3(1.0, 0.99, 0.9), vec3(0.38, 0.86, 0.74), smoothstep(0.0, 0.7, r)); gl_FragColor = vec4(c * 0.9, al * 0.8); }' });
+        ' float al = pow(max(0.0, 1.0 - r), 1.4) * (0.35 + 0.65 * n); vec3 c = mix(vec3(1.0, 0.99, 0.9), vec3(0.38, 0.86, 0.74), smoothstep(0.0, 0.7, r)); gl_FragColor = vec4(c * 0.9, al * 0.8); }' });
   }
   function matL2(tex, cor, op){ return new T.MeshBasicMaterial({ map: tex, color: cor, transparent: true, opacity: op, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); }
   function matFita(u, forca){
     return new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, uniforms: u,
       vertexShader: VERT_UV,
-      fragmentShader: 'uniform float uT; uniform float uK; uniform float uF; varying vec2 vUv; void main(){ float u = vUv.x, v = vUv.y; float edge = pow(1.0 - abs(v * 2.0 - 1.0), 1.3);' +
-        ' float n = 0.55 + 0.45 * sin(u * 24.0 - uT * 9.0 + v * 3.0); float a = pow(1.0 - u, 1.4) * edge * n * uF; vec3 c = mix(vec3(1.0, 0.97, 0.86), vec3(0.40, 0.86, 0.74), smoothstep(0.0, 0.7, u)); gl_FragColor = vec4(c * uK, a); }' });
+      fragmentShader: 'uniform float uT; uniform float uK; uniform float uF; varying vec2 vUv; void main(){ float u = vUv.x, v = vUv.y; float edge = pow(max(0.0, 1.0 - abs(v * 2.0 - 1.0)), 1.3);' +
+        ' float n = 0.55 + 0.45 * sin(u * 24.0 - uT * 9.0 + v * 3.0); float a = pow(max(0.0, 1.0 - u), 1.4) * edge * n * uF; vec3 c = mix(vec3(1.0, 0.97, 0.86), vec3(0.40, 0.86, 0.74), smoothstep(0.0, 0.7, u)); gl_FragColor = vec4(c * uK, a); }' });
   }
 
   /* ---------------- fita (faixa plana): u ao longo, v na largura ---------------- */

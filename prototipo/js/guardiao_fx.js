@@ -239,7 +239,7 @@ export function criarFX(THREE, ctx){
   var DOME_VS = 'varying vec3 vN, vV, vP; void main(){ vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }';
   var DOME_FS = 'uniform vec3 uCol, uHot; uniform float uA, uTime; varying vec3 vN, vV, vP;\n' + NOISE +
     '\nfloat tri(vec2 p){ float s = 3.2; float a = abs(fract(dot(p, vec2(1.0, 0.0)) * s) - .5); float b = abs(fract(dot(p, vec2(.5, .866)) * s) - .5); float c = abs(fract(dot(p, vec2(-.5, .866)) * s) - .5); return 1.0 - smoothstep(.0, .06, min(a, min(b, c))); }' +
-    '\nvoid main(){ float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), 2.2); float g = tri(vP.xz * 1.0 + vP.y * .6); float pulse = .6 + .4 * sin(uTime * 3.0 + vP.y * 5.0 + vn(vP * 3.0) * 4.0);' +
+    '\nvoid main(){ float f = pow(clamp(1.0 - abs(dot(normalize(vN + vec3(1e-6)), normalize(vV + vec3(1e-6)))), 0.0, 1.0), 2.2); float g = tri(vP.xz * 1.0 + vP.y * .6); float pulse = .6 + .4 * sin(uTime * 3.0 + vP.y * 5.0 + vn(vP * 3.0) * 4.0);' +
     ' float a = (f * .9 + g * .5 * pulse) * uA; vec3 c = mix(uCol, uHot, f); gl_FragColor = vec4(c * a * 1.5, a); }';
   var domeG;
   function cupula(x, z, o){
@@ -266,7 +266,7 @@ export function criarFX(THREE, ctx){
 
   /* rastro: fita voltada para a camera que acompanha uma posicao e apaga */
   var TRAIL_VS = 'attribute float aU; varying float vU; void main(){ vU = aU; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
-  var TRAIL_FS = 'uniform vec3 uCol, uHot; uniform float uA; varying float vU; void main(){ float a = pow(vU, 1.4) * uA; vec3 c = mix(uCol, uHot, pow(vU, 3.0)); gl_FragColor = vec4(c * a * .95, a); }';
+  var TRAIL_FS = 'uniform vec3 uCol, uHot; uniform float uA; varying float vU; void main(){ float a = pow(max(vU, 0.0), 1.4) * uA; vec3 c = mix(uCol, uHot, pow(max(vU, 0.0), 3.0)); gl_FragColor = vec4(c * a * .95, a); }';
   function trilha(getPos, o){
     var N = o.n || 26, pts = [], pos = new Float32Array(N * 2 * 3), au = new Float32Array(N * 2), g = new THREE.BufferGeometry(), idx = [];
     for(var i = 0; i < N - 1; i++){ var a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
@@ -369,7 +369,7 @@ export function criarFX(THREE, ctx){
     'void main(){' +
     ' vec2 q = vec2(vP.x * uAsp, vP.y); vec4 hc = hexc(q * 5.2); float e = .5 - hexd(hc.xy); float line = 1.0 - smoothstep(.0, .09, e);' +
     ' float cell = h31(vec3(hc.zw * .37, floor(uTime * 3.0 + hc.z)));' +
-    ' float fr = pow(1.0 - abs(dot(normalize(vN), normalize(vE))), 2.0);' +
+    ' float fr = pow(clamp(1.0 - abs(dot(normalize(vN + vec3(1e-6)), normalize(vE + vec3(1e-6)))), 0.0, 1.0), 2.0);' +
     ' float fl = fbm(vec3(q * 3.2, uTime * 1.6)); float sw = smoothstep(.0, .5, 1.0 - abs(fract(q.y * .45 - uTime * 1.1) - .5) * 2.0);' +
     ' vec2 cq = q / vec2(.62 * uAsp, 1.0); float core = exp(-dot(cq, cq) * 2.2);' +
     ' float en = .22 + .5 * fl + line * (.5 + 1.1 * cell) + sw * .35 + fr * 1.5;' +
@@ -443,13 +443,13 @@ export function criarFX(THREE, ctx){
     ' void main(){ float a = position.z; float r = uR * (1.0 + uBulge * sin(a * uL * 2.4 - uTime * 16.0)) * mix(.5, 1.0, smoothstep(0.0, .1, a));' +
     ' vec4 mv = modelViewMatrix * vec4(position.xy * r, a * uL, 1.0); vA = a; vAng = atan(position.y, position.x); vN = normalize(normalMatrix * vec3(position.xy, 0.0)); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }';
   var BM_FS = 'uniform vec3 uCol, uHot; uniform float uA, uTime, uFlow, uPow, uL; varying float vA, vAng; varying vec3 vN, vV;\n' + NOISE +
-    '\nvoid main(){ float d = abs(dot(normalize(vN), normalize(vV))); float n = fbm(vec3(vAng * 1.8, vA * uL * .8 - uTime * uFlow, uTime * .6));' +
-    ' float s = fbm(vec3(vAng * 4.0, vA * uL * .3 - uTime * uFlow * 1.7, 7.0)); float body = pow(d, uPow); float e = body * (.55 + .9 * n) + s * .25 * (1.0 - body);' +
+    '\nvoid main(){ float d = abs(dot(normalize(vN + vec3(1e-6)), normalize(vV + vec3(1e-6)))); float n = fbm(vec3(vAng * 1.8, vA * uL * .8 - uTime * uFlow, uTime * .6));' +
+    ' float s = fbm(vec3(vAng * 4.0, vA * uL * .3 - uTime * uFlow * 1.7, 7.0)); float body = pow(max(d, 0.0), uPow); float e = body * (.55 + .9 * n) + s * .25 * (1.0 - body);' +
     ' vec3 c = mix(uCol, uHot, clamp(body * body * (.4 + n), 0.0, 1.0)); float a = clamp(e, 0.0, 1.0) * uA * smoothstep(0.0, .05, vA); gl_FragColor = vec4(c * (.4 + .5 * e), a); }';
   var HD_VS = 'varying vec3 vN, vV, vP; void main(){ vP = position; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }';
   var HD_FS = 'uniform vec3 uCol, uHot; uniform float uA, uTime; varying vec3 vN, vV, vP;\n' + NOISE +
-    '\nvoid main(){ float d = abs(dot(normalize(vN), normalize(vV))); float n = fbm(vP * 3.2 + vec3(0.0, 0.0, -uTime * 5.0)); float e = pow(d, 1.1) * (.6 + .9 * n);' +
-    ' vec3 c = mix(uCol, uHot, clamp(pow(d, 4.0) * 1.1, 0.0, 1.0)); float a = clamp(e, 0.0, 1.0) * uA * .7; gl_FragColor = vec4(c * (.45 + .5 * e), a); }';
+    '\nvoid main(){ float d = abs(dot(normalize(vN + vec3(1e-6)), normalize(vV + vec3(1e-6)))); float n = fbm(vP * 3.2 + vec3(0.0, 0.0, -uTime * 5.0)); float e = pow(max(d, 0.0), 1.1) * (.6 + .9 * n);' +
+    ' vec3 c = mix(uCol, uHot, clamp(pow(max(d, 0.0), 4.0) * 1.1, 0.0, 1.0)); float a = clamp(e, 0.0, 1.0) * uA * .7; gl_FragColor = vec4(c * (.45 + .5 * e), a); }';
   var bmG, hdG;
   function beamGeo(){ if(!bmG){ bmG = new THREE.CylinderGeometry(1, 1, 1, 40, 1, true); bmG.translate(0, .5, 0); bmG.rotateX(Math.PI / 2); } return bmG; }
   function headGeo(){ return hdG || (hdG = new THREE.SphereGeometry(1, 32, 20)); }
@@ -501,7 +501,7 @@ export function criarFX(THREE, ctx){
     ' vE = aE; vP = position; vec4 mv = modelViewMatrix * vec4(p, 1.0); vN = normalize(normalMatrix * normalize(position)); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }';
   var DM_FS = 'uniform vec3 uCol, uHot; uniform float uTime, uA, uExpT, uPulse; varying float vE, vAge; varying vec3 vN, vV, vP;\n' + NOISE +
     '\nvoid main(){ if(vAge < 0.0) discard; float edge = smoothstep(.6, .96, vE); float flash = exp(-vAge * 4.5); float n = fbm(vP * 3.6 + vec3(0.0, uTime * .9, uTime * .4));' +
-    ' float fr = 1.0 - abs(dot(normalize(vN), normalize(vV))); vec3 c = uCol * (.35 + .75 * n) + uHot * (edge * .9 + flash * 1.1 + uPulse * .5 + fr * .25);' +
+    ' float fr = 1.0 - abs(dot(normalize(vN + vec3(1e-6)), normalize(vV + vec3(1e-6)))); vec3 c = uCol * (.35 + .75 * n) + uHot * (edge * .9 + flash * 1.1 + uPulse * .5 + fr * .25);' +
     ' float a = (.26 + .5 * n * (1.0 - edge) + edge * .75 + flash * .55 + fr * .2 + uPulse * .25) * clamp(vAge * 10.0, 0.0, 1.0) * (1.0 - uExpT) * uA; gl_FragColor = vec4(c, clamp(a, 0.0, 1.0)); }';
   var AS_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
   var AS_FS = 'uniform sampler2D uTex; uniform vec3 uCol, uHot; uniform float uA, uTime, uPulse; varying vec2 vUv;\n' + NOISE +

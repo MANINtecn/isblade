@@ -6,7 +6,7 @@
      3) fora de combate (sem hit dado/recebido por `saidaSegundos`, 60 s) libera a troca;
      4) trocar de arma nao zera o cooldown das skills (guardado por arma). */
 
-import { criarFX } from './guardiao_fx.js?v=7';
+import { criarFX } from './guardiao_fx.js?v=8';
 
 export const Guardiao = (function(){
   var ctx = null;
