@@ -3288,3 +3288,8 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
 - Dono (print na DG): "a shuriken ainda ta saindo assim, eh algum efeito colocado depois que eu ja tinha aprovado". Conferido: mago_fx.js e os numeros da shuriken nao mudam desde 02/11; no navegador de teste (sem placa de video) a shuriken sai certa em media, alta e baixa (quadros na DG contra mob).
 - Causa provavel (pelo formato: blocos pretos pixelados, crescendo com o brilho/bloom): NaN no shader em placas de video reais. O halo da shuriken (e outros efeitos do mago e do Guardiao) usava pow(1 - abs(dot(normalize(...))), k): por arredondamento a base fica um fio negativa (pow de negativo = NaN em muitas GPUs) e normalize de vetor zero tambem da NaN; o bloom espalha o pixel invalido em quadrados. Corrigido sem mudar o visual: bases do pow com max/clamp e normalize com +1e-6 (mago_fx.js, guardiao_fx.js). Versoes: mago_fx v4, guardiao v18 / guardiao_fx v8.
 - NAO confirmado na maquina do dono (aqui nunca apareceu o quadrado). Se continuar, pedir qualidade grafica e placa de video para desligar parte por parte.
+
+### [Gemini] 10/11/2026 - Push do repositório remoto
+- Realizado o git push para sincronização com o repositório remoto (`origin/main`), garantindo o envio dos commits locais (incluindo `3780bbb` e subsequentes).
+- Operação restrita exclusivamente ao push e registro no diário, sem alterações de código ou regras do jogo.
+
