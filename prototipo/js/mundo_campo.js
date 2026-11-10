@@ -56,7 +56,8 @@ window.MundoCampo = (function(){
       var tm = new THREE.DataTexture(dm, nx, nz, THREE.RGBAFormat); tm.minFilter = tm.magFilter = THREE.NearestFilter; tm.needsUpdate = true; M.UVM.tMalha.value = tm; M.UVM.vMalha.value = [x0, z0, ps, nx, nz];
       var tl = new THREE.TextureLoader(), U = {};
       J.texturas.forEach(function(tx, i){ var t = tl.load(BASE + tx.arquivo + v); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = opt.baixa ? 1 : 4; U['tSolo' + i] = { value: t }; U['eSolo' + i] = { value: 1 / tx.metros }; });
-      var mat = new THREE.MeshStandardMaterial({ roughness: .95, metalness: 0 });
+      var mat = opt.baixa ? new THREE.MeshLambertMaterial({}) : new THREE.MeshStandardMaterial({ roughness: .95, metalness: 0 });      /* [baixa] celular: Lambert (mais leve) com o MESMO shader de mistura; a troca generica de qualidade (aplicaQualidade) trocava por um Lambert liso e o chao ficava sem textura */
+      mat.userData.lamb = 1;
       mat.onBeforeCompile = function(sh){
         Object.keys(U).forEach(function(k){ sh.uniforms[k] = U[k]; }); sh.uniforms.uMalha = M.UVM.uMalha; sh.uniforms.tMalha = M.UVM.tMalha; sh.uniforms.vMalha = M.UVM.vMalha;
         sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec4 peso1; attribute float peso2; varying vec4 vP1; varying float vP2; varying vec3 vMW; varying vec3 vNW;')

@@ -85,6 +85,40 @@ window.MapaVivo = (function(){
     }).catch(function(e){ M.bpend = null; M.erroT = performance.now(); console.warn('[mapa-vivo] ' + M.id, e); return null; });
     return M.bpend;
   }
+  /* [fusao] 10/11/2026: a Fortaleza vem com 658 pecas e 658 materiais, mas so 292 materiais distintos; cada peca era uma chamada de desenho (o gargalo do
+     celular). Junta as pecas OPACAS que usam o mesmo material numa peca so (geometria leve: ~50 mil triangulos por mapa). Transparentes ficam como estao. */
+  function chaveMat(m){
+    var t = function(x){ return x ? x.uuid : 0; }, c = function(x){ return x ? x.getHex() : 0; };
+    return [m.type, c(m.color), c(m.emissive), t(m.map), t(m.normalMap), t(m.emissiveMap), t(m.roughnessMap), t(m.metalnessMap), t(m.aoMap), t(m.alphaMap), m.roughness, m.metalness, m.opacity, m.emissiveIntensity, m.alphaTest, m.side, m.vertexColors ? 1 : 0, m.flatShading ? 1 : 0].join('|');
+  }
+  function chaveAttr(g){
+    var n = Object.keys(g.attributes).sort(), s = n.map(function(k){ var a = g.attributes[k]; return k + ':' + a.itemSize + ':' + (a.normalized ? 1 : 0) + ':' + a.array.constructor.name; }).join(',');
+    return s + '|' + (g.index ? 'i' : 'n') + '|' + (Object.keys(g.morphAttributes || {}).length ? 'm' : '');
+  }
+  function funde(lista, raiz){
+    raiz.updateMatrixWorld(true);
+    var grupos = new Map(), resto = [], out = [];
+    lista.forEach(function(o){
+      var m = o.material;
+      if(o.isSkinnedMesh || Array.isArray(m) || !m || m.transparent || m.opacity < 1 || !o.geometry.attributes.position || (o.geometry.morphAttributes && Object.keys(o.geometry.morphAttributes).length) || (o.geometry.groups && o.geometry.groups.length)){ resto.push(o); return; }
+      var bs = o.geometry.boundingSphere || (o.geometry.computeBoundingSphere(), o.geometry.boundingSphere), cw = bs.center.clone().applyMatrix4(o.matrixWorld);      /* quadra de TILE m pelo centro da peca: mantem o descarte do que esta fora da tela */
+      var k = chaveMat(m) + '#' + chaveAttr(o.geometry) + '#' + Math.floor(cw.x / (window.__MV_TILE || 100)) + ',' + Math.floor(cw.z / (window.__MV_TILE || 100)), L = grupos.get(k); if(!L){ L = []; grupos.set(k, L); } L.push(o);
+    });
+    var antes = lista.length;
+    grupos.forEach(function(L){
+      if(L.length < 2){ resto.push(L[0]); return; }
+      var nomes = Object.keys(L[0].geometry.attributes), nv = 0, ni = 0, i, j;
+      var geos = L.map(function(o){ var g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; return g; });
+      var G = new THREE.BufferGeometry();
+      nomes.forEach(function(n){ var a0 = geos[0].attributes[n], C = a0.array.constructor, arr = new C(nv * a0.itemSize), off = 0; geos.forEach(function(g){ arr.set(g.attributes[n].array, off); off += g.attributes[n].array.length; }); G.setAttribute(n, new THREE.BufferAttribute(arr, a0.itemSize, a0.normalized)); });
+      var idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni), vo = 0, io = 0;
+      geos.forEach(function(g){ var cnt = g.attributes.position.count; if(g.index){ var ia = g.index.array; for(j = 0; j < ia.length; j++) idx[io++] = ia[j] + vo; } else { for(j = 0; j < cnt; j++) idx[io++] = vo + j; } vo += cnt; });
+      G.setIndex(new THREE.BufferAttribute(idx, 1)); G.computeBoundingSphere();
+      var me = new THREE.Mesh(G, L[0].material); me.name = 'MAPA_FUSAO'; me.castShadow = false; me.receiveShadow = L[0].receiveShadow; me.visible = false; raiz.add(me); out.push(me);
+      L.forEach(function(o){ if(o.parent) o.parent.remove(o); o.geometry.dispose(); }); geos.forEach(function(g){ g.dispose(); });
+    });
+    return resto.concat(out);
+  }
   function carrega(M){
     M.estado = 1; var tk = ++M.tok, base = 'assets/maps/' + M.C.pasta + '/';
     baixa(M).then(function(B){
@@ -96,15 +130,18 @@ window.MapaVivo = (function(){
         B.glb = null;                                                                     /* bytes do GLB nao precisam mais ficar na memoria */
         if(M.tok !== tk || M.estado !== 1){ libera(g.scene); return; }
         lg(M, 'leu o GLB em ' + Math.round(performance.now() - t0) + ' ms');
-        var fila = [], vistos = new Map(), dup = 0, tot = 0;
+        var fila = [], vistos = new Map(), dup = 0, tot = 0, lamb = new Map();
         g.scene.traverse(function(o){ if(o.isMesh){ o.castShadow = false; o.receiveShadow = !opt.baixa; o.visible = false; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ m.side = THREE.DoubleSide; }); fila.push(o);
           /* o three cria UMA textura por referencia do GLB (mesma imagem usada em varios materiais = varias subidas para a placa); junta as repetidas */
+          if(opt.baixa && !Array.isArray(o.material) && o.material.isMeshStandardMaterial){      /* celular basico: Lambert (sem metal/rugosidade/normal), uma copia por material original */
+            var mo = o.material, L = lamb.get(mo); if(!L){ L = new THREE.MeshLambertMaterial({ map: mo.map, color: mo.color, side: mo.side, transparent: mo.transparent, opacity: mo.opacity, alphaTest: mo.alphaTest, depthWrite: mo.depthWrite, emissive: mo.emissive, emissiveMap: mo.emissiveMap, emissiveIntensity: mo.emissiveIntensity, fog: mo.fog, vertexColors: mo.vertexColors }); L.userData.lamb = 1; lamb.set(mo, L); } o.material = L; }
           (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ MAPS_TEX.forEach(function(k){
             var t = m[k]; if(!t || !t.isTexture) return; tot++; var im = t.image || (t.source && t.source.data); if(!im) return; var L = vistos.get(im); if(!L){ vistos.set(im, [t]); return; }
             for(var q = 0; q < L.length; q++){ var u = L[q]; if(u === t){ dup++; return; } if(u.wrapS === t.wrapS && u.wrapT === t.wrapT && u.flipY === t.flipY && u.minFilter === t.minFilter && u.magFilter === t.magFilter && u.colorSpace === t.colorSpace && u.offset.equals(t.offset) && u.repeat.equals(t.repeat) && u.rotation === t.rotation){ m[k] = u; dup++; return; } }
             L.push(t); }); });
         } });
         lg(M, 'texturas: ' + tot + ' referencias, ' + dup + ' repetidas juntadas');
+        var n0 = fila.length; try{ if(!window.__MV_SEM_FUSAO) fila = funde(fila, g.scene); }catch(e){ console.warn('[mapa-vivo] fusao', e); } lg(M, 'pecas: ' + n0 + ' -> ' + fila.length + ' (chamadas de desenho)');
         var gr = new THREE.Group(); gr.add(g.scene); gr.position.set(M.X.x, M.X.y, M.X.z); gr.rotation.y = M.X.r; gr.name = 'MAPA_' + M.id;
         scene.add(gr); gr.updateMatrixWorld(true); gr.traverse(function(o){ o.matrixAutoUpdate = false; });
         var c = new THREE.Vector3();
