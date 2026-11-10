@@ -21,7 +21,7 @@ def iniciar_base():
 def clonar(col, tag, loc=(0, 0, 0), yaw=0.0):
     """cria arm + corpo + espada na colecao; devolve (arm, espada)"""
     b = BASE["arm"]; a = b.copy(); a.name = tag + "_arm"; a.animation_data_clear(); col.objects.link(a)
-    a.location = loc; a.rotation_euler = (0, 0, yaw)
+    a.location = loc; a.rotation_mode = "XYZ"; a.rotation_euler = (0, 0, yaw)             # o armature vem em QUATERNION: sem trocar o modo, o giro de frente (180 graus) era ignorado
     for m in BASE["corpo"]:
         m2 = m.copy(); m2.name = tag + "_" + m.name; m2.parent = a; m2.matrix_parent_inverse = m.matrix_parent_inverse.copy()
         for mod in m2.modifiers:
