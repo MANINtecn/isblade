@@ -3364,3 +3364,19 @@ esetDuel() agora respeita if(DG.cleared) return;, impedindo qualquer ressurreica
   - **O chefe Baium continua no cliente do lider** (a IA dele e grande: proxima etapa).
   - Testes: simulacao no servidor das 3 dificuldades (ondas, respawn, meta, limpeza, fim por tempo); `servidor/teste_dg_grupo.js [normal|medio|hard]` (2 jogadores reais em grupo: mesmos mobs para os dois, o convidado mata 46 mobs, contador e limpeza chegam aos dois, na hard os mobs batem nos jogadores) PASSOU nas 3; navegador, DG normal solo: mobs 100% do servidor, contador e tempo andando, 3 abates = 3 mensagens de XP (54, 68, 54) e 3 de adena (33); fallback: com `Net.dgs` desligado a DG segue com mobs locais. NAO testado: o dano dos mobs no navegador (so no teste Node), o Baium depois do andar limpo com mobs do servidor, celular, morte e reinicio no navegador, DG com 3+ jogadores.
 - (10/11) Dono: o Baium nao precisa dar XP, so recompensa. Hoje o Baium dava as duas coisas (cliente manda xp 'boss', tabela 30/45/70 por dificuldade, e o servidor sorteia drop: 1 item garantido + 35% de extra + adena). Servidor (server.js, mensagem xp): para tipo 'boss' nao chama mais ganhaXp; o valor so entra na conta da adena e o premia (item + adena + contagem de chefes do ranking) continua. Online o cliente nao soma XP sozinho (Net.xp devolve o controle ao servidor). NAO testado ao vivo (exige derrotar o Baium); conferido por leitura e node --check. Explicado ao dono: 'parte grande da IA do Baium' = passar a luta (hoje no navegador do lider) para o servidor mantendo a mesma luta; nao e melhorar o combate.
+
+### [Claude] 10/11/2026 - Luta do Baium no servidor; depois troca/loja pessoal/mercado
+- Pedido do dono: "leve a luta para o servidor, populacao ta otima, e segue com mercado e loja". Regra: a luta do Baium passa para o servidor IGUAL (mesmos numeros e padroes), sem balancear nem criar ataque; depois troca entre jogadores, loja pessoal e mercado (roadmap Fase 6).
+
+### [Claude] 10/11/2026 - Arqueiro: melhorar as animacoes visuais das skills (pedido do dono)
+- Pedido do dono: "te pedi pra criar skills para o archer, leia o diario e melhore as animacoes visuais".
+- Lido o diario: as 6 skills + basico do Arqueiro existem so no Blender (`arqueiro_skills.blend`, `arqueiro_skills.py`); a Chuva ja ganhou pose natural (`pose_arqueiro.py`); pendente anotado: o mesmo cuidado de pose (peso, joelhos, respiracao) nas outras skills, e conferir de perto antes de entregar.
+- Plano: conectar o Blender pelo MCP (hoje nao conecta), olhar de perto a pose de cada skill (Basico, Perfurante, Gancho, Atordoante, Falcao, Elite), aplicar peso/joelhos/respiracao com `pose_arqueiro.py` e conferir em quadros antes de entregar. Nada de jogo/servidor sem perguntar.
+
+### [Antigravity] 10/11/2026 - Remocao da logo da IS Labs do centro da cidade (PC e Mobile)
+- Pedido do dono: "quero que remova a logo da is labs do centro da cidade, tanto no pc quanto no mobile".
+- Analise: em `prototipo/cidade.html`, a praca central continha o medalhao octagonal de 25 metros (`duelLogo` com textura `assets/talking_island/textures/is_labs_duel_medallion.png`) em cima do piso de duelo em `(0, 0.026, 0)`. No PC (`QUAL.nivel === 'alta'`), a malha permanecia sempre visivel na praca, enquanto em qualidade baixa/media ela recebia `visible = false` posterior no ajuste de qualidade.
+- Alteracao realizada:
+  - Em `prototipo/cidade.html`, removida a criacao da textura, material e malha `duelLogo` e sua adicao a `scene`. A variavel foi mantida como `var duelLogo = null;` para seguranca de escopo global.
+  - Atualizada a checagem em `aplicaQualidade()` para `if(typeof duelLogo!=='undefined'&&duelLogo)duelLogo.visible=false;` evitando qualquer referencia nula.
+- Resultado: a logo/medalhao da IS Labs nao e mais carregada nem exibida no centro da vila de Talking Island, nem no PC nem no celular (mobile), em qualquer perfil grafico.

@@ -1308,7 +1308,7 @@ import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=18';
-import { Net } from './js/net.js?v=47';
+import { Net } from './js/net.js?v=48';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -2386,7 +2386,7 @@ function aplicaQualidade(){
     }
   });
   if(typeof duelFloor!=='undefined'&&duelFloor.material&&duelFloor.material.color)duelFloor.material.color.setHex(0x59647a);/* sem o brilho metalico o piso escuro ficava preto */
-  if(typeof duelLogo!=='undefined')duelLogo.visible=false;/* o medalhao de 25 m no chao e uma area grande transparente com material metalico */
+  if(typeof duelLogo!=='undefined'&&duelLogo)duelLogo.visible=false;/* o medalhao de 25 m no chao e uma area grande transparente com material metalico */
   if(QUAL.nivel==='baixa'){camera.far=450;camera.updateProjectionMatrix();if(scene.fog&&scene.fog.density!==undefined)scene.fog.density=.0045;if(typeof waterMesh!=='undefined')waterMesh.userData.parado=1;}
 }
 [2500,7000,14000].forEach(function(t){setTimeout(aplicaQualidade,t);});/* as casas chegam aos poucos: reaplica enquanto carrega */
@@ -3663,33 +3663,8 @@ scene.add(duelFloor);
 
 
 
-// Logotipo IS Labs Oficial em Medalhão Octagonal com reflexos metálicos
-
-var logoTex = new THREE.TextureLoader().load('assets/talking_island/textures/is_labs_duel_medallion.png?v=10');
-
-logoTex.colorSpace = THREE.SRGBColorSpace;
-
-var logoMat = new THREE.MeshStandardMaterial({
-
-  map: logoTex,
-
-  transparent: true,
-
-  opacity: 1.0,
-
-  roughness: 0.25,
-
-  metalness: 0.75,
-
-  depthWrite: false
-
-});
-
-var duelLogo = new THREE.Mesh(new THREE.PlaneGeometry(25.0, 25.0).rotateX(-Math.PI / 2), logoMat);
-
-duelLogo.position.set(0, 0.026, 0);
-
-scene.add(duelLogo);
+// [Removido] Logotipo IS Labs Oficial em Medalhão Octagonal do centro da cidade (PC e Mobile)
+var duelLogo = null;
 
 
 
