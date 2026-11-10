@@ -11,6 +11,12 @@ SKILLS = [                                   # (cena, rotulo)
     ("MAGO_S2_NECRO", "2  Morte: Espinhos de Osso (Necromante)"),
     ("MAGO_S2_NECRO_PARALISIA", "2b Morte: Espinho Paralisante (Necromante)"),
     ("MAGO_ELENCO", "Elenco: 12 personagens"),
+    ("GUERREIRO_BASICO", "G0  Combo de 3 golpes (basico)"),
+    ("GUERREIRO_S1_PODEROSO", "G1  Golpe Poderoso (nv 1)"),
+    ("GUERREIRO_S3_ATORDOANTE", "G3  Golpe Atordoante (nv 10)"),
+    ("GUERREIRO_S4_REDEMOINHO", "G4  Redemoinho de Aco (nv 20) - 10 golpes"),
+    ("GUERREIRO_S5_GRITO", "G5  Grito de Guerra (nv 25)"),
+    ("GUERREIRO_S6_FURIA", "G6  Furia do Dragao (nv 30)"),
     ("CLERIGO_BASICO", "C0  Lamina de Luz (ataque basico)"),
     ("CLERIGO_S1_CURA", "C1  Cura Mirada (nv 1)"),
     ("CLERIGO_S2_GLIFO", "C2  Glifo de Cura (nv 5)"),
@@ -24,7 +30,7 @@ def _billboards(sc):
     """brilhos/sprites do Clerigo (constraint CL_BB) passam a olhar para a camera atual da cena"""
     for o in sc.objects:
         for k in o.constraints:
-            if k.name == "CL_BB": k.target = sc.camera
+            if k.name in ("CL_BB", "GW_BB"): k.target = sc.camera
 
 class SKILLS_OT_ir(bpy.types.Operator):
     bl_idname = "skills.ir"; bl_label = "Ver skill"; bl_options = {"REGISTER"}
