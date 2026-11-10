@@ -84,12 +84,42 @@ function cria(opts){
     const j = [alvo[0] + (Math.random() - .5) * 3, alvo[1] + (Math.random() - .5) * 3], e = encaixa(j[0], j[1]), r = rota(M.x, M.z, e[0], e[1]);
     M.rota = r && r.length > 1 ? r.slice(1) : null; if(!M.rota) M.espT = t + 3;
   }
-  function tick(t, dt, fala){
+  /* [reacoes] 10/11/2026: cumprimenta quem chega perto e foge de PK (nome vermelho). jogs = [{id, nome, x, z, pk}] de todos os canais da cidade */
+  const SAUD_FASE = { aurora: 'Bom dia cedinho, {n}!', dia: 'Bom dia, {n}!', tarde: 'Boa tarde, {n}!', noite: 'Boa noite, {n}.' };
+  const GRITO = ['Socorro! Um PK!', 'Ai, nome vermelho! Me ajudem!', 'PK na praça! Corram!'];
+  function reage(t, jogs, fala){
+    if(!jogs || !jogs.length) return;
+    for(const M of MS){
+      let pk = null, dpk = 1e9, perto = null, dp = 1e9;
+      for(const J of jogs){ const d = Math.hypot(J.x - M.x, J.z - M.z); if(J.pk){ if(d < dpk){ dpk = d; pk = J; } } else if(d < dp){ dp = d; perto = J; } }
+      if(pk && dpk < 14){
+        if(M.id === 'tomas'){                                                          /* o guarda nao foge: enfrenta e manda sair */
+          if(t - (M.ultAviso || 0) > 30){ M.ultAviso = t; M.ultFala = t; fala(M, 'Nome vermelho na cidade! ' + pk.nome + ', saia daqui agora!'); }
+          M.conversa = Math.max(M.conversa, t + 2); M.olha = [pk.x, pk.z]; M.rota = null; continue;
+        }
+        if(t >= (M.fugaAte || 0)){                                                    /* escolhe o lugar mais longe do PK */
+          let melhor = null, md = -1; for(const k in LUG){ const [x, z] = LUG[k]; if(Math.hypot(x - M.x, z - M.z) > 70) continue; const d = Math.hypot(x - pk.x, z - pk.z); if(d > md){ md = d; melhor = LUG[k]; } }
+          const r = melhor && rota(M.x, M.z, melhor[0], melhor[1]);
+          if(r && r.length > 1){ M.rota = r.slice(1); M.fugaAte = t + 10; M.conversa = 0; M.espT = t + 14; }
+          if(t - (M.ultAviso || 0) > 45){ M.ultAviso = t; M.ultFala = t; fala(M, GRITO[Math.floor(Math.random() * GRITO.length)]); }
+        }
+        continue;
+      }
+      if(perto && dp < 4.5 && t >= M.conversa && t >= (M.fugaAte || 0) && t - M.ultFala > 18){
+        M.cump = M.cump || new Map(); if(t - (M.cump.get(perto.id) || 0) < 150) continue;
+        M.cump.set(perto.id, t); if(M.cump.size > 200) M.cump.delete(M.cump.keys().next().value);
+        const L = (M.saudacao && M.saudacao.length && Math.random() < .55) ? M.saudacao : [SAUD_FASE[fase(hora())] || SAUD_FASE.dia];
+        M.ultFala = t; M.conversa = t + 3.5; M.olha = [perto.x, perto.z]; fala(M, L[Math.floor(Math.random() * L.length)].replace('{n}', perto.nome));
+      }
+    }
+  }
+  function tick(t, dt, fala, jogs){
+    reage(t, jogs, fala);
     for(const M of MS){
       if(t < M.conversa){ M.a = 'idle'; if(M.olha) M.f = Math.atan2(M.olha[0] - M.x, M.olha[1] - M.z); continue; }
       if(M.rota && M.rota.length){
-        const [tx, tz] = M.rota[0], dx = tx - M.x, dz = tz - M.z, d = Math.hypot(dx, dz), k = Math.min(d, M.vel * dt);
-        if(d > .01){ M.x += dx / d * k; M.z += dz / d * k; M.f = Math.atan2(dx, dz); } M.a = 'walk';
+        const [tx, tz] = M.rota[0], dx = tx - M.x, dz = tz - M.z, d = Math.hypot(dx, dz), fugindo = t < (M.fugaAte || 0), k = Math.min(d, M.vel * (fugindo ? 1.9 : 1) * dt);
+        if(d > .01){ M.x += dx / d * k; M.z += dz / d * k; M.f = Math.atan2(dx, dz); } M.a = fugindo ? 'run' : 'walk';
         if(d - k < .15){ M.rota.shift(); if(!M.rota.length){ M.rota = null; const e = M.espera || [8, 16]; M.espT = t + e[0] + Math.random() * (e[1] - e[0]); M.a = 'idle';
           if(Math.random() < .55 && t - M.ultFala > 25){ M.ultFala = t; const L = M.falas[fase(hora())] || M.falas.dia; if(L && L.length) fala(M, L[Math.floor(Math.random() * L.length)]); } } }
       } else { M.a = 'idle'; if(t >= M.espT) proximo(M, t); }

@@ -1,35 +1,390 @@
 {
-  "_nota": "Moradores de Talking Island (servidor/moradores.js simula; js/moradores.js desenha). Todos os jogadores veem o mesmo morador no mesmo lugar. Fases do dia pelo relogio do jogo (js/ceu_l2.js, 1 dia = 240 s): dia 7-16.5, tarde 16.5-21, noite 21-5, aurora 5-7. lugares = pontos da cidade (o servidor encaixa no chao andavel mais perto). rotina[fase] = lugares onde ele vai (sorteia), parado 'espera' segundos. falas = frases soltas em balao (sem custo). jeito = personalidade para a conversa pelo Claude (so com chave da API).",
+  "_nota": "Moradores de Talking Island (servidor/moradores.js simula; js/moradores.js desenha). Todos os jogadores veem o mesmo morador no mesmo lugar. Fases do dia pelo relogio do jogo (js/ceu_l2.js, 1 dia = 240 s): dia 7-16.5, tarde 16.5-21, noite 21-5, aurora 5-7. lugares = pontos da cidade (o servidor encaixa no chao andavel mais perto). rotina[fase] = lugares onde ele vai (sorteia), parado 'espera' segundos. falas = frases soltas em balao (sem custo). jeito = personalidade para a conversa pelo Claude (so com chave da API). [reacoes 10/11] saudacao: frases de cumprimento ({n} = nome do jogador); o morador cumprimenta quem chega a 4,5 m (1 vez a cada 2,5 min) e foge de PK (nome vermelho) a menos de 14 m; o guarda (tomas) nao foge: manda o PK sair.",
   "lugares": {
-    "praca": [0, 6], "praca_n": [0, -7], "praca_l": [7, 2], "praca_o": [-7, 2],
-    "mercado": [10, 3], "forja": [8.5, -6.5], "armazem": [-10, 5], "mammon": [-12.5, 9.5], "gatekeeper": [-8.5, -8.5],
-    "portao_cruma": [-40, -37], "portao_fortaleza": [-42, 36], "portao_pantano": [38, 42], "portao_torre": [40, -30],
-    "casa_a": [24, 20], "casa_b": [-24, 22], "casa_c": [26, -18], "casa_d": [-26, -20], "casa_e": [5, 30], "casa_f": [-4, -30]
+    "praca": [
+      0,
+      6
+    ],
+    "praca_n": [
+      0,
+      -7
+    ],
+    "praca_l": [
+      7,
+      2
+    ],
+    "praca_o": [
+      -7,
+      2
+    ],
+    "mercado": [
+      10,
+      3
+    ],
+    "forja": [
+      8.5,
+      -6.5
+    ],
+    "armazem": [
+      -10,
+      5
+    ],
+    "mammon": [
+      -12.5,
+      9.5
+    ],
+    "gatekeeper": [
+      -8.5,
+      -8.5
+    ],
+    "portao_cruma": [
+      -40,
+      -37
+    ],
+    "portao_fortaleza": [
+      -42,
+      36
+    ],
+    "portao_pantano": [
+      38,
+      42
+    ],
+    "portao_torre": [
+      40,
+      -30
+    ],
+    "casa_a": [
+      24,
+      20
+    ],
+    "casa_b": [
+      -24,
+      22
+    ],
+    "casa_c": [
+      26,
+      -18
+    ],
+    "casa_d": [
+      -26,
+      -20
+    ],
+    "casa_e": [
+      5,
+      30
+    ],
+    "casa_f": [
+      -4,
+      -30
+    ]
   },
   "moradores": [
-    { "id": "brenna", "nome": "Brenna", "prof": "Padeira", "modelo": "human_fighter_female.glb?v=7", "vel": 1.3, "espera": [10, 22],
-      "rotina": { "aurora": ["casa_a", "mercado"], "dia": ["mercado", "praca_l", "mercado", "praca"], "tarde": ["praca", "praca_l", "mercado"], "noite": ["casa_a"] },
+    {
+      "id": "brenna",
+      "nome": "Brenna",
+      "prof": "Padeira",
+      "modelo": "human_fighter_female.glb?v=7",
+      "vel": 1.3,
+      "espera": [
+        10,
+        22
+      ],
+      "rotina": {
+        "aurora": [
+          "casa_a",
+          "mercado"
+        ],
+        "dia": [
+          "mercado",
+          "praca_l",
+          "mercado",
+          "praca"
+        ],
+        "tarde": [
+          "praca",
+          "praca_l",
+          "mercado"
+        ],
+        "noite": [
+          "casa_a"
+        ]
+      },
       "jeito": "padeira simpatica e falante, acorda cedo, sabe de todas as fofocas da cidade, adora quando aventureiros compram pao antes de sair",
-      "falas": { "dia": ["Pão quentinho! Aventureiro de barriga cheia volta vivo!", "Ouvi dizer que tem stakato demais na Cruma esses dias...", "Quem vai para a Fortaleza leva poção, viu?"], "tarde": ["Dia puxado hoje, hein.", "Vendi tudo de manhã!"], "noite": ["Boa noite, aventureiro. Cuidado lá fora."], "aurora": ["Já tô acordada faz tempo, o forno não espera!"] } },
-    { "id": "tomas", "nome": "Tomas", "prof": "Guarda da muralha", "modelo": "human_fighter.glb?v=7", "vel": 1.5, "espera": [6, 14],
-      "rotina": { "aurora": ["portao_cruma", "portao_torre"], "dia": ["portao_cruma", "portao_fortaleza", "portao_pantano", "portao_torre"], "tarde": ["portao_fortaleza", "portao_pantano", "praca"], "noite": ["portao_torre", "portao_cruma", "portao_pantano", "portao_fortaleza"] },
+      "falas": {
+        "dia": [
+          "Pão quentinho! Aventureiro de barriga cheia volta vivo!",
+          "Ouvi dizer que tem stakato demais na Cruma esses dias...",
+          "Quem vai para a Fortaleza leva poção, viu?"
+        ],
+        "tarde": [
+          "Dia puxado hoje, hein.",
+          "Vendi tudo de manhã!"
+        ],
+        "noite": [
+          "Boa noite, aventureiro. Cuidado lá fora."
+        ],
+        "aurora": [
+          "Já tô acordada faz tempo, o forno não espera!"
+        ]
+      },
+      "saudacao": [
+        "{n}! Pão quentinho saindo, quer um?",
+        "Olha quem apareceu! Já tomou café, {n}?"
+      ]
+    },
+    {
+      "id": "tomas",
+      "nome": "Tomas",
+      "prof": "Guarda da muralha",
+      "modelo": "human_fighter.glb?v=7",
+      "vel": 1.5,
+      "espera": [
+        6,
+        14
+      ],
+      "rotina": {
+        "aurora": [
+          "portao_cruma",
+          "portao_torre"
+        ],
+        "dia": [
+          "portao_cruma",
+          "portao_fortaleza",
+          "portao_pantano",
+          "portao_torre"
+        ],
+        "tarde": [
+          "portao_fortaleza",
+          "portao_pantano",
+          "praca"
+        ],
+        "noite": [
+          "portao_torre",
+          "portao_cruma",
+          "portao_pantano",
+          "portao_fortaleza"
+        ]
+      },
       "jeito": "guarda serio e leal, fala pouco, protege a cidade, desconfia de PK (nome vermelho), da conselhos de seguranca e conhece os mapas fora dos portoes",
-      "falas": { "dia": ["Portões abertos. Mantenham a ordem.", "PK aqui dentro não tem vez.", "Pântano Flamejante só depois do nível 30, entendeu?"], "tarde": ["Troca de turno logo mais."], "noite": ["Ronda da noite. Fiquem atentos.", "Algo se mexeu perto da Torre do Baium..."], "aurora": ["Mais uma noite sem invasão."] } },
-    { "id": "elia", "nome": "Elia", "prof": "Aprendiz de maga", "modelo": "elf_f.glb?v=7", "vel": 1.2, "espera": [12, 25],
-      "rotina": { "aurora": ["praca_n"], "dia": ["gatekeeper", "praca_n", "praca_o"], "tarde": ["praca_n", "gatekeeper", "praca"], "noite": ["casa_d", "praca_n"] },
+      "falas": {
+        "dia": [
+          "Portões abertos. Mantenham a ordem.",
+          "PK aqui dentro não tem vez.",
+          "Pântano Flamejante só depois do nível 30, entendeu?"
+        ],
+        "tarde": [
+          "Troca de turno logo mais."
+        ],
+        "noite": [
+          "Ronda da noite. Fiquem atentos.",
+          "Algo se mexeu perto da Torre do Baium..."
+        ],
+        "aurora": [
+          "Mais uma noite sem invasão."
+        ]
+      },
+      "saudacao": [
+        "{n}, circulando? Mantenha a ordem.",
+        "Boa ronda, {n}. Fique longe de encrenca."
+      ]
+    },
+    {
+      "id": "elia",
+      "nome": "Elia",
+      "prof": "Aprendiz de maga",
+      "modelo": "elf_f.glb?v=7",
+      "vel": 1.2,
+      "espera": [
+        12,
+        25
+      ],
+      "rotina": {
+        "aurora": [
+          "praca_n"
+        ],
+        "dia": [
+          "gatekeeper",
+          "praca_n",
+          "praca_o"
+        ],
+        "tarde": [
+          "praca_n",
+          "gatekeeper",
+          "praca"
+        ],
+        "noite": [
+          "casa_d",
+          "praca_n"
+        ]
+      },
       "jeito": "elfa curiosa e estudiosa, aprendiz da Gatekeeper Clarissa, fascinada por magia de vento e pelos cristais da Torre de Cruma, fala com entusiasmo",
-      "falas": { "dia": ["O vento hoje está cheio de mana...", "Um dia ainda faço uma Shuriken de Vento como os magos de verdade!"], "tarde": ["A Clarissa me passou mais lição de casa..."], "noite": ["As estrelas daqui são lindas."], "aurora": ["Melhor hora para meditar."] } },
-    { "id": "gorin", "nome": "Gorin", "prof": "Ajudante da forja", "modelo": "dwarf_m.glb?v=7", "vel": 1.1, "espera": [10, 20],
-      "rotina": { "aurora": ["casa_c"], "dia": ["forja", "forja", "mercado"], "tarde": ["forja", "praca_l"], "noite": ["casa_c", "praca"] },
+      "falas": {
+        "dia": [
+          "O vento hoje está cheio de mana...",
+          "Um dia ainda faço uma Shuriken de Vento como os magos de verdade!"
+        ],
+        "tarde": [
+          "A Clarissa me passou mais lição de casa..."
+        ],
+        "noite": [
+          "As estrelas daqui são lindas."
+        ],
+        "aurora": [
+          "Melhor hora para meditar."
+        ]
+      },
+      "saudacao": [
+        "Oi, {n}! O vento hoje está lindo, né?",
+        "{n}! Você viu os cristais da Torre de Cruma?"
+      ]
+    },
+    {
+      "id": "gorin",
+      "nome": "Gorin",
+      "prof": "Ajudante da forja",
+      "modelo": "dwarf_m.glb?v=7",
+      "vel": 1.1,
+      "espera": [
+        10,
+        20
+      ],
+      "rotina": {
+        "aurora": [
+          "casa_c"
+        ],
+        "dia": [
+          "forja",
+          "forja",
+          "mercado"
+        ],
+        "tarde": [
+          "forja",
+          "praca_l"
+        ],
+        "noite": [
+          "casa_c",
+          "praca"
+        ]
+      },
       "jeito": "anao ajudante do ferreiro Altran, rabugento mas de bom coracao, entende tudo de encantamento e graus de equipamento (D, C), reclama de quem encanta acima de +3 e chora quando quebra",
-      "falas": { "dia": ["Acima de +3 é por sua conta e risco!", "Grau D no nível 20, nem um dia antes.", "Esse martelo pesa mais que você, garoto."], "tarde": ["Forja quente o dia inteiro..."], "noite": ["Uma cerveja ia bem agora."], "aurora": ["Hmpf. Cedo demais."] } },
-    { "id": "lina", "nome": "Lina", "prof": "Mercadora viajante", "modelo": "orc_f.glb?v=7", "vel": 1.3, "espera": [10, 18],
-      "rotina": { "aurora": ["portao_fortaleza"], "dia": ["mammon", "armazem", "mercado", "praca_o"], "tarde": ["armazem", "praca"], "noite": ["casa_b"] },
+      "falas": {
+        "dia": [
+          "Acima de +3 é por sua conta e risco!",
+          "Grau D no nível 20, nem um dia antes.",
+          "Esse martelo pesa mais que você, garoto."
+        ],
+        "tarde": [
+          "Forja quente o dia inteiro..."
+        ],
+        "noite": [
+          "Uma cerveja ia bem agora."
+        ],
+        "aurora": [
+          "Hmpf. Cedo demais."
+        ]
+      },
+      "saudacao": [
+        "Hm. {n}. Vai encantar algo? Cuidado com o +3.",
+        "Eita, {n}... não derruba o martelo."
+      ]
+    },
+    {
+      "id": "lina",
+      "nome": "Lina",
+      "prof": "Mercadora viajante",
+      "modelo": "orc_f.glb?v=7",
+      "vel": 1.3,
+      "espera": [
+        10,
+        18
+      ],
+      "rotina": {
+        "aurora": [
+          "portao_fortaleza"
+        ],
+        "dia": [
+          "mammon",
+          "armazem",
+          "mercado",
+          "praca_o"
+        ],
+        "tarde": [
+          "armazem",
+          "praca"
+        ],
+        "noite": [
+          "casa_b"
+        ]
+      },
       "jeito": "orc mercadora que viaja entre as cidades, pratica e bem humorada, gosta de falar de adena, precos e do que cai dos chefes de campo",
-      "falas": { "dia": ["A Rainha Stakato dropa coisa boa, sabia?", "Vende o que não usa, adena parada não rende!"], "tarde": ["Bom movimento hoje."], "noite": ["Amanhã tem estrada."], "aurora": ["Carroça pronta!"] } },
-    { "id": "bram", "nome": "Velho Bram", "prof": "Contador de histórias", "modelo": "magic_m.glb?v=7", "vel": 0.9, "espera": [20, 35],
-      "rotina": { "aurora": ["casa_e"], "dia": ["praca", "praca_o"], "tarde": ["praca", "praca_n"], "noite": ["praca", "casa_e"] },
+      "falas": {
+        "dia": [
+          "A Rainha Stakato dropa coisa boa, sabia?",
+          "Vende o que não usa, adena parada não rende!"
+        ],
+        "tarde": [
+          "Bom movimento hoje."
+        ],
+        "noite": [
+          "Amanhã tem estrada."
+        ],
+        "aurora": [
+          "Carroça pronta!"
+        ]
+      },
+      "saudacao": [
+        "{n}! Tem coisa boa para vender hoje?",
+        "Adena não nasce em árvore, {n}. Bora negociar?"
+      ]
+    },
+    {
+      "id": "bram",
+      "nome": "Velho Bram",
+      "prof": "Contador de histórias",
+      "modelo": "magic_m.glb?v=7",
+      "vel": 0.9,
+      "espera": [
+        20,
+        35
+      ],
+      "rotina": {
+        "aurora": [
+          "casa_e"
+        ],
+        "dia": [
+          "praca",
+          "praca_o"
+        ],
+        "tarde": [
+          "praca",
+          "praca_n"
+        ],
+        "noite": [
+          "praca",
+          "casa_e"
+        ]
+      },
       "jeito": "velho sabio e nostalgico que conta lendas: o Baium preso no topo da Torre, a Torre de Cruma, as guerras de cla e os PK de antigamente; fala como avo, com calma",
-      "falas": { "dia": ["Senta aí, que eu te conto do Baium...", "No meu tempo, clã de verdade defendia a cidade."], "tarde": ["O sol se põe igual há cem anos."], "noite": ["Dizem que o Baium ainda dorme lá no alto da Torre...", "Histórias de fantasma, quem quer?"], "aurora": ["Velho dorme pouco."] } }
+      "falas": {
+        "dia": [
+          "Senta aí, que eu te conto do Baium...",
+          "No meu tempo, clã de verdade defendia a cidade."
+        ],
+        "tarde": [
+          "O sol se põe igual há cem anos."
+        ],
+        "noite": [
+          "Dizem que o Baium ainda dorme lá no alto da Torre...",
+          "Histórias de fantasma, quem quer?"
+        ],
+        "aurora": [
+          "Velho dorme pouco."
+        ]
+      },
+      "saudacao": [
+        "Senta aí, {n}, que a história é longa...",
+        "Ah, {n}... no meu tempo era diferente."
+      ]
+    }
   ]
 }

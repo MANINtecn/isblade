@@ -35,7 +35,7 @@
     });
   }
   function toca(e, nome){
-    if(!e.mix || e.cur === nome) return; var cl = e.rig.clips && (e.rig.clips[nome === 'walk' ? 'walk_hand' : 'idle_hand'] || e.rig.clips[nome]); if(!cl) return;
+    if(!e.mix || e.cur === nome) return; var cl = e.rig.clips && (e.rig.clips[nome === 'run' ? 'run_hand' : (nome === 'walk' ? 'walk_hand' : 'idle_hand')] || e.rig.clips[nome === 'run' ? 'walk_hand' : nome]); if(!cl) return;
     var a = e.act[nome] || (e.act[nome] = e.mix.clipAction(cl)); var antes = e.act[e.cur]; a.reset().setEffectiveWeight(1).fadeIn(.25).play(); if(antes) antes.fadeOut(.25); e.cur = nome;
   }
   M.snap = function(lista){
@@ -50,7 +50,7 @@
     for(var n in L){ var e = L[n]; if(!e.ok) continue; var k = Math.min(1, dt * 6);
       e.x += (e.tx - e.x) * k; e.z += (e.tz - e.z) * k; e.f = angLerp(e.f, e.tf, Math.min(1, dt * 8));
       e.grp.position.set(e.x, ctx.chao ? ctx.chao(e.x, e.z) : 0, e.z); e.grp.rotation.y = e.f;
-      if(e.mix){ toca(e, e.a === 'walk' ? 'walk' : 'idle'); e.mix.update(dt); }
+      if(e.mix){ toca(e, e.a === 'run' ? 'run' : (e.a === 'walk' ? 'walk' : 'idle')); e.mix.update(dt); }
       if(e.bal){ e.balT -= dt; if(e.balT <= 0){ e.grp.remove(e.bal); e.bal.material.map.dispose(); e.bal.material.dispose(); e.bal = null; } }
       var d = Math.hypot(e.x - S.px, e.z - S.pz); if(d < bd){ bd = d; melhor = e; } }
     perto = (melhor && !(window.L2Npcs && L2Npcs.perto && L2Npcs.perto()) && !conv) ? melhor : null;

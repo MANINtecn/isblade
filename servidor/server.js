@@ -534,7 +534,8 @@ const MET = process.env.METRICAS === '1' ? { n: 0, soma: 0, max: 0, t: agora() }
 setInterval(() => {
   const t0m = MET ? process.hrtime.bigint() : 0n;
   tick++; const t = agora(); for(const cp of todosCanais()) passaProj(cp, t);
-  Moradores.tick(t, TICK / 1000, (M, txt) => { for(const cc of canais.cidade) if(cc.jog.size) difunde(cc, { t: 'mfala', n: M.n, m: txt }); });      /* [moradores] */
+  const jogsCid = []; for(const cc of canais.cidade) for(const Jc of cc.jog.values()) if(!Jc.morto) jogsCid.push({ id: Jc.id, nome: Jc.nome, x: Jc.x, z: Jc.z, pk: temKarma(Jc) });
+  Moradores.tick(t, TICK / 1000, (M, txt) => { for(const cc of canais.cidade) if(cc.jog.size) difunde(cc, { t: 'mfala', n: M.n, m: txt }); }, jogsCid);      /* [moradores] reagem a quem chega e fogem de PK */
   const MOR = tick % 3 === 0 ? JSON.stringify({ t: 'mor', m: Moradores.snap() }) : null;
   for(const c of todosCanais()){
     for(const J of c.jog.values()){
