@@ -1,6 +1,6 @@
 /* [pagina-unica] 09/11/2026: Cruma, Fortaleza e Pantano dentro do mundo aberto da cidade (sem trocar de pagina nem de conexao).
    Cada mapa fica no lugar dele no mapa-mundi (MundoCampo.dados.mapas: pos + rotY, a rotacao Y do jogo): mundo = R(rotY) * local + pos.
-   Carrega por proximidade (modelo + walkgrid) e solta quando o jogador se afasta. Chao em camadas e colisao = mesmo walkgrid do torre.js.
+   Carrega por proximidade (fora da muralha, a 230 m da entrada; 170 no celular basico) (modelo + walkgrid) e solta quando o jogador se afasta. Chao em camadas e colisao = mesmo walkgrid do torre.js.
    Uso: MapaVivo.init(THREE, scene, { baixa });  MapaVivo.tick(x, z)  (todo quadro, barato);
         MapaVivo.chao(x, z, y) -> altura do chao do mapa perto de y (null = fora dos mapas carregados);
         MapaVivo.bloq(x0, z0, x1, z1, y) -> null (nao esta num mapa: vale o terreno) | true (parede/borda) | false (livre);
@@ -93,11 +93,11 @@ window.MapaVivo = (function(){
   };
   /* carrega perto (entrada do mapa a ate PERTO m), solta longe; nunca dois carregando juntos (celular) */
   V.tick = function(x, z){
-    if(!V.on) return; var perto = opt.baixa ? 260 : 380, longe = perto + 140, ocupado = false, now = performance.now();
+    if(!V.on) return; var perto = opt.baixa ? 170 : 230, longe = perto + 120, ocupado = false, now = performance.now(), fora = Math.hypot(x, z) > 90;      /* so carrega depois de sair da muralha: na cidade a rede e a placa ficam para a cidade */
     for(var id in V.mapas) if(V.mapas[id].estado === 1) ocupado = true;
     for(var id2 in V.mapas){
       var M = V.mapas[id2], d = Math.hypot(x - M.centro[0], z - M.centro[1]);
-      if(M.estado === 0 && d < perto && !ocupado && !(M.erroT && now - M.erroT < 15000)){ carrega(M); ocupado = true; }
+      if(M.estado === 0 && fora && d < perto && !ocupado && !(M.erroT && now - M.erroT < 15000)){ carrega(M); ocupado = true; }
       else if(M.estado === 2 && d > longe) solta(M);
       else if(M.estado === 1 && d > longe + 100) M.estado = 0;                 /* o carregamento em curso e descartado no fim */
     }

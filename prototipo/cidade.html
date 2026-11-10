@@ -792,7 +792,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/inventario_ui.js?v=2"></script>
 <script src="js/moradores.js?v=1"></script>
 <script src="js/mundo_campo.js?v=2"></script>
-<script src="js/mapa_vivo.js?v=2"></script>
+<script src="js/mapa_vivo.js?v=3"></script>
 <script src="js/brilho_encanto.js?v=1"></script>
 <script src="js/sons_l2.js?v=1"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -7104,7 +7104,7 @@ function paralisaAlvo(x,z,sz,sk){try{var dur=sk.proj.paralisa||3,zn=sk.zona;Mago
 function zonasTick(dt){
   for(var i=ZONAS.length-1;i>=0;i--){var z=ZONAS[i];z.t+=dt;
     if(z.t>=z.nx){z.nx+=z.tick;
-      if(DG.on)MOBS.forEach(function(m){if(m.dead||Math.hypot(m.x-z.x,m.z-z.z)-m.r*.6>z.r)return;damageMob(m,mobDmg({dmg:z.dmg}),{skill:z.sk,noRange:true,part:1,parts:1});});
+      if(DG.on||MUNDO_ABERTO)MOBS.forEach(function(m){if(m.dead||Math.hypot(m.x-z.x,m.z-z.z)-m.r*.6>z.r)return;damageMob(m,mobDmg({dmg:z.dmg}),{skill:z.sk,noRange:true,part:1,parts:1});});
       if(!S.dead&&BOSS_ON&&Math.hypot(S.ex-z.x,S.ez-z.z)-3<=z.r)applyHit({id:'blade',dmg:z.dmg,sk:null,perfect:false,skill:z.sk,noRange:true,part:1,parts:1});}
     if(z.t>=z.dur)ZONAS.splice(i,1);}
 }
@@ -7142,7 +7142,7 @@ function updateProj(dt){
 
 
 
-    if(DG.on&&!p.vis){
+    if((DG.on||MUNDO_ABERTO)&&!p.vis){
 
 
 
@@ -9330,7 +9330,7 @@ function applyHit(an){Net.atacou(an);
 
 
 
-  var mobsHit=DG.on?hitMobs(an,rng,half):0;
+  var mobsHit=(DG.on||MUNDO_ABERTO)?hitMobs(an,rng,half):0;/* [pagina-unica] mobs do mundo aberto tambem levam golpe */
 
   /* >>> CLAUDE [guardiao] 2026-10-27 — dano causado em mobs marca combate */ if(mobsHit)Guardiao.tocar('dano causado'); /* <<< CLAUDE [guardiao] */
 
