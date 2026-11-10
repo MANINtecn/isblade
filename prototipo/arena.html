@@ -712,7 +712,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=18';
-import { Net } from './js/net.js?v=46';
+import { Net } from './js/net.js?v=47';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -5440,15 +5440,33 @@ function mobAlvo(m){/* quem o mob persegue: eu ou, sendo o lider, o jogador do g
 function grpTick(dt){/* chamado todo quadro (torreTick): o lider envia o estado */
   if(DG.grp!=='host'||!DG.torre||!window.Net)return;
   DG._sn=(DG._sn||0)-dt;if(DG._sn>0)return;DG._sn=.1;
-  var ms=[];MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0,m.agr?1:0]);});
-  Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});
+  var ms=[];if(!DG.srvMobs)MOBS.forEach(function(m){ms.push([m.nid,m.type,r1(m.x),r1(m.z),r1(m.face),m.hp,m.max,m.state==='windup'?1:(m.state==='recover'?2:0),m.dead?1:0,(m.stun>0||m.cc)?1:0,m.agr?1:0]);});
+  if(!DG.srvMobs)Net.dg({k:'snap',m:ms,kr:DG.kr,tot:DG.total,tl:Math.round(DG.tLeft||0),nr:DG.nReg});/* [dg-servidor] com mobs no servidor so o chefe e do lider */
   if(BOSS_ON)Net.dg({k:'bsnap',ex:r1(S.ex),ez:r1(S.ez),eh:r1(S.eh),hp:Math.round(S.hp),mx:Math.round(S.maxhp),st:S.en.state,ak:(S.en.atk&&S.en.atk.key)||'',dead:S.dead?1:0});
 }
 /* [mobs-servidor] 08/11/2026: nos mapas abertos conectado, os mobs sao do SERVIDOR (servidor/mobs_mundo.js): todos no canal veem os mesmos.
    Aqui so se desenha (proxy m.net + m.srv), se manda o dano (Net.mhit) e se recebe o golpe (mdmg). Sem servidor: os spots locais de antes. */
 var MOBSRV=false,TIROS=[];
+/* >>> CLAUDE [dg-servidor] 10/11/2026: as ondas da DG da Torre vem do SERVIDOR (servidor/mobs_mundo.js MundoDg): mobs, respawn, meta, limpeza e tempo. Aqui so se desenha (mobSrvSnap),
+   se manda o golpe (Net.mhit) e se recebe o dano (mdmg). O chefe Baium segue no cliente do lider. Sem resposta do servidor em 2,5 s = a simulacao local de antes. */
+DG.srvMobs=false;
+function dgsPede(key,cont){
+  if(!(window.Net&&Net.on&&Net.mapa==='masmorra')){DG.srvMobs=false;cont();return;}
+  DG._dgsCont=cont;clearTimeout(DG._dgsT);DG._dgsT=setTimeout(function(){if(DG._dgsCont){var f=DG._dgsCont;DG._dgsCont=null;DG.srvMobs=false;f();}},2500);
+  Net.dgs({k:'ini',key:key});
+}
+function dgsEstado(m){DG.kr=m.kr;DG.total=m.tot;DG.nReg=m.nr;DG.tLeft=m.tl;if(DG.torre)renderHud();}
+function dgsRecebe(m){
+  var k=m.k,f;
+  if(k==='ok'||k==='nao'){if(!DG._dgsCont)return;clearTimeout(DG._dgsT);f=DG._dgsCont;DG._dgsCont=null;DG.srvMobs=(k==='ok');if(k==='ok'){dgsEstado(m);DG._srvLimpo=!!m.limpo;}f();return;}
+  if(!DG.srvMobs||!DG.torre)return;
+  if(k==='estado'||k==='reiniciou')dgsEstado(m);
+  else if(k==='clear'){dgsEstado(m);if(!DG.cleared)torreClear();}
+  else if(k==='fim'){if(!DG.fim){DG.fim=true;banner('TEMPO ESGOTADO','Voce foi expulso da dungeon','#ff6b6b');setTimeout(function(){if(DG.torre)sairDg();},1800);}}
+}
+/* <<< CLAUDE [dg-servidor] */
 function mobSrvSnap(L){
-  if(!MAPA_ABERTO)return;
+  if(!MAPA_ABERTO&&!DG.srvMobs)return;/* [dg-servidor] */
   if(!MOBSRV){MOBSRV=true;SPOTS=null;MOBS.slice().forEach(function(m){if(!m.net)removeMob(m);});}
   var vistos={};
   L.forEach(function(a){
@@ -6322,7 +6340,7 @@ function torreDgStart(key){
   ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});
   Torre.liberarPorta(false);Torre.fecharPorta();
   banner('CARREGANDO MONSTROS...','Modelos do Lineage 2','#f5c451');
-  mob3dCarregar(cfg.mobs.map(function(x){return x[0];})).then(function(){torreDgLoad(false);});/* [mob3d] */
+  mob3dCarregar(cfg.mobs.map(function(x){return x[0];})).then(function(){dgsPede(key,function(){torreDgLoad(false);});});/* [mob3d] [dg-servidor] */
 }
 function torreDgLoad(retry){
   var cfg=DG.torre;if(!cfg)return;
@@ -6339,12 +6357,14 @@ function torreDgLoad(retry){
   BOSS_ON=false;enemy.visible=false;S.dead=true;S.deadT=0;S.ex=0;S.ez=-500;setEnemy('idle');S.en.wait=1e9;
   resetFight();
   DG.total=0;DG.kr=0;DG.tLeft=cfg.tempo||0;DG.rsp=0;DG.nReg=0;DG.fim=false;
-  (DG.grp==='guest'?[]:cfg.mobs).forEach(function(mb){/* [dg-grupo] convidado: os mobs vem do lider */
+  if(retry&&DG.srvMobs&&window.Net)Net.dgs({k:'reset'});/* [dg-servidor] sozinho: o servidor recomeca o andar; em grupo o mundo continua */
+  ((DG.grp==='guest'||DG.srvMobs)?[]:cfg.mobs).forEach(function(mb){/* [dg-grupo] convidado: os mobs vem do lider; [dg-servidor] ou do servidor */
     var cnt=Math.max(1,Math.round(mb[1]*DIFF().count*(QUAL.mobMult||1)));DG.total+=cnt;if(!(DGD.mobs[mb[0]]&&DGD.mobs[mb[0]].isMiniBoss))DG.nReg+=cnt;
     for(var n=0;n<cnt;n++){var p=Torre.pontoAleatorio(cfg.andar,16,46);var m=mkMob(mb[0],p[0],p[1]);m.lx=p[0];m.lz=p[1];MOBS.push(m);}
   });
   DG.portalPos=Torre.pontoPortal(cfg.andar);
   DG._pronto=true;
+  if(DG.srvMobs&&DG._srvLimpo){DG._srvLimpo=false;setTimeout(function(){if(DG.torre&&!DG.cleared)torreClear();},600);}/* [dg-servidor] entrou num andar ja limpo */
   if(DG.grp==='guest'){var pe=DG._pend||{};DG._pend={};if(pe.clear&&!DG.cleared)torreClear();if(pe.boss){try{Torre.abrirPorta();}catch(_){}torreAcordaBaium();}}
   banner(cfg.nome.toUpperCase(),(retry?'De novo! ':'')+'Elimine todos os inimigos - '+DIFF().name,DIFF().css);
   renderHud();
@@ -6353,6 +6373,7 @@ function torreDgLoad(retry){
 function torreTick(dt){
   grpTick(dt);if(DG.grp==='guest')return;/* [dg-grupo] o convidado nao decide tempo, porta nem ressurgimento */
 if(DG.torre&&Torre.on&&Torre.porta.liberada&&!BOSS_ON&&!S.pdead&&Torre.pertoDaPorta()){Torre.abrirPorta();S.shake=Math.max(S.shake,.5);SFX.play('smash');torreAcordaBaium();return;}/* porta liberada abre sozinha ao chegar */
+  if(DG.srvMobs)return;/* [dg-servidor] tempo, ondas e limpeza vem do servidor */
   var cfg=DG.torre;if(!cfg||DG.cleared||!DG.run||DG.fim||S.pdead)return;
   if(cfg.tempo){
     DG.tLeft-=dt;
@@ -6370,13 +6391,13 @@ if(DG.torre&&Torre.on&&Torre.porta.liberada&&!BOSS_ON&&!S.pdead&&Torre.pertoDaPo
   }
 }
 function torreCheck(){
-  var cfg=DG.torre;if(!cfg||DG.cleared||DG.grp==='guest')return;
+  var cfg=DG.torre;if(!cfg||DG.cleared||DG.grp==='guest'||DG.srvMobs)return;/* [dg-servidor] */
   var boss=MOBS.some(function(m){return !m.dead&&m.T.isMiniBoss;});
   if(DG.kr>=(cfg.meta||0)&&!boss){MOBS.slice().forEach(function(m){if(!m.dead)removeMob(m);});torreClear();}
 }
 function torreClear(){
   var cfg=DG.torre;DG.cleared=true;SFX.levelup();
-  if(DG.grp==='host')Net.dg({k:'clear'});
+  if(DG.grp==='host'&&!DG.srvMobs)Net.dg({k:'clear'});
   var f=Torre.andares[cfg.andar-1],msg='Abra o Bau [E] e atravesse o portal para sair';
   spawnChest(cfg.bau||'silver',f.sx+3,f.sz);
   if(cfg.liberaPorta){Torre.liberarPorta(true);msg='A porta do Baium foi LIBERADA: suba ao 3o andar';}
@@ -6397,6 +6418,7 @@ function torreAcordaBaium(){
 }
 function torreSair(){
   if(!DG.torre&&!DG.pvpTorre)return;
+  if(DG.srvMobs){if(DG.grp!=='guest'&&window.Net)Net.dgs({k:'fim'});DG.srvMobs=false;MOBSRV=false;}/* [dg-servidor] */
   DG.torre=null;DG.pvpTorre=false;DG.portalPos=null;if(DG._salas){DGD.rooms=DG._salas;DG._salas=null;}
   ARENA=13.5;ARENA_DECOR.forEach(function(m){m.visible=true;});
   Torre.fecharPorta();Torre.liberarPorta(true);Torre.desativar();
@@ -9387,7 +9409,7 @@ Net.init({
   suporte:suporteRecebe,alvoSuporte:alvoSuporte,/* [clerigo] fase 2 */
   curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,on);},/* [clerigo] */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
-  ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,/* [mobs-servidor] */
+  ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,dgs:dgsRecebe,/* [mobs-servidor] [dg-servidor] */
   getY:function(){return Torre.on?Torre.y:undefined;},alturaRemota:function(y){return Torre.on?y-Torre.baseY:0;},/* [mapas-multi] altura no relevo (mapas abertos e torre) */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},

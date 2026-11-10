@@ -12,7 +12,8 @@ const J = f => JSON.parse(fs.readFileSync(path.join(RAIZ, f), 'utf8'));
 const CFG = {                                                   /* mapa do servidor -> spots.json e walkgrid (mesmo do cliente: arena.html MAPAS_ABERTOS) */
   curuma:   { spots: 'curuma',        pasta: 'curuma',        grid: 'curuma_walkgrid',        chaoMin: -222.9 },
   fortress: { spots: 'fortress',      pasta: 'fortress',      grid: 'fortress_walkgrid',      chaoMin: -36.4 },
-  pantano:  { spots: 'blazing_swamp', pasta: 'blazing_swamp', grid: 'blazing_swamp_walkgrid', chaoMin: -30.8 }
+  pantano:  { spots: 'blazing_swamp', pasta: 'blazing_swamp', grid: 'blazing_swamp_walkgrid', chaoMin: -30.8 },
+  torre:    { pasta: 'baium_house', grid: 'mini_toi_walkgrid', chaoMin: -1e9 }                       /* [dg-servidor] andares da Torre do Baium (DGs) */
 };
 const ALT = 2.0, PASSO = 1.04, FOCO_S = 6, BONUS_PT = [1, 1, 1.3, 1.39, 1.5, 1.54, 1.58];      /* XP total da party pelo numero de membros perto (estilo L2) */
 let SP = null, DG = null; const GRADES = {};
@@ -182,6 +183,69 @@ class Mundo {
     return o;
   }
 }
+/* [dg-servidor] 10/11/2026 (roadmap Fase 6: "Mobs e DGs simulados no servidor"): as ondas da DG da Torre (normal / medio / hard) rodam AQUI, nao mais no lider do grupo.
+   Mesma IA dos mapas abertos (Mundo: agressao, ajuda, volta, golpe, projetil, taunt), com a regra de ondas que ficava em arena.html (torreDgLoad / torreTick / torreCheck):
+   mobs iniciais em anel de 16-46 m em volta do ponto de entrada do andar; reaparece um a cada `respawn` s ate `meta` abates; matar a meta E todos os mini-chefes limpa o andar;
+   `tempo` acabou = fim. Dificuldade: vida e velocidade escalam aqui; o dano escala no cliente (hurtPlayer), como sempre. O chefe Baium continua no cliente do lider. */
+const TORRE_Y = [-62.0, -33.8, -3.8];
+class MundoDg extends Mundo {
+  constructor(chave){
+    super('torre'); const cfg = DG && DG.torre && DG.torre[chave], D = DG && DG.difficulties && DG.difficulties[chave]; this.chave = chave; this.cfg = cfg; this.D = D; this.dg = true;
+    this.M = { dif: chave, respawn: 0, spots: [] }; this.evento = null; this.fim = false; this.limpo = false;
+    this.TT = {}; for(const [k, T] of Object.entries(DG.mobs || {})) this.TT[k] = Object.assign({}, T, { hp: Math.round(T.hp * D.hp), speed: T.speed * D.speed });
+    this.y = TORRE_Y[(cfg.andar || 1) - 1]; this.sp = this.achaSpawn(); this.iniciar();
+  }
+  ok(){ return !!(this.G && this.cfg && this.D); }
+  livre(x, z, y){ for(const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]){ const h = this.G.chao(x + dx, z + dz, y); if(h === null || Math.abs(h - y) > .7) return false; } return true; }
+  achaSpawn(){                                                       /* o ponto livre mais perto do centro da torre, com 2 m de folga em volta (igual a torre.js achaSpawn) */
+    const cx = -27.05, cz = -50.71;
+    for(let r = 0; r < 70; r++){ const n = r ? Math.ceil(r * 6.3) : 1; for(let a = 0; a < n; a++){ const ang = r ? a / n * 6.283 : 0, x = cx + Math.cos(ang) * r, z = cz + Math.sin(ang) * r; let ok = true;
+      for(let k = 0; k < 9 && ok; k++){ const h = this.G.chao(x + (k % 3 - 1) * 2, z + (Math.floor(k / 3) - 1) * 2, this.y + .6); if(h === null || Math.abs(h - this.y) > .7) ok = false; } if(ok) return [x, z]; } }
+    return [cx, cz];
+  }
+  pontoAnel(rmin, rmax, longeDe){
+    for(let t = 0; t < 200; t++){ const a = Math.random() * 6.283, r = rmin + Math.random() * (rmax - rmin), x = this.sp[0] + Math.cos(a) * r, z = this.sp[1] + Math.sin(a) * r;
+      if(!this.livre(x, z, this.y)) continue; if(longeDe && longeDe.some(P => Math.hypot(P.x - x, P.z - z) < 12) && t < 190) continue; return [x, z, this.G.chao(x, z, this.y)]; }
+    return null;
+  }
+  agrDe(T){ return !!(T.isMiniBoss || T.agressivo || Math.random() < (this.D.agressivos || 0)); }
+  cria(tipo, p){
+    const T = this.TT[tipo]; if(!T || !p) return null;
+    const m = { id: this.prox++, dif: this.chave, tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp, agr: this.agrDe(T), engaj: false, volta: false, vt: 0, st: 0, stT: 0, alvo: 0, dano: new Map(), foco: null, morto: false, mT: 0, chefe: !!T.isMiniBoss };
+    this.mobs.set(m.id, m); return m;
+  }
+  iniciar(){                                                          /* (re)comeca o andar */
+    this.mobs.clear(); this.kr = 0; this.total = 0; this.nReg = 0; this.tLeft = this.cfg.tempo || 0; this.rsp = 0; this.fim = false; this.limpo = false; this.tEst = 0;
+    for(const [tipo, n] of this.cfg.mobs){ const cnt = Math.max(1, Math.round(n * (this.D.count || 1))); this.total += cnt; if(!(DG.mobs[tipo] && DG.mobs[tipo].isMiniBoss)) this.nReg += cnt;
+      for(let i = 0; i < cnt; i++) this.cria(tipo, this.pontoAnel(16, 46)); }
+  }
+  reiniciar(){ this.iniciar(); if(this.evento) this.evento(this.estado('reiniciou')); }
+  estado(k){ return { t: 'dgs', k: k || 'estado', limpo: this.limpo ? 1 : 0, kr: this.kr, tot: this.total, nr: this.nReg, tl: Math.round(this.tLeft), meta: this.cfg.meta || 0 }; }
+  tick(t, dt, jog){
+    if(!this.ok() || this.fim || this.limpo) return;
+    const vivos = jog.filter(P => !P.morto && !(P.hp <= 0));
+    if(this.cfg.tempo && vivos.length){ this.tLeft -= dt; if(this.tLeft <= 0){ this.fim = true; if(this.evento) this.evento({ t: 'dgs', k: 'fim' }); return; } }
+    let vv = 0; for(const m of this.mobs.values()) if(!m.morto && !m.chefe) vv++;
+    this.rsp -= dt;
+    if(this.rsp <= 0 && this.cfg.meta && this.kr + vv < this.cfg.meta && vv < this.nReg){
+      this.rsp = this.cfg.respawn || 3;
+      const tipos = this.cfg.mobs.filter(mb => !(DG.mobs[mb[0]] && DG.mobs[mb[0]].isMiniBoss)); let tot = 0; for(const mb of tipos) tot += mb[1];
+      let r = Math.random() * tot, tp = tipos[0][0]; for(const mb of tipos){ r -= mb[1]; if(r <= 0){ tp = mb[0]; break; } }
+      const p = this.pontoAnel(16, 46, vivos); if(p && this.cria(tp, p)) this.total++;
+    }
+    for(const m of [...this.mobs.values()]){ if(m.morto){ if(t - m.mT > 2.6) this.mobs.delete(m.id); } else this.ia(m, t, dt, vivos); }
+    this.tEst -= dt; if(this.tEst <= 0){ this.tEst = .5; if(this.evento) this.evento(this.estado()); }
+  }
+  /* chamado pelo servidor depois de um abate: conta e confere se o andar limpou */
+  aoMatar(m){
+    if(this.limpo || this.fim) return; if(!m.chefe) this.kr++;
+    let chefe = false; for(const o of this.mobs.values()) if(!o.morto && o.chefe) chefe = true;
+    if(this.kr >= (this.cfg.meta || 0) && !chefe){ this.limpo = true; for(const o of [...this.mobs.values()]) if(!o.morto) this.mobs.delete(o.id); if(this.evento) this.evento(Object.assign(this.estado('clear'), { kr: this.kr })); }
+    else if(this.evento) this.evento(this.estado());
+  }
+}
+const dgTorreOk = chave => !!(DG && DG.torre && DG.torre[chave] && DG.difficulties && DG.difficulties[chave]);
+const criaDg = chave => { const W = new MundoDg(chave); return W.ok() ? W : null; };
 /* [pagina-unica] o mundo aberto inteiro num canal (o da cidade): Campo + Cruma + Fortaleza + Pantano, cada um com seus spots e seu chao,
    tudo em coordenadas do mundo. Mesma interface do Mundo (server.js nao muda). Ids unicos entre os mapas. */
 class Mundos {
@@ -201,4 +265,4 @@ class Mundos {
   snap(P, aoi){ let o = []; for(const W of this.subs) o = o.concat(W.snap(P, aoi)); return o; }
 }
 const mundoAberto = () => new Mundos([['campo', null]].concat(Object.keys(CFG).map(k => [k, xfDe(k)]).filter(q => q[1])));
-module.exports = { grade, Mundo, Mundos, mundoAberto, xfDe, praMundo, praLocal, CFG, BONUS_PT, recarrega: carrega, dif: mapa => mapa === 'campo' ? 'campo' : ((SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa) };
+module.exports = { grade, Mundo, Mundos, mundoAberto, MundoDg, criaDg, dgTorreOk, xfDe, praMundo, praLocal, CFG, BONUS_PT, recarrega: carrega, dif: mapa => mapa === 'campo' ? 'campo' : ((SP && SP[CFG[mapa].spots] && SP[CFG[mapa].spots].dif) || mapa) };

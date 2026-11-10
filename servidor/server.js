@@ -137,6 +137,7 @@ function fimPk(c, A, V, inocente){
 }
 /* [mobs-servidor] mundo de mobs do canal (mapas abertos) */
 function mundoDe(c){
+  if(c.mapa === 'masmorra') return c.dgsW || null;                    /* [dg-servidor] ondas da DG da Torre simuladas aqui */
   if(!MAPAS[c.mapa].aberto && c.mapa !== 'cidade') return null;      /* [campo] a cidade tem o Campo de Talking Island (mobs do mundo aberto) */
   if(!c.mundo){
     const W = c.mundo = c.mapa === 'cidade' ? Mobs.mundoAberto() : new Mobs.Mundo(c.mapa);      /* [pagina-unica] cidade = Campo + Cruma + Fortaleza + Pantano no mundo */
@@ -158,6 +159,9 @@ function avisaTag(J){ if(J.canalRef) difunde(J.canalRef, { t: 'clatag', id: J.id
 function karmaMob(o, v){ if(o.pers && o.pers.karma > 0){ o.pers.karma = Math.max(0, o.pers.karma - Math.ceil(v / 3)); if(!o.pers.karma) envia(o, { t: 'pkmsg', m: 'Seu karma foi limpo: nome normal de novo.' }); } }
 /* abate de mob do servidor: XP para a party de quem mais bateu (membros a ate 40 m, total com bonus do L2 dividido por igual), drop para quem mais bateu */
 function abateMundo(c, W, m){
+  if(W.dg){                                                           /* [dg-servidor] DG: regra antiga: todo mundo do grupo/canal ganha o XP cheio e os drops dele (sem divisao nem bonus de party) */
+    for(const P of c.jog.values()){ if(!P.pers) continue; const v = Math.max(1, Prog.xpAbate(m.dif, m.tipo, P.pers.level)); ganhaXp(P, v); premia(P, m.tipo, m.dif, v); karmaMob(P, v); } return;
+  }
   const K = c.jog.get(W.dono(m)); if(!K || !K.pers) return;
   const quem = [...c.jog.values()].filter(P => P.pers && !P.morto && (P === K || (K.party && P.party === K.party)) && Math.hypot(P.x - m.x, P.z - m.z) <= 40);
   const n = Math.max(1, quem.length), classes = new Set(quem.map(P => Prog.classeDe(P.pers))).size, bc = 1 + .1 * Math.max(0, classes - 1);      /* [party] +10% por classe diferente (Guardiao + Mago + Guerreiro = +20%) */
@@ -439,7 +443,7 @@ wss.on('connection', ws => {
     }
     else if(m.t === 'mhit'){                                        /* [mobs-servidor] dano do jogador num mob do servidor */
       const W = mundoDe(c); if(!W || J.morto) return; const t = agora(); J.mhT = (J.mhT || []).filter(x => t - x < 1); if(J.mhT.length >= 30) return; J.mhT.push(t);
-      const mo = W.hit(J, m.id | 0, +m.d || 0, t); if(mo) abateMundo(c, W, mo);
+      const mo = W.hit(J, m.id | 0, +m.d || 0, t); if(mo){ abateMundo(c, W, mo); if(W.aoMatar) W.aoMatar(mo); }
     }
     else if(m.t === 'cla'){                                         /* [cla] criar / convidar / aceitar / recusar / sair / expulsar / ver */
       const t = agora(); if(!J.pers || t - (J.claT || 0) < .3) return; J.claT = t; const k = String(m.k || ''); let erro = '';
@@ -475,12 +479,27 @@ wss.on('connection', ws => {
       const quem = (c.mapa === 'masmorra' && c.gid) ? [...c.jog.values()].filter(o => o.pers) : (J.pers ? [J] : []);
       for(const o of quem){ const v = Prog.xpAbate(dif, tipo, o.pers.level); ganhaXp(o, v); premia(o, tipo, dif, v); karmaMob(o, v); }      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
     }
+    else if(m.t === 'dgs' && c.mapa === 'masmorra'){                      /* [dg-servidor] o cliente pede os mobs da DG da Torre ao servidor (ini), reinicia sozinho (reset) ou sai (fim) */
+      const k = String(m.k || '').slice(0, 8);
+      if(k === 'ini'){
+        const key = String(m.key || '').slice(0, 8);
+        if(!Mobs.dgTorreOk(key)){ envia(J, { t: 'dgs', k: 'nao' }); return; }
+        if(!c.dgsW || c.dgsW.chave !== key){
+          const W = c.dgsW = Mobs.criaDg(key);
+          if(W){ W.evento = o => difunde(c, o); W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); }; W.tiro = (mo, Q, s) => difunde(c, { t: 'mtiro', id: mo.id, a: Q.id, s: Math.round(s * 100) / 100 }); }      /* dano e projetil dos mobs da DG */
+        }
+        if(!c.dgsW){ envia(J, { t: 'dgs', k: 'nao' }); return; }
+        envia(J, c.dgsW.estado('ok'));
+      }
+      else if(k === 'reset'){ if(c.dgsW && c.jog.size === 1) c.dgsW.reiniciar(); }        /* so quando esta sozinho: em grupo o mundo continua e quem caiu volta no inicio */
+      else if(k === 'fim') c.dgsW = null;
+    }
     else if(m.t === 'dg' && c.mapa === 'masmorra' && c.gid){            /* sincronia da dungeon em grupo: o LIDER manda o estado, os outros mandam o que fizeram */
       const g = grupos.get(c.gid); if(!g) return; const k = String(m.k || '').slice(0, 12), souLider = g.lider === J.sid, o = Object.assign({}, m, { t: 'dg', k, de: J.id });
       if(souLider){
         if(!/^(start|snap|clear|end|boss|mdmg|proj|bsnap|room|bolt)$/.test(k)) return;
         if(k === 'start'){ c.dg = { key: String(m.key || '').slice(0, 12), id: ++dgSeq }; g.dg = { key: c.dg.key, id: c.dg.id, canal: c.n }; for(const mm of g.membros.values()) if(mm.J && mm.J !== J && mm.J.canalRef !== c) envia(mm.J, { t: 'dgconvite', key: c.dg.key, id: c.dg.id, nome: J.nome }); envieGrupo(g); }      /* puxa os membros AGORA; o estado do grupo repete (reforco) */
-        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end'){ c.dg = null; g.dg = null; envieGrupo(g); }
+        else if(k === 'boss' && c.dg) c.dg.boss = 1; else if(k === 'clear' && c.dg) c.dg.clear = 1; else if(k === 'end'){ c.dg = null; c.dgsW = null; g.dg = null; envieGrupo(g); }
         if(k === 'mdmg'){ o.dmg = Math.max(0, Math.min(800, +m.dmg || 0)); const V = c.jog.get(m.to | 0); if(V) envia(V, o); return; }
         difunde(c, o, J);
       } else {

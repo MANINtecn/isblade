@@ -168,6 +168,7 @@ export const Net = (function(){
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
     } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
+    } else if(m.t === 'dgs'){ if(ctx.dgs) ctx.dgs(m);      /* [dg-servidor] ondas da DG da Torre vindas do servidor */
     } else if(m.t === 'dg'){ if(ctx.dg) ctx.dg(m);
     } else if(m.t === 'dgconvite'){ puxar(m.key, m.id);
     } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
@@ -494,7 +495,8 @@ export const Net = (function(){
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };
   /* ---- dungeon em grupo ---- */
-  N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
+  N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
+  N.dgs = function(o){ if(!N.on) return false; o.t = 'dgs'; send(o); return true; };      /* [dg-servidor] */
   N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto, nome: e.nome, hp: e.hp }); }); return l; };
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };
   N.soyHost = function(){ return !!(N.on && N.mapa === 'masmorra' && N.soyLider() && N.grupo.m.length > 1); };      /* lider de um grupo: dono da dungeon mesmo que os outros ainda estejam entrando */
