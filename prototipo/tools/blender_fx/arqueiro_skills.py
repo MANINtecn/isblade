@@ -101,8 +101,8 @@ def voo(col, tag, mf, f_nock, f_rel, vel, alvo_pt=None, dir_fixa=None, esc=1.0, 
     if trilha:
         up = Vector((0, 0, 1)); w = 0.1 * U * esc; seg = [(ff, pp) for ff, pp in pts if ff >= f_rel]
         for nt, kv in (("v", up), ("h", lado)):
-            d2 = {ff: (pp + kv * w, pp - kv * w) for ff, pp in seg}; X.trilha(col, "tr_%s_%s" % (tag, nt), d2, f_rel, f_fim, 0.55, 3.2 * esc ** 0.3)
-    X.clarao(col, "bo_" + tag, O, f_rel, 1.2 * esc, v_cor, 10)
+            d2 = {ff: (pp + kv * w, pp - kv * w) for ff, pp in seg}; X.trilha(col, "tr_%s_%s" % (tag, nt), d2, f_rel, f_fim, 0.16, 2.2 * esc ** 0.2)
+    X.clarao(col, "bo_" + tag, O, f_rel, 0.9 * esc ** 0.7, v_cor, 8)
     return dict(path=path, hits=hits, f_fim=f_fim, p_fim=pts[-1][1], flecha=fl, O=O, D=Dl)
 def impacto(col, tag, f, p, escala=1.0, chao=True):
     X.clarao(col, "im_" + tag, p, f, 2.0 * escala, "b", 14); X.espinhos(col, "ie_" + tag, p, f, int(10 * escala + 6), 1.1 * escala, "b", 0.04, 12); X.espinhos(col, "ie2_" + tag, p, f, 6, 0.9 * escala, "c", 0.035, 14)
@@ -147,7 +147,7 @@ def montar_perfurante():
     for (ff, pp, i) in r["hits"]:
         impacto(col, "p%d" % i, ff, pp, 1.1); X.espinhos(col, "pe%d" % i, pp, ff, 14, 1.8, "g", 0.05, 16); empurra(ds[i], ff, (0, 1), 6.0 - i * 1.2, 1.0, 12.0)
     X.fenda(col, "marca_chao", (r["p_fim"].x, r["p_fim"].y, 0.4), r["f_fim"], 1.8, "c", 40, 0.0)
-    for k in range(4): X.espinhos(col, "vento%d" % k, r["O"], f_rel, 8, 2.2, "b", 0.03, 10 + k * 3)
+    X.espinhos(col, "vento", r["O"], f_rel, 8, 1.2, "b", 0.025, 10)
     X.retarget(sc); return sc
 
 # ================================================================== S2 FLECHA-GANCHO (nv 5): mobilidade, puxa o arqueiro ate o ponto mirado
@@ -216,14 +216,14 @@ def montar_atordoante():
 
 # ================================================================== S4 CHUVA DE FLECHAS (nv 20): arco apontado para cima; a flecha sobe, para no apice e cai acelerando
 def montar_chuva():
-    random.seed(5); TILT = 58.0
+    random.seed(5); TILT = 42.0
     incl = lambda t: TILT * min(1.0, t / 0.5) * (1.0 if t < 0.95 else max(0.0, 1.0 - (t - 0.95) / 0.05))
     pt = lambda g: [dict(acao="W_SpAtk02_Bow", de=40, ate=128, saida=89, inclina=incl, giro=g), dict(acao="W_SpAtk02_Bow", de=128, ate=128, saida=22, giro=g)]
-    a0, fx0 = G.bake(BASE_ARM, "W_Chuva0", pt(None), emenda=0); mf0 = maos("W_Chuva0", fx0[-1][1]); d0 = dir_mira(mf0, fx0[0][0] + (123 - 40))
-    delta = 90.0 - math.degrees(math.atan2(d0.y, d0.x)); print("CHUVA corrige a direcao do arco em", round(delta), "graus (o arco inclinado desvia do eixo da frente)")
-    acao, fx = G.bake(BASE_ARM, "W_Chuva", pt(lambda t: delta), emenda=0)
-    N = fx[-1][1]; mf = maos("W_Chuva", N); f_rel = fx[0][0] + (123 - 40); print("CHUVA release", f_rel, "total", N)
-    sc, col, ref, arm = cena("S4_CHUVA", N + 130, acao)
+    acao, fx = G.bake(BASE_ARM, "W_Chuva", pt(None), emenda=0); N = fx[-1][1]; mf = maos("W_Chuva", N); f_rel = fx[0][0] + (123 - 40)
+    d0 = dir_mira(mf, f_rel); delta = 90.0 - math.degrees(math.atan2(d0.y, d0.x)); Rz = Matrix.Rotation(math.radians(delta), 3, "Z")
+    mf = {f: (Rz @ a, Rz @ b) for f, (a, b) in mf.items()}                     # o personagem inteiro gira (rigido) para o arco apontar para +Y; o corpo nao e torcido
+    print("CHUVA giro rigido do personagem", round(delta), "graus; release", f_rel, "total", N)
+    sc, col, ref, arm = cena("S4_CHUVA", N + 130, acao); arm.rotation_euler = (0, 0, YAW + math.radians(delta))
     D0 = dir_mira(mf, f_rel); print("CHUVA inclinacao do arco no disparo (graus):", round(math.degrees(math.asin(D0.z))))
     r = voo(col, "sinal", mf, fx[0][0] + 20, f_rel, 24.0, dir_fixa=D0, esc=1.1, parar_chao=False, max_q=48, fica=0)
     path = r["path"]; i_ap = max(range(len(path)), key=lambda i: path[i][1].z); f_ap, P_ap = path[i_ap]; cx, cy = P_ap.x / U, P_ap.y / U; print("CHUVA area em", round(cx, 1), round(cy, 1), "apice m", round(P_ap.z / U, 1), "quadro", f_ap); cams(sc, ref, (cx * 0.55, cy * 0.55, 1.6), 1.5)
@@ -289,7 +289,7 @@ def montar_elite():
     r = voo(col, "elite", mf, 56, f_rel, 95.0, alvo_pt=Vector((0, 26.0 * U, 1.3 * U)), esc=3.2, cor_pena="pena_o", alvos=[(0, 26.0)], v_cor="g")
     D = r["D"]; Lm = 28.0 * U; mira = X.para_obj(col, "mira_ar", X.bm_feixe(0.015 * U, 0.015 * U, Lm, 4), M["coluna_c"]); mira.location = tuple(r["O"]); X.apunta(mira, D)
     X.esc(mira, [(60, (1e-4,) * 3), (80, (1, 1, 0.1)), (f_rel - 6, (1, 1, 1.0)), (f_rel, (3, 3, 1.0)), (f_rel + 1, (1e-4,) * 3)])
-    X.espinhos(col, "disp", r["O"], f_rel, 40, 3.5, "b", 0.05, 16); X.clarao(col, "disp_c", r["O"], f_rel, 5.0, "g", 22)
+    X.espinhos(col, "disp", r["O"], f_rel, 14, 2.0, "b", 0.03, 14); X.clarao(col, "disp_c", r["O"], f_rel, 2.4, "g", 16)
     for (ff, p, i) in r["hits"]:                                                          # tudo que toca o chao acontece so aqui, no acerto
         X.clarao(col, "ex1", p, ff, 8.0, "b", 26); X.clarao(col, "ex2", p, ff + 2, 5.0, "g", 28); X.espinhos(col, "ex_e", p, ff, 40, 3.2, "b", 0.07, 20); X.espinhos(col, "ex_e2", p, ff, 18, 2.2, "o", 0.06, 24)
         ch = (p.x, p.y, 0.45); X.fenda(col, "ex_f", ch, ff, 7.0, "o", 80, 0.0); X.fenda(col, "ex_f2", ch, ff + 3, 4.5, "c", 70, 1.1); X.onda(col, "ex_o1", (p.x, p.y), ff, 8.0, "o", 26, 0.6); X.onda(col, "ex_o2", (p.x, p.y), ff + 5, 5.4, "c", 24, 0.6); X.onda(col, "ex_o3", (p.x, p.y), ff + 10, 3.4, "g", 22, 0.6)
