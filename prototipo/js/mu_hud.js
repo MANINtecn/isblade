@@ -67,7 +67,7 @@ export const MuHud = {
 
     var playerName = localStorage.getItem('isblade.player_name') || 'Ícaro';
     var wpn = localStorage.getItem('isblade.weapon') || 'shield';
-    var classLabel = (wpn === 'shield' ? 'Guardião' : (wpn === 'staff' ? 'Místico' : 'Guerreiro'));
+    var classLabel = (wpn === 'shield' ? 'Guardião' : (wpn === 'staff' ? 'Místico' : (wpn === 'book' ? 'Clérigo' : 'Guerreiro')));
     var isArena = location.pathname.toLowerCase().indexOf('arena') !== -1;
 
     var slotsHtml = '';
@@ -723,10 +723,10 @@ export const MuHud = {
     var lvlEl = document.getElementById('muPlayerLvl');
     if (lvlEl && S.lvl) lvlEl.textContent = 'Nv. ' + S.lvl;
 
-    var wpn = ({ guardiao: 'shield', mago: 'staff', guerreiro: 'sword' })[S.classe] || localStorage.getItem('isblade.weapon') || 'shield';   /* classe do servidor primeiro */
+    var wpn = ({ guardiao: 'shield', mago: 'staff', guerreiro: 'sword', clerico: 'book' })[S.classe] || localStorage.getItem('isblade.weapon') || 'shield';   /* classe do servidor primeiro */
     var clsEl = document.getElementById('muPlayerClass');
     if (clsEl) {
-      clsEl.textContent = (wpn === 'shield' ? 'Guardião' : (wpn === 'staff' ? 'Místico' : 'Guerreiro'));
+      clsEl.textContent = (wpn === 'shield' ? 'Guardião' : (wpn === 'staff' ? 'Místico' : (wpn === 'book' ? 'Clérigo' : 'Guerreiro')));
     }
 
     // 4. Sincroniza barra de EXP

@@ -101,9 +101,9 @@ module.exports = function(opts){
       }
     } catch(e){}
   }
-  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword' };   /* classe define a arma (data/progressao.json); cleric ainda indisponivel */
+  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword', clerico: 'book' };   /* classe define a arma (data/progressao.json); [clerigo] Livro Astral */
 const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_INICIAL || require('./progressao').dados().nivelInicial) | 0) || 1));   /* personagem novo nasce no nivel do tutorial (data/progressao.json -> nivelInicial) */
-  function classeDe(x){ if(ARMA_CLASSE[x.classe]) return x.classe; return x.weapon === 'shield' || x.weapon === 'swordshield' ? 'guardiao' : x.weapon === 'staff' ? 'mago' : 'guerreiro'; }   /* personagens antigos: classe pela arma */
+  function classeDe(x){ if(ARMA_CLASSE[x.classe]) return x.classe; return x.weapon === 'shield' || x.weapon === 'swordshield' ? 'guardiao' : x.weapon === 'staff' ? 'mago' : x.weapon === 'book' ? 'clerico' : 'guerreiro'; }   /* personagens antigos: classe pela arma */
   function limpaPers(x){
     const id = /^char_[A-Za-z0-9_]{1,40}$/.test(x.id) ? x.id : 'char_' + crypto.randomBytes(6).toString('hex'), tok = (v, d) => (/^[a-z0-9_]{1,30}$/.test(String(v || '')) ? String(v) : d);
     return { id, name: String(x.name).trim().slice(0, 16), race: tok(x.race, 'human_fighter'), charType: tok(x.charType, tok(x.race, 'human_fighter')), set: tok(x.set, 'starter'), weapon: ARMA_CLASSE[classeDe(x)], classe: classeDe(x),

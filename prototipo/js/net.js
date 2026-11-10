@@ -114,7 +114,7 @@ export const Net = (function(){
   /* ---------- jogadores remotos ---------- */
   function aplicaArma(e){
     var r = e.rig; if(!r) return; var a = e.arma;
-    if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = false;
+    if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = false; if(ctx.livroRemoto) ctx.livroRemoto(r, a === 'book');      /* [clerigo] Livro Astral */
     if(ctx.armaRemota) ctx.armaRemota(r, e.wb || '');      /* [graus] modelo da arma pelo grau */
   }
   function addRemoto(p){
@@ -229,7 +229,7 @@ export const Net = (function(){
     else if(m.t === 'ss'){ if(ctx.ss) ctx.ss(m); }
     else if(m.t === 'en'){ e = remotos.get(m.v); if(e){ e.en = m.en | 0; brilho(e); } }
     else if(m.t === 'wb'){ e = remotos.get(m.v); if(e){ e.wb = m.b || ''; aplicaArma(e); } }
-    else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp); } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); } } }
+    else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp, m); if(ctx.curaFx){ var S0 = ctx.getS(); ctx.curaFx(m, S0.px, S0.pz); } } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); if(ctx.curaFx) ctx.curaFx(m, e.x, e.z); } } }      /* [clerigo] cura de jogador: valor e efeito no alvo */
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
 
@@ -488,7 +488,7 @@ export const Net = (function(){
   N.mtaunt = function(r){ if(N.on) send({ t: 'mtaunt', r: r }); };
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){
-    if(!N.on || !an) return; if(an.magoB || an._tarde) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();
+    if(!N.on || !an) return; if(an.clerB){ send({ t: 'atk', k: 'b', id: an.id, f: r2(ctx.getS().face) }); return; }      /* [clerigo] Lamina de Luz: o servidor faz o projetil voar */ if(an.magoB || an._tarde) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();
     if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; var om = { t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }; if(an.skill.area && an.alvo){ om.x = r2(an.alvo.x); om.z = r2(an.alvo.z); om.d = r2(an.skill.area.delay || .8); } send(om); }      /* skill de area (meteoro, coluna): ponto mirado + tempo do aviso */
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };

@@ -663,7 +663,7 @@ function updateHeroCard(){
   document.getElementById('heroLore').textContent = '"' + cfg.lore + '"';
 
   // Classe e atributos (data/progressao.json: inicial da classe + crescimento por nivel + pontos distribuidos; o servidor e o dono)
-  var cl = (PROG && PROG.classes) ? PROG.classes[c.classe || (c.weapon === 'staff' ? 'mago' : (c.weapon === 'shield' || c.weapon === 'swordshield') ? 'guardiao' : 'guerreiro')] : null;
+  var cl = (PROG && PROG.classes) ? PROG.classes[c.classe || (c.weapon === 'staff' ? 'mago' : c.weapon === 'book' ? 'clerico' : (c.weapon === 'shield' || c.weapon === 'swordshield') ? 'guardiao' : 'guerreiro')] : null;
   if(cl){
     var L = Math.max(1, c.level | 0 || 1), at = c.attr || {}, tot = {}, mx = 1, gasto = 0;
     ['for', 'int', 'agi', 'vit'].forEach(function(k){ tot[k] = (cl.inicial[k] | 0) + (cl.porNivel[k] | 0) * (L - 1) + (at[k] | 0); gasto += (at[k] | 0); mx = Math.max(mx, tot[k]); });
@@ -677,6 +677,7 @@ function updateHeroCard(){
   var wLabel = '⚔️ Guerreiro · Espada longa (2 mãos)';
   if(c.weapon === 'swordshield' || c.weapon === 'shield') wLabel = '🛡️ Guardião · Escudo';
   else if(c.weapon === 'staff') wLabel = '🔮 Mago · Cajado';
+  else if(c.weapon === 'book') wLabel = '✚ Clérigo · Livro Astral';
   document.getElementById('gearWeapon').textContent = wLabel;
 
   var sLabel = (c.charType === 'imperial' || c.set === 'imperial') ? '👑 Imperial Crusader S-Grade' : '🛡️ Traje Trainee de Iniciante';
@@ -739,7 +740,7 @@ window.enterGame = function(){
   localStorage.setItem('isblade.player_name', c.name);
   localStorage.setItem('isblade.char_type', c.charType || c.race);
   localStorage.setItem('isblade.char_race', c.race);
-  localStorage.setItem('isblade.weapon', (c.weapon === 'swordshield' || c.weapon === 'shield') ? 'shield' : (c.weapon === 'staff' ? 'staff' : 'sword')/* classe */);
+  localStorage.setItem('isblade.weapon', (c.weapon === 'swordshield' || c.weapon === 'shield') ? 'shield' : (c.weapon === 'staff' ? 'staff' : (c.weapon === 'book' ? 'book' : 'sword'))/* classe */);
   localStorage.setItem('isblade.hair_style', c.hairStyle || 'both');
   localStorage.setItem('isblade.hair_color', c.hairColor || '#ffffff');
 

@@ -101,8 +101,8 @@
       "nome": "Clérigo",
       "arma": "book",
       "armaNome": "Livro Astral",
-      "disponivel": false,
-      "papel": "Suporte: cura e proteção. (em breve: faltam modelo, animações e skills)",
+      "disponivel": true,
+      "papel": "Suporte: cura os aliados e fere com luz. Livro Astral.",
       "inicial": {
         "for": 4,
         "int": 18,

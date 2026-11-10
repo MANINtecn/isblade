@@ -13,7 +13,7 @@ export const Guardiao = (function(){
   var G = {};
 
   /* ---------- classes por arma ---------- */
-  G.CLASSES = { sword: 'Guerreiro', shield: 'Guardiao', staff: 'Mago', none: 'Desarmado' };
+  G.CLASSES = { sword: 'Guerreiro', shield: 'Guardiao', staff: 'Mago', book: 'Clerigo', none: 'Desarmado' };
   G.className = function(wpn){ return G.CLASSES[wpn] || 'Aventureiro'; };
 
   /* ---------- estado de combate ---------- */

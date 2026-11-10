@@ -87,7 +87,7 @@ function usar(pers, J, id, agora){
 /* soulshot / spiritshot automatico: gasta 1 por ataque se tiver (mago usa spiritshot); devolve {id, n, bonus} ou null */
 function tiro(pers){
   const inv = pers && pers.inv; if(!inv || !inv.consum || !LJ) return null;
-  const id = armaDaClasse(pers) === 'staff' ? 'spiritshot' : 'soulshot', c = LJ.consumiveis[id]; if(!c || !(inv.consum[id] > 0)) return null;
+  const id = (armaDaClasse(pers) === 'staff' || armaDaClasse(pers) === 'book') ? 'spiritshot' : 'soulshot', c = LJ.consumiveis[id]; if(!c || !(inv.consum[id] > 0)) return null;
   inv.consum[id]--; const n = inv.consum[id]; if(!n) delete inv.consum[id]; return { id, n, bonus: c.bonus || 0 };
 }
 /* ---- ferreiro Altran (data/loja.json -> encantar): +1..+max; ate 'seguro' nunca falha; depois a falha QUEBRA o item (como no L2) ---- */

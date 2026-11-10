@@ -468,6 +468,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/voz.js?v=1"></script>
 <script src="js/mago_fx.js?v=3"></script>
 <script src="js/mago_fx2.js?v=1"></script>
+<script src="js/clerigo_fx.js?v=1"></script>
 <script src="js/perf_log.js?v=3"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
@@ -709,8 +710,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 import * as THREE from './lib/vendor.js';
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js?v=16';
-import { Net } from './js/net.js?v=43';
+import { Guardiao } from './js/guardiao.js?v=17';
+import { Net } from './js/net.js?v=44';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -729,7 +730,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 import { Torre } from './js/torre.js?v=10';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=18';
+import { MuHud } from './js/mu_hud.js?v=19';
 
 window.THREE = THREE;
 
@@ -1100,6 +1101,10 @@ var SFX=(function(){
     m_s4_hit:function(){return (smp('energywave_shot',.8,.7) && smp('shieldstun_shot',.4,1.3)) || smp(F.gL,.5,.9);},
     m_s5_swing:function(){return smp('dash_shot',.6,.8) || smp(F.las,.3,.9);},
     m_s5_hit:function(){return smp('mortal_blow_shot',.6,1.1) || smp(F.gH,.6,1.1);},
+    c_s1_swing:function(){return smp('heal_cast',.7,1.25) || smp(F.las,.28,1.6);},/* [clerigo] sons do L2 */
+    c_s1_hit:function(){return smp('heal_shot',.6,1.15) || smp(F.gL,.4,1.2);},
+    c_s2_swing:function(){return smp('greater_heal_cast',.7,1.1) || smp(F.las,.28,1.4);},
+    c_s2_hit:function(){return smp('greater_heal_shot',.65,1) || smp(F.gL,.4,1);},
     m_s1_swing:function(){return (smp('doublewind_shot',.8,1.25) && smp(L2.shing,.5,1.4)) || smp(F.las,.28,1.6);},
 
     m_s1_hit:function(){return (smp('energywave_shot',.7,1.3) && smp(L2.shing,.45,1.2)) || smp(F.gL,.4,1.2);},
@@ -1540,6 +1545,8 @@ function iconSVG(id,size){
 
 }
 var SKILL_ICONS={
+  cura_mirada:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M3 10h6M2 16h7M4 22h5" stroke="#7dffa8" stroke-width="1.3" stroke-linecap="square" opacity=".7"/><polygon points="19,5 26,9 26,23 19,27 12,23 12,9" fill="#123528" stroke="#c8f5d8" stroke-width="1.2" stroke-linejoin="miter"/><path d="M19 11v10M14 16h10" stroke="#ffe082" stroke-width="2.2" stroke-linecap="square"/><path d="M27.5 6.5l1.5-1.5M10.5 26.5l-1.5 1.5" stroke="#ffe082" stroke-width="1.2"/></svg>',/* [clerigo] cristal hexagonal + cruz de cura */
+  glifo_cura:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,4 26.4,10 26.4,22 16,28 5.6,22 5.6,10" fill="none" stroke="#ffe082" stroke-width="1.2"/><polygon points="16,7 24,21 8,21" fill="none" stroke="#c8d6e5" stroke-width="1"/><polygon points="16,25 8,11 24,11" fill="none" stroke="#c8d6e5" stroke-width="1"/><path d="M16 13v6M13 16h6" stroke="#7dffa8" stroke-width="2" stroke-linecap="square"/><path d="M5.6 10v-3M26.4 10v-3M5.6 22v3M26.4 22v3" stroke="#7dffa8" stroke-width="1.2" opacity=".8"/></svg>',/* [clerigo] glifo hexagonal com hexagrama e cruz */
   shield_rush:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M4 11h9M3 16h11M5 21h8" stroke="#4fc3f7" stroke-width="1.4" stroke-linecap="round" opacity=".8"/><path d="M16 8l10 2c-.5 6-1 11-10 14-9-3-9.5-8-10-14z" fill="#1e2d42" stroke="#c8d6e5" stroke-width="1.3"/><path d="M16 9v14M16 13h6M16 18h5" stroke="#90caf9" stroke-width="1" opacity=".7"/></svg>',
   cross_slash:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M6 7c7 5 13 13 20 18" stroke="#90caf9" stroke-width="2.2" stroke-linecap="round"/><path d="M26 7c-7 5-13 13-20 18" stroke="#c8d6e5" stroke-width="2.2" stroke-linecap="round"/><polygon points="16,12 17.5,15.5 21,16 17.5,16.5 16,20 14.5,16.5 11,16 14.5,15.5" fill="#ffffff"/><circle cx="16" cy="16" r="5" fill="none" stroke="#4fc3f7" stroke-width=".8" opacity=".5"/></svg>',
   shield_slam:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M9 6h14l-1 14-6 4-6-4z" fill="#1c2838" stroke="#c8d6e5" stroke-width="1.3"/><path d="M16 7v16M11 13h10" stroke="#78909c" stroke-width="1"/><path d="M16 25l-4 4M16 25v5M16 25l4 4" stroke="#ffb74d" stroke-width="1.5" stroke-linecap="round"/><path d="M6 21a11 11 0 0 1 3-7M26 21a11 11 0 0 0-3-7" stroke="#4fc3f7" stroke-width="1.2" stroke-linecap="round" fill="none" opacity=".8"/></svg>',
@@ -2026,7 +2033,7 @@ return 'idle';
 
   if(WPN==='sword'&&MX.clips.sword2h_idle)return 'sword2h_idle';
 
-  if(WPN==='staff'){
+  if(wpnCaster()){
 
     if(MX.clips.staff_idle)return 'staff_idle';
 
@@ -2368,7 +2375,23 @@ var GREADY={
 
 var FORCE_READY=/[?&]ready=1/.test(location.search);
 
+/* >>> CLAUDE [clerigo] 10/11/2026: Livro Astral (arma do Clerigo) na mao esquerda: desenho de js/clerigo_fx.js; o livro fica em pe e aberto para a frente no osso do escudo */
+function wpnCaster(){return WPN==='staff'||WPN==='book';}/* conjuradores: mesmas animacoes do cajado (idle, corrida, CastShort da raca) */
+function livroNoRig(rig,on){
+  if(!rig||!rig.root)return;
+  if(on&&!rig.livro&&window.ClerigoFX&&ClerigoFX.pronto){var bo=rig.root.getObjectByName('Shield_L_Bone')||rig.root.getObjectByName('Bip01_L_Hand')||rig.root.getObjectByName('Bip01_L_Forearm');
+    if(bo){var c=new THREE.Group(),lv=ClerigoFX.livro(1.15);c.add(lv);bo.add(c);rig.root.updateMatrixWorld(true);var ws=new THREE.Vector3(),wq=new THREE.Quaternion(),rq=new THREE.Quaternion();bo.getWorldScale(ws);bo.getWorldQuaternion(wq);rig.root.getWorldQuaternion(rq);
+      c.scale.setScalar(1/Math.max(1e-4,Math.abs(ws.x)));c.quaternion.copy(wq.invert().multiply(rq));lv.position.set(0,.05,.12);rig.livro=c;}}
+  if(rig.livro)rig.livro.visible=!!on;
+}
+function clerigoBasicoIni(id){/* Lamina de Luz: cada golpe do combo dispara uma lamina (data/armas/book.json -> basico) */
+  var w=(DATA.armas.book&&DATA.armas.book.basico)||null,an=S.anim;if(!w||!an)return;var nv=w.niveis[id]||{};
+  an.skill={name:'Lamina de Luz',range:w.range,proj:w.proj,css:'#ffd977',pose:'basico_livro',half:.3,cura:w.cura};an.clerB=1;an.dmg=Math.round(an.dmg*(nv.mul||1));
+  try{SFX.play('c_s1_swing');}catch(_){}
+}
+/* <<< CLAUDE [clerigo] */
 function applyWeaponVis(rig){
+  if(GREADY.staff&&!GREADY.book)GREADY.book=GREADY.staff;livroNoRig(rig,WPN==='book');/* [clerigo] */
 
   if(!rig)return;
 
@@ -2422,7 +2445,7 @@ function weaponPose(rig,dt){
 
   /* pose pronta */
 
-  var hasNativeIdle=(WPN==='sword'&&MX.clips.sword2h_idle)||(WPN==='staff'&&(MX.clips.staff_idle||MX.clips.staff_idle2));
+  var hasNativeIdle=(WPN==='sword'&&MX.clips.sword2h_idle)||(wpnCaster()&&(MX.clips.staff_idle||MX.clips.staff_idle2));
 
   var wantR=((FORCE_READY||!hasNativeIdle)&&GREADY[WPN]&&!S.pdead&&(!S.anim&&!S.guard&&S.rollT<0&&S.stun<=0&&rig.gw<.05))?1:0;
 
@@ -2460,7 +2483,7 @@ function weaponPose(rig,dt){
 
   }
 
-  if(WPN==='staff'){
+  if(wpnCaster()){
 
     var planted=rig.gw>.6;
 
@@ -2570,6 +2593,8 @@ var CM={
   m_s3:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
   m_s4:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
   m_s5:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
+  c_s1:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
+  c_s2:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0},
   m_s1:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0}
 
 };
@@ -2580,11 +2605,11 @@ function getClipConfig(pose){
   if(WPN==='shield'){var _gm=Guardiao.clipeConfig(pose,vrm);if(_gm)return _gm;}
   /* <<< CLAUDE [guardiao] */
 
-  if(WPN==='staff'){
+  if(wpnCaster()){
 
-    /* [mago] skill 1: clipe CastShort da propria raca (Guardiao.anexarCast) */ if(/^m_s[1-5]$/.test(pose)&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1)return vrm.mCast;
+    /* [mago] skill 1: clipe CastShort da propria raca (Guardiao.anexarCast) */ if(/^(m_s[1-5]|c_s[1-7])$/.test(pose)&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1)return vrm.mCast;
 
-    /* [mago] ataque padrao: o CastShort da propria raca nos 3 golpes (efeito: MagoFX.brisa/aviso/cristais) */ if((pose==='sweep'||pose==='thrust'||pose==='spin')&&window.MagoFX&&MagoFX.basico&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1){var _mh=vrm.mCast.hit;return {c:'m_cast1',sp:1.5,hit:_mh,cut:Math.min(1,_mh+.12),lg:0};}
+    /* [mago] ataque padrao: o CastShort da propria raca nos 3 golpes (efeito: MagoFX.brisa/aviso/cristais) */ if((pose==='sweep'||pose==='thrust'||pose==='spin')&&(WPN==='book'||(window.MagoFX&&MagoFX.basico))&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1){var _mh=vrm.mCast.hit;return {c:'m_cast1',sp:1.5,hit:_mh,cut:Math.min(1,_mh+.12),lg:0};}
 
     var staffCM={
 
@@ -2616,6 +2641,8 @@ function getClipConfig(pose){
       m_s3:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
       m_s4:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
       m_s5:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
+      c_s1:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
+      c_s2:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0},
       m_s1:  {c:'staff_cast',    sp:1.8, hit:.35, cut:.75, lg:0}
 
     };
@@ -2998,14 +3025,14 @@ function spawnProj(sk,dmg,o){
 
 /* [pvp-proj] projetil de outro jogador: so o desenho voando na velocidade real (o servidor decide o acerto); some quando o servidor avisa que acertou */
 function projRemoto(m){
-  var w=DATA.armas&&DATA.armas[m.ar],sk=w&&w.skills&&w.skills[m.i];if(!sk||!sk.proj)return;
+  var w=DATA.armas&&DATA.armas[m.ar],sk=w&&(m.i<0?(w.basico&&w.basico.proj?Object.assign({name:'Lamina de Luz'},w.basico):null):(w.skills&&w.skills[m.i]));if(!sk||!sk.proj)return;/* [clerigo] i<0 = ataque basico de projetil */
   var sk2=Object.assign({},sk,{range:m.r,proj:Object.assign({},sk.proj,{speed:m.v})});
   spawnProj(sk2,0,{x:m.x,z:m.z,face:Math.atan2(m.dx,m.dz),off:0,vis:true,pid:m.pid});
 }
 function projFim(pid){PROJ.forEach(function(p){if(p.pid===pid&&p.sk.proj&&!p.sk.proj.pierce){if(!p.fx)burst(p.x,1.3,p.z,8,0x8bc1ff,2);p.t=p.range+1;}});}
 /* [mago] skills 2 a 5: area com aviso, paralisia e zona de espinhos (efeitos em js/mago_fx2.js; numeros em data/armas/staff.json) */
 var ZONAS=[];
-function magoAreaFx(sk,al,dl){try{if(sk.pose==='m_s2')MagoFX2.meteoro(al.x,al.z,dl);else MagoFX2.coluna(al.x,al.z,dl,S.px,S.pz);}catch(_){}}
+function magoAreaFx(sk,al,dl){if(sk.area&&sk.area.cura){try{ClerigoFX.glifo(al.x,al.z,dl,sk.area.raio,(sk.area.pulsos||4)*(sk.area.iv||1),sk.area.pulsos);SFX.play('c_s2_hit');}catch(_){}return;}/* [clerigo] */try{if(sk.pose==='m_s2')MagoFX2.meteoro(al.x,al.z,dl);else MagoFX2.coluna(al.x,al.z,dl,S.px,S.pz);}catch(_){}}
 function paralisaAlvo(x,z,sz,sk){try{var dur=sk.proj.paralisa||3,zn=sk.zona;MagoFX2.paralisia(x,z,1.8*(sz||1),dur);
   if(zn)setTimeout(function(){MagoFX2.zona(x,z,zn.raio,zn.dur,zn.tick);ZONAS.push({x:x,z:z,r:zn.raio,t:0,dur:zn.dur,tick:zn.tick,nx:0,dmg:zn.dmg,sk:Object.assign({},sk,{golpe:null,q:0})});},dur*1000);}catch(_){}}
 function zonasTick(dt){
@@ -3021,7 +3048,7 @@ function ccRecebe(m){try{
   else if(m.k==='zona')MagoFX2.zona(m.x,m.z,m.r,m.d,m.tk);
 }catch(_){}}
 function updateProj(dt){
-  if(window.MagoFX)MagoFX.tick(dt);if(window.MagoFX2)MagoFX2.tick(dt);zonasTick(dt);
+  if(window.MagoFX)MagoFX.tick(dt);if(window.MagoFX2)MagoFX2.tick(dt);if(window.ClerigoFX)ClerigoFX.tick(dt);zonasTick(dt);
 
   for(var i=PROJ.length-1;i>=0;i--){
 
@@ -3751,7 +3778,7 @@ function hexCss(c){return '#'+('000000'+c.toString(16)).slice(-6);}
 /* >>> CLAUDE [pvp-fx] efeito das skills dos OUTROS jogadores: o servidor avisa (atk) e cada cliente refaz a explosao na posicao do atacante, trocando S por instantes */
 var REMOTEFX=false;
 function skillFxRemoto(e,i,f,m){
-  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;if(sk.taunt&&DG.grp==='host')tauntAplica(e.id,e.x,e.z,sk.range||10);/* [ameaca] Guardiao do grupo provocou */if(sk.proj&&sk.proj.visual)return;if(sk.area&&m&&m.x!==undefined){try{if(sk.pose==='m_s2')MagoFX2.meteoro(m.x,m.z,m.d||sk.area.delay);else MagoFX2.coluna(m.x,m.z,m.d||sk.area.delay,e.x,e.z);}catch(_){}return;}
+  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;if(sk.taunt&&DG.grp==='host')tauntAplica(e.id,e.x,e.z,sk.range||10);/* [ameaca] Guardiao do grupo provocou */if(sk.proj&&sk.proj.visual)return;if(sk.area&&sk.area.cura&&m&&m.x!==undefined){try{ClerigoFX.glifo(m.x,m.z,m.d||sk.area.delay,sk.area.raio,(sk.area.pulsos||4)*(sk.area.iv||1),sk.area.pulsos);}catch(_){}return;}/* [clerigo] */if(sk.area&&m&&m.x!==undefined){try{if(sk.pose==='m_s2')MagoFX2.meteoro(m.x,m.z,m.d||sk.area.delay);else MagoFX2.coluna(m.x,m.z,m.d||sk.area.delay,e.x,e.z);}catch(_){}return;}
   if(Math.hypot(e.x-S.px,e.z-S.pz)>80)return;
   var n=(sk.hits||[1]).length;
   for(var k=0;k<n;k++)(function(k){setTimeout(function(){
@@ -3932,6 +3959,8 @@ var POSE={
   m_s3:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   m_s4:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   m_s5:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  c_s1:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  c_s2:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   m_s1:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false}
 
 };
@@ -4068,6 +4097,7 @@ function perform(id,q){
 
   S.anim=mkAnim(id,dmg,sk,perfect,null);
   if(WPN==='staff'&&window.MagoFX&&MagoFX.basico&&S.anim.clipMode&&(id==='sweep'||id==='thrust'||id==='spin')&&vrm&&vrm.mCast)magoBasicoIni(id);/* [mago] */
+  if(WPN==='book'&&S.anim&&S.anim.clipMode&&(id==='sweep'||id==='thrust'||id==='spin'))clerigoBasicoIni(id);/* [clerigo] */
   /* >>> CLAUDE [guardiao] 2026-10-28 — efeitos de antes do golpe do ataque padrao (rastro, poeira) */ if(WPN==='shield')Guardiao.aoAtacar(S.anim); /* <<< CLAUDE [guardiao] */
 
   /* [hud-clean] aviso 'Combo interrompido' removido: poluia a tela */
@@ -4155,7 +4185,7 @@ function regenTick(dt){
   if(REGEN.acc>=1){var q=Math.floor(REGEN.acc);REGEN.acc-=q;S.php=Math.min(S.pmax,S.php+q);REGEN.ult=S.php;try{renderHud();}catch(_){}}
 }
 /* <<< CLAUDE [regen] */
-function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;
+function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an._tarde&&an.skill&&an.skill.area&&an.skill.area.cura)return;/* [clerigo] glifo: a cura vem do servidor */
 if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange))return;/* [mago] skill de projetil desenha o proprio disparo tambem no PvP/santuario */
 
   if(an.skill&&an.skill.area&&!an.noRange&&!an._tarde){/* [mago] skills de area com aviso (meteoro, coluna): o efeito comeca agora e o dano cai quando o aviso termina */
@@ -6737,11 +6767,11 @@ function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario ch
   else{banner('O ITEM QUEBROU',m.nome+' +'+m.nivel+' não resistiu à forja.','#ff6a3a');if(!som('enc_falha'))try{SFX.play('hit');}catch(_){}}
 }
 function ssTiro(an){/* [soulshot] o servidor desconta; aqui so aplica o bonus no dano local (mobs/chefe) e marca o estalo */
-  if(REMOTEFX||!INV_SRV||!window.Loja||!Loja.dados())return;var id=WPN==='staff'?'spiritshot':'soulshot',c=Loja.dados().consumiveis[id];
+  if(REMOTEFX||!INV_SRV||!window.Loja||!Loja.dados())return;var id=wpnCaster()?'spiritshot':'soulshot',c=Loja.dados().consumiveis[id];
   if(!c||!(CONSUM[id]>0))return;an.ss=1;an.dmg=Math.round(an.dmg*(1+(c.bonus||0)));
 }
 function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
-function curaDoServidor(hp){if(typeof hp==='number'){S.php=hp;renderHud();}}
+function curaDoServidor(hp,m){if(typeof hp==='number'){S.php=hp;renderHud();if(m&&m.de&&(m.q|0)>0)floatText('+'+(m.q|0),'#7dff9a',22,'p');}}/* [clerigo] cura de outro jogador mostra o valor */
 function dropRecebido(m){if(m&&(m.adena>0||(m.itens&&m.itens.length)))try{Expedicao.ev('drop');}catch(_){}
   var R=ITM.rarities;
   if(m.adena>0){som('moeda');try{Chat.sistema('Você obteve '+m.adena+' Adena.');}catch(_){}}
@@ -8223,7 +8253,7 @@ function frame2(dt,T){
 
   if(vrm&&vrm.drv){playerLoco();updateRig(vrm,dt);swordPts(vrm);trailStep(trailP,!!S.anim&&!S.pdead,_ta,_tb);}
 
-  shield.visible=shieldRing.visible=S.guard&&WPN==='staff';/* so o cajado cria a bolha de luz; espada e escudo bloqueiam com o proprio objeto */
+  shield.visible=shieldRing.visible=S.guard&&wpnCaster();/* so o cajado cria a bolha de luz; espada e escudo bloqueiam com o proprio objeto */
 
   if(S.guard){
 
@@ -9262,7 +9292,7 @@ Guardiao.init({
 /* <<< CLAUDE [guardiao] */
 /* >>> CLAUDE [net] 2026-10-28 — liga o cliente de rede (multiplayer) ao jogo */
 try{MagoFX.init(THREE,scene);}catch(_){}/* [mago] efeitos da Shuriken de Vento */
-try{MagoFX2.init(THREE,scene);}catch(_){}/* [mago] skills 2 a 5 (js/mago_fx2.js) */
+try{MagoFX2.init(THREE,scene);}catch(_){}try{ClerigoFX.init(THREE,scene);}catch(_){}/* [clerigo] *//* [mago] skills 2 a 5 (js/mago_fx2.js) */
 try{PerfLog.init(renderer,scene,function(){var o={pg:'arena'};try{var st=Net.status();o.mapa=st.mapa;o.canal=st.canal;o.rem=st.remotos;}catch(e){}try{o.mobs=MOBS.length;}catch(e){}try{o.dg=!!DG.on;}catch(e){}try{o.boss=!!BOSS_ON;}catch(e){}return o;});}catch(_){}/* [perf] log de desempenho (so no aparelho; Config > LOG DE DESEMPENHO) */
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
 try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot],ico:window.InvUI?InvUI.icone(b,{tam:30}):''};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
@@ -9270,6 +9300,7 @@ try{Expedicao.init({pagina:'arena',mapa:MAPA_ABERTO,S:function(){return S;}});}c
 setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Cruma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 Net.init({
+  curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,on);},/* [clerigo] */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,/* [mobs-servidor] */
   getY:function(){return Torre.on?Torre.y:undefined;},alturaRemota:function(y){return Torre.on?y-Torre.baseY:0;},/* [mapas-multi] altura no relevo (mapas abertos e torre) */

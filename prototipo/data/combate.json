@@ -2,7 +2,7 @@
   "_nota": "Dados de combate do IS BLADE. Editar aqui (ou no painel F2, so em localhost) e recarregar a pagina. Cores em #rrggbb. Tempos em segundos, distancias em unidades do mundo (1 = cerca de 1 m). As skills de cada arma ficam em data/armas/<id>.json.",
 
   "slots": ["Q", "E", "R", "F", "T", "Z"],
-  "weapons": ["sword", "shield", "staff"],
+  "weapons": ["sword", "shield", "staff", "book"],
   "estadoCombate": { "saidaSegundos": 60, "_claude": "CLAUDE [guardiao] 2026-10-27: segundos sem dar nem tomar dano/debuff para sair de combate e liberar a troca de arma (estilo Albion Online)" },
 
   "player": {

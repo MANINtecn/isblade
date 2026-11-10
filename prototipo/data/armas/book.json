@@ -1,0 +1,102 @@
+{
+ "id": "book",
+ "name": "Livro Astral",
+ "_nota": "Arma do Clerigo (healer). Fase 1 (10/11/2026): ataque basico Lamina de Luz + Cura Mirada + Glifo de Cura. Fonte unica: cliente (arena/cidade) e servidor leem daqui. dmg = dano no PvP; cura = vida curada no aliado (o servidor soma +1% por ponto de INT acima de 18). Aliado = quem voce nao pode ferir (grupo, cidade, quem nao esta em PvP). Curar aliado com flag/karma deixa o Clerigo com flag (como no L2). Visual: js/clerigo_fx.js (desenho do dono no Blender: clerigo_skills.blend).",
+ "mastery": {
+  "xpHit": 1,
+  "xpSkill": 2,
+  "levels": [
+   0,
+   30,
+   90,
+   180,
+   320,
+   520
+  ]
+ },
+ "variants": [],
+ "basico": {
+  "_nota": "Lamina de Luz: cada golpe do combo (3 niveis) dispara uma lamina de cristal reta e rapida; atravessa aliados curando de leve e para no primeiro inimigo. mul = multiplicador do dano do PvE sobre o golpe base.",
+  "tipo": "proj",
+  "dmg": 18,
+  "cura": 9,
+  "range": 16,
+  "proj": {
+   "speed": 15,
+   "width": 0.9,
+   "pierce": false,
+   "passaAliado": true,
+   "visual": "lamina_luz",
+   "escala": 1
+  },
+  "niveis": {
+   "sweep": {
+    "n": 1,
+    "mul": 0.8
+   },
+   "thrust": {
+    "n": 2,
+    "mul": 1.0
+   },
+   "spin": {
+    "n": 3,
+    "mul": 1.2
+   }
+  }
+ },
+ "skills": [
+  {
+   "name": "Cura Mirada",
+   "pose": "c_s1",
+   "cd": 2,
+   "dmg": 30,
+   "cura": 70,
+   "dur": 0.26,
+   "range": 18,
+   "half": 0.3,
+   "ifr": 0,
+   "intr": 0,
+   "hitk": 0.5,
+   "css": "#7dffa8",
+   "proj": {
+    "speed": 12,
+    "width": 1.1,
+    "pierce": false,
+    "visual": "cura_mirada",
+    "escala": 0.9
+   },
+   "unlock": 1,
+   "icon": "cura_mirada",
+   "desc": "Cristal de luz verde que voa reto (18 m, 12 m/s). No aliado: cura 70 (+INT). No inimigo: dano de luz. Acerta o primeiro que encontrar."
+  },
+  {
+   "name": "Glifo de Cura",
+   "pose": "c_s2",
+   "cd": 12,
+   "dmg": 0,
+   "dur": 0.3,
+   "range": 10,
+   "half": 3.14,
+   "ifr": 0,
+   "intr": 0,
+   "hitk": 0.5,
+   "css": "#ffd977",
+   "mira": true,
+   "mira_min": 0.5,
+   "mira_max": 10,
+   "raio": [
+    3.3
+   ],
+   "area": {
+    "delay": 0.5,
+    "raio": 3.3,
+    "cura": 30,
+    "pulsos": 4,
+    "iv": 1
+   },
+   "unlock": 5,
+   "icon": "glifo_cura",
+   "desc": "Desenha um glifo hexagonal no chao onde voce mira (ate 10 m): 4 pulsos de cura (30 cada, +INT, 1 por segundo) em voce e nos aliados dentro (raio 3,3 m). Nao fere ninguem."
+  }
+ ]
+}

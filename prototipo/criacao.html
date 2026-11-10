@@ -181,7 +181,7 @@ body.kb .enter-btn { top:8px; bottom:auto; }
         <div class="opt-card" id="cls-guerreiro" onclick="selectClasse('guerreiro')"><span class="opt-name">Guerreiro</span><span class="opt-sub">Espada longa &middot; dano</span></div>
         <div class="opt-card" id="cls-guardiao" onclick="selectClasse('guardiao')"><span class="opt-name">Guardi&atilde;o</span><span class="opt-sub">Escudo &middot; defesa</span></div>
         <div class="opt-card" id="cls-mago" onclick="selectClasse('mago')"><span class="opt-name">Mago</span><span class="opt-sub">Cajado &middot; magia</span></div>
-        <div class="opt-card off" id="cls-clerico" onclick="selectClasse('clerico')" title="Em breve"><span class="opt-name">Cl&eacute;rigo</span><span class="opt-sub">em breve</span></div>
+        <div class="opt-card" id="cls-clerico" onclick="selectClasse('clerico')"><span class="opt-name">Cl&eacute;rigo</span><span class="opt-sub">Livro Astral</span></div>
       </div>
       <div id="clsInfo" class="info"></div>
     </div>
@@ -664,6 +664,8 @@ function attachWeapon(){
   if(staffObj && staffObj.parent) staffObj.parent.remove(staffObj); staffObj = null;
   if(currentWeapon === 'staff' && wpBone){
     staffObj = makeStaff(); wpBone.add(staffObj);
+  } else if(currentWeapon === 'book' && shdBone){/* [clerigo] Livro Astral aberto na mao esquerda */
+    staffObj = makeBook(); shdBone.add(staffObj);
   } else if(currentWeapon === 'dragon_slayer' && wpBone){
     weaponObj = attachL2Item(wpBone, null, 'assets/personagens/dragon_slayer.glb');
   } else if(currentWeapon === 'shield'){/* CLAUDE [guardiao]: era swordshield */
@@ -683,6 +685,15 @@ function makeStaff(){
   var orbe = new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 10), new THREE.MeshStandardMaterial({ color: 0x66bbff, emissive: 0x2266cc, emissiveIntensity: 1.2 }));
   orbe.position.y = 22.5;
   g.add(haste); g.add(orbe); g.rotation.set(L2_WPN_AXIS_FIX, 0, 0);
+  return g;
+}
+/* [clerigo] Livro Astral (mesmo desenho do jogo: js/clerigo_fx.js -> ClerigoFX.livro), em unidades do osso */
+function makeBook(){
+  var g = new THREE.Group(), L = 4.6, W = .32, H = 7, capa = new THREE.MeshStandardMaterial({ color: 0x1c2c48, roughness: .6 }), ouro = new THREE.MeshStandardMaterial({ color: 0xd9b25a, roughness: .35, metalness: .8, emissive: 0x3a2a08 }), pag = new THREE.MeshBasicMaterial({ color: 0xfff0c4 });
+  function cx(m, w, h, d, x, z){ var o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, 0, z); return o; }
+  g.add(cx(capa, W * 1.6, H, W * 2, 0, 0));
+  [-1, 1].forEach(function(l){ var pv = new THREE.Group(); pv.rotation.y = l * (Math.PI / 2 - .87); g.add(pv); pv.add(cx(capa, L, H, W, l * L / 2, 0)); pv.add(cx(ouro, L * .96, H * 1.02, W * .6, l * L / 2, -W * .7)); pv.add(cx(pag, L * .88, H * .9, W * .5, l * (L / 2 + .2), W * 1.05)); });
+  g.position.set(0, 3, 2.5); g.rotation.set(0, Math.PI / 2, 0);
   return g;
 }
 var currentAction = null;
@@ -864,7 +875,8 @@ window.selectHairColor = function(hex){
 var CLASSES = {
   guardiao:  { nome: 'Guardião',  wpn: 'shield',        save: 'shield', papel: 'Defensor: segura o inimigo e protege o grupo.' },
   mago:      { nome: 'Mago',          wpn: 'staff',         save: 'staff',  papel: 'Dano mágico à distância com habilidades de área.' },
-  guerreiro: { nome: 'Guerreiro',     wpn: 'dragon_slayer', save: 'sword',  papel: 'Dano físico corpo a corpo, combos rápidos.' }
+  guerreiro: { nome: 'Guerreiro',     wpn: 'dragon_slayer', save: 'sword',  papel: 'Dano físico corpo a corpo, combos rápidos.' },
+  clerico:   { nome: 'Clérigo',       wpn: 'book',          save: 'book',   papel: 'Suporte: cura os aliados e fere com luz (Livro Astral).' }/* [clerigo] 10/11 */
 };
 var currentClasse = 'guerreiro';
 window.selectClasse = function(id){

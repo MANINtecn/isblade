@@ -30,7 +30,7 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
-try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0 })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASICO = {};                                              /* arma -> ataque padrao em ponto mirado (data/armas/<arma>.json -> basico), ex.: cajado/mago */
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.basico && j.basico.niveis) BASICO[j.id] = j.basico; }); } catch(e){ console.log('basico:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
@@ -187,7 +187,7 @@ function fere(c, A, V, base, t, pid){
 let proxProj = 1;
 function criaProj(c, A, d, idx){
   const p = d.proj, dx = Math.sin(A.f), dz = Math.cos(A.f);
-  const pr = { id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora(), par: +p.paralisa || 0, zona: d.zona || null };
+  const pr = { id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora(), par: +p.paralisa || 0, zona: d.zona || null, cura: +d.cura || 0, passaAliado: !!p.passaAliado };
   (c.proj = c.proj || []).push(pr); if(c.proj.length > 200) c.proj.shift();
   difunde(c, { t: 'proj', pid: pr.id, a: A.id, ar: A.arma, i: idx, x: r2(pr.x), z: r2(pr.z), dx: r2(dx), dz: r2(dz), v: pr.v, r: pr.range }, A);
 }
@@ -196,8 +196,11 @@ function passaProj(c, t){
   for(let i = L.length - 1; i >= 0; i--){
     const p = L[i], dt = Math.min(.25, t - p.tl), passo = p.v * dt, nx = p.x + p.dx * passo, nz = p.z + p.dz * passo; p.tl = t;
     for(const V of c.jog.values()){
-      if(V === p.A || V.morto || p.hit.has(V.id) || t < V.imune || !podeFerir(c, p.A, V, t)) continue;
+      if(V === p.A || V.morto || p.hit.has(V.id)) continue;
+      const aliado = !podeFerir(c, p.A, V, t);                                  /* [clerigo] projetil de cura: aliado (quem nao pode ferir) e curado */
+      if(aliado ? !p.cura : t < V.imune) continue;
       const sx = nx - p.x, sz = nz - p.z, l2 = sx * sx + sz * sz || 1e-6, u = Math.max(0, Math.min(1, ((V.x - p.x) * sx + (V.z - p.z) * sz) / l2)), qx = p.x + sx * u, qz = p.z + sz * u;      /* trecho percorrido neste quadro: nao atravessa ninguem em alta velocidade */
+      if(aliado && Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); curaJog(c, p.A, V, p.cura, t); if(!p.passaAliado){ p.d = p.range + 1; break; } continue; }
       if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id); if(p.par) paralisa(c, p.A, V, p.par, p.zona); if(!p.pierce){ p.d = p.range + 1; break; } }
     }
     p.x = nx; p.z = nz; p.d += passo; if(p.d >= p.range) L.splice(i, 1);
@@ -222,10 +225,22 @@ function areaSkill(c, A, d, m){
   const dx = x - A.x, dz = z - A.z, dd = Math.hypot(dx, dz) || 1, dist = Math.max(2, Math.min(d.range || 10, dd)); x = A.x + dx / dd * dist; z = A.z + dz / dd * dist;
   const dl = Math.max(.3, Math.min(1.5, d.area.delay || .8));
   difunde(c, { t: 'atk', id: A.id, k: 's', v: m.i | 0, f: r2(A.f), x: r2(x), z: r2(z), d: r2(dl) });
+  if(d.area.cura){                                                           /* [clerigo] glifo de cura: pulsos em quem esta dentro (o proprio clerigo e os aliados); nao fere */
+    const n = Math.max(1, Math.min(8, d.area.pulsos | 0 || 4)), iv = Math.max(.3, Math.min(3, +d.area.iv || 1)), R = (d.area.raio || 3) + .45;
+    for(let k = 0; k < n; k++) setTimeout(() => { const t2 = agora(); for(const V of c.jog.values()){ if(V.morto || Math.hypot(V.x - x, V.z - z) > R) continue; if(V === A || !podeFerir(c, A, V, t2)) curaJog(c, A, V, d.area.cura, t2); } }, (dl + k * iv) * 1000);
+    return;
+  }
   setTimeout(() => {
     if(A.morto) return; const t2 = agora();
     for(const V of c.jog.values()){ if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue; if(Math.hypot(V.x - x, V.z - z) <= (d.area.raio || 2) + .45) fere(c, A, V, d.dmg, t2, 0); }
   }, dl * 1000);
+}
+/* [clerigo] cura de jogador: +1% por ponto de INT acima de 18; curar quem esta em PvP (flag/karma) deixa o curador com flag, como no L2 */
+function curaJog(c, A, V, base, t){
+  if(!V || V.morto || !(base > 0)) return; const it = A.pers ? (Prog.statsDe(A.pers).int | 0) : 18, q = Math.max(1, Math.round(base * (1 + Math.max(0, it - 18) / 100)));
+  const antes = V.hp; V.hp = Math.min(V.pmax, V.hp + q);
+  if(V !== A && abertoAqui(c, V) && (temFlag(V, t) || temKarma(V)) && !temKarma(A)) A.flagAte = Math.max(A.flagAte || 0, t + FLAG_S);
+  difunde(c, { t: 'cura', v: V.id, hp: V.hp, q: V.hp - antes, de: A.id });
 }
 function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
 /* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
@@ -248,13 +263,17 @@ function ataqueMira(c, A, m, t){
 /* ---- ataque: o servidor resolve ---- */
 function ataque(c, A, m){
   if(A.morto) return; const t = agora(); let d, parte2 = false;
+  if(m.k === 'b' && BASICO[A.arma] && BASICO[A.arma].proj){                  /* [clerigo] ataque basico de projetil (Lamina de Luz): voa de verdade, cura aliado e fere inimigo */
+    const mb = BASICO[A.arma]; if(!mb.niveis[m.id] || t - A.ultB < .22) return; A.ultB = t; if(typeof m.f === 'number') A.f = m.f;
+    criaProj(c, A, { dmg: Math.round(mb.dmg * (1 + tiro(A))), range: mb.range, proj: mb.proj, cura: mb.cura }, -1); return;
+  }
   if(m.k === 'b' && BASICO[A.arma]){ ataqueMira(c, A, m, t); return; }
   if(m.k === 'b'){ d = BASIC[m.id]; if(!d || t - A.ultB < .22) return; A.ultB = t; }
   else if(m.k === 's'){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
     if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > 3) return; parte2 = true; }            /* 2o golpe da mesma skill: sem nova recarga */
     else { if((A.cd[A.arma + i] || 0) > t + .9) return; A.cd[A.arma + i] = t + s.cd; A.ultSk = A.arma + i; A.ultSkT = t; }
-    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona };
+    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona, cura: s.cura };
   } else return;
   A.f = typeof m.f === 'number' ? m.f : A.f;
   const ss = parte2 ? (A.ssUlt || 0) : (A.ssUlt = tiro(A)); if(ss) d = Object.assign({}, d, { dmg: Math.round(d.dmg * (1 + ss)) });      /* soulshot: o 2o golpe da skill usa o mesmo tiro */
