@@ -974,4 +974,18 @@ cenas = [
     montar_ressur()
 ]
 
+# Registra o painel interativo de skills na aba "Skills" da barra lateral (tecla N)
+try:
+    caminho_p = "C:/TECX SOFTHOUSE/IS ONLINE/prototipo/tools/blender_fx/painel_skills_mago.py"
+    if os.path.exists(caminho_p):
+        exec(compile(open(caminho_p, encoding="utf-8").read(), "painel", "exec"))
+    for a in bpy.context.window.screen.areas:
+        if a.type == "VIEW_3D":
+            for sp in a.spaces:
+                if sp.type == "VIEW_3D":
+                    sp.show_region_ui = True
+                    sp.shading.type = "MATERIAL"
+except Exception as e:
+    print("Nota sobre painel:", e)
+
 print("Clerigo estilizado pronto! Cenas geradas:", [(s.name, len(s.objects), s.frame_end) for s in cenas])
