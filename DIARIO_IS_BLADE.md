@@ -3640,3 +3640,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - **Asas Angelicais Majestosas de Penas Reais**: Criado o gerador procedural de penas em camadas (`bm_asa_completa`), com 13 penas articuladas anatomicamente por asa (primárias longas em curvatura fanning, secundárias e plumas suaves de ombro). As asas abrem-se em leque glorioso com mais de 4 metros de envergadura atrás do aliado ao despertar na coluna celestial.
     - Adicionada câmera frontal (`cam_frontal`) enquadrando a simetria serena do renascimento.
   - Salvo diretamente no arquivo `prototipo/assets/personagens/clerigo_skills.blend`.
+
+### [Antigravity] 11/11/2026 - Alinhamento da Cruz Única (C0), Cruz Fincando em Pé no Chão (C1) e Criação da Skill Oficial de FX Refinado
+- **Pedidos do Dono**:
+  1. *C0*: "cruz de luz ta desalinhado veja , e ao tentar entregar um 3d voce colocou 3 cruz ? foi isso ? visivelmente ta mais bem mais feito, acabamento fino e nesse nivel que precisamos continuar."
+  2. *C1*: "cura mirada a cruz ta deitada quero que ela caia sem a coluna e caia em pe se fincando no chao, e a parte de baixo da cruz um pouco mais comprido saca"
+  3. *Regra Global*: "precisamos criar uma skill pra voce e o claude, quando for criar skils de personagens do game usar esse tipo de trabalho refinado, pois todas as skils tem muita peça maciça ao inves de um efeito leve visivelmente falando. saca"
+- **Correções Aplicadas no Blender via MCP**:
+  - **C0 (Mini Cruz de Luz - Alinhamento e Cruz Única)**:
+    - Eliminada a sobreposição conflitante: removido o sprite 2D billboard de cruz (`fl_crz`) que girava para a câmera e desalinhava com o modelo 3D.
+    - O modelo é agora **UMA ÚNICA Cruz 3D facetada** (`bm_cruz_facetada`), perfeitamente alinhada e vertical no espaço tridimensional.
+    - Acoplado um halo radial esférico suave (simetria pura circular que nunca desalinha independente do ângulo de visão da câmera) e luz pontual dourada.
+  - **C1 (Cura Mirada - Cruz em Pé se Fincando no Chão)**:
+    - Removida a coluna cilíndrica de luz que tapava a visão ("sem a coluna").
+    - Haste inferior significativamente alongada (`haste_longa=True`), conferindo proporções nobres e elegantes de crucifixo clássico com ponta afilada.
+    - A cruz cai dos céus perfeitamente em pé (vertical) e **se finca no solo** ($Z = 9.5 \to 0.82$), cravando sua base na terra e abrindo um pulso sagrado e cúpula de bênção translúcida ao redor.
+- **Criação da Skill Permanente para Claude & Antigravity**:
+  - Arquivo criado: `.claude/skills/estilo-fx-refinado/SKILL.md` (e registrado também na configuração global de skills do Antigravity).
+  - Define o fim das peças maciças (proibição de sólidos pesados como cones, blocos opacos ou cilindros de concreto).
+  - Estabelece os pilares do visual leve: geometria esbelta com espinha de diamante, miolo branco incandescente com queda de gradiente suave, volumetria translúcida e anatomia refinada em formas orgânicas.
+- Salvo e sincronizado no Blender e no repositório Git.

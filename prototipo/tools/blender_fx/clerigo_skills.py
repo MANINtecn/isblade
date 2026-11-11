@@ -298,62 +298,61 @@ def bm_toro(R, r, segs_u=32, segs_v=12):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
 
-def bm_cruz_facetada(s=0.6, esp=0.10):
-    """Cruz 3D Facetada estilo joia sagrada com espinha central (crista) frente e verso"""
+def bm_cruz_facetada(s=0.6, esp=0.08, haste_longa=False):
+    """Cruz 3D Facetada e vertical (plano XZ, espessura Y). haste_longa=True alonga a parte inferior para se fincar no chao."""
     bm = bmesh.new()
-    w = s * 0.14
-    Yc = s * 0.12
-    Yup = s * 0.55
-    Ydown = s * 0.70
-    Xarm = s * 0.45
+    uvl = bm.loops.layers.uv.verify()
+    w = s * 0.10     # largura elegante e fina dos bracos
+    Zup = s * 0.36   # braco superior
+    Zdown = s * (0.92 if haste_longa else 0.52) # haste inferior bem mais longa e esbelta
+    Xarm = s * 0.35  # bracos laterais
     
     perim_2d = [
-        (w, Yc - w), (Xarm, Yc - w), (Xarm, Yc + w), (w, Yc + w),
-        (w, Yup), (-w, Yup), (-w, Yc + w), (-Xarm, Yc + w),
-        (-Xarm, Yc - w), (-w, Yc - w), (-w, -Ydown), (w, -Ydown)
+        (w, -w), (Xarm, -w), (Xarm, w), (w, w),
+        (w, Zup), (-w, Zup), (-w, w), (-Xarm, w),
+        (-Xarm, -w), (-w, -w), (-w, -Zdown), (w, -Zdown)
     ]
     
-    v_perim_f = [bm.verts.new((x, y, esp * 0.2)) for x, y in perim_2d]
-    v_perim_v = [bm.verts.new((x, y, -esp * 0.2)) for x, y in perim_2d]
+    v_f = [bm.verts.new((x, esp * 0.25, z)) for x, z in perim_2d]
+    v_v = [bm.verts.new((x, -esp * 0.25, z)) for x, z in perim_2d]
     
-    # Vertices crista frente (+Z)
-    c_f = bm.verts.new((0, Yc, esp * 0.6))
-    top_f = bm.verts.new((0, Yup, esp * 0.35))
-    bot_f = bm.verts.new((0, -Ydown, esp * 0.35))
-    esq_f = bm.verts.new((-Xarm, Yc, esp * 0.35))
-    dir_f = bm.verts.new((Xarm, Yc, esp * 0.35))
+    # Cristas em Y (espinha facetada em diamante)
+    c_f = bm.verts.new((0, esp * 0.65, 0))
+    top_f = bm.verts.new((0, esp * 0.3, Zup))
+    bot_f = bm.verts.new((0, esp * 0.3, -Zdown))
+    esq_f = bm.verts.new((-Xarm, esp * 0.3, 0))
+    dir_f = bm.verts.new((Xarm, esp * 0.3, 0))
     
-    # Vertices crista verso (-Z)
-    c_v = bm.verts.new((0, Yc, -esp * 0.6))
-    top_v = bm.verts.new((0, Yup, -esp * 0.35))
-    bot_v = bm.verts.new((0, -Ydown, -esp * 0.35))
-    esq_v = bm.verts.new((-Xarm, Yc, -esp * 0.35))
-    dir_v = bm.verts.new((Xarm, Yc, -esp * 0.35))
+    c_v = bm.verts.new((0, -esp * 0.65, 0))
+    top_v = bm.verts.new((0, -esp * 0.3, Zup))
+    bot_v = bm.verts.new((0, -esp * 0.3, -Zdown))
+    esq_v = bm.verts.new((-Xarm, -esp * 0.3, 0))
+    dir_v = bm.verts.new((Xarm, -esp * 0.3, 0))
     
-    # Faces frente
-    bm.faces.new((c_f, v_perim_f[0], v_perim_f[1], dir_f))
-    bm.faces.new((c_f, dir_f, v_perim_f[2], v_perim_f[3]))
-    bm.faces.new((c_f, v_perim_f[3], v_perim_f[4], top_f))
-    bm.faces.new((c_f, top_f, v_perim_f[5], v_perim_f[6]))
-    bm.faces.new((c_f, v_perim_f[6], v_perim_f[7], esq_f))
-    bm.faces.new((c_f, esq_f, v_perim_f[8], v_perim_f[9]))
-    bm.faces.new((c_f, v_perim_f[9], v_perim_f[10], bot_f))
-    bm.faces.new((c_f, bot_f, v_perim_f[11], v_perim_f[0]))
+    # Faces frente (+Y)
+    bm.faces.new((c_f, v_f[0], v_f[1], dir_f))
+    bm.faces.new((c_f, dir_f, v_f[2], v_f[3]))
+    bm.faces.new((c_f, v_f[3], v_f[4], top_f))
+    bm.faces.new((c_f, top_f, v_f[5], v_f[6]))
+    bm.faces.new((c_f, v_f[6], v_f[7], esq_f))
+    bm.faces.new((c_f, esq_f, v_f[8], v_f[9]))
+    bm.faces.new((c_f, v_f[9], v_f[10], bot_f))
+    bm.faces.new((c_f, bot_f, v_f[11], v_f[0]))
     
-    # Faces verso
-    bm.faces.new((c_v, dir_v, v_perim_v[1], v_perim_v[0]))
-    bm.faces.new((c_v, v_perim_v[3], v_perim_v[2], dir_v))
-    bm.faces.new((c_v, top_v, v_perim_v[4], v_perim_v[3]))
-    bm.faces.new((c_v, v_perim_v[6], v_perim_v[5], top_v))
-    bm.faces.new((c_v, esq_v, v_perim_v[7], v_perim_v[6]))
-    bm.faces.new((c_v, v_perim_v[9], v_perim_v[8], esq_v))
-    bm.faces.new((c_v, bot_v, v_perim_v[10], v_perim_v[9]))
-    bm.faces.new((c_v, v_perim_v[0], v_perim_v[11], bot_v))
+    # Faces verso (-Y)
+    bm.faces.new((c_v, dir_v, v_v[1], v_v[0]))
+    bm.faces.new((c_v, v_v[3], v_v[2], dir_v))
+    bm.faces.new((c_v, top_v, v_v[4], v_v[3]))
+    bm.faces.new((c_v, v_v[6], v_v[5], top_v))
+    bm.faces.new((c_v, esq_v, v_v[7], v_v[6]))
+    bm.faces.new((c_v, v_v[9], v_v[8], esq_v))
+    bm.faces.new((c_v, bot_v, v_v[10], v_v[9]))
+    bm.faces.new((c_v, v_v[0], v_v[11], bot_v))
     
     # Laterais (12 quads)
     for i in range(12):
         j = (i + 1) % 12
-        bm.faces.new((v_perim_f[i], v_perim_f[j], v_perim_v[j], v_perim_v[i]))
+        bm.faces.new((v_f[i], v_f[j], v_v[j], v_v[i]))
         
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
@@ -622,7 +621,7 @@ def livro(col, pos, f_abre, f_fecha):
     esc(gl, [(f_abre - 1, 0.0), (f_abre + 4, 1.0), (f_fecha - 4, 1.0), (f_fecha, 0.0)])
     return raiz
 
-# ================================================================== 0. ATAQUE BASICO: MINI CRUZ DE LUZ (C0)
+# ================================================================== 0. ATAQUE BASICO: MINI CRUZ DE LUZ 3D UNICA (C0)
 def montar_basico():
     random.seed(7)
     F_FIM = 76
@@ -633,22 +632,19 @@ def montar_basico():
 
     raiz = bpy.data.objects.new("cruz_raiz", None)
     col.objects.link(raiz)
-    raiz.rotation_euler = (math.pi / 2, 0, 0) # Face apontada para o alvo
+    raiz.rotation_euler = (0, 0, 0) # Cruz perfeitamente em pe, vertical
 
-    # Mini Cruz de Luz 3D facetada (estilo reliquia sagrada lapidada)
-    cruz_corpo = para_obj(col, "cruz_corpo", bm_cruz_facetada(0.55, 0.08), M["esp_o"])
+    # UMA UNICA Cruz de Luz 3D facetada (sem cruzes extras que possam desalinhara)
+    cruz_corpo = para_obj(col, "cruz_corpo", bm_cruz_facetada(0.52, 0.07, haste_longa=False), M["esp_o"])
     cruz_corpo.parent = raiz
-    cruz_miolo = para_obj(col, "cruz_miolo", bm_cruz_facetada(0.36, 0.05), M["branco"])
-    cruz_miolo.parent = raiz
 
-    # Acabamento Refinado: Flare Estelar e Cruz de Brilho no centro do projetil
-    fl_est = sprite(col, "cruz_flare_est", M["spr_estrela_o"], 1.6, (0, 0.1, 0))
-    fl_est.parent = raiz
-    fl_crz = sprite(col, "cruz_flare_crz", M["spr_cruz_o"], 1.3, (0, 0.1, 0))
-    fl_crz.parent = raiz
-
-    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.1, 0), 0, (1.0, 0.9, 0.65))
+    # Ponto de luz no centro da cruz emitindo iluminacao dourada
+    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.02, 0), 0, (1.0, 0.95, 0.75))
     luz_.parent = raiz
+
+    # Halo radial circular suave (simetria pura que nunca desalinha independente do angulo)
+    halo_centro = sprite(col, "cruz_halo_centro", M["bh_o"], 0.85, (0, 0.01, 0))
+    halo_centro.parent = raiz
 
     F0, F1 = 10, 46
     Y0, Y1 = 1.2, 12.0
@@ -659,9 +655,7 @@ def montar_basico():
     esc(raiz, [(F0 - 1, 0.0), (F0 + 3, 1.0), (F1 - 1, 1.0), (F1, 0.0)])
     pisca(luz_, [(F0 - 1, 0), (F0 + 3, 500), (F1 - 1, 500), (F1, 0)])
 
-    # Impacto no inimigo: clavao sagrado da cruz e estrelas luminosas
-    imp_cruz = sprite(col, "hit_cruz", M["spr_cruz_o"], 0.1, (0, 12.0, 1.25))
-    esc(imp_cruz, [(F1 - 1, 0.0), (F1, 1.8), (F1 + 14, 0.0)])
+    # Impacto no inimigo: clarao de luz e estrelas luminosas
     imp_est = sprite(col, "hit_est", M["spr_estrela_o"], 0.1, (0, 12.0, 1.25))
     esc(imp_est, [(F1 - 1, 0.0), (F1, 2.5), (F1 + 18, 0.0)])
 
@@ -669,7 +663,7 @@ def montar_basico():
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.0, -2.5, 1.8), (0, 4.0, 1.3), 32)
     return sc
 
-# ================================================================== 1. CURA MIRADA: CRUZ 3D CAINDO DO CEU NA POSICAO MIRADA (C1)
+# ================================================================== 1. CURA MIRADA: CRUZ 3D CAI EM PE E SE FINCA NO CHAO (C1)
 def montar_cura():
     random.seed(11)
     F_FIM = 216
@@ -679,49 +673,48 @@ def montar_cura():
     caixa(ref, "inimigo_ref_1.8m", (4.2, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, F_FIM - 8)
 
-    # 1. Feixe de luz celestial descendo do ceu sobre a posicao mirada
-    col_ceu = para_obj(col, "cura_feixe_ceu", bm_obelisco(0.9, 0.8, 12.0, 24), M["feixe_v"])
-    col_ceu.location = (A[0], A[1], 0)
-    esc(col_ceu, [(16, (1, 1, 1e-3)), (26, (1.1, 1.1, 1.0)), (68, (1.1, 1.1, 1.0)), (82, (0.2, 0.2, 1e-3))])
-
-    # 2. A Cruz 3D de Cura com Acabamento Refinado caindo do ceu
+    # SEM COLUNA DE LUZ: A cruz cai pura do ceu de forma limpa e graciosa
     cruz_raiz = bpy.data.objects.new("cruz_descida_raiz", None)
     col.objects.link(cruz_raiz)
+    cruz_raiz.rotation_euler = (0, 0, 0) # Cruz em pe, vertical
 
-    cruz_3d = para_obj(col, "cruz_cura_3d", bm_cruz_facetada(0.85, 0.14), M["esp_v"])
+    # Cruz 3D com a haste inferior mais comprida para se fincar no solo
+    cruz_3d = para_obj(col, "cruz_cura_3d", bm_cruz_facetada(1.15, 0.12, haste_longa=True), M["esp_v"])
     cruz_3d.parent = cruz_raiz
-    cruz_miolo = para_obj(col, "cruz_cura_miolo", bm_cruz_facetada(0.55, 0.08), M["branco"])
-    cruz_miolo.parent = cruz_raiz
 
-    # Acabamento refinado: Flare de estrela e cruz divina luminosa
-    fl_est = sprite(col, "cruz_cura_fl_est", M["spr_estrela_v"], 2.4, (0, 0, 0.1))
-    fl_est.parent = cruz_raiz
-    fl_crz = sprite(col, "cruz_cura_fl_crz", M["spr_cruz_v"], 2.0, (0, 0, 0.1))
-    fl_crz.parent = cruz_raiz
-
-    luz_cruz = luz(col, "cruz_cura_luz", "POINT", (0, 0, 0.1), 0, (0.5, 1.0, 0.75))
+    luz_cruz = luz(col, "cruz_cura_luz", "POINT", (0, 0.05, 0), 0, (0.5, 1.0, 0.75))
     luz_cruz.parent = cruz_raiz
 
-    # Animacao de descida suave e solene dos ceus (Z=8.5 ate Z=1.1 no peito do aliado)
-    f_ini, f_toc = 20, 52
-    cruz_raiz.location = (A[0], A[1], 8.5)
+    # Halo radial circular suave (sem cruzes 2D extras)
+    halo_cruz = sprite(col, "cruz_cura_halo", M["bh_v"], 1.4, (0, 0.02, 0))
+    halo_cruz.parent = cruz_raiz
+
+    # Animacao: cai do ceu em pe e se finca no solo
+    f_ini, f_finca = 16, 40
+    # Em Z=9.5 desce ate Z=0.82 (a ponta inferior entra no chao se fincando)
+    cruz_raiz.location = (A[0], A[1], 9.5)
     cruz_raiz.keyframe_insert("location", frame=f_ini)
-    cruz_raiz.location = (A[0], A[1], 1.1)
-    cruz_raiz.keyframe_insert("location", frame=f_toc)
-    esc(cruz_raiz, [(f_ini - 1, 0.0), (f_ini + 4, 1.0), (f_toc - 1, 1.0), (f_toc + 4, 1.25), (f_toc + 8, 0.0)])
-    pisca(luz_cruz, [(f_ini - 1, 0), (f_ini + 4, 700), (f_toc, 1200), (f_toc + 12, 0)])
+    cruz_raiz.location = (A[0], A[1], 0.82)
+    cruz_raiz.keyframe_insert("location", frame=f_finca)
+    # Permanece fincada no solo brilhando ate dissolver em luz
+    cruz_raiz.location = (A[0], A[1], 0.82)
+    cruz_raiz.keyframe_insert("location", frame=78)
 
-    # Ao tocar: Cupula suave translucida de cura e anel no chao
-    cup = para_obj(col, "ali_cupula", bm_cupula(2.2, 28, 8), M["verde_vidro"])
+    esc(cruz_raiz, [(f_ini - 1, 0.0), (f_ini + 3, 1.0), (f_finca, 1.0), (f_finca + 2, 1.08), (f_finca + 6, 1.0), (78, 1.0), (92, 0.0)])
+    pisca(luz_cruz, [(f_ini - 1, 0), (f_ini + 3, 600), (f_finca, 1500), (f_finca + 8, 800), (78, 800), (92, 0)])
+
+    # Ao se fincar no chao: anel sagrado de choque na base fincada e cupula de cura
+    an_chao = para_obj(col, "ali_anel_fincado", bm_anel(0.2, 2.4, 48), M["marca_v"])
+    an_chao.location = (A[0], A[1], 0.025)
+    esc(an_chao, [(f_finca - 1, 0.0), (f_finca, 0.4), (f_finca + 8, 1.2), (f_finca + 40, 0.0)])
+
+    cup = para_obj(col, "ali_cupula", bm_cupula(2.4, 32, 8), M["verde_vidro"])
     cup.location = (A[0], A[1], 0.02)
-    esc(cup, [(f_toc - 1, 0.0), (f_toc + 4, 1.0), (f_toc + 28, 1.05), (f_toc + 45, 0.0)])
+    esc(cup, [(f_finca - 1, 0.0), (f_finca + 4, 1.0), (f_finca + 32, 1.05), (f_finca + 48, 0.0)])
 
-    an_ali = para_obj(col, "ali_anel", bm_anel(0.3, 2.6, 36), M["marca_v"])
-    an_ali.location = (A[0], A[1], 0.03)
-    esc(an_ali, [(f_toc - 1, 0.0), (f_toc + 6, 1.1), (f_toc + 36, 0.0)])
-
-    fl_bencao = sprite(col, "cura_bencao_est", M["spr_estrela_v"], 0.1, (A[0], A[1], 1.2))
-    esc(fl_bencao, [(f_toc - 1, 0.0), (f_toc + 2, 3.2), (f_toc + 22, 0.0)])
+    # Sparkle estelar suave no ponto de impacto no chao
+    fl_bencao = sprite(col, "cura_bencao_est", M["spr_estrela_v"], 0.1, (A[0], A[1], 0.82))
+    esc(fl_bencao, [(f_finca - 1, 0.0), (f_finca + 2, 3.5), (f_finca + 20, 0.0)])
 
     camera(sc, ref, "cam_lateral", (14.0, 4.0, 3.6), (0, 6.5, 1.8), 30)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.4, 2.0), (-0.4, 4.0, 1.2), 32)
