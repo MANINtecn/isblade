@@ -3560,3 +3560,38 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - Durante o swing: rastro da lâmina (`trailP`) e arco de corte (`slashArc`) em azul ciano elétrico radiante (`0x4dd4ff`).
     - No acerto do mob/alvo: explosão concentrada de faíscas azuis/brancas (`burst` 24 partículas e `spark` 3.5) e áudio de impacto `soul_shot_shot`.
 - Testado e Validado: sintaxe verificada via Node.js em todos os scripts. Zero efeitos no Blender; implementação 100% nativa em Three.js e Web Audio.
+
+- (10/11) Dono mandou pesquisa de particulas fluidas em Three.js (ShaderMaterial, ruido simplex, aditivo, sem imagem). Aproveitada: `.claude/skills/skill-pronta/particulas_shader.js` (molde: curl/simplex no vertex, forma no fragment, aditivo, depthWrite off) + secao nova no SKILL.md (vale para Claude e Gemini). ADAPTACAO: a pesquisa pedia circulo perfeito, mas o dono tem fobia a redondo; o molde usa losango/faisca/lasca. NAO testado no navegador (so node --check). Arqueiro no Blender continua parado esperando a conexao do MCP.
+
+- (10/11) Dono mandou a 2a parte da pesquisa (PointsMaterial com `map` alfa, aditivo, depthWrite off). Anotada no SKILL.md como RESERVA barata para qualidade baixa/celular; o `map` nao pode ser circulo borrado (fobia a redondo): gerar losango/faisca em canvas. As flags ja estavam no molde. NAO testado no navegador. Dono pediu: anotar sempre no diario (regra ja existente, seguida a cada passo).
+
+### [Antigravity] 10/11/2026 - Healer / Clérigo: Reformulação Visual Completa e Partículas Fluidas (Fim do aspecto quadrado/lowpoly)
+- Pedido do dono: "bom ja atualizamos a skill de uso seu e do claude para a criação das animaçoes visuais das habilidades dos personagens, ja esta registrado no diario. quero que voce melhore visivelmente as habilidades do healer que hoje parece muito quadradas e em lowpoly."
+- Diagnóstico Técnico do Problema "Quadrado e Lowpoly":
+  - As habilidades anteriores utilizavam primitivas rígidas de contagem mínima de polígonos:
+    1. Cones de 4 lados (`ConeGeometry(..., 4)`): formavam pirâmides quadradas secas e duras nas asas da Ressurreição (parecendo estacas de madeira), nas setas da Prece e nos espinhos de impacto.
+    2. Octaedros sem suavização (`OctahedronGeometry(1, 0)`): formavam blocos pontudos e toscos na Lâmina de Luz e nos estilhaços da Cura Mirada.
+    3. Cilindros secos de 6 lados (`CylinderGeometry(..., 6, 1)`): deixavam o cristal de cura como um lápis sextavado verde e o Escudo Astral como blocos grossos e planos.
+    4. Planos retos cruzados a 90 graus em X para colunas de luz, parecendo folhas de papelão ao olhar de cima ou de ângulo.
+- Solução Implementada em `prototipo/js/clerigo_fx.js`:
+  - **Motor de Partículas Fluidas Angulares (Three.js ShaderMaterial)**:
+    - Baseado na pesquisa e no molde aprovado do projeto (`.claude/skills/skill-pronta/particulas_shader.js`), integrado nativamente ao módulo.
+    - Vertex shader com ruído simplex 3D (`snoise`) e turbulência `curl` sem divergência, gerando movimento etéreo, flutuante e orgânico.
+    - Fragment shader desenhando formas angulares sagradas (losangos estilizados, faíscas em cruz fina e lascas de cristal com `smoothstep` na intensidade luminosa e miolo incandescente), **respeitando rigorosamente a diretriz "sem formas redondas"**, mas eliminando qualquer aresta ou quina poligonal dura.
+  - **Refinamento Habilidade por Habilidade**:
+    1. **Lâmina de Luz (C0 - Básico)**: lâmina de cristal sagrado lapidada e aerodinâmica com núcleo incandescente, feixe translúcido aditivo e cauda contínua de partículas fluidas douradas e brancas, sem arestas duras.
+    2. **Cura Mirada (C1 - Nv 1)**: cristal de cura esmeralda e ouro com transparência prismática suave, núcleo celestial branco puro, estilhaços satélites em órbita fluida e cauda ondulante de partículas fluidas de cura.
+    3. **Impacto de Cura / Luz**: espinhos de energia lapidados, onda de choque no piso e explosão estonteante de partículas fluidas em leque angular.
+    4. **Cura no Jogador**: coluna volumétrica cilíndrica suave de luz celestial (adeus planos cruzados em X), vórtice de partículas fluidas subindo pelo corpo e ondas de choque no solo com cruzes ascendentes.
+    5. **Glifo de Cura (C2 - Nv 5)**: hexagrama sagrado no solo, colunas cilíndricas volumétricas de luz suave nos 6 vértices e jorros de partículas fluidas a cada pulso de cura.
+    6. **Escudo Astral (C3 - Nv 10)**: placas de cristal prismático lapidadas com borda luminosa e textura de favo astral translúcida; fragmentação brilhante com partículas estelares ao absorver golpes.
+    7. **Purificação (C4 - Nv 20)**: coluna celestial volumétrica de luz pura, três anéis de choque luminosos escalonados e prisma de imunidade celestial sobre a cabeça.
+    8. **Prece (C5 - Nv 25)**: glifo octagonal sagrado no chão do Clérigo, feixes celestiais individuais nos aliados e setas de bênção divinas estilizadas acompanhadas por fluxo de partículas fluidas.
+    9. **Ressurreição (C6 - Nv 30)**:
+       - Canalização (`reviveIni`): octagrama de invocação sagrada no chão sob o caído, pilares volumétricos de luz e feixe celestial descendo das alturas.
+       - Despertar (`reviveFim`): asas celestiais de anjo abertas de luz sagrada arqueada e radiante (eliminadas as antigas pirâmides quadradas rígidas), espinhos de luz polidos, ondas sagradas e explosão gloriosa de partículas douradas e brancas.
+    10. **Livro Astral**: lombada vertical com detalhes em ouro imperial, páginas iluminadas e estrela sagrada flutuante.
+- Atualização e Compatibilidade:
+  - `prototipo/arena.html` e `prototipo/cidade.html`: tag atualizada para `clerigo_fx.js?v=4`.
+  - Validação de sintaxe JS via Node.js em todos os arquivos (`node -c`).
+  - Zero Blender / 100% Three.js nativo com suporte leve para mobile.
