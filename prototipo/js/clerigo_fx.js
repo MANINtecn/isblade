@@ -7,7 +7,7 @@
 (function(){
   var C = window.ClerigoFX = { pronto: false };
   var T, cena, vivos = [], TX = {}, MT = {}, rastro = null;
-  var OURO = 0xffd977, BRANCO = 0xfff6dc, VERDE = 0x8dffb0, AZUL = 0xbfe4ff;
+  var OURO = 0xffd977, BRANCO = 0xffffff, VERDE = 0x5aff9a, AZUL = 0x1575ff;
 
   function leve(){ return !!(window.QUAL && (QUAL.nivel === 'baixa' || QUAL.touch)); }
   function rnd(a, b){ return a + (b - a) * Math.random(); }
@@ -146,8 +146,8 @@
   C.init = function(THREE_, cena_){
     if(T) return;
     T = THREE_; cena = cena_;
-    var tl = new T.TextureLoader(), v = '?v=2';
-    ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo'].forEach(function(n){
+    var tl = new T.TextureLoader(), v = '?v=5';
+    ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo', 'cruz_flare', 'veu_energia', 'pena'].forEach(function(n){
       TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v);
     });
     rastro = new T.Group();
@@ -225,6 +225,21 @@
     return new T.Mesh(geo, mat);
   }
 
+  /* Coluna de Véu Rasgado de Energia Celestial (cilindro 360 com filamentos e transparência suave) */
+  function colunaVeu(cor, r, h, op){
+    var geo = new T.CylinderGeometry(r, r, h, 24, 1, true);
+    var mat = new T.MeshBasicMaterial({
+      color: cor,
+      map: TX.veu_energia || null,
+      transparent: true,
+      opacity: op || 0.85,
+      blending: T.AdditiveBlending,
+      depthWrite: false,
+      side: T.DoubleSide
+    });
+    return new T.Mesh(geo, mat);
+  }
+
   function grupo(x, y, z){
     var g = new T.Group();
     g.position.set(x, y, z);
@@ -269,37 +284,23 @@
   }
 
   /* ---------------- C0 - Lâmina de Luz (ataque básico):
-     Lâmina sagrada de cristal translúcida, facetada e aerodinâmica com núcleo incandescente,
-     acompanhada por partículas fluidas orgânicas e rastro de luz sagrada etérea. ---------------- */
+     Mini Cruz de Luz Pura em Optical Cross Flare radiante, com núcleo incandescente
+     e rastro suave de luz sagrada etérea (zero peças maciças). ---------------- */
   C.criarLamina = function(escala){
     escala = escala || 1;
-    var raiz = new T.Group(), corpo = new T.Group();
-    raiz.add(corpo);
+    var raiz = new T.Group();
 
-    // Lâmina de cristal lapidada e suave (cilindro de 12 faces esticado e afinado, sem quinas duras)
-    var crMat = new T.MeshBasicMaterial({ color: OURO, transparent: true, opacity: 0.85, blending: T.AdditiveBlending, depthWrite: false });
-    var cr = new T.Mesh(new T.CylinderGeometry(0.04, 0.16, 1.4, 12, 1), crMat);
-    cr.rotation.x = Math.PI / 2;
-    corpo.add(cr);
+    // Cruz de Luz Pura em Lens Flare Radiante (idêntico ao refinamento do Blender)
+    var crz = sprite(TX.cruz_flare || TX.estrela, OURO, 1.85 * escala, 0.95);
+    raiz.add(crz);
 
-    // Núcleo branco incandescente interno
-    var nu = new T.Mesh(new T.CylinderGeometry(0.02, 0.08, 1.45, 8, 1), aditivo(BRANCO, null, 0.95));
-    nu.rotation.x = Math.PI / 2;
-    corpo.add(nu);
+    // Núcleo incandescente central
+    var nu = sprite(TX.estrela, BRANCO, 0.95 * escala, 0.98);
+    raiz.add(nu);
 
-    // Halo sagrado na ponta
-    var br = sprite(TX.estrela, OURO, 1.6, 0.95);
-    corpo.add(br);
-
-    // Feixes de energia celestial envolvendo o corpo
-    var fio = plano(TX.raios, OURO, 0.42, 2.2, 0.65);
-    fio.rotation.x = Math.PI / 2;
-    fio.position.z = -0.7;
-    corpo.add(fio);
-
-    // Partículas fluidas acompanhando o projétil
-    var pf = criarParticulas({ n: 28, raio: 0.4, cor: OURO, tam: 42, forma: 1, turb: 0.5 });
-    if(pf) corpo.add(pf.points);
+    // Partículas fluidas douradas acompanhando o projétil
+    var pf = criarParticulas({ n: 24, raio: 0.35 * escala, cor: OURO, tam: 38, forma: 1, turb: 0.45 });
+    if(pf) raiz.add(pf.points);
 
     raiz.scale.setScalar(escala);
     raiz.traverse(function(o){ o.frustumCulled = false; });
@@ -309,19 +310,18 @@
       group: raiz,
       update: function(dt){
         rel += dt;
-        corpo.rotation.z += dt * 8;
-        br.material.rotation = rel * 3.5;
+        nu.material.rotation = rel * 2.2;
         if(pf) pf.update(dt);
         tr -= dt;
         if(tr <= 0 && rastro){
-          tr = leve() ? 0.06 : 0.03;
+          tr = leve() ? 0.05 : 0.025;
           raiz.getWorldPosition(wp);
-          var s = sprite(TX.estrela, OURO, 0.65 * escala, 0.85);
+          var s = sprite(TX.estrela, OURO, 0.55 * escala, 0.85);
           s.position.copy(wp);
           rastro.add(s);
-          seq(0.35, function(u){
+          seq(0.3, function(u){
             s.material.opacity = 0.85 * (1 - u);
-            s.scale.setScalar(0.65 * escala * (1 - u * 0.5));
+            s.scale.setScalar(0.55 * escala * (1 - u * 0.5));
           }, function(){
             rastro.remove(s);
             s.material.dispose();
@@ -337,46 +337,21 @@
   };
 
   /* ---------------- C1 - Cura Mirada (skill 1):
-     Cristal sagrado esmeralda e ouro lapidado com relevo límpido, estilhaços orbitais suaves
-     e cauda orgânica de partículas fluidas de cura. ---------------- */
+     Cruz de Luz Sagrada Esmeralda e Ouro em proporções latinas nobres,
+     descendo dos céus e se fincando no solo (sem domo pesado, sem peças 3D duras). ---------------- */
   C.criarCristal = function(escala){
     escala = escala || 1;
-    var raiz = new T.Group(), corpo = new T.Group();
-    raiz.add(corpo);
-    corpo.rotation.x = Math.PI / 2;
+    var raiz = new T.Group();
 
-    // Cristal de cura lapidado de 12 faces com transparência prismática
-    var cMat = new T.MeshBasicMaterial({ color: VERDE, transparent: true, opacity: 0.88, blending: T.AdditiveBlending, depthWrite: false });
-    var hx = new T.Mesh(new T.CylinderGeometry(0.24, 0.24, 0.85, 12, 1), cMat);
-    corpo.add(hx);
+    // Cruz Sagrada Esmeralda de Luz Pura
+    var crz = sprite(TX.cruz_flare || TX.cruz, VERDE, 2.8 * escala, 0.95);
+    raiz.add(crz);
 
-    // Pontas do cristal facetadas suavemente
-    var pt1 = new T.Mesh(new T.ConeGeometry(0.24, 0.38, 12), cMat);
-    pt1.position.y = 0.6;
-    corpo.add(pt1);
-    var pt2 = new T.Mesh(new T.ConeGeometry(0.24, 0.38, 12), cMat);
-    pt2.position.y = -0.6;
-    pt2.rotation.x = Math.PI;
-    corpo.add(pt2);
+    // Núcleo incandescente branco/esmeralda
+    var nu = sprite(TX.estrela, BRANCO, 1.35 * escala, 0.95);
+    raiz.add(nu);
 
-    // Núcleo celestial branco puro
-    var nu = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 1.15, 8, 1), aditivo(BRANCO, null, 0.95));
-    corpo.add(nu);
-
-    // Brilho radiante em volta
-    var hb = sprite(TX.hex_brilho, VERDE, 2.1, 0.85);
-    raiz.add(hb);
-
-    // Estilhaços orbitais refinados
-    var est = [];
-    for(var i = 0; i < 4; i++){
-      var e = new T.Mesh(new T.CylinderGeometry(0.02, 0.07, 0.32, 6, 1), aditivo(OURO, null, 0.9));
-      raiz.add(e);
-      est.push(e);
-    }
-
-    // Partículas fluidas de orvalho sagrado orbitando
-    var pf = criarParticulas({ n: 36, raio: 0.55, cor: VERDE, tam: 45, forma: 0, turb: 0.6 });
+    var pf = criarParticulas({ n: 28, raio: 0.45 * escala, cor: VERDE, tam: 40, forma: 0, turb: 0.5 });
     if(pf) raiz.add(pf.points);
 
     raiz.scale.setScalar(escala);
@@ -387,23 +362,18 @@
       group: raiz,
       update: function(dt){
         rel += dt;
-        corpo.rotation.y += dt * 4.5;
+        nu.material.rotation = -rel * 1.8;
         if(pf) pf.update(dt);
-        est.forEach(function(e, i){
-          var a = rel * 6.5 + i * 1.5708;
-          e.position.set(Math.cos(a) * 0.58, Math.sin(a) * 0.58, Math.sin(rel * 5 + i) * 0.15);
-          e.rotation.z = a;
-        });
         tr -= dt;
         if(tr <= 0 && rastro){
-          tr = leve() ? 0.07 : 0.035;
+          tr = leve() ? 0.06 : 0.03;
           raiz.getWorldPosition(wp);
-          var s = sprite(TX.cruz, VERDE, 0.38 * escala, 0.85);
+          var s = sprite(TX.estrela, VERDE, 0.45 * escala, 0.85);
           s.position.copy(wp);
           rastro.add(s);
-          seq(0.42, function(u){
+          seq(0.35, function(u){
             s.material.opacity = 0.85 * (1 - u);
-            s.position.y += 0.015;
+            s.position.y += 0.02;
           }, function(){
             rastro.remove(s);
             s.material.dispose();
@@ -429,7 +399,7 @@
     g.add(est);
     g.add(lq);
 
-    // Espinhos de luz suaves facetados (substituindo cones secos de 4 lados)
+    // Espinhos de luz suaves facetados
     for(var i = 0; i < (leve() ? 6 : 10); i++){
       var v = new T.Vector3(rnd(-1, 1), rnd(-.1, 1), rnd(-1, 1)).normalize();
       var o = new T.Mesh(new T.CylinderGeometry(0.01, 0.05, rnd(0.8, 1.4), 8, 1), aditivo(i % 2 ? BRANCO : cor, null, 0.95));
@@ -469,55 +439,96 @@
     });
   };
 
-  /* ---------------- Cura no Jogador:
-     Coluna volumétrica cilíndrica suave de luz celestial (sem cortes de cartolina),
-     onda de choque no solo, vórtice de partículas fluidas e cruzes sagradas ascendentes. ---------------- */
+  /* ---------------- C1 (Impacto / Efeito no Alvo) - Cura no Jogador:
+     Sem domo pesado! A cruz finca-se suavemente no solo, emitindo onda de choque fluida
+     e fazendo brotar fragmentos de cura cintilantes que sobem em espiral leve. ---------------- */
   C.cura = function(x, z, forte){
     if(!T) return;
-    var g = grupo(x, 0, z), A = forte ? 1.15 : 0.85;
+    var g = grupo(x, 0, z), A = forte ? 1.2 : 0.9;
 
-    // Coluna volumétrica suave de luz celestial (cilindro 3D com textura aditiva vertical)
-    var colExt = colunaLuz(VERDE, 0.85 * A, 1.2 * A, 4.0 * A, 20, 0.75);
-    colExt.position.y = 2.0 * A;
-    g.add(colExt);
+    // Cruz de luz flare no centro do impacto (fincada e ressoando)
+    var crz = sprite(TX.cruz_flare || TX.estrela, VERDE, 1.6 * A, 0.95);
+    crz.position.y = 1.0 * A;
+    g.add(crz);
 
-    var colInt = colunaLuz(OURO, 0.45 * A, 0.7 * A, 4.2 * A, 16, 0.85);
-    colInt.position.y = 2.1 * A;
-    g.add(colInt);
+    // Núcleo cintilante de impacto
+    var est = sprite(TX.estrela, BRANCO, 0.9 * A, 0.98);
+    est.position.y = 1.0 * A;
+    g.add(est);
 
-    // Onda de choque de cura no solo
-    var on = plano(TX.onda, VERDE, 1.2, 1.2, 0.95, true);
-    on.position.y = 0.07;
+    // Onda de choque etérea suave no solo (sem domo)
+    var on = plano(TX.onda, VERDE, 1.4 * A, 1.4 * A, 0.9, true);
+    on.position.y = 0.06;
     g.add(on);
 
-    // Nuvem de partículas fluidas subindo em vórtice
-    var pf = criarParticulas({ n: 55, raio: 1.1 * A, cor: VERDE, tam: 48, forma: 0, subir: 1.2, turb: 0.6 });
-    if(pf) g.add(pf.points);
+    var on2 = plano(TX.hex_brilho, OURO, 1.2 * A, 1.2 * A, 0.6, true);
+    on2.position.y = 0.05;
+    g.add(on2);
 
-    var cz = cruzes(g, leve() ? 5 : (forte ? 10 : 7), VERDE, 0.85, 2.6 * A, 1);
+    // Fragmentos cintilantes de cura subindo da terra pelo ar
+    var frags = [];
+    var nFrags = leve() ? 8 : (forte ? 18 : 14);
+    for(var i = 0; i < nFrags; i++){
+      var ang = rnd(0, 6.28), r0 = rnd(0.2, 1.3 * A);
+      var sp = sprite(TX.estrela, i % 2 ? VERDE : OURO, rnd(0.22, 0.38) * A, 0.95);
+      sp.position.set(Math.cos(ang) * r0, rnd(0.05, 0.3), Math.sin(ang) * r0);
+      sp.userData = {
+        ang: ang,
+        raio: r0,
+        y0: sp.position.y,
+        velSubida: rnd(1.8, 3.2),
+        velGiro: rnd(1.5, 3.5) * (Math.random() < 0.5 ? 1 : -1),
+        atraso: rnd(0, 0.25)
+      };
+      g.add(sp);
+      frags.push(sp);
+    }
+
+    // Partículas fluidas esmeralda em ascensão
+    var pf = criarParticulas({ n: 40, raio: 1.0 * A, cor: VERDE, tam: 44, forma: 0, subir: 1.4, turb: 0.55 });
+    if(pf) g.add(pf.points);
 
     seq(1.2, function(u, t){
       if(pf){
         pf.update(0.016);
         pf.setAlfa(0.95 * kf([[0, 0], [.15, 1], [.7, .9], [1, 0]], u));
       }
-      var fOp = kf([[0, 0], [.1, 1], [.6, .85], [1, 0]], u);
-      colExt.material.opacity = 0.75 * fOp;
-      colInt.material.opacity = 0.85 * fOp;
-      colExt.scale.set(kf([[0, .3], [.15, 1], [1, .4]], u), kf([[0, .1], [.2, 1], [1, 1.15]], u), kf([[0, .3], [.15, 1], [1, .4]], u));
-      colInt.scale.set(kf([[0, .2], [.15, 1], [1, .3]], u), kf([[0, .1], [.2, 1], [1, 1.15]], u), kf([[0, .2], [.15, 1], [1, .3]], u));
-      on.scale.setScalar(0.5 + 3.0 * u * A);
-      on.material.opacity = 0.95 * (1 - u);
-      cz(u);
+      var kCrz = kf([[0, .2], [.15, 1], [.6, .85], [1, 0]], u);
+      crz.scale.setScalar(1.6 * A * kCrz);
+      crz.material.opacity = 0.95 * (1 - u);
+      est.scale.setScalar(0.9 * A * kf([[0, .3], [.1, 1], [1, 0]], u));
+
+      // Onda no solo expandindo suavemente
+      on.scale.setScalar(0.4 + 2.8 * u * A);
+      on.material.opacity = 0.9 * (1 - u);
+      on2.scale.setScalar(0.6 + 2.0 * u * A);
+      on2.material.opacity = 0.6 * (1 - u);
+
+      // Fragmentos de cura subindo em espiral
+      frags.forEach(function(sp){
+        var ud = sp.userData;
+        if(t < ud.atraso){
+          sp.visible = false;
+          return;
+        }
+        sp.visible = true;
+        var uu = Math.min(1, (t - ud.atraso) / (1.2 - ud.atraso));
+        var a = ud.ang + ud.velGiro * uu;
+        var r = ud.raio * (1.0 + uu * 0.4);
+        sp.position.set(Math.cos(a) * r, ud.y0 + ud.velSubida * uu, Math.sin(a) * r);
+        var fOp = Math.sin(uu * Math.PI);
+        sp.material.opacity = 0.95 * fOp;
+        sp.scale.setScalar((0.25 + 0.15 * fOp) * A);
+      });
     }, function(){
       if(pf) pf.dispose();
       some(g);
     });
   };
 
-  /* ---------------- C2 - Glifo de Cura:
-     Hexagrama sagrado no chão, colunas volumétricas de luz suave nos 6 vértices
-     e pulsos de cura com ondas e partículas fluidas. ---------------- */
+  /* ---------------- C2 - Glifo de Cura (Santuário):
+     Hexagrama sagrado no solo, 6 Colunas de Véu Rasgado de Energia Celestial nos vértices
+     (sem domo e sem cruzes no topo das colunas) e fragmentos de cura pulsantes. ---------------- */
   C.glifo = function(x, z, atraso, raio, dur, pulsos){
     if(!T) return;
     raio = raio || 3.3; dur = dur || 4; pulsos = pulsos || 4; atraso = atraso || 0;
@@ -531,16 +542,16 @@
     g.add(luz);
     g.add(gl);
 
-    // 6 colunas volumétricas cilíndricas nos vértices (substituindo planos retos simples)
+    // 6 Colunas de Véu Rasgado de Energia Celestial nos vértices (sem cruz no topo, textura de véu esbelto)
     for(var i = 0; i < 6; i++){
       var a = i * Math.PI / 3;
-      var col = colunaLuz(i % 2 ? OURO : VERDE, 0.18, 0.28, 2.8, 12, 0.7);
-      col.position.set(Math.cos(a) * raio * 0.92, 1.4, Math.sin(a) * raio * 0.92);
+      var col = colunaVeu(i % 2 ? OURO : VERDE, 0.22, 3.2, 0.85);
+      col.position.set(Math.cos(a) * raio * 0.92, 1.6, Math.sin(a) * raio * 0.92);
       g.add(col);
       pil.push(col);
     }
 
-    var pf = criarParticulas({ n: 45, raio: raio * 0.85, cor: VERDE, tam: 42, forma: 0, subir: 0.8, turb: 0.55 });
+    var pf = criarParticulas({ n: 45, raio: raio * 0.85, cor: VERDE, tam: 42, forma: 0, subir: 0.85, turb: 0.55 });
     if(pf) g.add(pf.points);
 
     var feitos = 0;
@@ -555,7 +566,9 @@
       pil.forEach(function(p, k){
         var h = Math.max(.01, kf([[0, 0], [atraso + .1 + k * .04, 0], [atraso + .4 + k * .04, 1]], t)) * fe;
         p.scale.set(1, h, 1);
-        p.material.opacity = 0.75 * h;
+        p.material.opacity = 0.85 * h;
+        // Leve rotação orgânica do véu de energia
+        p.rotation.y = t * (k % 2 ? 0.4 : -0.4);
       });
       while(feitos < pulsos && t >= atraso + feitos * (dur / pulsos)){
         feitos++;
@@ -571,14 +584,30 @@
     var on = plano(TX.onda, VERDE, 1.2, 1.2, 0.95, true);
     on.position.y = 0.1;
     g.add(on);
-    var cz = cruzes(g, leve() ? 4 : 7, VERDE, raio * 0.85, 2.0, 0.85);
+    // Fragmentos sutis de luz de cura
+    var frags = [];
+    for(var k = 0; k < (leve() ? 4 : 8); k++){
+      var a = rnd(0, 6.28), r = rnd(0.3, raio * 0.85);
+      var sp = sprite(TX.estrela, VERDE, rnd(0.2, 0.35), 0.9);
+      sp.position.set(Math.cos(a) * r, 0.15, Math.sin(a) * r);
+      sp.userData = { velY: rnd(1.5, 2.5), y0: 0.15 };
+      g.add(sp);
+      frags.push(sp);
+    }
     seq(0.85, function(u){
       on.scale.setScalar(0.5 + raio * 2.1 * u);
       on.material.opacity = 0.95 * (1 - u);
-      cz(u);
+      frags.forEach(function(sp){
+        sp.position.y = sp.userData.y0 + sp.userData.velY * u;
+        sp.material.opacity = 0.9 * (1 - u);
+      });
     }, function(){
       g.remove(on);
       on.material.dispose();
+      frags.forEach(function(sp){
+        g.remove(sp);
+        sp.material.dispose();
+      });
     });
   }
 
@@ -610,47 +639,39 @@
   }
 
   /* ---------------- C3 - Escudo Astral:
-     Placas de cristal prismático translúcidas com borda luminosa, textura de favo astral
-     e fragmentação brilhante com partículas fluidas estelares ao absorver impacto. ---------------- */
+     6 Cruzes de Proteção em Azul Safira Puro (0x1575ff) com flare óptico radiante,
+     orbitando suavemente o aliado e detonando clarão estelar ao bloquear dano. ---------------- */
   var ESC = {};
   C.escudo = function(id, pos, dur, n){
     if(!T) return;
     C.escudoFim(id, true);
-    n = n || 8;
-    var placas = [], E = { n: n, vivo: true, placas: placas };
+    n = n || 6;
+    var cruzesEsc = [], E = { n: n, vivo: true, placas: cruzesEsc };
 
     for(var i = 0; i < n; i++){
       var pl = new T.Group(), a = i * 6.2832 / n;
-      // Cristal prismático suave de 12 lados (em vez do cilindro seco de 6 lados)
-      var hxMat = new T.MeshBasicMaterial({
-        color: i % 2 ? AZUL : OURO,
-        transparent: true,
-        opacity: 0.65,
-        blending: T.AdditiveBlending,
-        depthWrite: false,
-        side: T.DoubleSide
-      });
-      var hx = new T.Mesh(new T.CylinderGeometry(0.34, 0.34, 0.05, 12, 1), hxMat);
-      hx.rotation.x = Math.PI / 2;
-      pl.add(hx);
+      // Cruz de Proteção em Azul Safira Radiante
+      var crz = sprite(TX.cruz_flare || TX.cruz, AZUL, 0.85, 0.95);
+      pl.add(crz);
 
-      var fv = plano(TX.favo, i % 2 ? AZUL : OURO, 0.72, 0.72, 0.85);
-      pl.add(fv);
-      pl.userData = { a: a };
-      placas.push(pl);
+      // Núcleo estelar azul celeste puro
+      var nu = sprite(TX.estrela, 0x9fd4ff, 0.42, 0.95);
+      pl.add(nu);
+
+      pl.userData = { a: a, crz: crz, nu: nu };
+      cruzesEsc.push(pl);
     }
 
     E.g = segue(pos, function(g, u, t){
-      if(!placas[0].parent) placas.forEach(function(pl){ g.add(pl); });
+      if(!cruzesEsc[0].parent) cruzesEsc.forEach(function(pl){ g.add(pl); });
       var ab = Math.min(1, t / 0.4), fe = t > dur - 0.5 ? Math.max(0, (dur - t) / 0.5) : 1;
-      placas.forEach(function(pl, k){
+      cruzesEsc.forEach(function(pl, k){
         if(!pl.visible) return;
-        var a = pl.userData.a + t * 0.55, r = 0.98 + (1 - ab) * 2.2;
-        pl.position.set(Math.cos(a) * r, 1.15 + 0.14 * Math.sin(t * 2.2 + k) + (1 - fe) * 1.5, Math.sin(a) * r);
-        pl.rotation.y = -a + Math.PI / 2;
-        pl.children.forEach(function(o){
-          if(o.material) o.material.opacity = (o === pl.children[0] ? 0.65 : 0.85) * Math.min(ab, fe);
-        });
+        var a = pl.userData.a + t * 0.65, r = 1.05 + (1 - ab) * 1.8;
+        pl.position.set(Math.cos(a) * r, 1.15 + 0.12 * Math.sin(t * 2.4 + k) + (1 - fe) * 1.5, Math.sin(a) * r);
+        pl.userData.crz.material.opacity = 0.95 * Math.min(ab, fe);
+        pl.userData.nu.material.opacity = 0.9 * Math.min(ab, fe);
+        pl.userData.nu.material.rotation = t * 1.5;
       });
     }, dur, function(){
       if(ESC[id] === E) delete ESC[id];
@@ -681,13 +702,13 @@
   };
 
   function quebra(w){
-    var s = sprite(TX.estrela, 0xdff2ff, 0.35), h = sprite(TX.onda, 0x9fd4ff, 0.35, 0.85);
+    var s = sprite(TX.estrela, 0xdff2ff, 0.45), h = sprite(TX.onda, AZUL, 0.45, 0.85);
     s.position.copy(w);
     h.position.copy(w);
     rastro.add(s);
     rastro.add(h);
 
-    var pf = criarParticulas({ n: 20, raio: 0.6, cor: AZUL, tam: 40, forma: 2, turb: 0.75 });
+    var pf = criarParticulas({ n: 20, raio: 0.6, cor: AZUL, tam: 40, forma: 1, turb: 0.75 });
     if(pf){
       pf.points.position.copy(w);
       rastro.add(pf.points);
@@ -699,7 +720,7 @@
         pf.setAlfa(0.9 * (1 - u));
       }
       s.scale.setScalar(1.8 * Math.sin(u * Math.PI));
-      h.scale.setScalar(0.4 + 1.6 * u);
+      h.scale.setScalar(0.4 + 1.8 * u);
       h.material.opacity = 0.85 * (1 - u);
     }, function(){
       rastro.remove(s);
@@ -714,52 +735,62 @@
   }
 
   /* ---------------- C4 - Purificação:
-     Coluna volumétrica branca e ouro celestial, anéis de choque luminosos
-     e prisma de imunidade celestial sobre a cabeça. ---------------- */
+     Coluna de Véu Celestial 360 translúcida e suave (sem corte de metade).
+     Sem cruz! Um Halo Radiante de Purificação desce escaneando e lavando o corpo do aliado,
+     dissolvendo impurezas em faíscas estelares cintilantes. ---------------- */
   C.purifica = function(pos, dur){
     if(!T) return;
     dur = dur || 2;
-    var colVol = null, ons = [], lo = losango(OURO, 0.18), chao = plano(TX.hex_brilho, BRANCO, 1.8, 1.8, 0.65, true);
+    var colVeu = null, halo = null, ons = [], chao = null, pf = null;
 
     segue(pos, function(g, u, t){
-      if(!lo.parent){
-        colVol = colunaLuz(BRANCO, 0.8, 1.1, 4.0, 16, 0.85);
-        colVol.position.y = 2.0;
-        g.add(colVol);
+      if(!colVeu){
+        // Coluna de Véu Celestial 360 completa (sem corte pela metade)
+        colVeu = colunaVeu(BRANCO, 0.95, 5.5, 0.88);
+        colVeu.position.y = 2.5;
+        g.add(colVeu);
 
-        for(var k = 0; k < 3; k++){
-          var o = plano(TX.onda, k === 1 ? OURO : BRANCO, 1.2, 1.2, 0.95, true);
-          o.position.y = 0.2 + k * 0.7;
-          g.add(o);
-          ons.push(o);
-        }
-        lo.position.y = 2.38;
-        g.add(lo);
+        // Halo Radiante de Purificação (anel de luz sagrada que desce lavando o aliado)
+        halo = plano(TX.onda, OURO, 1.6, 1.6, 0.95, true);
+        halo.position.y = 3.2;
+        g.add(halo);
+
+        // Brilho sagrado suave no topo da cabeça
+        var coroa = sprite(TX.estrela, BRANCO, 0.65, 0.95);
+        coroa.position.y = 2.4;
+        g.add(coroa);
+
+        chao = plano(TX.hex_brilho, BRANCO, 2.0, 2.0, 0.65, true);
         chao.position.y = 0.06;
-        chao.rotation.z = Math.PI / 4;
         g.add(chao);
+
+        pf = criarParticulas({ n: 30, raio: 0.9, cor: BRANCO, tam: 42, forma: 1, subir: -0.8, turb: 0.5 });
+        if(pf) g.add(pf.points);
       }
-      var tp = Math.min(1, t / 0.7);
-      if(colVol){
-        colVol.scale.set(kf([[0, .2], [.15, 1], [1, .2]], tp), 1, kf([[0, .2], [.15, 1], [1, .2]], tp));
-        colVol.material.opacity = 0.85 * (1 - tp);
-      }
-      ons.forEach(function(o, k){
-        var uu = Math.max(0, Math.min(1, (t - k * 0.1) / 0.6));
-        o.scale.setScalar(0.4 + 2.6 * uu);
-        o.material.opacity = 0.95 * (1 - uu);
-      });
-      var fe = t > dur + 0.2 ? Math.max(0, (dur + 0.7 - t) / 0.5) : 1;
-      lo.rotation.y = t * 3.2;
-      lo.material.opacity = 0.95 * fe;
-      chao.material.opacity = 0.55 * fe;
-      chao.rotation.z = Math.PI / 4 + t;
-    }, dur + 0.7);
+      if(pf) pf.update(0.016);
+
+      var tp = Math.min(1, t / 0.8);
+      colVeu.material.opacity = 0.88 * (1 - tp * 0.85);
+      colVeu.rotation.y = t * 0.4;
+
+      // Halo descendo do topo (Y=3.2) até o chão (Y=0.1) como um scanner divino
+      var uHalo = Math.min(1, t / 0.9);
+      halo.position.y = 3.2 - 3.1 * uHalo;
+      halo.scale.setScalar(1.2 + 0.6 * Math.sin(uHalo * Math.PI));
+      halo.material.opacity = 0.95 * (1 - uHalo * 0.6);
+
+      var fe = t > dur ? Math.max(0, (dur + 0.5 - t) / 0.5) : 1;
+      chao.material.opacity = 0.65 * fe;
+      chao.rotation.z = t * 0.5;
+    }, dur + 0.5, function(){
+      if(pf) pf.dispose();
+    });
   };
 
-  /* ---------------- C5 - Prece:
-     Octagrama dourado no chão, feixes celestiais volumétricos,
-     setas de luz sagrada ascendentes e fluxo de partículas de bênção. ---------------- */
+  /* ---------------- C5 - Prece (Buff de Grupo):
+     Octagrama dourado no solo no ponto de conjuração.
+     Em cada aliado atingido: Coluna de Véu Celestial Dourado 360 inteira (sem corte)
+     e uma Coroa / Halo de Bênção Dourada pairando suavemente sobre a cabeça, emanando orvalho divino. ---------------- */
   C.prece = function(x, z, raio, alvos, dur){
     if(!T) return;
     raio = raio || 5;
@@ -782,43 +813,38 @@
     });
 
     (alvos || []).forEach(function(pos){
-      var col = null, se = [], lo = losango(OURO, 0.15), pf = null;
+      var col = null, halo = null, coroa = null, pf = null;
       segue(pos, function(gg, u, t){
-        if(!lo.parent){
-          col = colunaLuz(OURO, 0.55, 0.75, 6.0, 16, 0.8);
-          col.position.y = 3.0;
+        if(!col){
+          // Coluna de Véu Celestial 360 Dourada (sem corte pela metade)
+          col = colunaVeu(OURO, 0.75, 5.0, 0.85);
+          col.position.y = 2.5;
           gg.add(col);
 
-          // Setas sagradas estilizadas (cilindro esguio suave em vez de cone seco de 4 lados)
-          for(var k = 0; k < (leve() ? 3 : 6); k++){
-            var s = new T.Mesh(new T.CylinderGeometry(0.01, 0.08, 0.42, 8, 1), aditivo(OURO, null, 0.95));
-            var a = k * 6.28 / 6;
-            s.position.set(Math.cos(a) * 0.58, 0.3, Math.sin(a) * 0.58);
-            s.userData = { y0: 0.3 + Math.random() * 0.35, d: Math.random() * 0.3 };
-            gg.add(s);
-            se.push(s);
-          }
-          lo.position.y = 2.45;
-          gg.add(lo);
+          // Coroa / Halo de Bênção Dourada pairando sobre a cabeça (sem cruz)
+          halo = plano(TX.onda, OURO, 0.95, 0.95, 0.9, true);
+          halo.position.y = 2.45;
+          gg.add(halo);
 
-          pf = criarParticulas({ n: 24, raio: 0.8, cor: OURO, tam: 42, forma: 1, subir: 0.9, turb: 0.5 });
+          coroa = sprite(TX.estrela, OURO, 0.65, 0.95);
+          coroa.position.y = 2.45;
+          gg.add(coroa);
+
+          pf = criarParticulas({ n: 24, raio: 0.75, cor: OURO, tam: 42, forma: 1, subir: 0.9, turb: 0.5 });
           if(pf) gg.add(pf.points);
         }
         if(pf) pf.update(0.016);
         var tb = Math.min(1, t / 1.2);
         if(col){
-          col.scale.set(kf([[0, .1], [.2, 1], [1, .2]], tb), kf([[0, .3], [.25, 1], [1, 1]], tb), kf([[0, .1], [.2, 1], [1, .2]], tb));
-          col.material.opacity = 0.75 * (1 - tb);
+          col.material.opacity = 0.85 * (1 - tb * 0.8);
+          col.rotation.y = t * 0.35;
         }
-        se.forEach(function(s){
-          var uu = Math.max(0, Math.min(1, (t - s.userData.d) / 1));
-          s.position.y = s.userData.y0 + 2.0 * uu;
-          s.visible = uu < 1;
-        });
         var fim = t > dur - 0.5 ? Math.max(0, (dur - t) / 0.5) : 1;
-        lo.rotation.y = t * 2.6;
-        lo.position.y = 2.45 + 0.08 * Math.sin(t * 3);
-        lo.material.opacity = 0.95 * fim;
+        halo.rotation.z = t * 1.5;
+        halo.position.y = 2.45 + 0.06 * Math.sin(t * 3);
+        halo.material.opacity = 0.85 * fim;
+        coroa.material.rotation = -t * 1.2;
+        coroa.material.opacity = 0.95 * fim;
       }, dur, function(){
         if(pf) pf.dispose();
       });
@@ -826,12 +852,13 @@
   };
 
   /* ---------------- C6 - Ressurreição:
-     Canalização celestial com runas sagradas e feixe divino das alturas (reviveIni);
-     Asas celestiais abertas de luz radiante, espinhos lapidados, ondas e explosão gloriosa de partículas (reviveFim). ---------------- */
+     reviveIni: Octagrama dourado no solo + Monumental Coluna de Véu Celestial 360 descendo dos céus.
+     reviveFim: Sem asa no alvo e sem cruz no alvo! Pulso divino no solo e Chuva Radiante de Penas de Anjo de Luz Pura
+     descendo suavemente em espiral ao redor do aliado ressuscitado. ---------------- */
   C.reviveIni = function(pos, dur){
     if(!T) return;
     dur = dur || 2;
-    var oc = null, pil = [], fe = null, pf = null;
+    var oc = null, fe = null, pf = null;
 
     segue(pos, function(g, u, t){
       if(!oc){
@@ -839,14 +866,8 @@
         oc.position.y = 0.08;
         g.add(oc);
 
-        for(var i = 0; i < 6; i++){
-          var a = i * Math.PI / 3;
-          var p = colunaLuz(i % 2 ? OURO : BRANCO, 0.16, 0.26, 4.2, 12, 0.8);
-          p.position.set(Math.cos(a) * 1.65, 2.1, Math.sin(a) * 1.65);
-          g.add(p);
-          pil.push(p);
-        }
-        fe = colunaLuz(BRANCO, 1.2, 1.8, 14.0, 20, 0.8);
+        // Monumental Coluna de Véu Celestial 360 descendo dos céus (sem corte)
+        fe = colunaVeu(BRANCO, 1.4, 14.0, 0.88);
         fe.position.y = 7;
         g.add(fe);
 
@@ -857,15 +878,12 @@
       oc.rotation.z = t * 0.85;
       oc.scale.setScalar(Math.min(1, t / 0.4));
       oc.material.opacity = 0.95 * (u > 0.9 ? (1 - u) * 10 : 1);
-      pil.forEach(function(p, k){
-        var h = Math.min(1, Math.max(0.01, (t - k * 0.08) / 0.35));
-        p.scale.set(1, h, 1);
-      });
       if(fe){
-        var q = Math.min(1, Math.max(0, (u - 0.35) / 0.5));
+        var q = Math.min(1, Math.max(0, (u - 0.25) / 0.6));
         fe.scale.set(q, 1, q);
-        fe.position.y = 7 + (1 - q) * 4.5;
-        fe.material.opacity = 0.8 * q;
+        fe.position.y = 7 + (1 - q) * 4.0;
+        fe.material.opacity = 0.88 * q;
+        fe.rotation.y = t * 0.5;
       }
     }, dur, function(){
       if(pf) pf.dispose();
@@ -874,35 +892,48 @@
 
   C.reviveFim = function(pos){
     if(!T) return;
-    var asas = [], esp = [], ons = [], cz = null, pf = null;
+    var penas = [], esp = [], ons = [], pf = null;
 
     segue(pos, function(g, u, t){
-      if(!asas.length){
-        // Asas celestiais radiantes estilizadas (feixes arqueados de luz sagrada)
-        for(var l = -1; l <= 1; l += 2){
-          for(var i = 0; i < 4; i++){
-            var laMat = aditivo(i % 2 ? OURO : BRANCO, null, 0.95).clone();
-            var la = new T.Mesh(new T.CylinderGeometry(0.02, 0.14, 1.8 + i * 0.3, 8, 1), laMat);
-            la.userData = { l: l, i: i };
-            g.add(la);
-            asas.push(la);
-          }
+      if(!penas.length){
+        // Chuva Radiante de Penas de Anjo de Luz Pura (substitui asas coladas no corpo)
+        var nPenas = leve() ? 10 : 18;
+        for(var p = 0; p < nPenas; p++){
+          var angP = p * 6.2831 / nPenas + rnd(-0.2, 0.2);
+          var raioP = rnd(0.6, 1.8);
+          var pe = sprite(TX.pena || TX.estrela, BRANCO, rnd(0.5, 0.8), 0.95);
+          pe.position.set(Math.cos(angP) * raioP, rnd(4.0, 7.5), Math.sin(angP) * raioP);
+          pe.userData = {
+            ang: angP,
+            raio: raioP,
+            y0: pe.position.y,
+            velQueda: rnd(2.5, 4.0),
+            velGiro: rnd(1.0, 2.5) * (Math.random() < 0.5 ? 1 : -1),
+            osc: rnd(1.5, 3.0),
+            tam: pe.scale.x
+          };
+          g.add(pe);
+          penas.push(pe);
         }
-        for(var k = 0; k < (leve() ? 8 : 16); k++){
-          var v = new T.Vector3(Math.cos(k * 0.3927), 0.2 + (k % 3) * 0.25, Math.sin(k * 0.3927)).normalize();
-          var e = new T.Mesh(new T.CylinderGeometry(0.01, 0.05, 1.3, 8, 1), aditivo(k % 2 ? OURO : BRANCO, null, 0.95).clone());
-          e.position.y = 1.2;
+
+        // Espinhos de luz sagrada facetados sutis
+        for(var k = 0; k < (leve() ? 6 : 12); k++){
+          var v = new T.Vector3(Math.cos(k * 0.52), 0.2 + (k % 3) * 0.2, Math.sin(k * 0.52)).normalize();
+          var e = new T.Mesh(new T.CylinderGeometry(0.01, 0.05, 1.2, 8, 1), aditivo(k % 2 ? OURO : BRANCO, null, 0.95).clone());
+          e.position.y = 1.0;
           e.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v);
           g.add(e);
           esp.push(e);
         }
-        for(var h = 0; h < 3; h++){
-          var o = plano(TX.onda, h === 1 ? VERDE : OURO, 1.2, 1.2, 0.95, true);
-          o.position.y = 0.15 + h * 0.65;
+
+        // Ondas de choque luminosas no solo
+        for(var h = 0; h < 2; h++){
+          var o = plano(TX.onda, h === 1 ? VERDE : OURO, 1.4, 1.4, 0.95, true);
+          o.position.y = 0.08 + h * 0.04;
           g.add(o);
           ons.push(o);
         }
-        cz = cruzes(g, leve() ? 6 : 12, VERDE, 0.9, 2.8, 1);
+
         pf = criarParticulas({ n: 60, raio: 2.0, cor: OURO, tam: 52, forma: 0, subir: 1.4, turb: 0.75 });
         if(pf) g.add(pf.points);
       }
@@ -910,22 +941,30 @@
         pf.update(0.016);
         pf.setAlfa(0.95 * (1 - u));
       }
-      asas.forEach(function(la){
-        var d = la.userData, ab = Math.min(1, t / 0.35), a = (0.35 + d.i * 0.32) * ab;
-        la.position.set(d.l * (0.2 + Math.sin(a) * 0.95), 1.4 + Math.cos(a) * 0.95, -0.35);
-        la.rotation.set(0, 0, -d.l * a);
-        la.material.opacity = 0.95 * (1 - u);
+
+      // Chuva de Penas caindo em espiral suave
+      penas.forEach(function(pe){
+        var ud = pe.userData;
+        var yAtual = ud.y0 - ud.velQueda * t;
+        if(yAtual < 0.1) yAtual = 0.1;
+        var a = ud.ang + ud.velGiro * t;
+        var r = ud.raio + 0.15 * Math.sin(t * ud.osc);
+        pe.position.set(Math.cos(a) * r, yAtual, Math.sin(a) * r);
+        pe.material.rotation = Math.sin(t * ud.osc) * 0.35;
+        // Fade suave ao se aproximar do solo ou no final
+        var fOp = Math.min(1, Math.max(0, (yAtual - 0.1) / 1.5)) * (1 - u);
+        pe.material.opacity = 0.95 * fOp;
       });
+
       esp.forEach(function(e){
         e.scale.setScalar(kf([[0, .2], [.12, 1], [.5, .6], [1, 0]], u));
       });
       ons.forEach(function(o, k){
-        var uu = Math.max(0, Math.min(1, (t - k * 0.12) / 0.7));
-        o.scale.setScalar(0.5 + 3.4 * uu);
+        var uu = Math.max(0, Math.min(1, (t - k * 0.15) / 0.8));
+        o.scale.setScalar(0.5 + 3.2 * uu);
         o.material.opacity = 0.95 * (1 - uu);
       });
-      cz(u);
-    }, 1.6, function(){
+    }, 2.0, function(){
       if(pf) pf.dispose();
     });
   };

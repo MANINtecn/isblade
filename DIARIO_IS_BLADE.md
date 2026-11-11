@@ -3735,3 +3735,14 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `clerigo_pena.png`: Pena angelical translúcida de luz pura com curvatura orgânica e farpas suaves.
   - **Geometria de Véu Cilíndrico (`bm_cilindro_veu`)**: Mapeamento UV 360 contínuo ao redor do cilindro, eliminando definitivamente o defeito visual de "calha / meio-tubo cortado" em C2, C4, C5 e C6.
   - **Executado e Salvo**: Todas as 7 cenas recarregadas no Blender 5.1 via MCP, painel de skills N registrado e `.blend` salvo. Sincronizado no GitHub.
+
+### [Antigravity] 11/11/2026 - Port dos Efeitos Refinados do Clérigo para o Jogo (Three.js / arena.html)
+- **Instalação no Motor do Jogo (`prototipo/js/clerigo_fx.js` & `prototipo/arena.html`)**:
+  - `C0 (Lâmina de Luz)`: Disparo de Mini Cruz de Luz Pura em Optical Flare com núcleo incandescente e rastro sagrado.
+  - `C1 (Cura Mirada)`: Cruz Sagrada caindo em pé dos céus e se fincando no chão; domo pesado removido, substituído por onda suave no solo e 18 fragmentos cintilantes de cura subindo em espiral da terra para o ar.
+  - `C2 (Glifo de Cura / Santuário)`: Domo removido; cruzes no topo dos pilares removidas; 6 colunas de Véu Rasgado de Energia Celestial 360 nos vértices e pulsos sutis de cura com ondas e fragmentos ascendentes.
+  - `C3 (Escudo Astral)`: Substituídas as placas facetadas por 6 Cruzes de Proteção em Azul Safira Puro (`0x1575ff`) com brilho óptico, orbitando suavemente e explodindo em clarão estelar ao absorver impactos.
+  - `C4 (Purificação)`: Coluna cortada pela metade eliminada (usando `colunaVeu` 360 inteira); removida a cruz; implementado Halo Radiante de Purificação que desce escaneando e lavando o corpo do aliado do topo até o chão.
+  - `C5 (Prece)`: Coluna cortada corrigida para o Véu Dourado 360 completo; removida a cruz; implementada Coroa/Halo de Bênção Dourada pairando suavemente sobre a cabeça de cada aliado no alcance, emanando orvalho dourado.
+  - `C6 (Ressurreição)`: Asas coladas no alvo e cruzes no alvo removidas; implementada monumental coluna celestial de Véu 360 descendo das alturas e uma Chuva Radiante de Penas de Anjo de Luz Caindo do Céu (`clerigo_pena.png`), descendo em espiral e balançando no ar ao redor do aliado.
+  - **Cache Busted**: Atualizado `arena.html` para `clerigo_fx.js?v=5` garantindo carregamento imediato sem cache antigo.
