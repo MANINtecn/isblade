@@ -3595,3 +3595,29 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - `prototipo/arena.html` e `prototipo/cidade.html`: tag atualizada para `clerigo_fx.js?v=4`.
   - Validação de sintaxe JS via Node.js em todos os arquivos (`node -c`).
   - Zero Blender / 100% Three.js nativo com suporte leve para mobile.
+
+### [Antigravity] 11/11/2026 - Healer / Clérigo: Estilização Completa no Blender via MCP e Painel de Inspeção
+- **Pedido do dono**: "vo deixar vc abrir o blender e melhorar podendo usar formas geometricas livrimente, pois pra mim ainda ta tudo muito basico. conect-se na porta mcp e abra o blender quando tiver estilizado as skils do healer, botas elas em lista pra eu ver todas" (acompanhado do print do Glifo de Cura com 6 pilares retos e do print do MCP for Blender conectado na porta 9876).
+- **Conexão MCP**:
+  - Conexão socket TCP ativa em `localhost:9876` com o Blender 5.1.0 via protocolo JSON do addon MCP for Blender.
+  - Criado cliente utilitário `prototipo/tools/blender_fx/mcp_client.py` para comunicação direta e execução de scripts remotos no Blender.
+- **Liberdade Geométrica Total & Estilização (Blender)**:
+  - Reescrito proceduralmente `prototipo/tools/blender_fx/clerigo_skills.py` com curvas, toros, obeliscos facetados, cúpulas e mandalas solares:
+    1. **C0 (Lâmina de Luz - Ataque Básico)**: Lâmina sagrada translúcida com curvatura afiada, núcleo incandescente, dois toros de energia orbital cruzados em eixos gimbal e ondas de choque circulares concêntricas no impacto.
+    2. **C1 (Cura Mirada - Nv 1)**: Cristal facetado esmeralda com pulso energético radiante, 2 anéis toroidais celestiais em órbita contínua, cúpula translúcida suave de cura e expansão de faíscas.
+    3. **C2 (Glifo de Cura - Nv 5)** *(Skill destacada na imagem do dono)*:
+       - Substituídos os pilares retos simples por 6 obeliscos cristalinos cônicos lapidados com gradiente esmeralda e dourado.
+       - Cada obelisco possui um anel toroidal de energia pura flutuando e girando ao seu redor.
+       - No piso, mandala sagrada com anéis concêntricos ornamentais e 12 pontas solares radiantes.
+       - Cúpula hemisférica sagrada translúcida (`glifo_cupula`) cobrindo toda a área de cura com material emissivo suave.
+       - Ondas de pulso rítmicas circulares sincronizadas com a cura periódica.
+    4. **C3 (Escudo Astral - Nv 10)**: Placas prismáticas lapidadas com borda luminosa, reforçadas por anel toroidal de sustentação e anel esférico em gimbal inclinado ao redor do personagem.
+    5. **C4 (Purificação - Nv 20)**: Coluna sagrada volumétrica concêntrica de luz divina, coroa radiante de 8 pontas em rotação e prisma celestial lapidado flutuando no topo.
+    6. **C5 (Prece - Nv 25)**: Mandala sagrada solar de 16 pontas no chão do conjurador + colunas de luz divina individual em todos os aliados com anéis toroidais ascendentes.
+    7. **C6 (Ressurreição - Nv 30)**: Monumental coluna de luz celestial descendo dos céus + mandala solar de renascimento + **asas majestosas curvadas de anjo em luz sagrada com penas arqueadas abrindo-se atrás do aliado** + auréola/toro dourado de glória.
+- **Painel na Interface do Blender (N-Panel)**:
+  - Atualizado e registrado `prototipo/tools/blender_fx/painel_skills_mago.py` no Blender (aba lateral "Skills", tecla N no 3D Viewport).
+  - Adicionada lista completa e interativa de todas as habilidades (C0 até C6 do Clérigo, além de Magos, Arqueiros e Guerreiros).
+  - 1 clique em qualquer botão troca a cena imediatamente, enquadra na câmera principal, ajusta para o modo Material Shading e dá play automático na animação. Botões de controle de playback e alternância entre múltiplas câmeras.
+- **Arquivo .blend Salvo**:
+  - Salvo em `prototipo/assets/personagens/clerigo_skills.blend` com a cena `CLERIGO_S2_GLIFO` ativa e enquadrada na câmera.

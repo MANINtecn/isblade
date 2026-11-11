@@ -76,7 +76,7 @@ class SKILLS_OT_inicio(bpy.types.Operator):
         context.scene.frame_set(context.scene.frame_start); return {"FINISHED"}
 
 class SKILLS_PT_painel(bpy.types.Panel):
-    bl_label = "Skills do Mago"; bl_idname = "SKILLS_PT_painel"; bl_space_type = "VIEW_3D"; bl_region_type = "UI"; bl_category = "Skills"
+    bl_label = "Skills (Todas as Classes)"; bl_idname = "SKILLS_PT_painel"; bl_space_type = "VIEW_3D"; bl_region_type = "UI"; bl_category = "Skills"
     def draw(self, context):
         lay = self.layout; atual = context.scene.name
         for cena, rotulo in SKILLS:
