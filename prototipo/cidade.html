@@ -796,8 +796,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mundo_campo.js?v=5"></script>
 <script src="js/mapa_vivo.js?v=12"></script>
 <script src="js/lagos.js?v=2"></script>
-<script src="js/brilho_encanto.js?v=1"></script>
-<script src="js/soulshot_fx.js?v=1"></script>
+<script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
 <script src="js/agua_l2.js?v=1"></script>
@@ -6432,7 +6431,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
   var an={id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
-  ssTiro(an);/* [soulshot] automatico: +bonus se tiver */
+  try { ssTiro(an); } catch(e){ console.warn('ssTiro err:', e); }
 
 
 
@@ -9592,7 +9591,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
   if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,S.ex,S.ez);}else{SFX.play(big?'hitBig':'hit');if(an.ss)SFX.play('soulshot_hit');}
-  if(an.ss && window.SoulshotFX) SoulshotFX.impacto(hx, 1.8, hz, wpnCaster());
+  if(an.ss){try{if(window.Brilho&&Brilho.soulshotImpacto)Brilho.soulshotImpacto();burst(hx,1.8,hz,18,wpnCaster()?0x38e1ff:0x52d4ff,3.5);spark(hx,1.8,hz,3.0,0xffffff,.25);}catch(_){}}
 
 
 
@@ -11595,7 +11594,7 @@ function damageMob(m,dmg,an){
 
 
   if(an.skill){SFX.skill(an.skill.pose,'hit');skillHitFx(an,m.x,m.z);}else{SFX.play('hit');if(an.ss)SFX.play('soulshot_hit');}
-  if(an.ss && window.SoulshotFX) SoulshotFX.impacto(m.x, 1.4*m.T.size, m.z, wpnCaster());
+  if(an.ss){try{if(window.Brilho&&Brilho.soulshotImpacto)Brilho.soulshotImpacto();burst(m.x,1.4*m.T.size,m.z,18,wpnCaster()?0x38e1ff:0x52d4ff,3.5);spark(m.x,1.4*m.T.size,m.z,3.0,0xffffff,.25);}catch(_){}}
 
 
 
@@ -12850,8 +12849,14 @@ function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no da
   an.ss=1;
   an.dmg=Math.round(an.dmg*(1+(c.bonus||0.25)));
   if(!INV_SRV && CONSUM[id]>0) CONSUM[id]--;
-  /* ATIVA O BRILHO CANONICO DO SOULSHOT NA ARMA (PC e Mobile) */
-  if(window.SoulshotFX) SoulshotFX.ativar(vrm, wpnCaster(), an.dur || 0.45);
+  /* ATIVA O BRILHO NOSTALGICO DO SOULSHOT NA ARMA (PC e Mobile) */
+  try{
+    if(window.Brilho&&Brilho.soulshot)Brilho.soulshot(vrm,wpnCaster(),(an.dur||0.4)*1000);
+    if(window.SFX){
+      if(wpnCaster())SFX.play('spirits_shot_cast');
+      else SFX.play('soulshot_cast');
+    }
+  }catch(_){}
 }
 function ssRecebido(m){if(!m||!m.id)return;var tinha=CONSUM[m.id]|0;if(m.n>0)CONSUM[m.id]=m.n;else{delete CONSUM[m.id];if(tinha){try{Chat.sistema('Seus '+(window.Loja?Loja.nome(m.id):m.id)+' acabaram.');}catch(_){}}}try{Loja.atualiza();}catch(_){}}
 function curaDoServidor(hp,m){if(typeof hp==='number'){S.php=hp;renderHud();if(m&&m.de&&(m.q|0)>0)floatText('+'+(m.q|0),'#7dff9a',22,'p');}}/* [clerigo] cura de outro jogador mostra o valor */

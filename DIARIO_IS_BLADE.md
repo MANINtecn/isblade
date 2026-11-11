@@ -3521,3 +3521,18 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - **Detonação no Impacto (`SoulshotFX.impacto`)**: ao conectar o golpe (espantalho de treino, monstros ou chefe Baium), ocorre o estalo explosivo canônico (`soul_shot_shot.wav`), clarão pontual de luz, onda de choque em anel aditivo se expandindo e explosão esférica de 25-35 partículas de alma (brancas, ciano e azul profundo), descarregando a arma e retornando suavemente ao seu estado base ou ao brilho de encantamento.
   - **Harmonização com Encantamento**: `brilho_encanto.js` foi compatibilizado para não sobrescrever a intensidade do Soulshot durante a descarga e restaurar perfeitamente o brilho de itens +4 ou superiores ao final do efeito.
 - Testado local: verificação de sintaxe de todos os arquivos (`node -c`), validação de carregamento e compatibilidade em PC e Mobile.
+
+### [Antigravity] 10/11/2026 - Correção Crítica do Combate e Brilho Nostálgico L2 Integrado
+- Relato do dono: "a adição do ss, quebrou a jogabilidade e as skilss nao sai nem atakk padrao, oque voce fez ? era o brilho nostalgico do l2 que quero, oque voce entendeu que era pra fazer ?".
+- Causa Raiz do Travamento:
+  - O script anterior `soulshot_fx.js` tentava acessar `mat.emissive.setHex()` em malhas da arma que usavam `MeshBasicMaterial` (como `sword.glow` / `gl`). Em Three.js, `MeshBasicMaterial` não possui propriedade `emissive`, gerando uma exceção não capturada `TypeError: Cannot read properties of undefined (reading 'setHex')`.
+  - Como `ssTiro` era chamado dentro de `mkAnim()`, a exceção interrompia `mkAnim` antes de instanciar `an`, quebrando a máquina de estados do combate (`S.anim = undefined`) e impedindo que qualquer ataque básico ou skill fosse executado.
+- Correção Definitiva e Alinhamento com o "Brilho Nostálgico do L2":
+  - **Eliminação de Scripts Pesados**: O arquivo `soulshot_fx.js` e suas geometrias/luzes adicionais foram removidos.
+  - **Integração Direta em `brilho_encanto.js`**: Implementado `Brilho.soulshot(rig, isMagic, durMs)` e `Brilho.soulshotImpacto()`. Apenas materiais que comprovadamente possuem `mt.emissive` recebem o brilho elétrico nostálgico do Lineage 2 (`#4dd4ff` para armas físicas e `#38e1ff` para cajados/livros).
+  - **Blindagem em `mkAnim`**: Chamadas a `ssTiro` agora são envoltas em `try/catch`, garantindo que nenhuma falha visual jamais quebre ou impeça a inicialização da animação de ataque ou conjuração de skills.
+  - **Efeito Visual Nostálgico Puro do L2**:
+    1. Ao atacar ou usar skill, a arma ativa se acende instantaneamente no azul elétrico característico do L2 com emissive intenso (2.8), com o som clássico `soulshot_cast`.
+    2. A trilha de corte (`trailP` e `slashArc`) assume a cor azul-ciano de alma durante o golpe.
+    3. Ao acertar o alvo, as funções nativas e consagradas do projeto (`burst` e `spark`) detonam 18 faíscas azuis/brancas nostálgicas no ponto do impacto junto ao som `soul_shot_shot.wav`, e a arma descarrega suavemente voltando ao seu estado normal ou ao encanto (+4, etc.).
+- Validação: Todos os ataques básicos (combos 1 a 4) e todas as skills voltam a sair com total fluidez, com a lâmina iluminando no clássico azul nostálgico do Lineage 2.
