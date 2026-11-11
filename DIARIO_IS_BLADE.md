@@ -3621,3 +3621,22 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - 1 clique em qualquer botão troca a cena imediatamente, enquadra na câmera principal, ajusta para o modo Material Shading e dá play automático na animação. Botões de controle de playback e alternância entre múltiplas câmeras.
 - **Arquivo .blend Salvo**:
   - Salvo em `prototipo/assets/personagens/clerigo_skills.blend` com a cena `CLERIGO_S2_GLIFO` ativa e enquadrada na câmera.
+
+### [Antigravity] 11/11/2026 - Refinamento Nobre do Healer: Mini Cruz de Luz, Cruz Caindo do Céu e Asas Angelicais de Penas Reais
+- **Feedback do Dono**:
+  1. *C0*: Substituir o dardo amarelo e os anéis orbitais giratórios por uma pequena cruz de luz com o acabamento refinado do flare estelar (`media_1794391652303_f944b136.png` e `media_1794391686416_c9184ac6.png`).
+  2. *C1*: Na Cura Mirada, fazer uma cruz 3D com esse mesmo acabamento refinado cair suavemente do céu na posição mirada.
+  3. *C6*: Na Ressurreição, remover o chão em formato de serra/engrenagem giratória e substituir as asas toscas por asas angelicais de alto nível ("porque tudo tem que girar ? e as asas parece que meu filho que desenhou").
+- **Implementação Realizada via MCP no Blender 5.1**:
+  - **C0 (Mini Cruz de Luz)**:
+    - Removidos o cone pontiagudo amarelo e os anéis orbitais giratórios.
+    - Modelada a **Mini Cruz de Luz 3D facetada** (`bm_cruz_facetada` com espinha central/crista diamante em relevo) em material ouro celestial com núcleo branco incandescente.
+    - Acoplado o acabamento refinado exigido pelo dono: **Flare estelar e cruz de luz radiante** centralizados no projétil (`spr_estrela_o` e `spr_cruz_o`), voando em trajetória suave e limpa até o inimigo, explodindo em bênção de faíscas.
+  - **C1 (Cura Mirada)**:
+    - Removido o projétil que saía horizontalmente da mão/livro.
+    - Implementada a descida celestial: feixe de luz translúcido desce sobre a posição mirada (`aliado_ref`), enquanto a **Cruz 3D de Cura lapidada esmeralda e branca com o flare refinado cai majestosamente do céu** ($Z = 8.5 \to 1.1$), tocando o peito do aliado e expandindo-se numa cúpula suave translúcida de cura.
+  - **C6 (Ressurreição)**:
+    - **Fim da serra/engrenagem**: O chão agora possui um selo sagrado circular suave (`gh_o`) com anéis concêntricos dourados e rotação lenta e serena (adeus giros rápidos e dentes pontudos de serra).
+    - **Asas Angelicais Majestosas de Penas Reais**: Criado o gerador procedural de penas em camadas (`bm_asa_completa`), com 13 penas articuladas anatomicamente por asa (primárias longas em curvatura fanning, secundárias e plumas suaves de ombro). As asas abrem-se em leque glorioso com mais de 4 metros de envergadura atrás do aliado ao despertar na coluna celestial.
+    - Adicionada câmera frontal (`cam_frontal`) enquadrando a simetria serena do renascimento.
+  - Salvo diretamente no arquivo `prototipo/assets/personagens/clerigo_skills.blend`.

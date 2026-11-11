@@ -1,235 +1,172 @@
-"""Clerigo (healer) - PREVIA das 7 skills no Blender: ataque basico + 6 skills por nivel (1/5/10/20/25/30).
-Versao ESTILIZADA com liberdade geometrica completa (mandalas magicas, aneis circulares, toros orbitais,
-obeliscos de cristal lapidados, cupulas translucidas e asas angelicais de luz divina).
-Rodar ao vivo pelo MCP:  exec(compile(open(r"<este arquivo>", encoding="utf8").read(), "cl", "exec"))
-Cria (ou refaz) as cenas CLERIGO_* no .blend aberto. 48 fps, Livro Astral aberto na mao esquerda.
-Paleta sagrada: ouro, branco quente e verde esmeralda de cura, azul astral nas barreiras.
-Cenas:
-  CLERIGO_BASICO      Lamina de Luz (ataque basico)       CLERIGO_S1_CURA      Cura Mirada (nivel 1)
-  CLERIGO_S2_GLIFO    Glifo de Cura (nivel 5)             CLERIGO_S3_ESCUDO    Escudo Astral (nivel 10)
-  CLERIGO_S4_PURIFICA Purificacao (nivel 20)              CLERIGO_S5_PRECE     Prece (nivel 25)
-  CLERIGO_S6_RESSUR   Ressurreicao (nivel 30)
+"""Gerador procedural das habilidades do Clerigo / Healer para o Blender 5.1.
+Executavel via MCP (porta 9876) ou na aba Scripting do Blender.
+
+Habilidades:
+C0 - Lamina de Luz: Mini Cruz de Luz 3D facetada com acabamento refinado de flare estelar.
+C1 - Cura Mirada: Cruz 3D de Cura com acabamento refinado caindo suavemente do ceu na posicao mirada.
+C2 - Glifo de Cura: Obeliscos lapidados esmeralda/ouro, mandala sagrada suave no chao e cupula de cura.
+C3 - Escudo Astral: Placas prismaticas e campo sagrado protetor.
+C4 - Purificacao: Coluna de luz pura, coroa radiante e prisma sagrado.
+C5 - Prece: Mandala sagrada no solo e colunas de bencao em todos os aliados.
+C6 - Ressurreicao: Coluna celestial, circulo suave no chao e Asas Angelicais majestosas de penas reais em camadas.
 """
-import bpy, bmesh, math, random
+
+import bpy
+import bmesh
+import math
+import random
 from mathutils import Vector, Matrix
 
-FPS = 48
-GAIN = 0.55
-PREFIXO = "CLERIGO_"
-bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
+# ------------------------------------------------------------------ Cores e Paleta do Clerigo
+BRANCO    = (1.00, 1.00, 1.00)
+OURO      = (1.00, 0.82, 0.28)
+AMARELO   = (1.00, 0.94, 0.52)
+VERDE     = (0.22, 0.95, 0.62)
+VERDE_ESC = (0.08, 0.55, 0.32)
+AZUL_P    = (0.75, 0.90, 1.00)
+MAGENTA   = (0.85, 0.35, 0.75)
+CINZA_REF = (0.16, 0.17, 0.22)
+ALVO_VERM = (0.85, 0.15, 0.15)
+GAIN = 1.0
 
-def _vai(sc):
-    if bpy.context.window:
-        bpy.context.window.scene = sc
-
-JANELA_ANTES = bpy.context.window.scene if bpy.context.window else None
-
-# Limpeza seletiva das cenas do Clerigo
-for s in [s for s in bpy.data.scenes if s.name.startswith(PREFIXO)]:
-    for o in list(s.objects):
-        bpy.data.objects.remove(o, do_unlink=True)
-    for c in list(bpy.data.collections):
-        if c.name.startswith(s.name):
-            bpy.data.collections.remove(c)
-    if bpy.context.window and bpy.context.window.scene is s:
-        outra = next((x for x in bpy.data.scenes if not x.name.startswith(PREFIXO)), None)
-        if outra:
-            _vai(outra)
-    bpy.data.scenes.remove(s)
-
-for m in list(bpy.data.materials):
-    if m.name.startswith("CL_"):
-        bpy.data.materials.remove(m)
-for me in list(bpy.data.meshes):
-    if me.users == 0 and me.name.startswith("CL_"):
-        bpy.data.meshes.remove(me)
-
-def nova_cena(nome, fim):
-    sc = bpy.data.scenes.new(nome)
-    _vai(sc)
-    sc.render.fps = FPS
-    sc.frame_start = 1
-    sc.frame_end = fim
-    try:
-        sc.render.engine = "BLENDER_EEVEE"
-    except TypeError:
-        pass
-    sc.render.resolution_x = 960
-    sc.render.resolution_y = 540
-    sc.world = bpy.data.worlds.new(nome + "_mundo")
-    sc.world.use_nodes = True
-    bg = sc.world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.012, 0.016, 0.026, 1)
-    bg.inputs[1].default_value = 1.0
-    sc.view_settings.view_transform = "Standard"
-    col = bpy.data.collections.new(nome + "_FX")
-    sc.collection.children.link(col)
-    ref = bpy.data.collections.new(nome + "_REF")
-    sc.collection.children.link(ref)
-    return sc, col, ref
-
-# ------------------------------------------------------------------ Materiais
+# ------------------------------------------------------------------ Auxiliares de Materiais
 def mat_base(nome):
-    m = bpy.data.materials.new(nome)
+    m = bpy.data.materials.get(nome) or bpy.data.materials.new(nome)
     m.use_nodes = True
     m.node_tree.nodes.clear()
+    m.blend_method = "BLEND"
     try:
-        m.surface_render_method = "BLENDED"
+        m.shadow_method = "NONE"
     except Exception:
         pass
-    m.use_backface_culling = False
     return m
 
-def _fim(m, em, alfa_socket, N):
-    nt = m.node_tree
+def _fim(m, shader_node, alpha_socket, N):
     out = N.new("ShaderNodeOutputMaterial")
     mix = N.new("ShaderNodeMixShader")
-    tr = N.new("ShaderNodeBsdfTransparent")
-    nt.links.new(alfa_socket, mix.inputs[0])
-    nt.links.new(tr.outputs[0], mix.inputs[1])
-    nt.links.new(em.outputs[0], mix.inputs[2])
-    nt.links.new(mix.outputs[0], out.inputs[0])
+    transp = N.new("ShaderNodeBsdfTransparent")
+    L = m.node_tree.links
+    L.new(alpha_socket, mix.inputs["Fac"])
+    L.new(transp.outputs["BSDF"], mix.inputs[1])
+    L.new(shader_node.outputs[0], mix.inputs[2])
+    L.new(mix.outputs["Shader"], out.inputs["Surface"])
 
-def mat_grad(nome, stops, forca=3.2, alfa=1.0, cauda=0.0):
+def mat_emit(nome, cor, forca=4.0):
     m = mat_base(nome)
-    nt = m.node_tree
-    N = nt.nodes
+    N, L = m.node_tree.nodes, m.node_tree.links
     em = N.new("ShaderNodeEmission")
-    tc = N.new("ShaderNodeTexCoord")
-    sep = N.new("ShaderNodeSeparateXYZ")
-    ramp = N.new("ShaderNodeValToRGB")
-    el = ramp.color_ramp.elements
-    while len(el) < len(stops):
-        el.new(0.5)
-    for e, (p, c) in zip(el, stops):
-        e.position = p
-        e.color = (*c, 1)
-    nt.links.new(tc.outputs["UV"], sep.inputs[0])
-    nt.links.new(sep.outputs[1], ramp.inputs[0])
-    nt.links.new(ramp.outputs[0], em.inputs["Color"])
-    em.inputs["Strength"].default_value = forca * GAIN
-    inv = N.new("ShaderNodeMath")
-    inv.operation = "SUBTRACT"
-    inv.inputs[0].default_value = 1.0
-    pw = N.new("ShaderNodeMath")
-    pw.operation = "POWER"
-    pw.inputs[1].default_value = max(cauda, 0.01)
-    mul = N.new("ShaderNodeMath")
-    mul.operation = "MULTIPLY"
-    mul.inputs[1].default_value = alfa
-    nt.links.new(sep.outputs[1], inv.inputs[1])
-    nt.links.new(inv.outputs[0], pw.inputs[0])
-    if cauda > 0:
-        nt.links.new(pw.outputs[0], mul.inputs[0])
-    else:
-        mul.inputs[0].default_value = 1.0
-    _fim(m, em, mul.outputs[0], N)
-    return m
-
-def mat_emit(nome, cor, forca=6.0):
-    m = mat_base(nome)
-    N = m.node_tree.nodes
-    em = N.new("ShaderNodeEmission")
-    em.inputs["Color"].default_value = (*cor, 1)
+    em.inputs["Color"].default_value = (*cor, 1.0)
     em.inputs["Strength"].default_value = forca * GAIN
     out = N.new("ShaderNodeOutputMaterial")
-    m.node_tree.links.new(em.outputs[0], out.inputs[0])
-    return m
-
-def mat_vidro(nome, centro, borda, forca=2.4, alfa_c=0.6):
-    m = mat_base(nome)
-    nt = m.node_tree
-    N = nt.nodes
-    em = N.new("ShaderNodeEmission")
-    lw = N.new("ShaderNodeLayerWeight")
-    lw.inputs["Blend"].default_value = 0.42
-    ramp = N.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].position = 0.28
-    ramp.color_ramp.elements[1].position = 0.95
-    ramp.color_ramp.elements[0].color = (*centro, 1)
-    ramp.color_ramp.elements[1].color = (*borda, 1)
-    nt.links.new(lw.outputs["Facing"], ramp.inputs[0])
-    nt.links.new(ramp.outputs[0], em.inputs["Color"])
-    em.inputs["Strength"].default_value = forca * GAIN
-    al = N.new("ShaderNodeMapRange")
-    al.inputs[3].default_value = 1.0
-    al.inputs[4].default_value = alfa_c
-    nt.links.new(lw.outputs["Facing"], al.inputs[0])
-    _fim(m, em, al.outputs[0], N)
-    return m
-
-def mat_feixe(nome, base, topo, forca=2.4, esticar=0.7, escala=5.0, alfa=0.9, vel=0.0, f0=1, f1=1, sobe=True):
-    m = mat_base(nome)
-    nt = m.node_tree
-    N = nt.nodes
-    em = N.new("ShaderNodeEmission")
-    tc = N.new("ShaderNodeTexCoord")
-    mp = N.new("ShaderNodeMapping")
-    mp.name = "mapa"
-    mp.inputs[3].default_value = (escala, escala, esticar)
-    nz = N.new("ShaderNodeTexNoise")
-    nz.inputs["Scale"].default_value = 1.8
-    nz.inputs["Detail"].default_value = 3
-    rv = N.new("ShaderNodeValToRGB")
-    rv.color_ramp.elements[0].position = 0.3
-    rv.color_ramp.elements[1].position = 0.72
-    sep = N.new("ShaderNodeSeparateXYZ")
-    gr = N.new("ShaderNodeValToRGB")
-    gr.color_ramp.elements[0].color = (*base, 1)
-    gr.color_ramp.elements[1].color = (*topo, 1)
-    inv = N.new("ShaderNodeMath")
-    inv.operation = "SUBTRACT"
-    inv.inputs[0].default_value = 1.0
-    pw = N.new("ShaderNodeMath")
-    pw.operation = "POWER"
-    pw.inputs[1].default_value = 0.55
-    mx = N.new("ShaderNodeMath")
-    mx.operation = "MULTIPLY_ADD"
-    mx.inputs[1].default_value = 0.75
-    mx.inputs[2].default_value = 0.25
-    al = N.new("ShaderNodeMath")
-    al.operation = "MULTIPLY"
-    al2 = N.new("ShaderNodeMath")
-    al2.operation = "MULTIPLY"
-    al2.inputs[1].default_value = alfa
-    L = nt.links
-    uv = N.new("ShaderNodeTexCoord")
-    L.new(tc.outputs["Object"], mp.inputs[0])
-    L.new(mp.outputs[0], nz.inputs["Vector"])
-    L.new(nz.outputs["Fac"], rv.inputs[0])
-    L.new(uv.outputs["UV"], sep.inputs[0])
-    L.new(sep.outputs[1], gr.inputs[0])
-    L.new(gr.outputs[0], em.inputs["Color"])
-    em.inputs["Strength"].default_value = forca * GAIN
-    L.new(sep.outputs[1], inv.inputs[1])
-    L.new(inv.outputs[0], pw.inputs[0])
-    L.new(rv.outputs[0], mx.inputs[0])
-    L.new(mx.outputs[0], al.inputs[0])
-    L.new(pw.outputs[0], al.inputs[1])
-    L.new(al.outputs[0], al2.inputs[0])
-    _fim(m, em, al2.outputs[0], N)
-    if vel:
-        for fr, z in ((f0, 0.0), (f1, -vel if sobe else vel)):
-            mp.inputs[1].default_value = (0, 0, z)
-            nt.keyframe_insert('nodes["mapa"].inputs[1].default_value', frame=fr)
+    L.new(em.outputs["Emission"], out.inputs["Surface"])
     return m
 
 def mat_ref(nome, cor):
-    m = bpy.data.materials.new(nome)
+    m = bpy.data.materials.get(nome) or bpy.data.materials.new(nome)
     m.use_nodes = True
-    b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = (*cor, 1)
-    b.inputs["Roughness"].default_value = 0.8
+    N, L = m.node_tree.nodes, m.node_tree.links
+    N.clear()
+    p = N.new("ShaderNodeBsdfPrincipled")
+    p.inputs["Base Color"].default_value = (*cor, 1.0)
+    p.inputs["Roughness"].default_value = 0.5
+    out = N.new("ShaderNodeOutputMaterial")
+    L.new(p.outputs["BSDF"], out.inputs["Surface"])
     return m
 
-OURO = (1.0, 0.82, 0.35)
-BRANCO = (1.0, 0.97, 0.86)
-VERDE = (0.35, 1.0, 0.58)
-VERDE_ESC = (0.05, 0.65, 0.28)
-AZUL_P = (0.6, 0.88, 1.0)
+def mat_vidro(nome, cor_borda, cor_centro, forca=2.2, centro_alfa=0.35):
+    m = mat_base(nome)
+    N, L = m.node_tree.nodes, m.node_tree.links
+    geom = N.new("ShaderNodeNewGeometry")
+    fn = N.new("ShaderNodeFresnel")
+    fn.inputs["IOR"].default_value = 1.35
+    L.new(geom.outputs["Normal"], fn.inputs["Normal"])
+    rp_c = N.new("ShaderNodeValToRGB")
+    el_c = rp_c.color_ramp.elements
+    el_c[0].position = 0.0
+    el_c[0].color = (*cor_centro, 1.0)
+    el_c[1].position = 1.0
+    el_c[1].color = (*cor_borda, 1.0)
+    L.new(fn.outputs["Fac"], rp_c.inputs[0])
+    em = N.new("ShaderNodeEmission")
+    em.inputs["Strength"].default_value = forca * GAIN
+    L.new(rp_c.outputs["Color"], em.inputs["Color"])
+    rp_a = N.new("ShaderNodeValToRGB")
+    el_a = rp_a.color_ramp.elements
+    el_a[0].position = 0.0
+    el_a[0].color = (centro_alfa, centro_alfa, centro_alfa, 1.0)
+    el_a[1].position = 1.0
+    el_a[1].color = (0.95, 0.95, 0.95, 1.0)
+    L.new(fn.outputs["Fac"], rp_a.inputs[0])
+    _fim(m, em, rp_a.outputs["Color"], N)
+    return m
+
+def mat_grad(nome, pontos, forca=3.0, rugosidade=0.9, alfa=0.9, quente=(1.0, 0.98, 0.88)):
+    m = mat_base(nome)
+    N, L = m.node_tree.nodes, m.node_tree.links
+    tc = N.new("ShaderNodeTexCoord")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(tc.outputs["UV"], sep.inputs["Vector"])
+    rp_c = N.new("ShaderNodeValToRGB")
+    el_c = rp_c.color_ramp.elements
+    el_c[0].position = pontos[0][0]
+    el_c[0].color = (*pontos[0][1], 1.0)
+    el_c[1].position = pontos[-1][0]
+    el_c[1].color = (*pontos[-1][1], 1.0)
+    for p, c in pontos[1:-1]:
+        e = el_c.new(p)
+        e.color = (*c, 1.0)
+    L.new(sep.outputs["Y"], rp_c.inputs[0])
+    em = N.new("ShaderNodeEmission")
+    em.inputs["Strength"].default_value = forca * GAIN
+    L.new(rp_c.outputs["Color"], em.inputs["Color"])
+    rp_a = N.new("ShaderNodeValToRGB")
+    el_a = rp_a.color_ramp.elements
+    el_a[0].position = 0.0
+    el_a[0].color = (alfa, alfa, alfa, 1.0)
+    el_a[1].position = 1.0
+    el_a[1].color = (0.0, 0.0, 0.0, 1.0)
+    L.new(sep.outputs["Y"], rp_a.inputs[0])
+    _fim(m, em, rp_a.outputs["Color"], N)
+    return m
+
+def mat_feixe(nome, cor_miolo, cor_halo, forca=2.4, rug=0.5, raio_soft=4.0, z_soft=0.85, vel=6.0, dir_y=-1, tam_ruido=260):
+    m = mat_base(nome)
+    N, L = m.node_tree.nodes, m.node_tree.links
+    tc = N.new("ShaderNodeTexCoord")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(tc.outputs["Generated"], sep.inputs["Vector"])
+    map_ = N.new("ShaderNodeMapRange")
+    map_.inputs["From Min"].default_value = 0.0
+    map_.inputs["From Max"].default_value = 0.5
+    map_.inputs["To Min"].default_value = 1.0
+    map_.inputs["To Max"].default_value = 0.0
+    L.new(sep.outputs["X"], map_.inputs["Value"])
+    rp = N.new("ShaderNodeValToRGB")
+    el = rp.color_ramp.elements
+    el[0].position = 0.0
+    el[0].color = (*cor_halo, 1.0)
+    el[1].position = 1.0
+    el[1].color = (*cor_miolo, 1.0)
+    L.new(map_.outputs["Result"], rp.inputs[0])
+    em = N.new("ShaderNodeEmission")
+    em.inputs["Strength"].default_value = forca * GAIN
+    L.new(rp.outputs["Color"], em.inputs["Color"])
+    
+    # Suaviza a opacidade do feixe para que os personagens e as asas fiquem visiveis atraves da luz
+    alpha_mul = N.new("ShaderNodeMath")
+    alpha_mul.operation = "MULTIPLY"
+    alpha_mul.inputs[1].default_value = 0.35
+    L.new(map_.outputs["Result"], alpha_mul.inputs[0])
+    
+    _fim(m, em, alpha_mul.outputs["Value"], N)
+    return m
+
 M = {}
 
 def mats():
+    M["ref_c"] = mat_ref("CL_ref_clerigo", (0.55, 0.52, 0.42))
+    M["ref_a"] = mat_ref("CL_ref_aliado", (0.20, 0.36, 0.60))
+    M["ref_i"] = mat_ref("CL_ref_inimigo", (0.50, 0.14, 0.11))
     M["ouro_vidro"] = mat_vidro("CL_ouro_vidro", (1.0, 0.65, 0.12), (1.0, 0.96, 0.75), 2.6, 0.65)
     M["verde_vidro"] = mat_vidro("CL_verde_vidro", (0.06, 0.75, 0.35), (0.9, 1.0, 0.94), 2.6, 0.78)
     M["azul_vidro"] = mat_vidro("CL_azul_vidro", (0.15, 0.5, 0.98), (0.85, 0.96, 1.0), 2.4, 0.45)
@@ -289,13 +226,15 @@ def mats2():
         M["go_" + c] = mat_tex("CL_go_" + c, "clerigo_glifo_octa.png", t, 2.6)
         M["bh_" + c] = mat_tex("CL_bh_" + c, "clerigo_hex_brilho.png", t, 1.8)
         M["on_" + c] = mat_tex("CL_on_" + c, "clerigo_onda.png", t, 3.2)
-        M["spr_estrela_" + c] = mat_tex("CL_spr_estrela_" + c, "clerigo_estrela.png", t, 3.4)
-        M["spr_cruz_" + c] = mat_tex("CL_spr_cruz_" + c, "clerigo_cruz.png", t, 2.6)
+        M["spr_estrela_" + c] = mat_tex("CL_spr_estrela_" + c, "clerigo_estrela.png", t, 3.8)
+        M["spr_cruz_" + c] = mat_tex("CL_spr_cruz_" + c, "clerigo_cruz.png", t, 3.0)
         M["leque_" + c] = mat_tex("CL_leque_" + c, "clerigo_leque.png", t, 2.8)
     for c, t in (("o", OURO), ("v", VERDE), ("a", AZUL_P), ("b", BRANCO)):
-        M["esp_" + c] = mat_grad("CL_esp_" + c, [(0.0, (1.0, 1.0, 0.98)), (0.45, t), (1.0, tuple(x * 0.55 for x in t))], 3.5, 1.0, 0.9)
+        M["esp_" + c] = mat_grad("CL_esp_" + c, [(0.0, (1.0, 1.0, 0.98)), (0.45, t), (1.0, tuple(x * 0.55 for x in t))], 3.8, 1.0, 0.9)
     M["halo_v"] = mat_vidro("CL_halo_v", (0.06, 0.9, 0.45), (0.88, 1.0, 0.92), 1.5, 0.22)
     M["halo_o"] = mat_vidro("CL_halo_o", (1.0, 0.75, 0.2), (1.0, 0.98, 0.85), 1.5, 0.22)
+    # Material especial das Asas Angelicais: branco celestial radiante com reflexo dourado suave
+    M["asa_luz"] = mat_grad("CL_asa_luz", [(0.0, (1.0, 1.0, 1.0)), (0.5, (1.0, 0.96, 0.88)), (1.0, (1.0, 0.85, 0.42))], 3.4, 0.6, 0.95)
 
 # ------------------------------------------------------------------ Geometrias Livres e Estilizadas
 def para_obj(col, nome, bm, mat=None, flat=False):
@@ -328,65 +267,202 @@ def bm_anel(r_int, r_ext, segs=36):
         f = bm.faces.new((v_int[i], v_ext[i], v_ext[j], v_int[j]))
         for lp in f.loops:
             v = lp.vert.co
-            lp[uvl].uv = (math.atan2(v.y, v.x) / (2 * math.pi) % 1.0, (v.length - r_int) / max(1e-5, r_ext - r_int))
-    return bm
-
-def bm_toro(r_maior, r_menor, seg_u=32, seg_v=12):
-    """Toro circular volumetrico 3D (para auras orbitais e aneis sagrados de poder)"""
-    bm = bmesh.new()
-    aneis = []
-    for u in range(seg_u):
-        ang_u = 2 * math.pi * u / seg_u
-        cu = Vector((r_maior * math.cos(ang_u), r_maior * math.sin(ang_u), 0))
-        rad = Vector((math.cos(ang_u), math.sin(ang_u), 0))
-        up = Vector((0, 0, 1))
-        circ = []
-        for v in range(seg_v):
-            ang_v = 2 * math.pi * v / seg_v
-            pt = cu + (rad * math.cos(ang_v) + up * math.sin(ang_v)) * r_menor
-            circ.append(bm.verts.new(pt))
-        aneis.append(circ)
-    for u in range(seg_u):
-        u2 = (u + 1) % seg_u
-        for v in range(seg_v):
-            v2 = (v + 1) % seg_v
-            bm.faces.new((aneis[u][v], aneis[u2][v], aneis[u2][v2], aneis[u][v2]))
+            lp[uvl].uv = (v.x / (2 * r_ext) + 0.5, v.y / (2 * r_ext) + 0.5)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
 
-def bm_cristal_lapidado(L, r, lados=8, cauda=0.25):
-    """Cristal sagrado lapidado suave com facetas de gema (corpo aerodinamico ao longo de +Z)"""
+def bm_toro(R, r, segs_u=32, segs_v=12):
+    """Toro circular elegante para aneis de energia e orbitas celestiais"""
     bm = bmesh.new()
-    a = bm.verts.new((0, 0, 0))
-    anel = [bm.verts.new((r * math.cos(2 * math.pi * i / lados), r * math.sin(2 * math.pi * i / lados), cauda * L)) for i in range(lados)]
-    p = bm.verts.new((0, 0, L))
+    uvl = bm.loops.layers.uv.verify()
+    verts = []
+    for i in range(segs_u):
+        u = 2 * math.pi * i / segs_u
+        cos_u, sin_u = math.cos(u), math.sin(u)
+        linha = []
+        for j in range(segs_v):
+            v = 2 * math.pi * j / segs_v
+            cos_v, sin_v = math.cos(v), math.sin(v)
+            x = (R + r * cos_v) * cos_u
+            y = (R + r * cos_v) * sin_u
+            z = r * sin_v
+            linha.append(bm.verts.new((x, y, z)))
+        verts.append(linha)
+    for i in range(segs_u):
+        i2 = (i + 1) % segs_u
+        for j in range(segs_v):
+            j2 = (j + 1) % segs_v
+            f = bm.faces.new((verts[i][j], verts[i2][j], verts[i2][j2], verts[i][j2]))
+            for lp in f.loops:
+                lp[uvl].uv = (i / segs_u, j / segs_v)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+
+def bm_cruz_facetada(s=0.6, esp=0.10):
+    """Cruz 3D Facetada estilo joia sagrada com espinha central (crista) frente e verso"""
+    bm = bmesh.new()
+    w = s * 0.14
+    Yc = s * 0.12
+    Yup = s * 0.55
+    Ydown = s * 0.70
+    Xarm = s * 0.45
+    
+    perim_2d = [
+        (w, Yc - w), (Xarm, Yc - w), (Xarm, Yc + w), (w, Yc + w),
+        (w, Yup), (-w, Yup), (-w, Yc + w), (-Xarm, Yc + w),
+        (-Xarm, Yc - w), (-w, Yc - w), (-w, -Ydown), (w, -Ydown)
+    ]
+    
+    v_perim_f = [bm.verts.new((x, y, esp * 0.2)) for x, y in perim_2d]
+    v_perim_v = [bm.verts.new((x, y, -esp * 0.2)) for x, y in perim_2d]
+    
+    # Vertices crista frente (+Z)
+    c_f = bm.verts.new((0, Yc, esp * 0.6))
+    top_f = bm.verts.new((0, Yup, esp * 0.35))
+    bot_f = bm.verts.new((0, -Ydown, esp * 0.35))
+    esq_f = bm.verts.new((-Xarm, Yc, esp * 0.35))
+    dir_f = bm.verts.new((Xarm, Yc, esp * 0.35))
+    
+    # Vertices crista verso (-Z)
+    c_v = bm.verts.new((0, Yc, -esp * 0.6))
+    top_v = bm.verts.new((0, Yup, -esp * 0.35))
+    bot_v = bm.verts.new((0, -Ydown, -esp * 0.35))
+    esq_v = bm.verts.new((-Xarm, Yc, -esp * 0.35))
+    dir_v = bm.verts.new((Xarm, Yc, -esp * 0.35))
+    
+    # Faces frente
+    bm.faces.new((c_f, v_perim_f[0], v_perim_f[1], dir_f))
+    bm.faces.new((c_f, dir_f, v_perim_f[2], v_perim_f[3]))
+    bm.faces.new((c_f, v_perim_f[3], v_perim_f[4], top_f))
+    bm.faces.new((c_f, top_f, v_perim_f[5], v_perim_f[6]))
+    bm.faces.new((c_f, v_perim_f[6], v_perim_f[7], esq_f))
+    bm.faces.new((c_f, esq_f, v_perim_f[8], v_perim_f[9]))
+    bm.faces.new((c_f, v_perim_f[9], v_perim_f[10], bot_f))
+    bm.faces.new((c_f, bot_f, v_perim_f[11], v_perim_f[0]))
+    
+    # Faces verso
+    bm.faces.new((c_v, dir_v, v_perim_v[1], v_perim_v[0]))
+    bm.faces.new((c_v, v_perim_v[3], v_perim_v[2], dir_v))
+    bm.faces.new((c_v, top_v, v_perim_v[4], v_perim_v[3]))
+    bm.faces.new((c_v, v_perim_v[6], v_perim_v[5], top_v))
+    bm.faces.new((c_v, esq_v, v_perim_v[7], v_perim_v[6]))
+    bm.faces.new((c_v, v_perim_v[9], v_perim_v[8], esq_v))
+    bm.faces.new((c_v, bot_v, v_perim_v[10], v_perim_v[9]))
+    bm.faces.new((c_v, v_perim_v[0], v_perim_v[11], bot_v))
+    
+    # Laterais (12 quads)
+    for i in range(12):
+        j = (i + 1) % 12
+        bm.faces.new((v_perim_f[i], v_perim_f[j], v_perim_v[j], v_perim_v[i]))
+        
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+
+def bm_asa_completa(lado=1):
+    """Asa Angelical Majestosa multi-camadas de penas reais fanned (serafim / alta fantasia)"""
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.verify()
+    
+    # Penas: (comprimento, largura, curvatura, angulo_graus, tilt_graus, pos_base)
+    penas = [
+        # Primarias superiores (penas de voo longas na ponta da asa)
+        (2.6, 0.26, 0.35, 72, 10, Vector((0, 0, 0.3))),
+        (2.4, 0.26, 0.32, 58, 8, Vector((0, 0, 0.25))),
+        (2.1, 0.25, 0.30, 44, 6, Vector((0, 0, 0.20))),
+        (1.8, 0.24, 0.26, 30, 4, Vector((0, 0, 0.15))),
+        (1.5, 0.22, 0.22, 16, 2, Vector((0, 0, 0.10))),
+        (1.2, 0.20, 0.18, 2, 0, Vector((0, 0, 0.05))),
+        # Secundarias (corpo intermediario da asa)
+        (1.6, 0.25, 0.24, 52, 18, Vector((0, -0.05, 0.15))),
+        (1.4, 0.24, 0.22, 38, 16, Vector((0, -0.05, 0.10))),
+        (1.2, 0.22, 0.18, 24, 14, Vector((0, -0.05, 0.05))),
+        (1.0, 0.20, 0.15, 10, 12, Vector((0, -0.05, 0.0))),
+        # Coberturas menores do ombro (base macia na raiz)
+        (0.9, 0.22, 0.14, 65, 25, Vector((0, -0.08, 0.20))),
+        (0.8, 0.20, 0.12, 45, 22, Vector((0, -0.08, 0.12))),
+        (0.65, 0.18, 0.10, 25, 20, Vector((0, -0.08, 0.05)))
+    ]
+    
+    for comp, larg, curv, ang_deg, tilt_deg, p_base in penas:
+        ang = math.radians(ang_deg)
+        tilt = math.radians(tilt_deg)
+        segs = 8
+        v_cen, v_esq, v_dir = [], [], []
+        
+        rot_z = Matrix.Rotation(ang * lado, 4, 'Z')
+        rot_x = Matrix.Rotation(tilt, 4, 'X')
+        mat = rot_z @ rot_x
+        
+        for i in range(segs + 1):
+            t = i / segs
+            y_local = t * comp
+            x_local = curv * (t ** 1.6) * lado
+            z_local = 0.04 * math.sin(t * math.pi)
+            
+            w = larg * math.sin(t * math.pi * 0.9) * (1.0 - t * 0.25)
+            
+            p_c = mat @ Vector((x_local, y_local, z_local + 0.015)) + p_base
+            p_e = mat @ Vector((x_local - w * lado, y_local, z_local - 0.015)) + p_base
+            p_d = mat @ Vector((x_local + w * 0.7 * lado, y_local, z_local - 0.015)) + p_base
+            
+            v_cen.append(bm.verts.new(p_c))
+            v_esq.append(bm.verts.new(p_e))
+            v_dir.append(bm.verts.new(p_d))
+            
+        for i in range(segs):
+            if lado == 1:
+                bm.faces.new((v_cen[i], v_esq[i], v_esq[i+1], v_cen[i+1]))
+                bm.faces.new((v_cen[i], v_cen[i+1], v_dir[i+1], v_dir[i]))
+            else:
+                bm.faces.new((v_cen[i], v_cen[i+1], v_esq[i+1], v_esq[i]))
+                bm.faces.new((v_cen[i], v_dir[i], v_dir[i+1], v_cen[i+1]))
+                
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
+
+def bm_cristal_lapidado(comp, r, lados=8, chanfro=0.25):
+    """Cristal pontiagudo com multiplas facetas lapidadas nas extremidades"""
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.verify()
+    p_topo = bm.verts.new((0, 0, comp))
+    p_base = bm.verts.new((0, 0, 0))
+    z_m1 = comp * chanfro
+    z_m2 = comp * (1.0 - chanfro)
+    anel1 = [bm.verts.new((r * math.cos(2 * math.pi * i / lados), r * math.sin(2 * math.pi * i / lados), z_m1)) for i in range(lados)]
+    anel2 = [bm.verts.new((r * math.cos(2 * math.pi * i / lados), r * math.sin(2 * math.pi * i / lados), z_m2)) for i in range(lados)]
     for i in range(lados):
         j = (i + 1) % lados
-        bm.faces.new((a, anel[j], anel[i]))
-        bm.faces.new((anel[i], anel[j], p))
+        bm.faces.new((p_base, anel1[j], anel1[i]))
+        bm.faces.new((anel1[i], anel1[j], anel2[j], anel2[i]))
+        bm.faces.new((p_topo, anel2[i], anel2[j]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    uv_z(bm, 0, L)
     return bm
 
-def bm_obelisco(r1, r2, H, lados=8):
-    """Obelisco colunar de cristal para os pilares sagrados (com base e topo facetado lapidado)"""
+def bm_obelisco(r_base, r_topo, altura, lados=8):
+    """Obelisco cristalino conico com base mais larga e ponta afilada"""
     bm = bmesh.new()
-    bmesh.ops.create_cone(bm, cap_ends=False, segments=lados, radius1=r1, radius2=r2, depth=H)
-    bmesh.ops.translate(bm, vec=(0, 0, H / 2), verts=bm.verts)
-    uv_z(bm, 0, H)
+    uvl = bm.loops.layers.uv.verify()
+    vb = [bm.verts.new((r_base * math.cos(2 * math.pi * i / lados), r_base * math.sin(2 * math.pi * i / lados), 0)) for i in range(lados)]
+    vt = [bm.verts.new((r_topo * math.cos(2 * math.pi * i / lados), r_topo * math.sin(2 * math.pi * i / lados), altura)) for i in range(lados)]
+    pt = bm.verts.new((0, 0, altura + r_topo * 1.5))
+    for i in range(lados):
+        j = (i + 1) % lados
+        bm.faces.new((vb[i], vb[j], vt[j], vt[i]))
+        bm.faces.new((vt[i], vt[j], pt))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
 
-def bm_cupula(R, segs=28, aneis=10):
-    """Cupula hemisferica translucida de cura (abobada celeste)"""
+def bm_cupula(R, segs=32, anéis=8):
+    """Hemisferio de luz translucidocúpula sagrada suave"""
     bm = bmesh.new()
     topo = bm.verts.new((0, 0, R))
     layers = []
-    for ring in range(1, aneis + 1):
-        phi = (math.pi / 2) * (ring / aneis)
-        z = R * math.cos(phi)
-        r = R * math.sin(phi)
-        circ = [bm.verts.new((r * math.cos(2 * math.pi * i / segs), r * math.sin(2 * math.pi * i / segs), z)) for i in range(segs)]
-        layers.append(circ)
+    for k in range(1, anéis + 1):
+        phi = (math.pi / 2) * (1.0 - k / anéis)
+        z = R * math.sin(phi)
+        r_k = R * math.cos(phi)
+        layer = [bm.verts.new((r_k * math.cos(2 * math.pi * i / segs), r_k * math.sin(2 * math.pi * i / segs), z)) for i in range(segs)]
+        layers.append(layer)
     for i in range(segs):
         j = (i + 1) % segs
         bm.faces.new((topo, layers[0][j], layers[0][i]))
@@ -397,62 +473,17 @@ def bm_cupula(R, segs=28, aneis=10):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
 
-def bm_asa_angelical(L, w, segs=16):
-    """Asa de anjo estilizada em arco de luz divina fluida (curvatura elegante)"""
+def bm_mandala_suave(R):
+    """Mandala magica suave com aneis concentricos (sem dentes de engrenagem)"""
     bm = bmesh.new()
-    uvl = bm.loops.layers.uv.verify()
-    linhas = []
-    for k in range(segs + 1):
-        t = k / segs
-        # Curva de asa suave estilo arco celestial
-        arco_x = math.sin(t * math.pi * 0.85) * (w * 0.9)
-        arco_y = math.sin(t * math.pi) * 0.15
-        esp = w * 0.45 * math.sin(t * math.pi) * (1.0 - t * 0.25)
-        z = t * L
-        linhas.append([
-            bm.verts.new((arco_x - esp, arco_y, z)),
-            bm.verts.new((arco_x + esp, arco_y, z))
-        ])
-    for k in range(segs):
-        a, b = linhas[k], linhas[k + 1]
-        f = bm.faces.new((a[0], a[1], b[1], b[0]))
-        for lp in f.loops:
-            lp[uvl].uv = (lp.vert.co.x / max(w, 1e-4) + 0.5, lp.vert.co.z / L)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    return bm
-
-def bm_cruz(s, esp):
-    bm = bmesh.new()
-    h = s * 0.5
-    a = s * 0.18
-    pts = [(-a, -h), (a, -h), (a, -a), (h, -a), (h, a), (a, a), (a, h), (-a, h), (-a, a), (-h, a), (-h, -a), (-a, -a)]
-    vs = [bm.verts.new((x, -esp / 2, z)) for x, z in pts]
-    bm.faces.new(vs)
-    bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=esp)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    return bm
-
-def bm_mandala_solar(R, raios=12):
-    """Mandala magica rica com aneis circulares e raios solares curvos"""
-    bm = bmesh.new()
-    uvl = bm.loops.layers.uv.verify()
-    # Anel central
-    segs = 36
-    v_c = [bm.verts.new((R * 0.25 * math.cos(2 * math.pi * i / segs), R * 0.25 * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
-    v_m = [bm.verts.new((R * 0.65 * math.cos(2 * math.pi * i / segs), R * 0.65 * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
-    v_e = [bm.verts.new((R * 0.95 * math.cos(2 * math.pi * i / segs), R * 0.95 * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
+    segs = 48
+    v_c = [bm.verts.new((R * 0.3 * math.cos(2 * math.pi * i / segs), R * 0.3 * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
+    v_m = [bm.verts.new((R * 0.7 * math.cos(2 * math.pi * i / segs), R * 0.7 * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
+    v_e = [bm.verts.new((R * 1.0 * math.cos(2 * math.pi * i / segs), R * 1.0 * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
     for i in range(segs):
         j = (i + 1) % segs
         bm.faces.new((v_c[i], v_m[i], v_m[j], v_c[j]))
         bm.faces.new((v_m[i], v_e[i], v_e[j], v_m[j]))
-    # Raios solares ornamentais
-    for r in range(raios):
-        ang = 2 * math.pi * r / raios
-        p1 = Vector((R * 0.95 * math.cos(ang), R * 0.95 * math.sin(ang), 0))
-        p2 = Vector((R * 1.35 * math.cos(ang + 0.15), R * 1.35 * math.sin(ang + 0.15), 0))
-        p3 = Vector((R * 0.95 * math.cos(ang + 0.3), R * 0.95 * math.sin(ang + 0.3), 0))
-        v1, v2, v3 = bm.verts.new(p1), bm.verts.new(p2), bm.verts.new(p3)
-        bm.faces.new((v1, v2, v3))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return bm
 
@@ -462,139 +493,136 @@ def esc(o, pts):
         o.scale = (max(s, 1e-4),) * 3 if not isinstance(s, tuple) else tuple(max(x, 1e-4) for x in s)
         o.keyframe_insert("scale", frame=f)
 
-def anim(o, prop, f0, f1, fn, passo=2):
-    for f in list(range(f0, f1, passo)) + [f1]:
-        setattr(o, prop, fn((f - f0) / max(1, (f1 - f0))))
+def anim(o, prop, f0, f1, fn, passo=1):
+    for f in range(f0, f1 + 1, passo):
+        t = (f - f0) / max(f1 - f0, 1)
+        val = fn(t)
+        setattr(o, prop, val)
         o.keyframe_insert(prop, frame=f)
 
-def apunta(o, d, eixo="Z", cima="Y"):
-    o.rotation_euler = Vector(d).normalized().to_track_quat(eixo, cima).to_euler()
+def pisca(luz_obj, pts):
+    for f, pot in pts:
+        luz_obj.data.energy = pot
+        luz_obj.data.keyframe_insert("energy", frame=f)
 
-def luz(col, nome, tipo, loc, energia, cor=(1, 1, 1)):
-    ld = bpy.data.lights.new(nome, tipo)
-    ld.energy = energia
-    ld.color = cor
-    o = bpy.data.objects.new(nome, ld)
-    o.location = loc
-    col.objects.link(o)
-    return o
-
-def pisca(l, pts):
-    for f, e in pts:
-        l.data.energy = e * 0.4
-        l.data.keyframe_insert("energy", frame=f)
-
-def camera(sc, col, nome, loc, alvo, lente=32):
-    nome = sc.name[len(PREFIXO):] + "_" + nome
-    c = bpy.data.objects.new(nome, bpy.data.cameras.new(nome))
-    c.data.lens = lente
-    c.location = loc
-    col.objects.link(c)
-    t = bpy.data.objects.new(nome + "_alvo", None)
-    t.location = alvo
-    col.objects.link(t)
-    k = c.constraints.new("TRACK_TO")
-    k.target = t
-    k.track_axis = "TRACK_NEGATIVE_Z"
-    k.up_axis = "UP_Y"
-    return c
-
-def caixa(ref, nome, loc, dim, mat):
-    b = bmesh.new()
-    bmesh.ops.create_cube(b, size=1.0)
-    bmesh.ops.scale(b, vec=dim, verts=b.verts)
-    o = para_obj(ref, nome, b, mat)
-    o.location = loc
-    return o
-
-def plano_chao(col, nome, lado, mat, z=0.02):
-    bm = bmesh.new()
-    uvl = bm.loops.layers.uv.verify()
-    h = lado / 2
-    f = bm.faces.new([bm.verts.new(p) for p in ((-h, -h, 0), (h, -h, 0), (h, h, 0), (-h, h, 0))])
-    for lp, uv in zip(f.loops, [(0, 0), (1, 0), (1, 1), (0, 1)]):
-        lp[uvl].uv = uv
-    o = para_obj(col, nome, bm, mat)
-    o.location = (0, 0, z)
-    return o
-
-def glifo_obj(col, nome, R, tipo, cor, z=0.025):
-    g = plano_chao(col, nome, R * 2.06, M[("go_" if tipo == "octa" else "gh_") + cor], z)
-    b = plano_chao(col, nome + "_luz", R * 2.5, M["bh_" + cor], -0.012)
-    b.parent = g
-    return g
-
-def brilho_chao(col, nome, R, cor, z=0.012):
-    return plano_chao(col, nome, R * 2, M["bh_" + cor], z)
-
-def sprite(col, nome, mat, tam, loc=(0, 0, 0), vertical=False, alto=None):
-    bm = bmesh.new()
-    uvl = bm.loops.layers.uv.verify()
-    w = tam
-    h = alto or tam
-    pts = [(-w / 2, 0, 0), (w / 2, 0, 0), (w / 2, 0, h), (-w / 2, 0, h)] if vertical else [(-w / 2, -h / 2, 0), (w / 2, -h / 2, 0), (w / 2, h / 2, 0), (-w / 2, h / 2, 0)]
-    f = bm.faces.new([bm.verts.new(p) for p in pts])
-    for lp, uv in zip(f.loops, [(0, 0), (1, 0), (1, 1), (0, 1)]):
-        lp[uvl].uv = uv
-    o = para_obj(col, nome, bm, mat)
-    o.location = loc
-    k = o.constraints.new("LOCKED_TRACK" if vertical else "TRACK_TO")
-    k.name = "CL_BB"
-    if vertical:
-        k.track_axis = "TRACK_Y"
-        k.lock_axis = "LOCK_Z"
+def base_cena(suf, frame_end):
+    nome = "CLERIGO_" + suf
+    sc = bpy.data.scenes.get(nome)
+    if sc:
+        for o in list(sc.objects):
+            try:
+                bpy.data.objects.remove(o, do_unlink=True)
+            except Exception:
+                pass
     else:
-        k.track_axis = "TRACK_Z"
-        k.up_axis = "UP_Y"
-    return o
+        sc = bpy.data.scenes.new(nome)
+    sc.frame_start = 1
+    sc.frame_end = frame_end
+    sc.render.fps = 30
+    col = sc.collection
+    ref = col
 
-def retarget(sc):
-    for o in sc.objects:
-        for k in o.constraints:
-            if k.name == "CL_BB":
-                k.target = sc.camera
+    # Chao escuro de referencia
+    me = bpy.data.meshes.new("chao")
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=24.0)
+    bm.to_mesh(me)
+    bm.free()
+    chao = bpy.data.objects.new("chao", me)
+    chao.location = (0, 6.0, 0)
+    col.objects.link(chao)
+    m_ch = mat_ref("CL_chao", (0.05, 0.05, 0.07))
+    me.materials.append(m_ch)
 
-def base_cena(nome, fim, caster=(0, 0)):
-    sc, col, ref = nova_cena(PREFIXO + nome, fim)
-    b = bmesh.new()
-    bmesh.ops.create_grid(b, x_segments=1, y_segments=1, size=30)
-    mc = mat_ref("CL_chao_" + nome, (0.045, 0.05, 0.06))
-    para_obj(ref, "chao", b, mc)
-    M["ref_c"] = mat_ref("CL_ref_clerigo", (0.55, 0.52, 0.42))
-    M["ref_a"] = mat_ref("CL_ref_aliado", (0.20, 0.36, 0.60))
-    M["ref_i"] = mat_ref("CL_ref_inimigo", (0.50, 0.14, 0.11))
-    caixa(ref, "clerigo_ref_1.7m", (caster[0], caster[1], 0.85), (0.5, 0.35, 1.7), M["ref_c"])
-    luz(ref, "sol", "SUN", (0, 0, 10), 0.9, (0.85, 0.85, 1.0)).rotation_euler = (math.radians(45), 0, math.radians(-30))
+    # Clerigo de referencia
+    c = caixa(ref, "clerigo_ref_1.7m", (0, 0, 0.85), (0.5, 0.35, 1.7), mat_ref("CL_ref_c", CINZA_REF))
+
+    # Luz de preenchimento suave
+    sol = bpy.data.lights.new("sol", "SUN")
+    sol.energy = 0.8
+    sol.color = (0.95, 0.95, 1.0)
+    osol = bpy.data.objects.new("sol", sol)
+    osol.rotation_euler = (math.radians(55), math.radians(20), math.radians(-35))
+    col.objects.link(osol)
+
     return sc, col, ref
 
-def livro(col, loc, f_abre, f_fecha, esc_=1.5):
-    L, W, H = 0.20 * esc_, 0.014 * esc_, 0.30 * esc_
+def caixa(col, nome, pos, dim, mat):
+    me = bpy.data.meshes.new("CL_" + nome)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(mat)
+    ob = bpy.data.objects.new(nome, me)
+    ob.location = pos
+    ob.scale = dim
+    col.objects.link(ob)
+    return ob
+
+def luz(col, nome, tipo, pos, energia, cor):
+    l = bpy.data.lights.new("CL_" + nome, tipo)
+    l.energy = energia
+    l.color = cor
+    ob = bpy.data.objects.new(nome, l)
+    ob.location = pos
+    col.objects.link(ob)
+    return ob
+
+def sprite(col, nome, mat, tam, pos):
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.verify()
+    h = tam * 0.5
+    v0 = bm.verts.new((-h, 0, -h))
+    v1 = bm.verts.new(( h, 0, -h))
+    v2 = bm.verts.new(( h, 0,  h))
+    v3 = bm.verts.new((-h, 0,  h))
+    f = bm.faces.new((v0, v1, v2, v3))
+    f.loops[0][uvl].uv = (0, 0)
+    f.loops[1][uvl].uv = (1, 0)
+    f.loops[2][uvl].uv = (1, 1)
+    f.loops[3][uvl].uv = (0, 1)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = para_obj(col, nome, bm, mat)
+    ob.location = pos
+    k = ob.constraints.new("TRACK_TO")
+    k.name = "CL_BB"
+    k.track_axis = "TRACK_Y"
+    k.up_axis = "UP_Z"
+    return ob
+
+def apunta(ob, alvo):
+    d = Vector(alvo) - ob.location
+    ob.rotation_euler = (math.atan2(d.z, math.sqrt(d.x**2 + d.y**2)), 0, -math.atan2(d.x, d.y))
+
+def camera(sc, col, nome, pos, alvo, fov=32):
+    c = bpy.data.cameras.new("CL_" + nome)
+    c.lens = fov
+    ob = bpy.data.objects.new("CL_" + sc.name + "_" + nome, c)
+    ob.location = pos
+    col.objects.link(ob)
+    alv = bpy.data.objects.new("CL_" + sc.name + "_" + nome + "_alvo", None)
+    alv.location = alvo
+    col.objects.link(alv)
+    k = ob.constraints.new("TRACK_TO")
+    k.target = alv
+    k.track_axis = "TRACK_NEGATIVE_Z"
+    k.up_axis = "UP_Y"
+    return ob
+
+def livro(col, pos, f_abre, f_fecha):
+    esc_ = 1.3
     raiz = bpy.data.objects.new("livro", None)
     col.objects.link(raiz)
-    raiz.location = loc
-    def cubo(nome, mat, dim, off):
-        b = bmesh.new()
-        bmesh.ops.create_cube(b, size=1.0)
-        bmesh.ops.scale(b, vec=dim, verts=b.verts)
-        bmesh.ops.translate(b, vec=off, verts=b.verts)
-        return para_obj(col, nome, b, mat)
-    cubo("livro_lombada", M["livro_capa"], (W * 1.6, W * 2.0, H), (0, 0, 0)).parent = raiz
-    for lado in (0, 1):
-        pv = bpy.data.objects.new("livro_piv%d" % lado, None)
-        col.objects.link(pv)
-        pv.parent = raiz
-        cubo("livro_capa%d" % lado, M["livro_capa"], (L, W, H), (L / 2, 0, 0)).parent = pv
-        cubo("livro_borda%d" % lado, M["livro_ouro"], (L * 0.96, W * 0.6, H * 1.02), (L / 2, W * (-0.7 if lado == 0 else 0.7), 0)).parent = pv
-        cubo("livro_pag%d" % lado, M["livro_luz"], (L * 0.88, W * 0.5, H * 0.9), (L / 2 + 0.01, W * (-1.05 if lado == 0 else 1.05), 0)).parent = pv
-        a = 50
-        pv.rotation_euler = (0, 0, math.radians(180 - a if lado == 0 else a))
-    ll = luz(col, "livro_luz", "POINT", (0, 0.2, 0), 40, (1.0, 0.88, 0.55))
-    ll.parent = raiz
+    raiz.location = pos
+    raiz.scale = (esc_,) * 3
+    caixa(col, "livro_lombada", (0, 0, 0), (0.05, 0.02, 0.28), M["livro_capa"]).parent = raiz
     gl = sprite(col, "livro_brilho", M["spr_estrela_o"], 1.5 * esc_, (0, 0.12, 0))
     gl.parent = raiz
+    esc(gl, [(f_abre - 1, 0.0), (f_abre + 4, 1.0), (f_fecha - 4, 1.0), (f_fecha, 0.0)])
     return raiz
 
-# ================================================================== 0. ATAQUE BASICO: LAMINA DE LUZ (Estilizado)
+# ================================================================== 0. ATAQUE BASICO: MINI CRUZ DE LUZ (C0)
 def montar_basico():
     random.seed(7)
     F_FIM = 76
@@ -603,113 +631,103 @@ def montar_basico():
     caixa(ref, "inimigo_ref", (0, 12.0, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, F_FIM - 6)
 
-    raiz = bpy.data.objects.new("lamina_raiz", None)
+    raiz = bpy.data.objects.new("cruz_raiz", None)
     col.objects.link(raiz)
-    apunta(raiz, (0, 1, 0))
-    raiz.rotation_euler = (math.pi / 2, 0, 0)
+    raiz.rotation_euler = (math.pi / 2, 0, 0) # Face apontada para o alvo
 
-    # Lamina sagrada de cristal lapidado (8 lados) com miolo incandescente
-    corpo = para_obj(col, "lamina_corpo", bm_cristal_lapidado(1.6, 0.15, 8, 0.22), M["ouro_vidro"])
-    corpo.parent = raiz
-    miolo = para_obj(col, "lamina_miolo", bm_cristal_lapidado(1.2, 0.07, 8, 0.2), M["branco"])
-    miolo.parent = raiz
-    miolo.location = (0, 0, 0.15)
+    # Mini Cruz de Luz 3D facetada (estilo reliquia sagrada lapidada)
+    cruz_corpo = para_obj(col, "cruz_corpo", bm_cruz_facetada(0.55, 0.08), M["esp_o"])
+    cruz_corpo.parent = raiz
+    cruz_miolo = para_obj(col, "cruz_miolo", bm_cruz_facetada(0.36, 0.05), M["branco"])
+    cruz_miolo.parent = raiz
 
-    # Aneis magicos circulares orbitais em gimbal (estilo JRPG magico)
-    an1 = para_obj(col, "lamina_anel1", bm_toro(0.38, 0.02, 28, 8), M["ouro"])
-    an1.parent = raiz
-    an1.location = (0, 0, 0.6)
-    an2 = para_obj(col, "lamina_anel2", bm_toro(0.50, 0.018, 28, 8), M["marca"])
-    an2.parent = raiz
-    an2.location = (0, 0, 0.8)
+    # Acabamento Refinado: Flare Estelar e Cruz de Brilho no centro do projetil
+    fl_est = sprite(col, "cruz_flare_est", M["spr_estrela_o"], 1.6, (0, 0.1, 0))
+    fl_est.parent = raiz
+    fl_crz = sprite(col, "cruz_flare_crz", M["spr_cruz_o"], 1.3, (0, 0.1, 0))
+    fl_crz.parent = raiz
 
-    cl = sprite(col, "lamina_clarao", M["spr_estrela_o"], 2.2, (0, 0, 1.6))
-    cl.parent = raiz
+    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.1, 0), 0, (1.0, 0.9, 0.65))
+    luz_.parent = raiz
 
     F0, F1 = 10, 46
     Y0, Y1 = 1.2, 12.0
     raiz.location = (0, Y0, 1.25)
     raiz.keyframe_insert("location", frame=F0)
-    raiz.location = (0, Y1 - 0.5, 1.25)
+    raiz.location = (0, Y1 - 0.4, 1.25)
     raiz.keyframe_insert("location", frame=F1)
     esc(raiz, [(F0 - 1, 0.0), (F0 + 3, 1.0), (F1 - 1, 1.0), (F1, 0.0)])
+    pisca(luz_, [(F0 - 1, 0), (F0 + 3, 500), (F1 - 1, 500), (F1, 0)])
 
-    anim(an1, "rotation_euler", F0, F1, lambda t: (t * 12, t * 8, 0), 2)
-    anim(an2, "rotation_euler", F0, F1, lambda t: (0, -t * 10, t * 14), 2)
-
-    luz_ = luz(col, "lamina_luz", "POINT", (0, 0.2, 0), 0, (1.0, 0.85, 0.45))
-    luz_.parent = raiz
-    pisca(luz_, [(F0 - 1, 0), (F0 + 3, 600), (F1 - 1, 600), (F1, 0)])
-
-    # Impacto no inimigo com mandala de choque circular
-    mand = para_obj(col, "hit_mandala", bm_anel(0.2, 1.8, 36), M["marca"])
-    mand.location = (0, 12.0, 0.02)
-    esc(mand, [(F1 - 1, 0.0), (F1, 0.4), (F1 + 6, 1.1), (F1 + 24, 0.0)])
-    anim(mand, "rotation_euler", F1, F1 + 24, lambda t: (0, 0, t * 2.5), 3)
+    # Impacto no inimigo: clavao sagrado da cruz e estrelas luminosas
+    imp_cruz = sprite(col, "hit_cruz", M["spr_cruz_o"], 0.1, (0, 12.0, 1.25))
+    esc(imp_cruz, [(F1 - 1, 0.0), (F1, 1.8), (F1 + 14, 0.0)])
+    imp_est = sprite(col, "hit_est", M["spr_estrela_o"], 0.1, (0, 12.0, 1.25))
+    esc(imp_est, [(F1 - 1, 0.0), (F1, 2.5), (F1 + 18, 0.0)])
 
     camera(sc, ref, "cam_lateral", (11.0, 6.0, 2.6), (0, 6.0, 1.5), 32)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.0, -2.5, 1.8), (0, 4.0, 1.3), 32)
     return sc
 
-# ================================================================== 1. CURA MIRADA: Diamante de Cura com Aneis Celestes (C1)
+# ================================================================== 1. CURA MIRADA: CRUZ 3D CAINDO DO CEU NA POSICAO MIRADA (C1)
 def montar_cura():
     random.seed(11)
     F_FIM = 216
     sc, col, ref = base_cena("S1_CURA", F_FIM)
-    caixa(ref, "aliado_ref_1.8m", (-3.6, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
+    A = (-3.6, 10.5) # Posicao do aliado mirado
+    caixa(ref, "aliado_ref_1.8m", (A[0], A[1], 0.9), (0.6, 0.4, 1.8), M["ref_a"])
     caixa(ref, "inimigo_ref_1.8m", (4.2, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, F_FIM - 8)
 
-    def criar_tiro(nome, p0, p1, f0, voo):
-        p0, p1 = Vector(p0), Vector(p1)
-        d = p1 - p0
-        r = bpy.data.objects.new(nome, None)
-        col.objects.link(r)
-        r.rotation_euler = (math.pi / 2, 0, math.atan2(d.y, d.x) - math.pi / 2)
+    # 1. Feixe de luz celestial descendo do ceu sobre a posicao mirada
+    col_ceu = para_obj(col, "cura_feixe_ceu", bm_obelisco(0.9, 0.8, 12.0, 24), M["feixe_v"])
+    col_ceu.location = (A[0], A[1], 0)
+    esc(col_ceu, [(16, (1, 1, 1e-3)), (26, (1.1, 1.1, 1.0)), (68, (1.1, 1.1, 1.0)), (82, (0.2, 0.2, 1e-3))])
 
-        # Cristal esmeralda lapidado
-        cr = para_obj(col, nome + "_cristal", bm_cristal_lapidado(2.2, 0.32, 8, 0.25), M["verde_vidro"])
-        cr.parent = r
-        nu = para_obj(col, nome + "_nucleo", bm_cristal_lapidado(1.4, 0.14, 8, 0.2), M["branco"])
-        nu.parent = r
-        nu.location = (0, 0, 0.2)
+    # 2. A Cruz 3D de Cura com Acabamento Refinado caindo do ceu
+    cruz_raiz = bpy.data.objects.new("cruz_descida_raiz", None)
+    col.objects.link(cruz_raiz)
 
-        # Aneis orbitais celestes
-        toro1 = para_obj(col, nome + "_toro1", bm_toro(0.65, 0.025, 28, 8), M["ouro"])
-        toro1.parent = r
-        toro1.location = (0, 0, 1.0)
-        toro2 = para_obj(col, nome + "_toro2", bm_toro(0.85, 0.02, 28, 8), M["marca_v"])
-        toro2.parent = r
-        toro2.location = (0, 0, 1.2)
+    cruz_3d = para_obj(col, "cruz_cura_3d", bm_cruz_facetada(0.85, 0.14), M["esp_v"])
+    cruz_3d.parent = cruz_raiz
+    cruz_miolo = para_obj(col, "cruz_cura_miolo", bm_cruz_facetada(0.55, 0.08), M["branco"])
+    cruz_miolo.parent = cruz_raiz
 
-        r.location = (p0.x, p0.y, 1.3)
-        r.keyframe_insert("location", frame=f0)
-        r.location = (p1.x, p1.y, 1.3)
-        r.keyframe_insert("location", frame=f0 + voo)
-        esc(r, [(f0 - 1, 0.0), (f0 + 4, 1.0), (f0 + voo - 1, 1.0), (f0 + voo, 0.0)])
-        anim(toro1, "rotation_euler", f0, f0 + voo, lambda t: (t * 8, t * 6, 0), 3)
-        anim(toro2, "rotation_euler", f0, f0 + voo, lambda t: (0, -t * 10, t * 12), 3)
+    # Acabamento refinado: Flare de estrela e cruz divina luminosa
+    fl_est = sprite(col, "cruz_cura_fl_est", M["spr_estrela_v"], 2.4, (0, 0, 0.1))
+    fl_est.parent = cruz_raiz
+    fl_crz = sprite(col, "cruz_cura_fl_crz", M["spr_cruz_v"], 2.0, (0, 0, 0.1))
+    fl_crz.parent = cruz_raiz
 
-        l = luz(col, nome + "_luz", "POINT", (0, 0.2, 0), 0, (0.6, 1.0, 0.65))
-        l.parent = r
-        pisca(l, [(f0 - 1, 0), (f0 + 4, 800), (f0 + voo - 1, 800), (f0 + voo, 0)])
+    luz_cruz = luz(col, "cruz_cura_luz", "POINT", (0, 0, 0.1), 0, (0.5, 1.0, 0.75))
+    luz_cruz.parent = cruz_raiz
 
-    criar_tiro("proj1", (0.5, 0.8), (-3.6, 10.5), 16, 52)
-    # Efeito no aliado: Domo de cura translucido e anel de luz
-    f_ali = 68
+    # Animacao de descida suave e solene dos ceus (Z=8.5 ate Z=1.1 no peito do aliado)
+    f_ini, f_toc = 20, 52
+    cruz_raiz.location = (A[0], A[1], 8.5)
+    cruz_raiz.keyframe_insert("location", frame=f_ini)
+    cruz_raiz.location = (A[0], A[1], 1.1)
+    cruz_raiz.keyframe_insert("location", frame=f_toc)
+    esc(cruz_raiz, [(f_ini - 1, 0.0), (f_ini + 4, 1.0), (f_toc - 1, 1.0), (f_toc + 4, 1.25), (f_toc + 8, 0.0)])
+    pisca(luz_cruz, [(f_ini - 1, 0), (f_ini + 4, 700), (f_toc, 1200), (f_toc + 12, 0)])
+
+    # Ao tocar: Cupula suave translucida de cura e anel no chao
     cup = para_obj(col, "ali_cupula", bm_cupula(2.2, 28, 8), M["verde_vidro"])
-    cup.location = (-3.6, 10.5, 0.02)
-    esc(cup, [(f_ali - 1, 0.0), (f_ali + 4, 1.0), (f_ali + 28, 1.05), (f_ali + 45, 0.0)])
-    an_ali = para_obj(col, "ali_anel", bm_anel(0.4, 2.8, 36), M["marca_v"])
-    an_ali.location = (-3.6, 10.5, 0.03)
-    esc(an_ali, [(f_ali - 1, 0.0), (f_ali + 6, 1.1), (f_ali + 36, 0.0)])
+    cup.location = (A[0], A[1], 0.02)
+    esc(cup, [(f_toc - 1, 0.0), (f_toc + 4, 1.0), (f_toc + 28, 1.05), (f_toc + 45, 0.0)])
 
-    criar_tiro("proj2", (0.5, 0.8), (4.2, 10.5), 112, 52)
+    an_ali = para_obj(col, "ali_anel", bm_anel(0.3, 2.6, 36), M["marca_v"])
+    an_ali.location = (A[0], A[1], 0.03)
+    esc(an_ali, [(f_toc - 1, 0.0), (f_toc + 6, 1.1), (f_toc + 36, 0.0)])
+
+    fl_bencao = sprite(col, "cura_bencao_est", M["spr_estrela_v"], 0.1, (A[0], A[1], 1.2))
+    esc(fl_bencao, [(f_toc - 1, 0.0), (f_toc + 2, 3.2), (f_toc + 22, 0.0)])
+
     camera(sc, ref, "cam_lateral", (14.0, 4.0, 3.6), (0, 6.5, 1.8), 30)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.4, 2.0), (-0.4, 4.0, 1.2), 32)
     return sc
 
-# ================================================================== 2. GLIFO DE CURA: Mandala Sagrada, Obeliscos e Cupula Divina (C2 - O DO PRINT!)
+# ================================================================== 2. GLIFO DE CURA: OBELISCOS E MANDALA SUAVE (C2)
 def montar_glifo():
     random.seed(21)
     F_FIM = 224
@@ -726,163 +744,142 @@ def montar_glifo():
     F_SAI = 206
     RAIO = 3.6
 
-    # 1. Chão: Mandala sagrada rica com aneis circulares concentricos e raios (Livre Geometricamente!)
-    mandala = para_obj(col, "glifo_mandala", bm_mandala_solar(RAIO, raios=12), M["marca_v"])
+    # 1. Chao: Mandala sagrada suave com aneis concentricos (sem dentes de serra)
+    mandala = para_obj(col, "glifo_mandala", bm_mandala_suave(RAIO), M["marca_v"])
     mandala.location = (C.x, C.y, 0.025)
-    esc(mandala, [(F0 - 1, 0.0), (F0 + 12, 1.0), (F_SAI, 1.0), (F_SAI + 12, 0.0)])
-    anim(mandala, "rotation_euler", F0, F_SAI + 12, lambda t: (0, 0, t * 1.5), 4)
+    esc(mandala, [(F0 - 1, 0.0), (F0 + 8, 1.0), (F_SAI, 1.0), (F_SAI + 12, 0.0)])
 
-    # Anel dourado externo de contencao sagrada
-    anel_ext = para_obj(col, "glifo_anel_ext", bm_anel(RAIO * 0.96, RAIO * 1.06, 48), M["marca"])
+    anel_ext = para_obj(col, "glifo_anel_ext", bm_anel(RAIO - 0.2, RAIO + 0.2, 48), M["ouro"])
     anel_ext.location = (C.x, C.y, 0.03)
-    esc(anel_ext, [(F0 - 1, 0.0), (F0 + 10, 1.0), (F_SAI, 1.0), (F_SAI + 12, 0.0)])
+    esc(anel_ext, [(F0 - 1, 0.0), (F0 + 6, 1.0), (F_SAI, 1.0), (F_SAI + 10, 0.0)])
 
-    # 2. Cupula Hemisferica translucida de cura que pulsa protegendo a area
-    cupula = para_obj(col, "glifo_cupula", bm_cupula(RAIO * 0.98, 32, 10), M["verde_vidro"])
-    cupula.location = (C.x, C.y, 0.035)
-    esc(cupula, [(F0 - 1, 0.0), (F0 + 16, 0.95), (F_SAI - 10, 0.95), (F_SAI + 12, 0.0)])
-    anim(cupula, "rotation_euler", F0, F_SAI, lambda t: (0, 0, -t * 0.8), 4)
+    # 2. Cupula sagrada de cura
+    cupula = para_obj(col, "glifo_cupula", bm_cupula(RAIO, 32, 10), M["verde_vidro"])
+    cupula.location = (C.x, C.y, 0.02)
+    esc(cupula, [(F0 + 4, 0.0), (F0 + 16, 1.0), (F_SAI - 6, 1.0), (F_SAI + 10, 0.0)])
 
-    # 3. 6 Obeliscos Esculpidos nos vertices (em vez dos canudos retos simples da foto!)
-    for k in range(6):
-        ang = k * math.pi / 3
-        px = C.x + math.cos(ang) * RAIO * 0.92
-        py = C.y + math.sin(ang) * RAIO * 0.92
-        # Obelisco estilizado facetado (8 lados) com afinamento elegante
-        ob = para_obj(col, "obelisco%d" % k, bm_obelisco(0.24, 0.08, 4.2, 8), M["verde_vidro"] if k % 2 else M["ouro_vidro"])
-        ob.location = (px, py, 0)
-        esc(ob, [(F0 + 4 + k, (1, 1, 1e-3)), (F0 + 16 + k, (1, 1, 1.0)), (F_SAI, (1, 1, 1.0)), (F_SAI + 12, (1, 1, 1e-3))])
+    # 3. 6 Obeliscos cristalinos nos vertices
+    for i in range(6):
+        ang = 2 * math.pi * i / 6
+        px = C.x + math.cos(ang) * (RAIO - 0.3)
+        py = C.y + math.sin(ang) * (RAIO - 0.3)
+        mat_ob = M["esp_v"] if i % 2 == 0 else M["esp_o"]
+        obel = para_obj(col, "obelisco%d" % i, bm_obelisco(0.18, 0.06, 3.2, 8), mat_ob)
+        obel.location = (px, py, 0)
+        esc(obel, [(F0 + i * 2, (1, 1, 1e-3)), (F0 + 10 + i * 2, (1, 1, 1.0)), (F_SAI, (1, 1, 1.0)), (F_SAI + 8, (0.2, 0.2, 1e-3))])
 
-        # Anel de luz orbital que sobe em espiral ao redor de cada obelisco
-        toro_ob = para_obj(col, "toro_ob%d" % k, bm_toro(0.38, 0.02, 20, 6), M["ouro"] if k % 2 else M["verde"])
-        toro_ob.location = (px, py, 0.5)
-        esc(toro_ob, [(F0 + 10 + k, 0.0), (F0 + 20 + k, 1.0), (F_SAI, 1.0), (F_SAI + 10, 0.0)])
-        anim(toro_ob, "location", F0 + 20, F_SAI, lambda t, px=px, py=py: (px, py, 0.6 + 2.8 * (t % 0.35 / 0.35)), 3)
-        anim(toro_ob, "rotation_euler", F0, F_SAI, lambda t: (0, 0, t * 14), 2)
+        toro_ob = para_obj(col, "toro_ob%d" % i, bm_toro(0.35, 0.022, 24, 6), M["branco"])
+        toro_ob.location = (px, py, 0.8)
+        esc(toro_ob, [(F0 + 6 + i * 2, 0.0), (F0 + 14 + i * 2, 1.0), (F_SAI, 1.0), (F_SAI + 8, 0.0)])
 
     # 4. Pulsos de cura
-    for n, fp in enumerate(F_PULSOS):
-        onda = para_obj(col, "pulso_anel%d" % n, bm_anel(0.2, RAIO * 1.25, 40), M["marca_v"])
-        onda.location = (C.x, C.y, 0.04)
-        esc(onda, [(fp - 1, 0.0), (fp, 0.25), (fp + 16, 1.1), (fp + 22, 0.0)])
+    for p_idx, fp in enumerate(F_PULSOS):
+        pulso = para_obj(col, "pulso_anel%d" % p_idx, bm_anel(0.4, 0.9, 36), M["marca_v"])
+        pulso.location = (C.x, C.y, 0.04)
+        esc(pulso, [(fp - 1, 0.0), (fp, 0.5), (fp + 16, RAIO * 1.1), (fp + 20, 0.0)])
 
-        lz = luz(col, "pulso_luz%d" % n, "POINT", (C.x, C.y, 2.0), 0, VERDE)
-        pisca(lz, [(fp - 1, 0), (fp + 2, 5000), (fp + 18, 0)])
-
-    camera(sc, ref, "cam_alto", (9.0, 0.5, 10.5), (0, 8.8, 0.8), 30)
-    camera(sc, ref, "cam_lateral", (11.0, 3.0, 3.0), (0, 9.0, 1.6), 30)
-    sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.2, 2.2), (0, 7.5, 1.0), 30)
+    camera(sc, ref, "cam_alto", (0.0, 0.5, 9.5), (0, 9.0, 1.5), 32)
+    camera(sc, ref, "cam_lateral", (11.0, 9.0, 3.2), (0, 9.0, 1.5), 32)
+    sc.camera = camera(sc, ref, "cam_do_clerigo", (3.2, -2.5, 2.0), (0, 8.5, 1.5), 32)
     return sc
 
-# ================================================================== 3. ESCUDO ASTRAL: Campo de Forca e Placas com Aneis Celestes (C3)
+# ================================================================== 3. ESCUDO ASTRAL: BARREIRA PRISMATICA (C3)
 def montar_escudo():
     random.seed(33)
     F_FIM = 176
-    A = Vector((0.0, 8.0, 0.0))
     sc, col, ref = base_cena("S3_ESCUDO", F_FIM)
-    caixa(ref, "aliado_ref_1.8m", (A.x, A.y, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
-    caixa(ref, "inimigo_ref_1.8m", (7.0, 8.0, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
+    caixa(ref, "inimigo_ref", (0, 7.5, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, 36)
 
-    # Anel magico circular contínuo unindo as placas
-    R = 1.35
-    toro_barreira = para_obj(col, "escudo_toro_cintura", bm_toro(R, 0.035, 36, 8), M["marca_a"])
-    toro_barreira.location = (A.x, A.y, 1.1)
-    esc(toro_barreira, [(20, 0.0), (32, 1.0), (140, 1.0), (154, 0.0)])
-    anim(toro_barreira, "rotation_euler", 20, 154, lambda t: (0, 0, t * 6), 3)
+    F_CAST = 12
+    F_ATIVO = 28
+    F_GOLPE = 84
+    F_SAI = 156
 
-    toro_inclinado = para_obj(col, "escudo_toro_gimbal", bm_toro(R * 1.08, 0.025, 36, 8), M["marca"])
-    toro_inclinado.location = (A.x, A.y, 1.1)
-    toro_inclinado.rotation_euler = (math.radians(35), 0, 0)
-    esc(toro_inclinado, [(24, 0.0), (36, 1.0), (138, 1.0), (150, 0.0)])
-    anim(toro_inclinado, "rotation_euler", 24, 150, lambda t: (math.radians(35), t * 8, t * 5), 3)
+    raiz_esc = bpy.data.objects.new("escudo_raiz", None)
+    col.objects.link(raiz_esc)
+    raiz_esc.location = (0, 0, 1.0)
 
-    # 8 Placas lapidadas de barreira astral
-    N = 8
-    placas = []
-    for i in range(N):
-        ang = i * 2 * math.pi / N
-        pl = para_obj(col, "placa_lap%d" % i, bm_cristal_lapidado(1.6, 0.38, 6, 0.5), M["azul_vidro"] if i % 2 else M["ouro_vidro"])
-        pos = (A.x + math.cos(ang) * R, A.y + math.sin(ang) * R, 0.3)
-        pl.location = pos
-        pl.rotation_euler = (0, 0, ang - math.pi / 2)
-        esc(pl, [(22 + i * 2, 0.0), (34 + i * 2, 1.0), (140, 1.0), (152, 0.0)])
-        placas.append((pl, ang, pos))
+    # 6 Placas de barreira prismatica lapidadas ao redor
+    for i in range(6):
+        ang = 2 * math.pi * i / 6
+        placa = para_obj(col, "placa_escudo_%d" % i, bm_cruz_facetada(0.5, 0.06), M["azul_vidro"])
+        placa.parent = raiz_esc
+        placa.location = (1.25 * math.cos(ang), 1.25 * math.sin(ang), 0)
+        placa.rotation_euler = (0, 0, ang + math.pi / 2)
 
-    camera(sc, ref, "cam_lateral", (11.0, 2.0, 3.0), (0, 6.0, 1.4), 30)
-    sc.camera = camera(sc, ref, "cam_do_clerigo", (3.2, -3.0, 2.0), (0.2, 5.5, 1.2), 32)
+    # Anel toroidal de sustentacao
+    toro_base = para_obj(col, "toro_escudo_base", bm_toro(1.3, 0.03, 36, 8), M["ouro"])
+    toro_base.parent = raiz_esc
+    toro_base.location = (0, 0, -0.4)
+
+    esc(raiz_esc, [(F_CAST, 0.0), (F_ATIVO, 1.0), (F_GOLPE, 1.0), (F_GOLPE + 4, 1.15), (F_GOLPE + 10, 1.0), (F_SAI, 1.0), (F_SAI + 14, 0.0)])
+    anim(raiz_esc, "rotation_euler", F_ATIVO, F_SAI, lambda t: (0, 0, t * 1.5), 3)
+
+    camera(sc, ref, "cam_lateral", (8.5, 3.5, 2.6), (0, 0, 1.2), 32)
+    sc.camera = camera(sc, ref, "cam_do_clerigo", (2.8, -3.2, 1.8), (0, 1.5, 1.2), 32)
     return sc
 
-# ================================================================== 4. PURIFICACAO: Cascata Celestial e Coroa de Luz (C4)
+# ================================================================== 4. PURIFICACAO: COLUNA CELESTIAL E PRISMA SAGRADO (C4)
 def montar_purifica():
     random.seed(44)
     F_FIM = 168
-    A = Vector((0.0, 8.0, 0.0))
     sc, col, ref = base_cena("S4_PURIFICA", F_FIM)
-    caixa(ref, "aliado_ref_1.8m", (A.x, A.y, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
-    livro(col, (0.55, 0.3, 1.25), 2, 40)
+    caixa(ref, "aliado_debilitado", (0, 4.0, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
+    livro(col, (0.55, 0.3, 1.25), 2, 42)
 
-    FI = 30
-    # 3 Cilindros concentricos volumetricos de cascata divina
-    c1 = para_obj(col, "purif_col1", bm_obelisco(0.9, 0.7, 7.0, 16), M["feixe_b"])
-    c1.location = (A.x, A.y, 0)
-    esc(c1, [(FI - 1, (1, 1, 1e-3)), (FI + 6, (1.1, 1.1, 1.0)), (FI + 24, (1, 1, 1.0)), (FI + 36, (0.2, 0.2, 1e-3))])
+    F0 = 18
+    F_COL = 36
+    F_FIM_EFEITO = 142
 
-    # Coroa sagrada de imunidade acima da cabeca
-    coroa_anel = para_obj(col, "imune_coroa_anel", bm_toro(0.35, 0.03, 24, 8), M["ouro"])
-    coroa_anel.location = (A.x, A.y, 2.65)
-    esc(coroa_anel, [(FI + 6, 0.0), (FI + 16, 1.0), (124, 1.0), (138, 0.0)])
-    anim(coroa_anel, "rotation_euler", FI + 6, 138, lambda t: (0, 0, t * 10), 3)
+    col_luz = para_obj(col, "purif_coluna", bm_obelisco(1.2, 1.0, 10.0, 24), M["feixe_b"])
+    col_luz.location = (0, 4.0, 0)
+    esc(col_luz, [(F0, (1, 1, 1e-3)), (F_COL, (1.1, 1.1, 1.0)), (F_FIM_EFEITO, (1.1, 1.1, 1.0)), (F_FIM_EFEITO + 16, (0.2, 0.2, 1e-3))])
 
-    prisma_imune = para_obj(col, "imune_prisma", bm_cristal_lapidado(0.65, 0.16, 8, 0.5), M["ouro_vidro"])
-    prisma_imune.location = (A.x, A.y, 2.35)
-    esc(prisma_imune, [(FI + 8, 0.0), (FI + 18, 1.0), (124, 1.0), (138, 0.0)])
-    anim(prisma_imune, "rotation_euler", FI + 8, 138, lambda t: (0, 0, -t * 8), 3)
+    # Prisma sagrado flutuando acima da cabeca
+    prisma = para_obj(col, "purif_prisma", bm_cristal_lapidado(1.2, 0.25, 8, 0.2), M["branco"])
+    prisma.location = (0, 4.0, 2.8)
+    esc(prisma, [(F_COL - 1, 0.0), (F_COL + 6, 1.0), (F_FIM_EFEITO - 6, 1.0), (F_FIM_EFEITO, 0.0)])
+    anim(prisma, "rotation_euler", F_COL, F_FIM_EFEITO, lambda t: (0, 0, t * 2.0), 3)
 
-    camera(sc, ref, "cam_lateral", (9.0, 5.0, 2.8), (0, 8.0, 1.3), 30)
-    sc.camera = camera(sc, ref, "cam_do_clerigo", (3.2, -3.0, 2.0), (0.2, 5.5, 1.2), 32)
+    camera(sc, ref, "cam_lateral", (9.5, 4.0, 2.5), (0, 4.0, 1.5), 32)
+    sc.camera = camera(sc, ref, "cam_do_clerigo", (2.6, -2.6, 1.8), (0, 3.5, 1.3), 32)
     return sc
 
-# ================================================================== 5. PRECE: Mandala Solar e Colunas de Graca (C5)
+# ================================================================== 5. PRECE: GRACA EM TODOS OS ALIADOS (C5)
 def montar_prece():
     random.seed(55)
     F_FIM = 200
-    F_G = 12
-    F_SAI = 170
     sc, col, ref = base_cena("S5_PRECE", F_FIM)
-    aliados = [(-3.6, 3.4), (3.6, 3.2), (0.2, -4.2), (-3.0, -2.8)]
+    aliados = [(-2.2, 4.5), (2.0, 5.0), (-0.2, 7.8)]
     for i, (x, y) in enumerate(aliados):
         caixa(ref, "aliado_ref_%d" % i, (x, y, 0.9), (0.6, 0.4, 1.8), M["ref_a"])
-    livro(col, (0.55, 0.3, 1.25), 2, 56)
+    livro(col, (0.55, 0.3, 1.25), 2, 70)
 
-    # Mandala solar rica do Clerigo
-    mand = para_obj(col, "prece_mandala", bm_mandala_solar(5.2, raios=16), M["marca"])
+    F_G = 16
+    F_SAI = 180
+
+    # Mandala sagrada suave no piso sob o Clerigo (sem dentes de serra)
+    mand = para_obj(col, "prece_mandala", bm_mandala_suave(3.2), M["marca"])
     mand.location = (0, 0, 0.025)
     esc(mand, [(F_G - 1, 0.0), (F_G + 14, 1.0), (F_SAI, 1.0), (F_SAI + 14, 0.0)])
-    anim(mand, "rotation_euler", F_G, F_SAI + 14, lambda t: (0, 0, t * 1.8), 4)
 
-    # Cada aliado recebe uma coluna de bencao com espirais de luz e coroa
     for i, (x, y) in enumerate(aliados):
-        fb = F_G + 24 + i * 5
+        fb = F_G + 20 + i * 6
         col_ali = para_obj(col, "prece_col%d" % i, bm_obelisco(0.8, 0.65, 8.0, 16), M["feixe_o"])
         col_ali.location = (x, y, 0)
         esc(col_ali, [(fb - 1, (1, 1, 1e-3)), (fb + 8, (1, 1, 1.0)), (F_SAI - 16, (1, 1, 1.0)), (F_SAI, (0.3, 0.3, 1e-3))])
-
-        toro_ali = para_obj(col, "prece_toro%d" % i, bm_toro(0.65, 0.03, 24, 6), M["ouro"])
-        toro_ali.location = (x, y, 0.3)
-        esc(toro_ali, [(fb, 0.0), (fb + 10, 1.0), (F_SAI - 10, 1.0), (F_SAI, 0.0)])
-        anim(toro_ali, "location", fb, F_SAI, lambda t, x=x, y=y: (x, y, 0.3 + 2.5 * (t % 0.4 / 0.4)), 3)
 
     camera(sc, ref, "cam_alto", (0.0, -12.0, 11.5), (0, 0.5, 0.8), 30)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (2.2, -3.4, 2.0), (0.0, 3.0, 1.4), 28)
     return sc
 
-# ================================================================== 6. RESSURREICAO: O Apice com Asas Angelicais de Luz Divina (C6)
+# ================================================================== 6. RESSURREICAO: ASAS ANGELICAIS DE PENAS REAIS E CIRCULO SAGRADO SUAVE (C6)
 def montar_ressur():
     random.seed(66)
     F_FIM = 252
     A = Vector((0.0, 8.0, 0.0))
-    F_CLIM = 100
+    F_CLIM = 95
     sc, col, ref = base_cena("S6_RESSUR", F_FIM)
     ali = caixa(ref, "aliado_ref_1.8m", (A.x, A.y, 0.3), (0.6, 0.4, 1.8), M["ref_a"])
     livro(col, (0.55, 0.3, 1.25), 2, 112)
@@ -891,47 +888,59 @@ def montar_ressur():
     ali.location = (A.x, A.y, 0.2)
     ali.keyframe_insert("location", frame=1)
     ali.keyframe_insert("rotation_euler", frame=1)
-    for f, z, rot in ((F_CLIM - 12, 0.2, math.pi / 2), (F_CLIM + 14, 1.5, 0.45), (F_CLIM + 34, 1.0, 0.0), (F_CLIM + 46, 0.9, 0.0)):
+    for f, z, rot in ((F_CLIM - 16, 0.2, math.pi / 2), (F_CLIM + 12, 1.5, 0.35), (F_CLIM + 36, 1.1, 0.0), (F_CLIM + 50, 0.9, 0.0)):
         ali.location = (A.x, A.y, z)
         ali.rotation_euler = (rot, 0, 0)
         ali.keyframe_insert("location", frame=f)
         ali.keyframe_insert("rotation_euler", frame=f)
 
-    # Mandala sagrada de renascimento sob o caido
-    mand_res = para_obj(col, "ressur_mandala", bm_mandala_solar(4.2, raios=16), M["marca"])
-    mand_res.location = (A.x, A.y, 0.025)
-    esc(mand_res, [(14, 0.0), (36, 1.0), (F_CLIM + 70, 1.0), (F_CLIM + 90, 0.0)])
-    anim(mand_res, "rotation_euler", 14, F_CLIM + 90, lambda t: (0, 0, t * 2.2), 4)
+    # 1. Chao Sagrado Suave (SEM engrenagens, SEM dentes de serra, SEM girar feito serra eletrica)
+    circulo_chao = para_obj(col, "ressur_circulo_suave", bm_anel(0.2, 2.8, 48), M["gh_o"])
+    circulo_chao.location = (A.x, A.y, 0.025)
+    esc(circulo_chao, [(14, 0.0), (32, 1.0), (F_CLIM + 70, 1.0), (F_CLIM + 90, 0.0)])
+    # Rotacao solene quase imperceptivel (sem giros freneticos)
+    anim(circulo_chao, "rotation_euler", 14, F_CLIM + 90, lambda t: (0, 0, t * 0.15), 4)
 
-    # Monumental coluna de luz celestial
-    feixe_ceu = para_obj(col, "ressur_feixe_ceu", bm_obelisco(1.6, 1.4, 16.0, 24), M["feixe_b"])
+    # 2. Monumental coluna de luz celestial descendo do ceu
+    feixe_ceu = para_obj(col, "ressur_feixe_ceu", bm_obelisco(1.5, 1.3, 16.0, 24), M["feixe_b"])
     feixe_ceu.location = (A.x, A.y, 0)
-    esc(feixe_ceu, [(F_CLIM - 32, (1, 1, 1e-3)), (F_CLIM - 10, (1.15, 1.15, 1.0)), (F_CLIM + 50, (1.15, 1.15, 1.0)), (F_CLIM + 68, (0.3, 0.3, 1e-3))])
+    esc(feixe_ceu, [(F_CLIM - 32, (1, 1, 1e-3)), (F_CLIM - 10, (1.1, 1.1, 1.0)), (F_CLIM + 48, (1.1, 1.1, 1.0)), (F_CLIM + 66, (0.3, 0.3, 1e-3))])
 
-    # ASAS ANGELICAIS DE LUZ DIVINA (2 Asas Majestosas Arqueadas que se abrem suavemente)
+    # 3. ASAS ANGELICAIS MAJESTOSAS DE PENAS REAIS (Penas em camadas fanned estilo serafim)
     for lado, l_nome in ((-1, "esq"), (1, "dir")):
-        for camada in range(3):
-            compr = 3.6 - camada * 0.45
-            larg = 1.1 - camada * 0.15
-            asa = para_obj(col, "asa_angelical_%s_%d" % (l_nome, camada), bm_asa_angelical(compr, larg, 18), M["feixe_b"] if camada == 0 else M["ouro_vidro"])
-            asa.location = (A.x + lado * 0.25, A.y + 0.35, 1.35 + camada * 0.08)
+        asa = para_obj(col, "asa_angelical_" + l_nome, bm_asa_completa(lado), M["asa_luz"])
+        asa.location = (A.x + lado * 0.28, A.y + 0.32, 1.35)
 
-            ang_fecha = math.radians(12)
-            ang_abre = math.radians(45 + camada * 15)
-            for f, ang in ((F_CLIM + 6, ang_fecha), (F_CLIM + 24, ang_abre), (F_CLIM + 76, ang_abre + math.radians(5)), (F_CLIM + 96, ang_fecha)):
-                asa.rotation_euler = (math.radians(-15), lado * ang, math.radians(lado * 22))
-                asa.keyframe_insert("rotation_euler", frame=f)
-            esc(asa, [(F_CLIM + 4, 0.0), (F_CLIM + 22, 1.0), (F_CLIM + 78, 1.0), (F_CLIM + 98, 0.0)])
+        for f, z_off in ((1, 0.2), (F_CLIM - 16, 0.2), (F_CLIM + 12, 1.5), (F_CLIM + 36, 1.1), (F_CLIM + 50, 0.9)):
+            asa.location = (A.x + lado * 0.28, A.y + 0.32, z_off + 0.35)
+            asa.keyframe_insert("location", frame=f)
 
-    # Anel de choque de Gloria Divina
-    toro_gloria = para_obj(col, "ressur_toro_gloria", bm_toro(1.0, 0.08, 36, 12), M["branco"])
-    toro_gloria.location = (A.x, A.y, 1.3)
-    esc(toro_gloria, [(F_CLIM + 10, 0.0), (F_CLIM + 14, 0.5), (F_CLIM + 32, 6.0), (F_CLIM + 36, 0.0)])
+        # Abertura graciosa e solene das asas (abertura majestosa e batida serena)
+        rot_fechada = (math.radians(-10), math.radians(lado * 15), math.radians(lado * 10))
+        rot_aberta = (math.radians(-18), math.radians(lado * 55), math.radians(lado * 28))
+        rot_bater = (math.radians(-15), math.radians(lado * 65), math.radians(lado * 35))
 
+        for f, r in ((F_CLIM - 8, rot_fechada), (F_CLIM + 16, rot_aberta), (F_CLIM + 34, rot_bater), (F_CLIM + 56, rot_aberta), (F_CLIM + 80, rot_fechada)):
+            asa.rotation_euler = r
+            asa.keyframe_insert("rotation_euler", frame=f)
+
+        esc(asa, [(F_CLIM - 10, 0.0), (F_CLIM + 6, 1.0), (F_CLIM + 65, 1.0), (F_CLIM + 84, 0.0)])
+
+    # 4. Flare estelar de gloria no peito do aliado ao despertar
+    fl_despertar = sprite(col, "despertar_estrela", M["spr_estrela_o"], 0.1, (A.x, A.y, 1.35))
+    esc(fl_despertar, [(F_CLIM + 4, 0.0), (F_CLIM + 14, 3.2), (F_CLIM + 36, 0.0)])
+
+    sc.camera = camera(sc, ref, "cam_frontal", (0.0, 3.2, 1.8), (0, 8.0, 1.4), 32)
     camera(sc, ref, "cam_lateral", (12.0, 4.0, 3.6), (0, 8.0, 2.2), 30)
     camera(sc, ref, "cam_aliado", (4.8, 3.8, 2.6), (0, 8.0, 1.6), 32)
-    sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.2, 2.2), (0, 6.5, 1.8), 30)
+    camera(sc, ref, "cam_do_clerigo", (3.4, -3.2, 2.2), (0, 6.5, 1.8), 30)
     return sc
+
+def retarget(sc):
+    pass
+
+def _vai(sc):
+    pass
 
 # ------------------------------------------------------------------ Execucao e Registro
 mats()
@@ -945,11 +954,5 @@ cenas = [
     montar_prece(),
     montar_ressur()
 ]
-
-for _s in cenas:
-    retarget(_s)
-
-# Deixar na cena S2_GLIFO (a que o usuario mandou foto) e selecionar no viewport
-_vai(cenas[2])
 
 print("Clerigo estilizado pronto! Cenas geradas:", [(s.name, len(s.objects), s.frame_end) for s in cenas])
