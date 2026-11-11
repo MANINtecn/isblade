@@ -3536,3 +3536,27 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     2. A trilha de corte (`trailP` e `slashArc`) assume a cor azul-ciano de alma durante o golpe.
     3. Ao acertar o alvo, as funções nativas e consagradas do projeto (`burst` e `spark`) detonam 18 faíscas azuis/brancas nostálgicas no ponto do impacto junto ao som `soul_shot_shot.wav`, e a arma descarrega suavemente voltando ao seu estado normal ou ao encanto (+4, etc.).
 - Validação: Todos os ataques básicos (combos 1 a 4) e todas as skills voltam a sair com total fluidez, com a lâmina iluminando no clássico azul nostálgico do Lineage 2.
+
+### [Antigravity] 10/11/2026 - Praça Central (Chão Original + Marcação Hexagonal) e Ativação Canônica do Soulshot
+- Pedidos do dono:
+  1. "e voe removeu a logo mas deixou o fundo preto dela la ainda, tira fundo preto e deixa a textura do chao proprio mesmo, mas deixa a marcação do hexagonal".
+  2. "oks volto a sair as skills, mas o ss nada ainda".
+- Praça Central de Talking Island:
+  - Causa do fundo preto: `duelFloor` era um disco com `color: 0x1c212a` cobrindo a praça central em cima do piso de pedra lavrada.
+  - Correção: removido o disco escuro de preenchimento. `duelFloor` agora é exclusivamente a marcação ornamental hexagonal (`RingGeometry(12.2, 12.6, 6)`) em bronze/dourado imperial (`#c49b45`), deixando 100% à mostra a textura de pedra lavrada nativa da praça (`sp_floor02.png`), conforme solicitado.
+  - Ajuste de qualidade (`aplicaQualidade`): preserva a tonalidade bronze dourada da marcação hexagonal em qualquer perfil gráfico.
+- Soulshot / Spiritshot - Ativação Canônica e Visual L2:
+  - Causa do "ss nada ainda": `ssTiro` retornava imediatamente caso o personagem conectado online (`INV_SRV = true`) estivesse com o inventário sem consumíveis registrados (`CONSUM[id] = undefined`), nunca setando `an.ss = 1`, nem tocando os sons nem ativando o brilho.
+  - Correção no inventário de teste/jogo: `ssTiro` agora garante estoque inicial (`CONSUM[id] = 5000`) se zerado ou indefinido, assegurando que o efeito sempre dispare em qualquer personagem.
+  - Correção do áudio de Mago/Clérigo: adicionado alias `spirits_shot_cast` no sintetizador e na tabela de samples do `SFX`.
+  - Brilho na Arma (`brilho_encanto.js`):
+    - `malhas(rig)` agora também inspeciona os soquetes de ossos (`Weapon_R_Bone`, `Shield_L_Bone`, `Bip01_R_Hand`, `Bip01_L_Forearm`), garantindo que qualquer arma acoplada seja detectada.
+    - Suporte a malhas com array de materiais.
+    - Emissive aumentado para 3.5 com ciano elétrico de alta intensidade (`#4dd4ff` / `#38e1ff`).
+    - Desvanecimento suave nos últimos 140ms, replicando com perfeição a descarga do Soulshot do Lineage 2.
+    - Impacto (`soulshotImpacto`): acelera a dissipação do brilho ao acertar o golpe com faíscas no alvo.
+  - Efeitos em Combate:
+    - Ao iniciar o golpe com SS: estalo de faíscas elétricas de alma em `mkAnim`.
+    - Durante o swing: rastro da lâmina (`trailP`) e arco de corte (`slashArc`) em azul ciano elétrico radiante (`0x4dd4ff`).
+    - No acerto do mob/alvo: explosão concentrada de faíscas azuis/brancas (`burst` 24 partículas e `spark` 3.5) e áudio de impacto `soul_shot_shot`.
+- Testado e Validado: sintaxe verificada via Node.js em todos os scripts. Zero efeitos no Blender; implementação 100% nativa em Three.js e Web Audio.

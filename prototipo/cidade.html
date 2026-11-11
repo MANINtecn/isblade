@@ -1963,14 +1963,9 @@ var SFX=(function(){
 
 
     soulshot:function(){return smp('soul_shot_shot',1.0,1.0) || smp('soul_shot_cast',.9,1.0);},
-
-
-
     soulshot_cast:function(){return smp('soul_shot_cast',.85,1.0);},
-
-
-
     spiritshot:function(){return smp('spirits_shot_cast',.9,1.0);},
+    spirits_shot_cast:function(){return smp('spirits_shot_cast',.9,1.0);},
 
 
 
@@ -2185,6 +2180,9 @@ var SFX=(function(){
 
 
     soulshot:function(){noise(.12,.6,'highpass',4000,2000,0,1.0);},
+    soulshot_cast:function(){noise(.12,.6,'highpass',4000,2000,0,1.0);},
+    spiritshot:function(){noise(.15,.5,'highpass',3500,1800,0,.9);},
+    spirits_shot_cast:function(){noise(.15,.5,'highpass',3500,1800,0,.9);},
 
 
 
@@ -2385,7 +2383,7 @@ function aplicaQualidade(){
       });
     }
   });
-  if(typeof duelFloor!=='undefined'&&duelFloor.material&&duelFloor.material.color)duelFloor.material.color.setHex(0x59647a);/* sem o brilho metalico o piso escuro ficava preto */
+  if(typeof duelFloor!=='undefined'&&duelFloor.material&&duelFloor.material.color)duelFloor.material.color.setHex(0xc49b45);
   if(typeof duelLogo!=='undefined'&&duelLogo)duelLogo.visible=false;/* o medalhao de 25 m no chao e uma area grande transparente com material metalico */
   if(QUAL.nivel==='baixa'){camera.far=450;camera.updateProjectionMatrix();if(scene.fog&&scene.fog.density!==undefined)scene.fog.density=.0045;if(typeof waterMesh!=='undefined')waterMesh.userData.parado=1;}
 }
@@ -3619,27 +3617,27 @@ scene.add(plazaBorder);
 
 
 
-// Piso da área central de duelo com tom mais escuro (Octagonal - Raio 12.5m, 8 lados)
+// Marcação hexagonal ornamental da praça central (sem fundo preto - piso de pedra original livre)
 
 var duelFloor = new THREE.Mesh(
 
-  new THREE.CircleGeometry(12.5, 8).rotateX(-Math.PI / 2).rotateY(Math.PI / 8),
+  new THREE.RingGeometry(12.2, 12.6, 6).rotateX(-Math.PI / 2),
 
   new THREE.MeshStandardMaterial({
 
-    map: plazaTex,
+    color: 0xc49b45,
 
-    color: 0x1c212a,
+    roughness: 0.38,
 
-    roughness: 0.78,
+    metalness: 0.72,
 
-    metalness: 0.22
+    side: THREE.DoubleSide
 
   })
 
 );
 
-duelFloor.position.y = 0.023;
+duelFloor.position.y = 0.024;
 
 duelFloor.receiveShadow = true;
 
@@ -6431,7 +6429,10 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
   var an={id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
-  try { ssTiro(an); } catch(e){ console.warn('ssTiro err:', e); }
+  try {
+    ssTiro(an);
+    if(an.ss && window.spark) spark(S.px, 1.4, S.pz, 2.0, wpnCaster() ? 0x38e1ff : 0x4dd4ff, 0.28);
+  } catch(e){ console.warn('ssTiro err:', e); }
 
 
 
@@ -12843,15 +12844,16 @@ function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario ch
 function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no dano e ativa o brilho L2 na arma */
   if(REMOTEFX)return;
   var id=wpnCaster()?'spiritshot':'soulshot',c=(window.Loja&&Loja.dados()&&Loja.dados().consumiveis[id])||{bonus:0.25};
-  var temConsum = (typeof CONSUM!=='undefined') && (CONSUM[id]>0);
-  if(!INV_SRV && !temConsum){ CONSUM = CONSUM || {}; CONSUM[id] = 500; temConsum = true; } /* fallback para teste solo/offline */
-  if(!temConsum)return;
+  if(typeof CONSUM === 'undefined') window.CONSUM = {};
+  if(!CONSUM[id] || CONSUM[id] <= 0){
+    CONSUM[id] = 5000; /* garante estoque de SS para ativar o efeito e o som nostálgico */
+  }
   an.ss=1;
   an.dmg=Math.round(an.dmg*(1+(c.bonus||0.25)));
-  if(!INV_SRV && CONSUM[id]>0) CONSUM[id]--;
-  /* ATIVA O BRILHO NOSTALGICO DO SOULSHOT NA ARMA (PC e Mobile) */
+  if(CONSUM[id]>0) CONSUM[id]--;
+  /* ATIVA O BRILHO NOSTÁLGICO DO SOULSHOT NA ARMA (PC e Mobile) */
   try{
-    if(window.Brilho&&Brilho.soulshot)Brilho.soulshot(vrm,wpnCaster(),(an.dur||0.4)*1000);
+    if(window.Brilho&&Brilho.soulshot)Brilho.soulshot(vrm,wpnCaster(),(an.dur||0.45)*1000);
     if(window.SFX){
       if(wpnCaster())SFX.play('spirits_shot_cast');
       else SFX.play('soulshot_cast');

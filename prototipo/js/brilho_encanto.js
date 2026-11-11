@@ -18,15 +18,33 @@
       if(!o || !o.traverse || vistos.indexOf(o) >= 0) return;
       vistos.push(o);
       o.traverse(function(m){
-        if(m && m.isMesh && m.material && !Array.isArray(m.material) && vistos.indexOf(m) < 0){
+        if(m && m.isMesh && m.material && vistos.indexOf(m) < 0){
           vistos.push(m);
           out.push(m);
         }
       });
     });
+    if(rig.root && rig.root.getObjectByName){
+      ['Weapon_R_Bone', 'Shield_L_Bone', 'Bip01_R_Hand', 'Bip01_L_Forearm'].forEach(function(bName){
+        var b = rig.root.getObjectByName(bName);
+        if(!b || !b.traverse || vistos.indexOf(b) >= 0) return;
+        vistos.push(b);
+        b.traverse(function(m){
+          if(m && m.isMesh && m.material && vistos.indexOf(m) < 0){
+            vistos.push(m);
+            out.push(m);
+          }
+        });
+      });
+    }
     return out;
   }
-  function restaura(m){ if(m.userData && m.userData.__bm0){ m.material = m.userData.__bm0; delete m.userData.__bm0; } }
+  function restaura(m){
+    if(m.userData && m.userData.__bm0){
+      m.material = m.userData.__bm0;
+      delete m.userData.__bm0;
+    }
+  }
   function confere(k){
     var r = REG[k], rig = r.get && r.get(); if(!rig){ r.rig = null; return; }
     var ms = malhas(rig), c = cor(r.n), sig = (c || '-') + '|' + ms.length;
@@ -34,7 +52,9 @@
     (r.ms || []).forEach(restaura); r.rig = rig; r.sig = sig; r.ms = [];
     if(!c) return;
     ms.forEach(function(m){
-      var m0 = m.material; if(!m0 || !m0.emissive) return;
+      var m0 = m.material; if(!m0) return;
+      if(Array.isArray(m0)) return;
+      if(!m0.emissive) return;
       var mm = m0.clone(); mm.emissive = mm.emissive.clone().set(c); mm.emissiveIntensity = forca(r.n); m.userData.__bm0 = m0; m.material = mm; r.ms.push(m);
     });
   }
@@ -47,28 +67,31 @@
   /* Brilho nostálgico do Soulshot / Spiritshot do Lineage 2:
      A lâmina se acende com a explosão azul/ciano clássica do L2 ao golpear ou usar skill,
      durando o tempo do golpe e retornando suavemente ao normal (ou ao encanto +4/+7/+16). */
-  var ssTimer = 0, ssCor = '#38d0ff', ssMs = [];
+  var ssTimer = 0, ssCor = '#4dd4ff', ssMs = [];
   B.soulshot = function(rig, isMagic, durMs){
     try {
       if(!rig) return;
       ssCor = isMagic ? '#38e1ff' : '#4dd4ff';
-      ssTimer = performance.now() + (durMs || 380);
+      ssTimer = performance.now() + (durMs || 420);
       ssMs = malhas(rig);
       ssMs.forEach(function(m){
-        var mt = m.material;
-        if(!mt || !mt.emissive) return;
-        if(!m.userData.__origEmissive){
-          m.userData.__origEmissive = mt.emissive.clone();
-          m.userData.__origIntensity = (typeof mt.emissiveIntensity === 'number') ? mt.emissiveIntensity : 0;
-        }
-        mt.emissive.set(ssCor);
-        mt.emissiveIntensity = 2.8;
+        var mats = Array.isArray(m.material) ? m.material : [m.material];
+        mats.forEach(function(mt){
+          if(!mt || !mt.emissive) return;
+          if(!mt.userData.__origEmissive){
+            mt.userData.__origEmissive = mt.emissive.clone();
+            mt.userData.__origIntensity = (typeof mt.emissiveIntensity === 'number') ? mt.emissiveIntensity : 0;
+          }
+          mt.emissive.set(ssCor);
+          mt.emissiveIntensity = 3.5;
+        });
       });
     } catch(e){ console.warn('B.soulshot err:', e); }
   };
   B.soulshotImpacto = function(){
     try {
-      ssTimer = 0;
+      var now = performance.now();
+      if(ssTimer > now + 90) ssTimer = now + 90;
     } catch(_){}
   };
 
@@ -79,29 +102,42 @@
     var ssAtivo = (now < ssTimer);
     var p = .78 + .22 * Math.sin(t * .004);
 
-    if(!ssAtivo && ssMs.length > 0){
+    if(ssAtivo && ssMs.length > 0){
+      var sobra = ssTimer - now;
+      var mult = sobra < 140 ? (sobra / 140) : 1.0;
       ssMs.forEach(function(m){
-        var mt = m && m.material;
-        if(!mt || !mt.emissive) return;
-        var encCor = null, encForca = 0;
-        for(var k in REG){
-          var r = REG[k];
-          if(r.ms && r.ms.indexOf(m) >= 0){
-            encCor = cor(r.n);
-            encForca = forca(r.n);
-            break;
+        var mats = Array.isArray(m.material) ? m.material : [m.material];
+        mats.forEach(function(mt){
+          if(mt && mt.emissive){
+            mt.emissiveIntensity = 3.5 * mult;
           }
-        }
-        if(encCor){
-          mt.emissive.set(encCor);
-          mt.emissiveIntensity = encForca * p;
-        } else if(m.userData && m.userData.__origEmissive){
-          mt.emissive.copy(m.userData.__origEmissive);
-          mt.emissiveIntensity = m.userData.__origIntensity || 0;
-        } else {
-          mt.emissive.setHex(0x000000);
-          mt.emissiveIntensity = 0;
-        }
+        });
+      });
+    } else if(!ssAtivo && ssMs.length > 0){
+      ssMs.forEach(function(m){
+        var mats = Array.isArray(m.material) ? m.material : [m.material];
+        mats.forEach(function(mt){
+          if(!mt || !mt.emissive) return;
+          var encCor = null, encForca = 0;
+          for(var k in REG){
+            var r = REG[k];
+            if(r.ms && r.ms.indexOf(m) >= 0){
+              encCor = cor(r.n);
+              encForca = forca(r.n);
+              break;
+            }
+          }
+          if(encCor){
+            mt.emissive.set(encCor);
+            mt.emissiveIntensity = encForca * p;
+          } else if(mt.userData && mt.userData.__origEmissive){
+            mt.emissive.copy(mt.userData.__origEmissive);
+            mt.emissiveIntensity = mt.userData.__origIntensity || 0;
+          } else {
+            mt.emissive.setHex(0x000000);
+            mt.emissiveIntensity = 0;
+          }
+        });
       });
       ssMs = [];
     }

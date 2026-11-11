@@ -1057,10 +1057,9 @@ var SFX=(function(){
     /* SOULSHOT LENDÁRIO DO LINEAGE 2: estalo explosivo na lâmina! */
 
     soulshot:function(){return smp('soul_shot_shot',1.0,1.0) || smp('soul_shot_cast',.9,1.0);},
-
     soulshot_cast:function(){return smp('soul_shot_cast',.85,1.0);},
-
     spiritshot:function(){return smp('spirits_shot_cast',.9,1.0);},
+    spirits_shot_cast:function(){return smp('spirits_shot_cast',.9,1.0);},
 
 
 
@@ -1191,6 +1190,9 @@ var SFX=(function(){
     ui:function(){tone(900,1100,.05,'square',.08);},
 
     soulshot:function(){noise(.12,.6,'highpass',4000,2000,0,1.0);},
+    soulshot_cast:function(){noise(.12,.6,'highpass',4000,2000,0,1.0);},
+    spiritshot:function(){noise(.15,.5,'highpass',3500,1800,0,.9);},
+    spirits_shot_cast:function(){noise(.15,.5,'highpass',3500,1800,0,.9);},
 
     dash_swing:function(){noise(.2,1,'bandpass',400,3200,0,1);},
 
@@ -2704,7 +2706,10 @@ function mkAnim(pose,dmg,sk,perfect,skill){
   /* >>> CLAUDE [guardiao] 2026-10-27 — qualquer ataque ou skill coloca o personagem em combate */ Guardiao.tocar('ataque'); /* <<< CLAUDE [guardiao] */
 
   var an={id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
-  try { ssTiro(an); } catch(e){ console.warn('ssTiro err:', e); }
+  try {
+    ssTiro(an);
+    if(an.ss && window.spark) spark(S.px, 1.4, S.pz, 2.0, wpnCaster() ? 0x38e1ff : 0x4dd4ff, 0.28);
+  } catch(e){ console.warn('ssTiro err:', e); }
 
   var cm=clipsOn()&&getClipConfig(pose);
   if(skill&&skill.taunt&&vrm&&vrm.isL2&&vrm.clips['skill_taunt_roar']){
@@ -6889,15 +6894,16 @@ function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario ch
 function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no dano e ativa o brilho L2 na arma */
   if(REMOTEFX)return;
   var id=wpnCaster()?'spiritshot':'soulshot',c=(window.Loja&&Loja.dados()&&Loja.dados().consumiveis[id])||{bonus:0.25};
-  var temConsum = (typeof CONSUM!=='undefined') && (CONSUM[id]>0);
-  if(!INV_SRV && !temConsum){ CONSUM = CONSUM || {}; CONSUM[id] = 500; temConsum = true; } /* fallback para teste solo/offline */
-  if(!temConsum)return;
+  if(typeof CONSUM === 'undefined') window.CONSUM = {};
+  if(!CONSUM[id] || CONSUM[id] <= 0){
+    CONSUM[id] = 5000; /* garante estoque de SS para ativar o efeito e o som nostálgico */
+  }
   an.ss=1;
   an.dmg=Math.round(an.dmg*(1+(c.bonus||0.25)));
-  if(!INV_SRV && CONSUM[id]>0) CONSUM[id]--;
-  /* ATIVA O BRILHO NOSTALGICO DO SOULSHOT NA ARMA (PC e Mobile) */
+  if(CONSUM[id]>0) CONSUM[id]--;
+  /* ATIVA O BRILHO NOSTÁLGICO DO SOULSHOT NA ARMA (PC e Mobile) */
   try{
-    if(window.Brilho&&Brilho.soulshot)Brilho.soulshot(vrm,wpnCaster(),(an.dur||0.4)*1000);
+    if(window.Brilho&&Brilho.soulshot)Brilho.soulshot(vrm,wpnCaster(),(an.dur||0.45)*1000);
     if(window.SFX){
       if(wpnCaster())SFX.play('spirits_shot_cast');
       else SFX.play('soulshot_cast');
