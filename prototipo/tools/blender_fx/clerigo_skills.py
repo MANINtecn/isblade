@@ -637,13 +637,9 @@ def montar_basico():
     # A propria Cruz de Luz e feita do acabamento refinado de pura luz (Cross Flare / Lens Flare Sagrado)
     cruz_luz = sprite(col, "cruz_luz_flare", M["cruz_flare_o"], 2.4, (0, 0, 0))
     cruz_luz.parent = raiz
-    
-    # Miolo estelar incandescente
-    core_est = sprite(col, "cruz_core_est", M["spr_estrela_o"], 1.5, (0, 0.01, 0))
-    core_est.parent = raiz
 
-    # Ponto de luz no centro da cruz emitindo iluminacao dourada no cenario
-    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.05, 0), 0, (1.0, 0.95, 0.75))
+    # Ponto de luz no centro da cruz emitindo iluminacao dourada no cenario (alinhado a intersecao)
+    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.05, 0.288), 0, (1.0, 0.95, 0.75))
     luz_.parent = raiz
 
     F0, F1 = 10, 46
@@ -677,13 +673,11 @@ def montar_cura():
     cruz_raiz = bpy.data.objects.new("cruz_descida_raiz", None)
     col.objects.link(cruz_raiz)
 
-    # Cruz de Luz Radiosa (Cross Flare esmeralda e ouro com haste afilada)
+    # Cruz de Luz Radiosa (Cross Flare esmeralda e ouro com proporcoes latinas nobres)
     cruz_cura = sprite(col, "cruz_cura_flare", M["cruz_flare_v"], 4.2, (0, 0, 0))
     cruz_cura.parent = cruz_raiz
-    core_cura = sprite(col, "cruz_cura_core", M["spr_estrela_v"], 2.4, (0, 0.01, 0))
-    core_cura.parent = cruz_raiz
 
-    luz_cruz = luz(col, "cruz_cura_luz", "POINT", (0, 0.05, 0), 0, (0.5, 1.0, 0.75))
+    luz_cruz = luz(col, "cruz_cura_luz", "POINT", (0, 0.05, 0.504), 0, (0.5, 1.0, 0.75))
     luz_cruz.parent = cruz_raiz
 
     # Animacao: cai do ceu em pe e se finca no solo

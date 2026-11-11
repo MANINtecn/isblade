@@ -3676,3 +3676,20 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - **C1 (Cura Mirada)**: A Cruz de Luz Pura em esmeralda e ouro (`cruz_flare_v`) desce verticalmente do céu e se crava suavemente no solo, emitindo o clarão de impacto e a cúpula de cura translúcida.
   - **C6 (Ressurreição)**: Anéis sagrados delicados com 6 pilares de luz translúcida etérea nos vértices, coluna celestial suave e as asas angelicais de penas reais multicamadas.
 - Salvo no `.blend` e sincronizado via Git.
+
+### [Antigravity] 11/11/2026 - Correção Canônica das Proporções da Cruz Latina (Topo Curto mas Presente, Haste Inferior 3x)
+- **Feedback do Dono**:
+  - "show to vendo estamos chegando la em, mas nao ta no formato certo de uma cruz, pois as 2 extremidades de baixo e de cima tao grandes, sendo que a parte de cima da cruz eh cruta mas nao tanto, pesque pra vc ver como é uma cruz"
+- **Análise das Proporções Canônicas da Cruz Latina (*Crux Immissa*)**:
+  - Na versão anterior, o corte direcional do topo estava vazando valor máximo até a borda superior da imagem, fazendo a ponta de cima ficar quase do mesmo tamanho da de baixo (ambas gigantes).
+  - Na Cruz Latina clássica:
+    - O **Braço Superior (Topo)** deve ter cerca de 70% a 80% do comprimento de um braço lateral ("curto, mas claramente presente e nobre").
+    - Os **Braços Laterais (Trave)** são simétricos e médios (~90 px cada).
+    - A **Haste Inferior (Base)** é alongada e esbelta, medindo exatamente 3x o comprimento do topo (~196 px).
+- **Ajustes Técnicos na Textura e no Blender**:
+  - Recalculada a função de decaimento direcional com máscara estrita `np.where(dy > 0)` para o topo e `np.where(dy < 0)` para a base:
+    - *Braço Superior*: 65 px.
+    - *Braços Laterais*: 90 px cada (181 px total).
+    - *Haste Inferior*: 196 px (proporção exata de 3.02x em relação ao topo).
+  - Removido sprite duplicado do núcleo para evitar descompasso óptico; a cruz agora é um feixe de luz pura unificado com núcleo diamante e luz pontual sincronizada.
+  - Recarregado no Blender 5.1 e salvo em `prototipo/assets/personagens/clerigo_skills.blend`.
