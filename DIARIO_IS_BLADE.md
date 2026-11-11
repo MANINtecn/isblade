@@ -3693,3 +3693,28 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - *Haste Inferior*: 196 px (proporção exata de 3.02x em relação ao topo).
   - Removido sprite duplicado do núcleo para evitar descompasso óptico; a cruz agora é um feixe de luz pura unificado com núcleo diamante e luz pontual sincronizada.
   - Recarregado no Blender 5.1 e salvo em `prototipo/assets/personagens/clerigo_skills.blend`.
+
+### [Antigravity] 11/11/2026 - Extensão do Efeito de Cruz de Luz Refinada para TODAS as Skills do Healer (C0 até C6)
+- **Pedido do Dono**:
+  - "show fico boa, quero que trabalhe nas outras skils do healer pra ser usado o mesmo efeito a cruz ficou top"
+- **Aplicação Completa em Todas as Habilidades do Clérigo**:
+  - **C0 (Lâmina de Luz - Ataque Básico)**: Projétil sagrado em Cruz de Luz Pura Dourada com núcleo diamante incandescente e impacto estelar.
+  - **C1 (Cura Mirada)**: Cruz Sagrada Esmeralda descendo em pé dos céus e se fincando no solo no aliado mirado.
+  - **C2 (Glifo de Cura - Santuário)**:
+    - Removidos obeliscos maciços de pedra/cristal.
+    - No centro, paira uma **Cruz Sagrada de Cura Flutuante** (`glifo_cruz_centro`) sincronizada aos pulsos de onda de choque.
+    - Nos 6 vértices da mandala, pilares translúcidos de luz etérea coroados por **6 Mini Cruzes de Luz Radiantes** (`glifo_crz_pil_0..5`).
+  - **C3 (Escudo Astral - Barreira)**:
+    - Removidas as 6 placas duras de polígonos facetados.
+    - O escudo agora é formado por **6 Cruzes de Luz Astral Safira e Ouro** (`escudo_crz_0..5`) orbitando em formação hexagonal sagrada. No impacto do golpe inimigo ($F=84$), as cruzes aumentam de escala e explodem num clarão estelar de deflexão pura.
+  - **C4 (Purificação)**:
+    - Removido o prisma maciço.
+    - Acima da cabeça do aliado aflito, surge a **Cruz de Luz Pura Branca e Ouro** (`purif_cruz_luz`) no clímax da purificação, irradiando feixes purificadores descendentes.
+  - **C5 (Prece - Bênção Coletiva)**:
+    - Acima de **cada um dos 3 aliados**, materializa-se uma **Cruz de Luz Dourada de Bênção** (`prece_crz_0..2`), projetando uma coluna suave de luz e abençoando a equipe.
+  - **C6 (Ressurreição)**:
+    - 6 Mini Cruzes de luz no topo dos pilares etéreos da mandala.
+    - No exato ápice em que o aliado se ergue levitando com as asas angelicais de penas reais ($F=95$), uma **Cruz Monumental de Ressurreição e Glória** (`ressur_cruz_gloria`, 4.2m) irrompe do seu peito e ilumina toda a cena em triunfo divino.
+- **Sincronização no Blender 5.1 & Git**:
+  - Script executado via MCP (todas as 7 cenas recriadas).
+  - Arquivo salvo em `prototipo/assets/personagens/clerigo_skills.blend` e commit enviado ao GitHub.
