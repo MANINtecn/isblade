@@ -64,3 +64,4 @@ Este documento rege a modelagem 3D (Blender), os shaders procedurais (Three.js) 
 - [ ] O chão é sagrado e calmo, livre de dentes de serra ou giros de engrenagem?
 - [ ] A iluminação e os materiais possuem miolo incandescente e queda suave?
 - [ ] As formas orgânicas (asas, penas, lâminas) possuem acabamento lapidado e profissional?
+

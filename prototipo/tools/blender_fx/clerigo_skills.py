@@ -228,6 +228,7 @@ def mats2():
         M["on_" + c] = mat_tex("CL_on_" + c, "clerigo_onda.png", t, 3.2)
         M["spr_estrela_" + c] = mat_tex("CL_spr_estrela_" + c, "clerigo_estrela.png", t, 3.8)
         M["spr_cruz_" + c] = mat_tex("CL_spr_cruz_" + c, "clerigo_cruz.png", t, 3.0)
+        M["cruz_flare_" + c] = mat_tex("CL_cruz_flare_" + c, "clerigo_cruz_flare.png", t, 4.5)
         M["leque_" + c] = mat_tex("CL_leque_" + c, "clerigo_leque.png", t, 2.8)
     for c, t in (("o", OURO), ("v", VERDE), ("a", AZUL_P), ("b", BRANCO)):
         M["esp_" + c] = mat_grad("CL_esp_" + c, [(0.0, (1.0, 1.0, 0.98)), (0.45, t), (1.0, tuple(x * 0.55 for x in t))], 3.8, 1.0, 0.9)
@@ -621,7 +622,7 @@ def livro(col, pos, f_abre, f_fecha):
     esc(gl, [(f_abre - 1, 0.0), (f_abre + 4, 1.0), (f_fecha - 4, 1.0), (f_fecha, 0.0)])
     return raiz
 
-# ================================================================== 0. ATAQUE BASICO: MINI CRUZ DE LUZ 3D UNICA (C0)
+# ================================================================== 0. ATAQUE BASICO: CRUZ DE LUZ PURA / CROSS FLARE (C0)
 def montar_basico():
     random.seed(7)
     F_FIM = 76
@@ -632,19 +633,18 @@ def montar_basico():
 
     raiz = bpy.data.objects.new("cruz_raiz", None)
     col.objects.link(raiz)
-    raiz.rotation_euler = (0, 0, 0) # Cruz perfeitamente em pe, vertical
 
-    # UMA UNICA Cruz de Luz 3D facetada (sem cruzes extras que possam desalinhara)
-    cruz_corpo = para_obj(col, "cruz_corpo", bm_cruz_facetada(0.52, 0.07, haste_longa=False), M["esp_o"])
-    cruz_corpo.parent = raiz
+    # A propria Cruz de Luz e feita do acabamento refinado de pura luz (Cross Flare / Lens Flare Sagrado)
+    cruz_luz = sprite(col, "cruz_luz_flare", M["cruz_flare_o"], 2.4, (0, 0, 0))
+    cruz_luz.parent = raiz
+    
+    # Miolo estelar incandescente
+    core_est = sprite(col, "cruz_core_est", M["spr_estrela_o"], 1.5, (0, 0.01, 0))
+    core_est.parent = raiz
 
-    # Ponto de luz no centro da cruz emitindo iluminacao dourada
-    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.02, 0), 0, (1.0, 0.95, 0.75))
+    # Ponto de luz no centro da cruz emitindo iluminacao dourada no cenario
+    luz_ = luz(col, "cruz_luz", "POINT", (0, 0.05, 0), 0, (1.0, 0.95, 0.75))
     luz_.parent = raiz
-
-    # Halo radial circular suave (simetria pura que nunca desalinha independente do angulo)
-    halo_centro = sprite(col, "cruz_halo_centro", M["bh_o"], 0.85, (0, 0.01, 0))
-    halo_centro.parent = raiz
 
     F0, F1 = 10, 46
     Y0, Y1 = 1.2, 12.0
@@ -653,17 +653,17 @@ def montar_basico():
     raiz.location = (0, Y1 - 0.4, 1.25)
     raiz.keyframe_insert("location", frame=F1)
     esc(raiz, [(F0 - 1, 0.0), (F0 + 3, 1.0), (F1 - 1, 1.0), (F1, 0.0)])
-    pisca(luz_, [(F0 - 1, 0), (F0 + 3, 500), (F1 - 1, 500), (F1, 0)])
+    pisca(luz_, [(F0 - 1, 0), (F0 + 3, 600), (F1 - 1, 600), (F1, 0)])
 
-    # Impacto no inimigo: clarao de luz e estrelas luminosas
+    # Impacto no inimigo: clarao de luz sagrada e estrelas luminosas
     imp_est = sprite(col, "hit_est", M["spr_estrela_o"], 0.1, (0, 12.0, 1.25))
-    esc(imp_est, [(F1 - 1, 0.0), (F1, 2.5), (F1 + 18, 0.0)])
+    esc(imp_est, [(F1 - 1, 0.0), (F1, 3.2), (F1 + 18, 0.0)])
 
     camera(sc, ref, "cam_lateral", (11.0, 6.0, 2.6), (0, 6.0, 1.5), 32)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.0, -2.5, 1.8), (0, 4.0, 1.3), 32)
     return sc
 
-# ================================================================== 1. CURA MIRADA: CRUZ 3D CAI EM PE E SE FINCA NO CHAO (C1)
+# ================================================================== 1. CURA MIRADA: CRUZ DE LUZ SAGRADA CAI DO CEU E SE FINCA (C1)
 def montar_cura():
     random.seed(11)
     F_FIM = 216
@@ -673,35 +673,32 @@ def montar_cura():
     caixa(ref, "inimigo_ref_1.8m", (4.2, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, F_FIM - 8)
 
-    # SEM COLUNA DE LUZ: A cruz cai pura do ceu de forma limpa e graciosa
+    # SEM COLUNA: A Cruz e pura luz radiosa que desce diretamente dos ceus
     cruz_raiz = bpy.data.objects.new("cruz_descida_raiz", None)
     col.objects.link(cruz_raiz)
-    cruz_raiz.rotation_euler = (0, 0, 0) # Cruz em pe, vertical
 
-    # Cruz 3D com a haste inferior mais comprida para se fincar no solo
-    cruz_3d = para_obj(col, "cruz_cura_3d", bm_cruz_facetada(1.15, 0.12, haste_longa=True), M["esp_v"])
-    cruz_3d.parent = cruz_raiz
+    # Cruz de Luz Radiosa (Cross Flare esmeralda e ouro com haste afilada)
+    cruz_cura = sprite(col, "cruz_cura_flare", M["cruz_flare_v"], 4.2, (0, 0, 0))
+    cruz_cura.parent = cruz_raiz
+    core_cura = sprite(col, "cruz_cura_core", M["spr_estrela_v"], 2.4, (0, 0.01, 0))
+    core_cura.parent = cruz_raiz
 
     luz_cruz = luz(col, "cruz_cura_luz", "POINT", (0, 0.05, 0), 0, (0.5, 1.0, 0.75))
     luz_cruz.parent = cruz_raiz
 
-    # Halo radial circular suave (sem cruzes 2D extras)
-    halo_cruz = sprite(col, "cruz_cura_halo", M["bh_v"], 1.4, (0, 0.02, 0))
-    halo_cruz.parent = cruz_raiz
-
     # Animacao: cai do ceu em pe e se finca no solo
     f_ini, f_finca = 16, 40
-    # Em Z=9.5 desce ate Z=0.82 (a ponta inferior entra no chao se fincando)
-    cruz_raiz.location = (A[0], A[1], 9.5)
+    # Desce de Z=10.0 ate Z=1.1 (a ponta inferior de luz finca no solo)
+    cruz_raiz.location = (A[0], A[1], 10.0)
     cruz_raiz.keyframe_insert("location", frame=f_ini)
-    cruz_raiz.location = (A[0], A[1], 0.82)
+    cruz_raiz.location = (A[0], A[1], 1.1)
     cruz_raiz.keyframe_insert("location", frame=f_finca)
     # Permanece fincada no solo brilhando ate dissolver em luz
-    cruz_raiz.location = (A[0], A[1], 0.82)
+    cruz_raiz.location = (A[0], A[1], 1.1)
     cruz_raiz.keyframe_insert("location", frame=78)
 
-    esc(cruz_raiz, [(f_ini - 1, 0.0), (f_ini + 3, 1.0), (f_finca, 1.0), (f_finca + 2, 1.08), (f_finca + 6, 1.0), (78, 1.0), (92, 0.0)])
-    pisca(luz_cruz, [(f_ini - 1, 0), (f_ini + 3, 600), (f_finca, 1500), (f_finca + 8, 800), (78, 800), (92, 0)])
+    esc(cruz_raiz, [(f_ini - 1, 0.0), (f_ini + 3, 1.0), (f_finca, 1.0), (f_finca + 2, 1.12), (f_finca + 6, 1.0), (78, 1.0), (92, 0.0)])
+    pisca(luz_cruz, [(f_ini - 1, 0), (f_ini + 3, 600), (f_finca, 1800), (f_finca + 8, 900), (78, 900), (92, 0)])
 
     # Ao se fincar no chao: anel sagrado de choque na base fincada e cupula de cura
     an_chao = para_obj(col, "ali_anel_fincado", bm_anel(0.2, 2.4, 48), M["marca_v"])
@@ -893,6 +890,15 @@ def montar_ressur():
     esc(circulo_chao, [(14, 0.0), (32, 1.0), (F_CLIM + 70, 1.0), (F_CLIM + 90, 0.0)])
     # Rotacao solene quase imperceptivel (sem giros freneticos)
     anim(circulo_chao, "rotation_euler", 14, F_CLIM + 90, lambda t: (0, 0, t * 0.15), 4)
+
+    # 6 Pilares de luz translucida eterea nos vertices (conforme referencia de alta qualidade)
+    for k in range(6):
+        ang = k * math.pi / 3
+        px = A.x + math.cos(ang) * 2.6
+        py = A.y + math.sin(ang) * 2.6
+        pilar_luz = para_obj(col, "ressur_pilar_%d" % k, bm_obelisco(0.18, 0.14, 4.0, 16), M["feixe_v"] if k % 2 == 0 else M["feixe_o"])
+        pilar_luz.location = (px, py, 0)
+        esc(pilar_luz, [(22 + k * 2, (1, 1, 1e-3)), (38 + k * 2, (1, 1, 1.0)), (F_CLIM + 60, (1, 1, 1.0)), (F_CLIM + 78, (0.2, 0.2, 1e-3))])
 
     # 2. Monumental coluna de luz celestial descendo do ceu
     feixe_ceu = para_obj(col, "ressur_feixe_ceu", bm_obelisco(1.5, 1.3, 16.0, 24), M["feixe_b"])

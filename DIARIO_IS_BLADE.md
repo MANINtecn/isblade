@@ -3660,3 +3660,19 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Define o fim das peças maciças (proibição de sólidos pesados como cones, blocos opacos ou cilindros de concreto).
   - Estabelece os pilares do visual leve: geometria esbelta com espinha de diamante, miolo branco incandescente com queda de gradiente suave, volumetria translúcida e anatomia refinada em formas orgânicas.
 - Salvo e sincronizado no Blender e no repositório Git.
+
+### [Antigravity] 11/11/2026 - Cruz de Luz Pura em Lens Flare / Starburst Óptico (Adeus Cruz Chapada Quadrada) & Círculo Sagrado com Pilares de Luz na Ressurreição
+- **Feedback & Pedidos do Dono**:
+  1. *O Efeito Óptico*: "como chama isso que voce fez ? é essa acabamentoooooooooooooooooooooooooooooooooooooooooooooooooooooo que quero numa cruz de luz, isso na imagem é uma luz bonitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa e com acabamento refinadoooooooooooooooooooooooooooooooooooooooo, se vai e cria a porra de uma cruz chapada quadradaaaaaaaaaaaaaaaaa"
+  2. *Dúvida no Blender*: "eu quero uma cruz feita desse formato do exemplo, porque nao consigo selecionar ele e copiar ?"
+  3. *C0 & C1*: Eliminação total de peças maciças / blocos de polígonos quadrados. A cruz é pura luz radiante emanando o mesmo acabamento do flare do livro (`livro_brilho` / `clerigo_estrela.png`).
+  4. *C6 (Ressurreição)*: Padrão nobre com círculo sagrado e pilares translúcidos de luz etérea conforme imagem de referência (`media_1794393852613_f74ad960.png` / imagem 1).
+- **Esclarecimento Técnico ao Dono**:
+  - **Nome do Acabamento**: **Optical Lens Flare / Starburst Flare Anamórfico (Clarão Radioso de Luz Pura)**.
+  - **Por que não conseguia selecionar/copiar no Blender**: O `livro_brilho` é um plano billboard especial com constraint `CL_BB` e material com transparência alpha conectado ao osso do livro na cena `CLERIGO_BASICO`. No viewport 3D o clique atravessa a transparência ou seleciona o livro/chão, e copiar sem a câmera e hierarquia anula o efeito.
+  - **Solução Implementada**: Criamos a textura procedural óptica `clerigo_cruz_flare.png` que usa a mesma formulação matemática exponencial do flare estelar (`estrela()`), mas formatada numa Cruz Latina sagrada esbelta com haste inferior longa e núcleo em losango de diamante incandescente.
+- **Mudanças no Blender 5.1 via MCP**:
+  - **C0 (Cruz de Luz Pura)**: 100% puro feixe de luz radiosa anamórfica (`cruz_flare_o`) com núcleo incandescente diamantado (`spr_estrela_o`), sem qualquer sólido cúbico.
+  - **C1 (Cura Mirada)**: A Cruz de Luz Pura em esmeralda e ouro (`cruz_flare_v`) desce verticalmente do céu e se crava suavemente no solo, emitindo o clarão de impacto e a cúpula de cura translúcida.
+  - **C6 (Ressurreição)**: Anéis sagrados delicados com 6 pilares de luz translúcida etérea nos vértices, coluna celestial suave e as asas angelicais de penas reais multicamadas.
+- Salvo no `.blend` e sincronizado via Git.
