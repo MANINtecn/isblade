@@ -14,19 +14,20 @@ C6 - Ressurreicao: Coluna celestial, circulo suave no chao e Asas Angelicais maj
 import bpy
 import bmesh
 import math
+import os
 import random
 from mathutils import Vector, Matrix
 
 # ------------------------------------------------------------------ Cores e Paleta do Clerigo
-BRANCO    = (1.00, 1.00, 1.00)
-OURO      = (1.00, 0.82, 0.28)
-AMARELO   = (1.00, 0.94, 0.52)
-VERDE     = (0.22, 0.95, 0.62)
-VERDE_ESC = (0.08, 0.55, 0.32)
-AZUL_P    = (0.75, 0.90, 1.00)
-MAGENTA   = (0.85, 0.35, 0.75)
-CINZA_REF = (0.16, 0.17, 0.22)
-ALVO_VERM = (0.85, 0.15, 0.15)
+BRANCO      = (1.00, 1.00, 1.00)
+OURO        = (1.00, 0.82, 0.28)
+AMARELO     = (1.00, 0.94, 0.52)
+VERDE       = (0.22, 0.95, 0.62)
+VERDE_ESC   = (0.08, 0.55, 0.32)
+AZUL_P      = (0.08, 0.48, 1.00)  # Azul Safira Astral vívido e brilhante (não branco!)
+MAGENTA     = (0.85, 0.35, 0.75)
+CINZA_REF   = (0.16, 0.17, 0.22)
+ALVO_VERM   = (0.85, 0.15, 0.15)
 GAIN = 1.0
 
 # ------------------------------------------------------------------ Auxiliares de Materiais
@@ -230,6 +231,8 @@ def mats2():
         M["spr_cruz_" + c] = mat_tex("CL_spr_cruz_" + c, "clerigo_cruz.png", t, 3.0)
         M["cruz_flare_" + c] = mat_tex("CL_cruz_flare_" + c, "clerigo_cruz_flare.png", t, 4.5)
         M["leque_" + c] = mat_tex("CL_leque_" + c, "clerigo_leque.png", t, 2.8)
+        M["veu_" + c] = mat_tex("CL_veu_" + c, "clerigo_veu_energia.png", t, 3.6, repete=True)
+        M["pena_" + c] = mat_tex("CL_pena_" + c, "clerigo_pena.png", t, 4.2)
     for c, t in (("o", OURO), ("v", VERDE), ("a", AZUL_P), ("b", BRANCO)):
         M["esp_" + c] = mat_grad("CL_esp_" + c, [(0.0, (1.0, 1.0, 0.98)), (0.45, t), (1.0, tuple(x * 0.55 for x in t))], 3.8, 1.0, 0.9)
     M["halo_v"] = mat_vidro("CL_halo_v", (0.06, 0.9, 0.45), (0.88, 1.0, 0.92), 1.5, 0.22)
@@ -256,6 +259,24 @@ def uv_z(bm, zmin, zmax):
         for lp in f.loops:
             v = lp.vert.co
             lp[uvl].uv = ((math.atan2(v.y, v.x) / (2 * math.pi)) % 1.0, (v.z - zmin) / max(zmax - zmin, 1e-6))
+
+def bm_cilindro_veu(r, h, segs=32):
+    """Cilindro com UVs de 0 a 1 em volta (u) e de 0 a 1 na altura (v) para o Veu Rasgado de Energia"""
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.verify()
+    v_base = [bm.verts.new((r * math.cos(2 * math.pi * i / segs), r * math.sin(2 * math.pi * i / segs), 0)) for i in range(segs)]
+    v_topo = [bm.verts.new((r * math.cos(2 * math.pi * i / segs), r * math.sin(2 * math.pi * i / segs), h)) for i in range(segs)]
+    for i in range(segs):
+        j = (i + 1) % segs
+        f = bm.faces.new((v_base[i], v_base[j], v_topo[j], v_topo[i]))
+        u0 = i / segs
+        u1 = (i + 1) / segs
+        f.loops[0][uvl].uv = (u0, 1.0)
+        f.loops[1][uvl].uv = (u1, 1.0)
+        f.loops[2][uvl].uv = (u1, 0.0)
+        f.loops[3][uvl].uv = (u0, 0.0)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return bm
 
 def bm_anel(r_int, r_ext, segs=36):
     """Anel circular magico plano (eixo Z perpendicular)"""
@@ -669,7 +690,6 @@ def montar_cura():
     caixa(ref, "inimigo_ref_1.8m", (4.2, 10.5, 0.9), (0.6, 0.4, 1.8), M["ref_i"])
     livro(col, (0.55, 0.3, 1.25), 2, F_FIM - 8)
 
-    # SEM COLUNA: A Cruz e pura luz radiosa que desce diretamente dos ceus
     cruz_raiz = bpy.data.objects.new("cruz_descida_raiz", None)
     col.objects.link(cruz_raiz)
 
@@ -682,36 +702,44 @@ def montar_cura():
 
     # Animacao: cai do ceu em pe e se finca no solo
     f_ini, f_finca = 16, 40
-    # Desce de Z=10.0 ate Z=1.1 (a ponta inferior de luz finca no solo)
     cruz_raiz.location = (A[0], A[1], 10.0)
     cruz_raiz.keyframe_insert("location", frame=f_ini)
     cruz_raiz.location = (A[0], A[1], 1.1)
     cruz_raiz.keyframe_insert("location", frame=f_finca)
-    # Permanece fincada no solo brilhando ate dissolver em luz
     cruz_raiz.location = (A[0], A[1], 1.1)
     cruz_raiz.keyframe_insert("location", frame=78)
 
     esc(cruz_raiz, [(f_ini - 1, 0.0), (f_ini + 3, 1.0), (f_finca, 1.0), (f_finca + 2, 1.12), (f_finca + 6, 1.0), (78, 1.0), (92, 0.0)])
     pisca(luz_cruz, [(f_ini - 1, 0), (f_ini + 3, 600), (f_finca, 1800), (f_finca + 8, 900), (78, 900), (92, 0)])
 
-    # Ao se fincar no chao: anel sagrado de choque na base fincada e cupula de cura
-    an_chao = para_obj(col, "ali_anel_fincado", bm_anel(0.2, 2.4, 48), M["marca_v"])
-    an_chao.location = (A[0], A[1], 0.025)
-    esc(an_chao, [(f_finca - 1, 0.0), (f_finca, 0.4), (f_finca + 8, 1.2), (f_finca + 40, 0.0)])
-
-    cup = para_obj(col, "ali_cupula", bm_cupula(2.4, 32, 8), M["verde_vidro"])
-    cup.location = (A[0], A[1], 0.02)
-    esc(cup, [(f_finca - 1, 0.0), (f_finca + 4, 1.0), (f_finca + 32, 1.05), (f_finca + 48, 0.0)])
+    # SEM DOMO PESADO: Na area da cruz fincada, sobem delicados fragmentos cintilantes de cura
+    num_frags = 16
+    for i in range(num_frags):
+        ang = 2 * math.pi * i / num_frags + random.uniform(-0.2, 0.2)
+        dist = random.uniform(0.3, 2.2)
+        px = A[0] + math.cos(ang) * dist
+        py = A[1] + math.sin(ang) * dist
+        tam_f = random.uniform(0.25, 0.55)
+        mat_f = M["spr_estrela_v"] if i % 2 == 0 else M["spr_estrela_o"]
+        frag = sprite(col, "frag_cura_%d" % i, mat_f, tam_f, (px, py, 0.1))
+        
+        f_subir_ini = f_finca + i * 2
+        f_subir_fim = f_subir_ini + 32
+        frag.location = (px, py, 0.1)
+        frag.keyframe_insert("location", frame=f_subir_ini)
+        frag.location = (px + random.uniform(-0.15, 0.15), py + random.uniform(-0.15, 0.15), random.uniform(1.8, 3.2))
+        frag.keyframe_insert("location", frame=f_subir_fim)
+        esc(frag, [(f_subir_ini - 1, 0.0), (f_subir_ini + 4, 1.0), (f_subir_fim - 8, 1.0), (f_subir_fim, 0.0)])
 
     # Sparkle estelar suave no ponto de impacto no chao
-    fl_bencao = sprite(col, "cura_bencao_est", M["spr_estrela_v"], 0.1, (A[0], A[1], 0.82))
+    fl_bencao = sprite(col, "cura_bencao_est", M["spr_estrela_v"], 0.1, (A[0], A[1], 0.2))
     esc(fl_bencao, [(f_finca - 1, 0.0), (f_finca + 2, 3.5), (f_finca + 20, 0.0)])
 
     camera(sc, ref, "cam_lateral", (14.0, 4.0, 3.6), (0, 6.5, 1.8), 30)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.4, -3.4, 2.0), (-0.4, 4.0, 1.2), 32)
     return sc
 
-# ================================================================== 2. GLIFO DE CURA: SANTUARIO SAGRADO COM CRUZES DE LUZ (C2)
+# ================================================================== 2. GLIFO DE CURA: SANTUARIO DE VEUS RASGADOS DE ENERGIA (C2)
 def montar_glifo():
     random.seed(21)
     F_FIM = 224
@@ -737,35 +765,39 @@ def montar_glifo():
     anel_ext.location = (C.x, C.y, 0.03)
     esc(anel_ext, [(F0 - 1, 0.0), (F0 + 6, 1.0), (F_SAI, 1.0), (F_SAI + 10, 0.0)])
 
-    # 2. Cupula sagrada de cura translúcida
-    cupula = para_obj(col, "glifo_cupula", bm_cupula(RAIO, 32, 10), M["verde_vidro"])
-    cupula.location = (C.x, C.y, 0.02)
-    esc(cupula, [(F0 + 4, 0.0), (F0 + 16, 1.0), (F_SAI - 6, 1.0), (F_SAI + 10, 0.0)])
-
-    # 3. Cruz Central de Luz Sagrada flutuando no meio do Santuário
-    cruz_centro = sprite(col, "glifo_cruz_centro", M["cruz_flare_v"], 3.2, (C.x, C.y, 1.8))
-    esc(cruz_centro, [(F0 + 6, 0.0), (F0 + 18, 1.0), (F_SAI - 8, 1.0), (F_SAI + 10, 0.0)])
-    luz_centro = luz(col, "glifo_luz_centro", "POINT", (C.x, C.y, 1.8), 0, (0.5, 1.0, 0.75))
-    pisca(luz_centro, [(F0 + 6, 0), (F0 + 18, 800), (F_SAI - 8, 800), (F_SAI + 10, 0)])
-
-    # 4. Nos 6 vértices: Pilares de Luz Translúcida coroados por Mini Cruzes de Luz Radiantes
+    # 2. SEM DOMO E SEM CRUZ NO TOPO: Nos 6 vertices, Colunas de Veu Rasgado de Energia Celestial
     for i in range(6):
         ang = 2 * math.pi * i / 6
         px = C.x + math.cos(ang) * (RAIO - 0.3)
         py = C.y + math.sin(ang) * (RAIO - 0.3)
-        mat_pil = M["feixe_v"] if i % 2 == 0 else M["feixe_o"]
+        mat_veu = M["veu_v"] if i % 2 == 0 else M["veu_o"]
 
-        # Pilar de luz etérea translúcida (conforme referência de alta qualidade)
-        pilar = para_obj(col, "glifo_pilar_%d" % i, bm_obelisco(0.18, 0.12, 3.6, 16), mat_pil)
-        pilar.location = (px, py, 0)
-        esc(pilar, [(F0 + i * 2, (1, 1, 1e-3)), (F0 + 10 + i * 2, (1, 1, 1.0)), (F_SAI, (1, 1, 1.0)), (F_SAI + 8, (0.2, 0.2, 1e-3))])
+        # Veu Rasgado de Energia cilindrico completo 360 (sem corte reto nem metade)
+        veu_col = para_obj(col, "glifo_veu_%d" % i, bm_cilindro_veu(0.40, 4.5, 32), mat_veu)
+        veu_col.location = (px, py, 0)
+        esc(veu_col, [(F0 + i * 2, (1, 1, 1e-3)), (F0 + 10 + i * 2, (1, 1, 1.0)), (F_SAI, (1, 1, 1.0)), (F_SAI + 8, (0.2, 0.2, 1e-3))])
 
-        # Mini Cruz de Luz Radiante flutuando no topo de cada pilar
-        mat_crz = M["cruz_flare_v"] if i % 2 == 0 else M["cruz_flare_o"]
-        crz_pil = sprite(col, "glifo_crz_pil_%d" % i, mat_crz, 1.4, (px, py, 3.8))
-        esc(crz_pil, [(F0 + 4 + i * 2, 0.0), (F0 + 12 + i * 2, 1.0), (F_SAI, 1.0), (F_SAI + 8, 0.0)])
+        # Anel de luz suave na base de cada coluna no chao
+        an_base = para_obj(col, "glifo_an_base_%d" % i, bm_anel(0.2, 0.5, 24), M["marca_v"])
+        an_base.location = (px, py, 0.035)
+        esc(an_base, [(F0 + i * 2, 0.0), (F0 + 10 + i * 2, 1.0), (F_SAI, 1.0), (F_SAI + 8, 0.0)])
 
-    # 5. Pulsos de cura sincronizados com flashes da Cruz Central
+    # 3. Fragmentos de cura subindo pelo espaco sagrado
+    for k in range(12):
+        ang_k = 2 * math.pi * k / 12 + random.uniform(-0.15, 0.15)
+        dist_k = random.uniform(0.6, RAIO * 0.8)
+        px_k = C.x + math.cos(ang_k) * dist_k
+        py_k = C.y + math.sin(ang_k) * dist_k
+        frag_s = sprite(col, "glifo_frag_%d" % k, M["spr_estrela_v"], random.uniform(0.3, 0.6), (px_k, py_k, 0.2))
+        f_ini_k = F0 + 10 + k * 4
+        f_fim_k = f_ini_k + 36
+        frag_s.location = (px_k, py_k, 0.2)
+        frag_s.keyframe_insert("location", frame=f_ini_k)
+        frag_s.location = (px_k, py_k, random.uniform(2.0, 3.5))
+        frag_s.keyframe_insert("location", frame=f_fim_k)
+        esc(frag_s, [(f_ini_k - 1, 0.0), (f_ini_k + 4, 1.0), (f_fim_k - 8, 1.0), (f_fim_k, 0.0)])
+
+    # 4. Pulsos de onda de cura expandindo pelo piso
     for p_idx, fp in enumerate(F_PULSOS):
         pulso = para_obj(col, "pulso_anel%d" % p_idx, bm_anel(0.4, 0.9, 36), M["marca_v"])
         pulso.location = (C.x, C.y, 0.04)
@@ -776,7 +808,7 @@ def montar_glifo():
     sc.camera = camera(sc, ref, "cam_do_clerigo", (3.2, -2.5, 2.0), (0, 8.5, 1.5), 32)
     return sc
 
-# ================================================================== 3. ESCUDO ASTRAL: BARREIRA DE CRUZES DE LUZ PURA (C3)
+# ================================================================== 3. ESCUDO ASTRAL: BARREIRA DE CRUZES EM AZUL ASTRAL SAFIRA (C3)
 def montar_escudo():
     random.seed(33)
     F_FIM = 176
@@ -793,7 +825,7 @@ def montar_escudo():
     col.objects.link(raiz_esc)
     raiz_esc.location = (0, 0, 1.1)
 
-    # 6 Cruzes de Luz Radiosa Astral orbitando em formacao hexagonal sagrada (sem blocos solidos)
+    # 6 Cruzes de Luz Radiosa Astral em AZUL SAFIRA puro orbitando em formacao hexagonal
     for i in range(6):
         ang = 2 * math.pi * i / 6
         crz_esc = sprite(col, "escudo_crz_%d" % i, M["cruz_flare_a"], 1.6, (1.35 * math.cos(ang), 1.35 * math.sin(ang), 0))
@@ -804,7 +836,7 @@ def montar_escudo():
     toro_base.parent = raiz_esc
     toro_base.location = (0, 0, -0.45)
 
-    luz_esc = luz(col, "escudo_luz", "POINT", (0, 0, 0), 0, (0.4, 0.8, 1.0))
+    luz_esc = luz(col, "escudo_luz", "POINT", (0, 0, 0), 0, (0.1, 0.5, 1.0))
     luz_esc.parent = raiz_esc
 
     esc(raiz_esc, [(F_CAST, 0.0), (F_ATIVO, 1.0), (F_GOLPE, 1.0), (F_GOLPE + 4, 1.25), (F_GOLPE + 10, 1.0), (F_SAI, 1.0), (F_SAI + 14, 0.0)])
@@ -815,7 +847,7 @@ def montar_escudo():
     sc.camera = camera(sc, ref, "cam_do_clerigo", (2.8, -3.2, 1.8), (0, 1.5, 1.2), 32)
     return sc
 
-# ================================================================== 4. PURIFICACAO: CRUZ SAGRADA PURIFICADORA E COLUNA DE LUZ (C4)
+# ================================================================== 4. PURIFICACAO: VEU CELESTIAL E HALO RADIANTE DE PURIFICACAO (C4)
 def montar_purifica():
     random.seed(44)
     F_FIM = 168
@@ -827,22 +859,46 @@ def montar_purifica():
     F_COL = 36
     F_FIM_EFEITO = 142
 
-    col_luz = para_obj(col, "purif_coluna", bm_obelisco(1.2, 1.0, 10.0, 24), M["feixe_b"])
-    col_luz.location = (0, 4.0, 0)
-    esc(col_luz, [(F0, (1, 1, 1e-3)), (F_COL, (1.1, 1.1, 1.0)), (F_FIM_EFEITO, (1.1, 1.1, 1.0)), (F_FIM_EFEITO + 16, (0.2, 0.2, 1e-3))])
+    # 1. Veu Rasgado de Energia Celestial descendo sobre o aliado (completo 360, sem corte de metade)
+    col_veu = para_obj(col, "purif_coluna_veu", bm_cilindro_veu(1.1, 9.0, 32), M["veu_b"])
+    col_veu.location = (0, 4.0, 0)
+    esc(col_veu, [(F0, (1, 1, 1e-3)), (F_COL, (1.05, 1.05, 1.0)), (F_FIM_EFEITO, (1.05, 1.05, 1.0)), (F_FIM_EFEITO + 16, (0.2, 0.2, 1e-3))])
 
-    # Cruz de Luz Pura Branca e Ouro flutuando majestosamente acima da cabeca (sem prismas maciços)
-    cruz_purif = sprite(col, "purif_cruz_luz", M["cruz_flare_b"], 3.4, (0, 4.0, 3.0))
-    esc(cruz_purif, [(F_COL - 2, 0.0), (F_COL + 6, 1.0), (F_FIM_EFEITO - 6, 1.0), (F_FIM_EFEITO + 6, 0.0)])
-    
-    luz_purif = luz(col, "purif_luz_ponto", "POINT", (0, 4.0, 3.0), 0, (1.0, 0.98, 0.85))
-    pisca(luz_purif, [(F_COL - 2, 0), (F_COL + 6, 1200), (F_FIM_EFEITO - 6, 1200), (F_FIM_EFEITO + 6, 0)])
+    # 2. HALO RADIANTE DE PURIFICACAO (Em vez da cruz, um anel de luz sagrada que desce lavando e expurgando as impurezas)
+    halo_purif = para_obj(col, "purif_halo_luz", bm_toro(1.15, 0.025, 36, 8), M["branco"])
+    # O halo desce do topo da cabeca (Z=3.2) ate o chao (Z=0.1) escaneando e limpando o corpo
+    halo_purif.location = (0, 4.0, 3.2)
+    halo_purif.keyframe_insert("location", frame=F_COL)
+    halo_purif.location = (0, 4.0, 0.1)
+    halo_purif.keyframe_insert("location", frame=F_COL + 28)
+    esc(halo_purif, [(F_COL - 1, 0.0), (F_COL, 1.0), (F_COL + 28, 1.0), (F_COL + 36, 0.0)])
+
+    # Nucleo de luz incandescente no centro da purificacao
+    star_purif = sprite(col, "purif_star_core", M["spr_estrela_b"], 1.8, (0, 4.0, 2.4))
+    esc(star_purif, [(F_COL, 0.0), (F_COL + 6, 1.0), (F_FIM_EFEITO - 10, 1.0), (F_FIM_EFEITO, 0.0)])
+
+    # Fragmentos de impureza dissolvida que sobem em fagulhas e se desvanecem
+    for i in range(8):
+        ang_p = 2 * math.pi * i / 8
+        px_p = 0.6 * math.cos(ang_p)
+        py_p = 4.0 + 0.6 * math.sin(ang_p)
+        frag_p = sprite(col, "purif_frag_%d" % i, M["spr_estrela_b"], 0.35, (px_p, py_p, 0.4))
+        f_p_ini = F_COL + 12 + i * 2
+        f_p_fim = f_p_ini + 24
+        frag_p.location = (px_p, py_p, 0.4)
+        frag_p.keyframe_insert("location", frame=f_p_ini)
+        frag_p.location = (px_p * 1.5, 4.0 + (py_p - 4.0) * 1.5, 2.5)
+        frag_p.keyframe_insert("location", frame=f_p_fim)
+        esc(frag_p, [(f_p_ini - 1, 0.0), (f_p_ini + 3, 1.0), (f_p_fim - 6, 1.0), (f_p_fim, 0.0)])
+
+    luz_purif = luz(col, "purif_luz_ponto", "POINT", (0, 4.0, 2.4), 0, (1.0, 0.98, 0.85))
+    pisca(luz_purif, [(F_COL - 2, 0), (F_COL + 6, 1400), (F_FIM_EFEITO - 6, 1400), (F_FIM_EFEITO + 6, 0)])
 
     camera(sc, ref, "cam_lateral", (9.5, 4.0, 2.5), (0, 4.0, 1.5), 32)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (2.6, -2.6, 1.8), (0, 3.5, 1.3), 32)
     return sc
 
-# ================================================================== 5. PRECE: CRUZES DE LUZ DOURADA SOBRE CADA ALIADO (C5)
+# ================================================================== 5. PRECE: VEUS DE ENERGIA DOURADA E COROAS DE BENCAO (C5)
 def montar_prece():
     random.seed(55)
     F_FIM = 200
@@ -860,23 +916,28 @@ def montar_prece():
     mand.location = (0, 0, 0.025)
     esc(mand, [(F_G - 1, 0.0), (F_G + 14, 1.0), (F_SAI, 1.0), (F_SAI + 14, 0.0)])
 
-    # Cruz de Luz Sagrada e Coluna Divina sobre CADA ALIADO
+    # Veu de Energia Dourada completo e Halo de Bênção sobre CADA ALIADO (sem colunas cortadas pela metade!)
     for i, (x, y) in enumerate(aliados):
         fb = F_G + 20 + i * 6
-        # Coluna de luz translúcida
-        col_ali = para_obj(col, "prece_col%d" % i, bm_obelisco(0.8, 0.65, 8.0, 16), M["feixe_o"])
+        # Coluna cilindrica de Veu Rasgado de Energia Dourada completa 360
+        col_ali = para_obj(col, "prece_veu_%d" % i, bm_cilindro_veu(0.75, 6.5, 32), M["veu_o"])
         col_ali.location = (x, y, 0)
         esc(col_ali, [(fb - 1, (1, 1, 1e-3)), (fb + 8, (1, 1, 1.0)), (F_SAI - 16, (1, 1, 1.0)), (F_SAI, (0.3, 0.3, 1e-3))])
 
-        # Cruz de Luz Radiante dourada flutuando sobre a cabeca de cada aliado
-        crz_ali = sprite(col, "prece_crz_%d" % i, M["cruz_flare_o"], 2.5, (x, y, 2.6))
-        esc(crz_ali, [(fb - 1, 0.0), (fb + 6, 1.0), (F_SAI - 10, 1.0), (F_SAI, 0.0)])
+        # Halo / Coroa de Bênção Dourada pairando sobre a cabeca de cada aliado
+        halo_bencao = para_obj(col, "prece_halo_%d" % i, bm_toro(0.45, 0.02, 32, 8), M["ouro"])
+        halo_bencao.location = (x, y, 2.5)
+        esc(halo_bencao, [(fb - 1, 0.0), (fb + 6, 1.0), (F_SAI - 12, 1.0), (F_SAI, 0.0)])
+
+        # Brilho estelar radiante no centro da coroa
+        star_bencao = sprite(col, "prece_star_%d" % i, M["spr_estrela_o"], 1.1, (x, y, 2.5))
+        esc(star_bencao, [(fb - 1, 0.0), (fb + 6, 1.0), (F_SAI - 12, 1.0), (F_SAI, 0.0)])
 
     camera(sc, ref, "cam_alto", (0.0, -12.0, 11.5), (0, 0.5, 0.8), 30)
     sc.camera = camera(sc, ref, "cam_do_clerigo", (2.2, -3.4, 2.0), (0.0, 3.0, 1.4), 28)
     return sc
 
-# ================================================================== 6. RESSURREICAO: CRUZ SAGRADA DE GLORIA E ASAS ANGELICAIS (C6)
+# ================================================================== 6. RESSURREICAO: COLUNA DE VEU CELESTIAL E CHUVA DE PENAS DE ANJO (C6)
 def montar_ressur():
     random.seed(66)
     F_FIM = 252
@@ -896,56 +957,44 @@ def montar_ressur():
         ali.keyframe_insert("location", frame=f)
         ali.keyframe_insert("rotation_euler", frame=f)
 
-    # 1. Chao Sagrado Suave (SEM engrenagens, SEM dentes de serra, SEM girar feito serra eletrica)
+    # 1. Chao Sagrado Suave (SEM engrenagens, SEM dentes de serra)
     circulo_chao = para_obj(col, "ressur_circulo_suave", bm_anel(0.2, 2.8, 48), M["gh_o"])
     circulo_chao.location = (A.x, A.y, 0.025)
     esc(circulo_chao, [(14, 0.0), (32, 1.0), (F_CLIM + 70, 1.0), (F_CLIM + 90, 0.0)])
     anim(circulo_chao, "rotation_euler", 14, F_CLIM + 90, lambda t: (0, 0, t * 0.15), 4)
 
-    # 6 Pilares de luz translucida eterea nos vertices coroados por Mini Cruzes de Luz
-    for k in range(6):
-        ang = k * math.pi / 3
-        px = A.x + math.cos(ang) * 2.6
-        py = A.y + math.sin(ang) * 2.6
-        pilar_luz = para_obj(col, "ressur_pilar_%d" % k, bm_obelisco(0.18, 0.14, 4.0, 16), M["feixe_v"] if k % 2 == 0 else M["feixe_o"])
-        pilar_luz.location = (px, py, 0)
-        esc(pilar_luz, [(22 + k * 2, (1, 1, 1e-3)), (38 + k * 2, (1, 1, 1.0)), (F_CLIM + 60, (1, 1, 1.0)), (F_CLIM + 78, (0.2, 0.2, 1e-3))])
+    # 2. Monumental Coluna Central de Veu Rasgado de Energia Celestial descendo dos ceus
+    veu_ceu = para_obj(col, "ressur_veu_ceu", bm_cilindro_veu(1.6, 14.0, 36), M["veu_b"])
+    veu_ceu.location = (A.x, A.y, 0)
+    esc(veu_ceu, [(F_CLIM - 32, (1, 1, 1e-3)), (F_CLIM - 10, (1.05, 1.05, 1.0)), (F_CLIM + 48, (1.05, 1.05, 1.0)), (F_CLIM + 66, (0.3, 0.3, 1e-3))])
+
+    # 3. CHUVA DE PENAS DE ANJO CAINDO DO CEU (Sem asa grudada no alvo!)
+    num_penas = 18
+    for p_idx in range(num_penas):
+        ang_p = 2 * math.pi * p_idx / num_penas + random.uniform(-0.25, 0.25)
+        dist_p = random.uniform(0.4, 2.4)
+        px_p = A.x + math.cos(ang_p) * dist_p
+        py_p = A.y + math.sin(ang_p) * dist_p
+        tam_p = random.uniform(0.6, 1.0)
         
-        # Mini Cruz de Luz no topo dos pilares
-        crz_pil = sprite(col, "ressur_crz_pil_%d" % k, M["cruz_flare_o"], 1.3, (px, py, 4.2))
-        esc(crz_pil, [(26 + k * 2, 0.0), (40 + k * 2, 1.0), (F_CLIM + 60, 1.0), (F_CLIM + 76, 0.0)])
+        pena_obj = sprite(col, "ressur_pena_%d" % p_idx, M["pena_b"], tam_p, (px_p, py_p, 8.0))
+        
+        # Animacao da queda graciosa oscilando na brisa celestial
+        f_queda_ini = F_CLIM - 20 + p_idx * 3
+        f_queda_fim = f_queda_ini + 50
+        z_ini = random.uniform(7.0, 10.5)
+        
+        pena_obj.location = (px_p, py_p, z_ini)
+        pena_obj.keyframe_insert("location", frame=f_queda_ini)
+        # Ao cair oscila para o lado
+        px_fim = px_p + random.uniform(-0.4, 0.4)
+        py_fim = py_p + random.uniform(-0.4, 0.4)
+        pena_obj.location = (px_fim, py_fim, 0.15)
+        pena_obj.keyframe_insert("location", frame=f_queda_fim)
+        
+        esc(pena_obj, [(f_queda_ini - 1, 0.0), (f_queda_ini + 6, 1.0), (f_queda_fim - 10, 1.0), (f_queda_fim, 0.0)])
 
-    # 2. Monumental coluna de luz celestial descendo do ceu
-    feixe_ceu = para_obj(col, "ressur_feixe_ceu", bm_obelisco(1.5, 1.3, 16.0, 24), M["feixe_b"])
-    feixe_ceu.location = (A.x, A.y, 0)
-    esc(feixe_ceu, [(F_CLIM - 32, (1, 1, 1e-3)), (F_CLIM - 10, (1.1, 1.1, 1.0)), (F_CLIM + 48, (1.1, 1.1, 1.0)), (F_CLIM + 66, (0.3, 0.3, 1e-3))])
-
-    # 3. ASAS ANGELICAIS MAJESTOSAS DE PENAS REAIS (Penas em camadas fanned estilo serafim)
-    for lado, l_nome in ((-1, "esq"), (1, "dir")):
-        asa = para_obj(col, "asa_angelical_" + l_nome, bm_asa_completa(lado), M["asa_luz"])
-        asa.location = (A.x + lado * 0.28, A.y + 0.32, 1.35)
-
-        for f, z_off in ((1, 0.2), (F_CLIM - 16, 0.2), (F_CLIM + 12, 1.5), (F_CLIM + 36, 1.1), (F_CLIM + 50, 0.9)):
-            asa.location = (A.x + lado * 0.28, A.y + 0.32, z_off + 0.35)
-            asa.keyframe_insert("location", frame=f)
-
-        rot_fechada = (math.radians(-10), math.radians(lado * 15), math.radians(lado * 10))
-        rot_aberta = (math.radians(-18), math.radians(lado * 55), math.radians(lado * 28))
-        rot_bater = (math.radians(-15), math.radians(lado * 65), math.radians(lado * 35))
-
-        for f, r in ((F_CLIM - 8, rot_fechada), (F_CLIM + 16, rot_aberta), (F_CLIM + 34, rot_bater), (F_CLIM + 56, rot_aberta), (F_CLIM + 80, rot_fechada)):
-            asa.rotation_euler = r
-            asa.keyframe_insert("rotation_euler", frame=f)
-
-        esc(asa, [(F_CLIM - 10, 0.0), (F_CLIM + 6, 1.0), (F_CLIM + 65, 1.0), (F_CLIM + 84, 0.0)])
-
-    # 4. Cruz Monumental de Ressurreicao no peito do aliado ao despertar
-    cruz_ressur = sprite(col, "ressur_cruz_gloria", M["cruz_flare_o"], 4.2, (A.x, A.y, 1.6))
-    for f, z_cruz in ((1, 0.5), (F_CLIM - 16, 0.5), (F_CLIM + 12, 1.8), (F_CLIM + 36, 1.4), (F_CLIM + 50, 1.2)):
-        cruz_ressur.location = (A.x, A.y, z_cruz)
-        cruz_ressur.keyframe_insert("location", frame=f)
-    esc(cruz_ressur, [(F_CLIM - 6, 0.0), (F_CLIM + 12, 1.2), (F_CLIM + 20, 1.0), (F_CLIM + 60, 1.0), (F_CLIM + 80, 0.0)])
-
+    # 4. Flare estelar de gloria no peito do aliado ao despertar
     fl_despertar = sprite(col, "despertar_estrela", M["spr_estrela_o"], 0.1, (A.x, A.y, 1.35))
     esc(fl_despertar, [(F_CLIM + 4, 0.0), (F_CLIM + 14, 3.2), (F_CLIM + 36, 0.0)])
 

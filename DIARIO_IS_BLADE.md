@@ -3718,3 +3718,20 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Sincronização no Blender 5.1 & Git**:
   - Script executado via MCP (todas as 7 cenas recriadas).
   - Arquivo salvo em `prototipo/assets/personagens/clerigo_skills.blend` e commit enviado ao GitHub.
+
+### [Antigravity] 11/11/2026 - Reformulação Total dos Efeitos do Healer (Véus de Energia Rasgada, Chuva de Penas e Fim dos Domos Pesados)
+- **Crítica e Diretrizes do Dono**:
+  - *Filosofia*: "QUANDO falei pra usar o mesmo efeito, é voce pegar como ele foi feito e refazer os outros efeitos com a mesma qualidade, não sair colocando cruz em tudo que é lugar!"
+  - *C0*: Ficou ótima! Mantida 100%.
+  - *C1*: Manter cruz e queda. **Remover domo pesado** e fazer subir fragmentos de cura cintilantes na área.
+  - *C2*: **Remover domo e cruz no topo**. Substituir colunas por **coluna falhada / véu rasgado de energia celestial**.
+  - *C3*: Cruzes de proteção aprovadas, na cor **Azul Astral Safira** puro (vívido e translúcido).
+  - *C4*: Consertar o erro do shader que cortava a coluna ao meio (metade vazada). Usar o **Véu Rasgado de Energia** e substituir a cruz por um **Halo Radiante de Purificação** que desce limpando o corpo.
+  - *C5*: Consertar a coluna cortada pela metade (usar o véu completo 360). Substituir a cruz por **Halos / Coroas de Bênção Dourada**. Explicada a função da skill (Bênção / buff coletivo de status da equipe).
+  - *C6*: **Remover asas grudadas no alvo e cruz no alvo**. Usar a **Coluna Central de Véu Rasgado de Energia Celestial** e criar uma **Chuva de Penas de Anjo de Luz Caindo do Céu** flutuando suavemente em volta do aliado.
+- **Implementações Técnicas**:
+  - **Texturas Procedurais Criadas**:
+    - `clerigo_veu_energia.png`: Textura cilíndrica de filamentos verticais de luz ondulante translúcida com fade-out suave no topo e na base (efeito véu rasgado de seda/aurora boreal).
+    - `clerigo_pena.png`: Pena angelical translúcida de luz pura com curvatura orgânica e farpas suaves.
+  - **Geometria de Véu Cilíndrico (`bm_cilindro_veu`)**: Mapeamento UV 360 contínuo ao redor do cilindro, eliminando definitivamente o defeito visual de "calha / meio-tubo cortado" em C2, C4, C5 e C6.
+  - **Executado e Salvo**: Todas as 7 cenas recarregadas no Blender 5.1 via MCP, painel de skills N registrado e `.blend` salvo. Sincronizado no GitHub.
