@@ -791,7 +791,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/arma_grau.js?v=1"></script>
 <script src="js/expedicao.js?v=6"></script>
 <script src="js/modo_camera.js?v=1"></script>
-<script src="js/inventario_ui.js?v=30"></script>
+<script src="js/inventario_ui.js?v=35"></script>
 <script src="js/moradores.js?v=2"></script>
 <script src="js/mundo_campo.js?v=5"></script>
 <script src="js/mapa_vivo.js?v=12"></script>
@@ -803,7 +803,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/status.js?v=30"></script>
 <script src="js/l2_teleport.js?v=2"></script>
 <script src="js/l2_npcs.js?v=4"></script>
-<script src="js/horizonte.js?v=2"></script>
+<script src="js/horizonte.js?v=3"></script>
 </head>
 
 
@@ -3533,7 +3533,7 @@ scene.add(islandMesh);
 if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).then(function(){
   var pa = islandGeo.attributes.position; for (var ii = 0; ii < pa.count; ii++) { if (Math.hypot(pa.getX(ii), pa.getZ(ii)) > 92) pa.setY(ii, pa.getY(ii) - 8); }
   pa.needsUpdate = true; islandGeo.computeVertexNormals();
-  var esconde = setInterval(function(){ if (window.Horizonte && Horizonte.itens) Horizonte.itens.forEach(function(it){ it.grupo.visible = false; }); }, 500); setTimeout(function(){ clearInterval(esconde); }, 8000);
+  /* 13/11: silhuetas do horizonte voltam (no ponto real dos mapas; js/horizonte.js) */
   /* [mundo] etapa 2a: portoes abertos (sem portal nos arcos nem o bloqueio atras deles); sai-se a pe para o campo; o mapa carrega ao entrar na regiao dele */
   MUNDO_ABERTO = true; ARENA = 3000;
   if (/[?&]malha=1/.test(location.search)) MundoCampo.verMalha(true);/* [malha] */

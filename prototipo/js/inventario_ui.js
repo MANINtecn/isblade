@@ -1,16 +1,35 @@
-/* inventario_ui.js — Janela de Inventário Autêntica estilo Lineage 2 Interlude.
-   Formato clássico vertical (300px): Abas [Inventory / Quest], Paperdoll anatômico no topo,
-   Grade de Mochila 5 colunas x 8 linhas (40 slots com moldura oficial inventory_outline.png),
-   Contador de Adena, botões de Lixeira e Receita no rodapé, e Tooltip clássico flutuante de ações. */
+/* inventario_ui.js — Interface Oficial 1:1 do Lineage 2 Interlude (Fiel ao interface.xdat & InventoryWnd.uc).
+   Geometria nativa exata do XDAT: Janela 256x382 px, fundo L2UI_CH3.InventoryWnd.Inventory_Back,
+   Coordenadas de slots milimétricas do XDAT original (Paperdoll 15 slots + Grade 6x4 de 24 slots visíveis). */
 (function(){
   var U = window.InvUI = {}, sel = null, conf = '', css = false, aba = 'inv';
-  var METAL = { sem: ['#c9d1de', '#6f7a8d'], D: ['#9fe6b8', '#3f8a5e'], C: ['#ffe08a', '#b8862a'] };
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  
+
+  // Mapeamento dos 15 slots oficiais de equipamento do Lineage 2 (InventoryWnd.uc & 0046_InventoryWnd.xml)
+  // Coordenadas exatas relativas ao BackTexture (y - 20)
+  var XDAT_SLOTS = {
+    hair:      { x: 14,  y: 16, name: 'Hair' },
+    helmet:    { x: 53,  y: 16, name: 'Head' },
+    hair2:     { x: 92,  y: 16, name: 'Hair2' },
+    underwear: { x: 137, y: 16, name: 'Underwear' },
+    neck:      { x: 176, y: 16, name: 'Neck' },
+    weapon:    { x: 14,  y: 54, name: 'RHand' },
+    chest:     { x: 53,  y: 54, name: 'Chest' },
+    shield:    { x: 92,  y: 54, name: 'LHand' },
+    rear:      { x: 137, y: 54, name: 'REar' },
+    lear:      { x: 176, y: 54, name: 'LEar' },
+    gloves:    { x: 14,  y: 92, name: 'Gloves' },
+    legs:      { x: 53,  y: 92, name: 'Legs' },
+    boots:     { x: 92,  y: 92, name: 'Feet' },
+    rfinger:   { x: 137, y: 92, name: 'RFinger' },
+    lfinger:   { x: 176, y: 92, name: 'LFinger' }
+  };
+
   function tipoDe(b){
     if(!b) return 'item';
-    if(b.slot === 'weapon') return b.weapon === 'shield' ? 'escudo' : (b.weapon === 'staff' ? 'cajado' : 'espada');
-    return { helmet: 'elmo', chest: 'peito', gloves: 'luvas', boots: 'botas' }[b.slot] || 'item';
+    if(b.slot === 'weapon') return b.weapon === 'shield' ? 'shield_guardian' : (b.weapon === 'staff' ? 'staff_arcane' : 'sword_long');
+    var map = { helmet: 'helmet_iron', chest: 'chest_plate', gloves: 'gloves_hide', boots: 'boots_swift' };
+    return map[b.slot] || b.id || 'item';
   }
 
   U.icone = function(b, o){
@@ -19,7 +38,7 @@
     var t = typeof b === 'string' ? b : tipoDe(b);
     var tam = o.tam || 32;
     var iconKey = id || t;
-    return '<img src="assets/icones/' + iconKey + '.png" width="' + tam + '" height="' + tam + '" alt="" style="display:block;border-radius:2px;object-fit:cover;pointer-events:none;" onerror="this.style.display=\'none\';"/>';
+    return '<img src="assets/icones/' + iconKey + '.png" width="' + tam + '" height="' + tam + '" alt="" style="display:block;width:' + tam + 'px;height:' + tam + 'px;object-fit:cover;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';"/>';
   };
 
   function estilo(){
@@ -28,49 +47,38 @@
     s.textContent = [
       '#inv, #inv.invui{',
       '  position:fixed !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%) !important;z-index:9000 !important;',
-      '  width:300px !important;max-width:96vw !important;max-height:94vh !important;overflow-y:auto !important;overflow-x:hidden !important;',
-      '  background:#0c0f18 url("assets/ui/InventoryBack.png") repeat !important;',
-      '  border:2px solid #3c301c !important;border-radius:2px !important;',
-      '  box-shadow:inset 0 0 0 1px #8a7038, inset 0 0 20px rgba(0,0,0,0.95), 0 16px 48px rgba(0,0,0,0.85) !important;',
-      '  color:#eaf2ff !important;font-family:"Cinzel", Georgia, serif !important;padding:8px 10px !important;user-select:none !important;',
+      '  width:256px !important;height:382px !important;box-sizing:border-box !important;',
+      '  background:transparent url("assets/ui/l2_inventory_bg_clean.png") no-repeat 0 0 / 256px 382px !important;',
+      '  border:none !important;border-radius:0 !important;',
+      '  box-shadow:0 12px 36px rgba(0,0,0,0.95), 0 0 1px rgba(0,0,0,0.8) !important;',
+      '  padding:0 !important;margin:0 !important;overflow:visible !important;',
+      '  color:#eaf2ff !important;font-family:Tahoma, Arial, sans-serif !important;user-select:none !important;',
       '}',
       '#inv.open{display:block !important;}',
-      '.invui-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border-bottom:1px solid rgba(138,112,56,0.3);padding-bottom:4px;}',
-      '.invui-topo b{font-size:13px;letter-spacing:0.12em;color:#ffd166;text-shadow:0 1px 2px #000;}',
-      '.invui-fechar{width:16px;height:16px;border:none;background:transparent url("assets/ui/TargetCloseButton.png") no-repeat center;cursor:pointer;outline:none;}',
-      '.invui-fechar:hover, .invui-fechar:active{background-image:url("assets/ui/TargetCloseButton_click.png");}',
-      '.invui-abas{display:flex;gap:4px;margin-bottom:8px;}',
-      '.invui-tab{flex:1;height:24px;background:#151c2b;border:1px solid #3c301c;color:#8fa4c2;font:700 10.5px "Cinzel", Georgia, serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.12s ease;}',
-      '.invui-tab.ativa{background:url("assets/ui/SystemWindowButton.png") no-repeat center / 100% 100%;color:#ffd166;border-color:#8a7038;text-shadow:0 1px 2px #000;}',
-      '.invui-paperdoll{position:relative;width:280px;height:148px;margin:0 auto 10px;background:#090d16 url("assets/ui/inv_top_preview.png") no-repeat center / cover;border:1px solid #3c301c;box-shadow:inset 0 0 14px rgba(0,0,0,0.9);border-radius:2px;}',
-      '.invui-sl{position:absolute;width:40px;height:40px;}',
-      '.invui-sl[data-p=helmet]{left:120px;top:8px;}',
-      '.invui-sl[data-p=weapon]{left:42px;top:54px;}',
-      '.invui-sl[data-p=chest]{left:120px;top:54px;}',
-      '.invui-sl[data-p=gloves]{left:198px;top:54px;}',
-      '.invui-sl[data-p=boots]{left:120px;top:100px;}',
-      '.invui-sub{font-size:10.5px;letter-spacing:0.08em;color:#d4af37;margin:4px 0 6px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}',
-      '.invui-grade{display:grid;grid-template-columns:repeat(5, 50px);gap:6px;justify-content:center;margin-bottom:10px;}',
-      '.invui-cx{position:relative;width:50px;height:50px;cursor:pointer;background:#090c14 url("assets/ui/inventory_outline.png") no-repeat center / 100% 100%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 4px rgba(0,0,0,0.8);border-radius:2px;transition:all 0.1s ease;}',
-      '.invui-cx.vz{opacity:0.45;}',
-      '.invui-cx:hover{background-image:url("assets/ui/inventory_outline_over.png");}',
-      '.invui-cx.sel{background-image:url("assets/ui/inventory_outline_over.png");filter:drop-shadow(0 0 4px #ffd166);}',
-      '.invui-cx .en{position:absolute;right:3px;top:2px;font:800 10px system-ui,sans-serif;color:#7dff9a;text-shadow:0 1px 2px #000;}',
-      '.invui-cx .gr{position:absolute;left:3px;bottom:2px;font:800 9px system-ui,sans-serif;text-shadow:0 1px 2px #000;}',
-      '.invui-cx .q{position:absolute;right:3px;bottom:2px;font:800 10px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000;}',
-      '.invui-tooltip{margin-bottom:8px;padding:8px 10px;background:#090c14 url("assets/ui/TargetBack.png") repeat;border:1px solid #3c301c;border-radius:2px;box-shadow:inset 0 0 8px rgba(0,0,0,0.9);}',
-      '.invui-tooltip b{display:block;font-size:12px;color:#ffd166;}',
-      '.invui-tooltip small{display:block;font-size:10px;color:#8fa4c2;font-family:system-ui, sans-serif;margin-top:2px;}',
-      '.invui-tooltip-bts{display:flex;gap:6px;margin-top:6px;}',
-      '.invui-btn{flex:1;min-height:26px;background:url("assets/ui/SystemWindowButton.png") no-repeat center / 100% 100%;border:1px solid #3c301c;color:#f0e6c8;font:700 10.5px "Cinzel", Georgia, serif;cursor:pointer;text-shadow:0 1px 2px #000;border-radius:2px;transition:all 0.12s ease;}',
-      '.invui-btn:hover:not(:disabled){background-image:url("assets/ui/SystemWindowButton_click.png");color:#ffffff;border-color:#d4af37;}',
-      '.invui-btn:disabled{opacity:0.35;cursor:default;}',
-      '.invui-btn.pe{color:#ff9a9a;filter:hue-rotate(330deg);}',
-      '.invui-rodape{display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(138,112,56,0.3);font-size:11px;color:#ffd166;font-family:system-ui, sans-serif;}',
-      '.invui-rodape .ad{display:flex;align-items:center;gap:4px;font-weight:700;}',
-      '.invui-rodape .icones-acao{display:flex;gap:6px;}',
-      '.invui-rodape .icones-acao img{cursor:pointer;opacity:0.8;transition:opacity 0.15s ease;}',
-      '.invui-rodape .icones-acao img:hover{opacity:1.0;}'
+      '.l2-inv-title{position:absolute;left:10px;top:2px;font:700 11px Tahoma,Arial,sans-serif;color:#e2d6b5;letter-spacing:0.04em;text-shadow:0 1px 2px #000;pointer-events:none;}',
+      '.l2-inv-close{position:absolute;right:6px;top:4px;width:13px;height:13px;border:none;background:transparent url("assets/ui/TargetCloseButton.png") no-repeat center;cursor:pointer;outline:none;}',
+      '.l2-inv-close:hover{background-image:url("assets/ui/TargetCloseButton_click.png");}',
+      '.l2-inv-tab{position:absolute;top:139px;height:20px;line-height:20px;text-align:center;font:700 10px Tahoma,sans-serif;color:#8f9ba8;cursor:pointer;}',
+      '.l2-inv-tab.tab-inv{left:12px;width:86px;}',
+      '.l2-inv-tab.tab-quest{left:100px;width:86px;}',
+      '.l2-inv-tab.ativa{color:#ffd166;text-shadow:0 1px 2px #000;}',
+      '.l2-inv-count{position:absolute;right:16px;top:143px;font:700 9.5px Tahoma,sans-serif;color:#8fa4c2;}',
+      '.l2-item-slot{position:absolute;width:32px;height:32px;box-sizing:border-box;cursor:pointer;background:transparent;}',
+      '.l2-item-slot:hover::after{content:"";position:absolute;inset:-2px;background:url("assets/ui/inventory_outline_over.png") no-repeat center / 36px 36px;pointer-events:none;}',
+      '.l2-item-slot.sel::after{content:"";position:absolute;inset:-2px;background:url("assets/ui/inventory_outline_over.png") no-repeat center / 36px 36px;filter:drop-shadow(0 0 3px #ffd166);pointer-events:none;}',
+      '.l2-item-slot .en{position:absolute;right:1px;top:1px;font:800 9px Tahoma,sans-serif;color:#7dff9a;text-shadow:0 1px 2px #000;pointer-events:none;}',
+      '.l2-item-slot .gr{position:absolute;left:1px;bottom:1px;font:800 8.5px Tahoma,sans-serif;text-shadow:0 1px 2px #000;pointer-events:none;}',
+      '.l2-adena-txt{position:absolute;left:112px;top:336px;width:88px;text-align:right;font:700 10.5px Tahoma,Arial,sans-serif;color:#ffd166;text-shadow:0 1px 2px #000;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+      '.l2-inv-recipe{position:absolute;left:14px;top:331px;width:34px;height:34px;cursor:pointer;background:transparent;}',
+      '.l2-inv-trash{position:absolute;left:208px;top:331px;width:34px;height:34px;cursor:pointer;background:transparent;}',
+      '.l2-inv-tooltip{position:absolute;left:262px;top:0;width:210px;padding:8px 10px;background:#090d16 url("assets/ui/TargetBack.png") repeat;border:1px solid #3c301c;border-radius:2px;box-shadow:0 8px 24px rgba(0,0,0,0.9), inset 0 0 0 1px #8a7038;z-index:9999;}',
+      '.l2-inv-tooltip b{display:block;font-size:12px;color:#ffd166;font-family:"Cinzel", Georgia, serif;}',
+      '.l2-inv-tooltip small{display:block;font-size:10px;color:#8fa4c2;margin-top:2px;}',
+      '.l2-inv-tooltip-bts{display:flex;gap:4px;margin-top:8px;}',
+      '.l2-inv-btn{flex:1;min-height:22px;background:url("assets/ui/SystemWindowButton.png") no-repeat center / 100% 100%;border:1px solid #3c301c;color:#f0e6c8;font:700 9.5px Tahoma, sans-serif;cursor:pointer;text-shadow:0 1px 2px #000;}',
+      '.l2-inv-btn:hover:not(:disabled){background-image:url("assets/ui/SystemWindowButton_click.png");color:#fff;border-color:#d4af37;}',
+      '.l2-inv-btn:disabled{opacity:0.35;cursor:default;}',
+      '.l2-inv-btn.pe{color:#ff9a9a;filter:hue-rotate(330deg);}'
     ].join('\n');
     document.head.appendChild(s);
   }
@@ -89,33 +97,52 @@
     };
     var eqUid = {}; for(var k in E.inv.equip) if(E.inv.equip[k]) eqUid[E.inv.equip[k].uid] = k;
 
-    function caixa(it, extra){
-      if(!it) return '<div class="invui-cx vz"' + (extra || '') + '></div>';
-      var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
-      return '<div class="invui-cx' + (sel === it.uid ? ' sel' : '') + '" data-u="' + esc(it.uid) + '" title="' + esc(op.nome(it)) + '" style="box-shadow:inset 0 0 10px ' + (r.css || '#000') + '55">' + U.icone(b, { tam: 32 }) +
-        ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') + ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') + '</div>';
-    }
-
     var h = [
-      '<div class="invui-topo">',
-      '  <b>INVENTORY</b>',
-      '  <button type="button" class="invui-fechar" data-a="fechar" title="Fechar (I)"></button>',
-      '</div>',
-      '<div class="invui-abas">',
-      '  <div class="invui-tab ' + (aba === 'inv' ? 'ativa' : '') + '" data-a="tab-inv">Inventory</div>',
-      '  <div class="invui-tab ' + (aba === 'quest' ? 'ativa' : '') + '" data-a="tab-quest">Quest</div>',
-      '</div>'
+      '<div class="l2-inv-title">Inventory</div>',
+      '<button type="button" class="l2-inv-close" data-a="fechar" title="Fechar (I)"></button>',
+      '<div class="l2-inv-tab tab-inv ' + (aba === 'inv' ? 'ativa' : '') + '" data-a="tab-inv">Inventory</div>',
+      '<div class="l2-inv-tab tab-quest ' + (aba === 'quest' ? 'ativa' : '') + '" data-a="tab-quest">Quest</div>'
     ];
 
     if(aba === 'inv'){
-      // 1. Paperdoll anatômico Lineage 2
-      h.push('<div class="invui-paperdoll">');
-      ['helmet', 'weapon', 'chest', 'gloves', 'boots'].forEach(function(s){
-        h.push('<div class="invui-sl" data-p="' + s + '">' + caixa(acha(E.inv.equip[s]), 'data-vs="' + s + '"') + '</div>');
-      });
-      h.push('</div>');
+      // 1. PAPERDOLL OFICIAL LINEAGE 2: 15 Slots com posições exatas do interface.xdat
+      for(var sKey in XDAT_SLOTS){
+        var pos = XDAT_SLOTS[sKey];
+        var eqIt = acha(E.inv.equip[sKey]);
+        if(eqIt){
+          var b = base(eqIt.base), r = R[eqIt.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+          h.push(
+            '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" title="' + esc(op.nome(eqIt)) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
+              U.icone(b, { tam: 32 }) +
+              ((eqIt.en | 0) ? '<span class="en">+' + (eqIt.en | 0) + '</span>' : '') +
+              ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
+            '</div>'
+          );
+        }
+      }
 
-      // 2. Tooltip de ações para item selecionado
+      // 2. GRADE DA MOCHILA (InventoryItem do XDAT: x=9, y=168, col=6, row=4, gapX=5, gapY=3)
+      var bagItens = E.inv.items.filter(function(i){ return !eqUid[i.uid]; });
+      h.push('<div class="l2-inv-count">' + bagItens.length + ' / 80</div>');
+
+      var gx = 9, gy = 168;
+      for(var idx = 0; idx < Math.min(24, bagItens.length); idx++){
+        var it = bagItens[idx];
+        var col = idx % 6;
+        var row = Math.floor(idx / 6);
+        var sx = gx + col * 37;
+        var sy = gy + row * 35;
+        var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+        h.push(
+          '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" data-u="' + esc(it.uid) + '" title="' + esc(op.nome(it)) + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
+            U.icone(b, { tam: 32 }) +
+            ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
+            ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
+          '</div>'
+        );
+      }
+
+      // 3. TOOLTIP / POPUP LATERAL DE AÇÕES DO ITEM SELECIONADO
       if(sel){
         var it = acha(sel);
         if(it){
@@ -123,58 +150,37 @@
           var slotEq = eqUid[it.uid];
           var falta = (b && b.grau && b.grau !== 'sem' && (E.lvl || 1) < (g.lvlMin || 0));
           h.push(
-            '<div class="invui-tooltip">',
+            '<div class="l2-inv-tooltip">',
             '  <b style="color:' + (r.css || '#ffd166') + '">' + esc(op.nome(it)) + ((it.en | 0) ? ' +' + (it.en | 0) : '') + '</b>',
             '  <small>' + esc(r.name || 'Comum') + ' · ' + esc(g.name || 'Sem Grau') + '</small>',
             '  <small style="color:#d4af37">' + esc(op.statsDe ? statTxt(op.statsDe(it)) : '') + '</small>',
-            '  <div class="invui-tooltip-bts">',
-            (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="invui-btn" disabled>EQUIPADO</button>' : '<button type="button" class="invui-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="invui-btn" data-a="equip" data-v="' + esc(it.uid) + '"' + (falta ? ' disabled' : '') + '>EQUIPAR</button>'),
-            (slotEq ? '' : '<button type="button" class="invui-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
+            '  <div class="l2-inv-tooltip-bts">',
+            (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '"' + (falta ? ' disabled' : '') + '>EQUIPAR</button>'),
+            (slotEq ? '' : '<button type="button" class="l2-inv-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
             '  </div>',
             '</div>'
           );
         }
       }
-
-      // 3. Grade de 40 slots (5 colunas x 8 linhas)
-      var maxSlots = 40;
-      var bagItens = E.inv.items.filter(function(i){ return !eqUid[i.uid]; });
-      h.push(
-        '<div class="invui-sub">',
-        '  <span>MOCHILA</span>',
-        '  <span>' + bagItens.length + ' / ' + maxSlots + '</span>',
-        '</div>',
-        '<div class="invui-grade">'
-      );
-      for(var i = 0; i < maxSlots; i++){
-        var it = bagItens[i] || null;
-        h.push(caixa(it));
-      }
-      h.push('</div>');
     } else {
       // Aba Quest
       h.push(
-        '<div style="min-height:220px;padding:20px;text-align:center;font-size:11px;color:#8fa4c2;">',
-        '  Nenhum item de missão no momento.',
+        '<div style="position:absolute;left:14px;top:170px;width:228px;text-align:center;font-size:10px;color:#8fa4c2;">',
+        '  Nenhum item de missão.',
         '</div>'
       );
     }
 
-    // Rodapé autêntico do L2: Adena, Lixeira e Receita
+    // 4. RODAPÉ OFICIAL LINEAGE 2: Adena, Receita e Lixeira nas coordenadas do XDAT
     h.push(
-      '<div class="invui-rodape">',
-      '  <div class="ad">',
-      '    <img src="assets/icones/adena.png" width="16" height="16" alt="Adena">',
-      '    <span>' + (E.adena | 0).toLocaleString('pt-BR') + '</span>',
-      '  </div>',
-      '  <div class="icones-acao">',
-      '    <img src="assets/ui/inventory_recipe.png" width="20" height="20" title="Livro de Receitas" alt="Receitas">',
-      '    <img src="assets/ui/inventory_trash.png" width="20" height="20" title="Lixeira" alt="Lixeira">',
-      '  </div>',
-      '</div>'
+      '<div class="l2-adena-txt">' + (E.adena | 0).toLocaleString('pt-BR') + '</div>',
+      '<div class="l2-inv-recipe" title="Livro de Receitas (Crystallize / Recipe)"></div>',
+      '<div class="l2-inv-trash" title="Lixeira (Descartar itens)"></div>'
     );
 
     box.innerHTML = h.join('');
+
+    // Eventos (Duplo clique / clique rápido para equipar/desequipar fiel ao InventoryWnd.uc)
     box.onclick = function(ev){
       var t = ev.target.closest('[data-a],[data-u]'); if(!t || !box.contains(t)) return; ev.stopPropagation();
       var a = t.getAttribute('data-a'), v = t.getAttribute('data-v');
@@ -189,8 +195,14 @@
       }
       var u = t.getAttribute('data-u');
       if(u){
-        if(sel === u && window.matchMedia && matchMedia('(pointer:fine)').matches){
-          var item = acha(u); if(item){ if(eqUid[item.uid]) op.tirar(eqUid[item.uid]); else op.equip(item.uid); sel = null; conf = ''; return; }
+        if(sel === u){
+          // Segundo clique imediato: equipa se estiver na bolsa, desequipa se estiver equipado (como no L2)
+          var item = acha(u);
+          if(item){
+            if(eqUid[item.uid]) op.tirar(eqUid[item.uid]);
+            else op.equip(item.uid);
+            sel = null; conf = ''; return;
+          }
         }
         sel = u; conf = ''; U.render(box, E, op); return;
       }
