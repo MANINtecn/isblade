@@ -58,10 +58,22 @@ Este documento rege a modelagem 3D (Blender), os shaders procedurais (Three.js) 
 
 ---
 
+## 🌟 2.1 REGRA OBRIGATORIA: OPTICAL LENS FLARE EM TODA HABILIDADE
+
+Todo efeito visual de habilidade de personagem **deve conter** o efeito tecnicamente chamado **Optical Lens Flare** (tambem: *Starburst Flare Anamorfico* / *Feixe Radioso de Luz Pura*). Componentes:
+
+1. **Nucleo incandescente**: centro em losango/diamante de altissima intensidade luminosa.
+2. **Feixes anamorficos afilados**: estendem-se do nucleo e se dissolvem suavemente no ar (queda exponencial de luz / *soft falloff*).
+3. **Zero arestas poligonais**: nao pode ter cara de "peca 3D dura"; deve se comportar como pura energia luminosa (aditivo, `depthWrite: false`, bordas dissolvendo).
+
+Aplica-se a todas as classes e skills (ataque basico incluso), com a cor tematica da skill nos feixes e o nucleo em branco quente. Cor/forma dos feixes segue as demais regras (sem rosa/lilas, sem esfera/anel).
+
+---
+
 ## 📋 3. CHECKLIST ANTES DE CONSIDERAR UMA SKILL PRONTA
 - [ ] O efeito parece leve e luminoso, ou parece um pedaço maciço de plástico/concreto?
 - [ ] O modelo 3D é único e sem geometrias duplicadas desalinhadas?
 - [ ] O chão é sagrado e calmo, livre de dentes de serra ou giros de engrenagem?
 - [ ] A iluminação e os materiais possuem miolo incandescente e queda suave?
 - [ ] As formas orgânicas (asas, penas, lâminas) possuem acabamento lapidado e profissional?
-
+- [ ] Contem o Optical Lens Flare (nucleo losango incandescente + feixes anamorficos com soft falloff, sem arestas poligonais)?

@@ -3746,3 +3746,40 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - `C5 (Prece)`: Coluna cortada corrigida para o Véu Dourado 360 completo; removida a cruz; implementada Coroa/Halo de Bênção Dourada pairando suavemente sobre a cabeça de cada aliado no alcance, emanando orvalho dourado.
   - `C6 (Ressurreição)`: Asas coladas no alvo e cruzes no alvo removidas; implementada monumental coluna celestial de Véu 360 descendo das alturas e uma Chuva Radiante de Penas de Anjo de Luz Caindo do Céu (`clerigo_pena.png`), descendo em espiral e balançando no ar ao redor do aliado.
   - **Cache Busted**: Atualizado `arena.html` para `clerigo_fx.js?v=5` garantindo carregamento imediato sem cache antigo.
+
+### [Claude] 13/11/2026 - Emenda dos mapas: medicao do acesso (sem alterar o jogo ainda)
+
+- Pedido do dono: arrumar a emenda dos mapas, tem lugar travando o acesso; e saber se o Nanite serve ou e so do Unreal 5.
+- Novo `prototipo/tools/verifica_acesso.py` (usa as regras do `mapa_vivo.js`: TOL 6,5 m, bloqueio 'estrutura' de 6,5 a 14 m acima do terreno). Terreno andavel bloqueado por 'estrutura': Cruma 3,5% (770 celulas de 9 m2), Fortaleza 2,4%, Pantano 1,6%. Maior bloqueio: faixa de ~5.200 m2 na borda oeste da Cruma (centro -510,-274, o chao do mapa fica bem acima do terreno = barranco). Fortaleza: monte de ~380 m2 em (-219,120) onde o chao do mapa fica 10-13 m acima do terreno. Os outros sao manchas de 100-225 m2 (Cruma centro, Pantano). Todos sao PAREDES de desnivel (subir de baixo nao existe); pela cima a subida continua valendo pelo chao do mapa.
+- Nao mexi em codigo nem no Blender: sem o `/travas` do dono nao da para saber QUAL ponto travou o acesso (o log fica no navegador dele, localStorage isblade.malha_travas). Proximo passo: dono rodar `/travas` (ou `/malha`) no ponto e passar x,z; ai a emenda e fechada no Blender (baixar o monte do mapa ou subir o terreno) ou ganha rampa.
+- Nanite: e recurso do Unreal Engine 5 (geometria virtualizada na GPU); nao existe no navegador/three.js. Equivalente para nos: LOD por distancia (THREE.LOD ou malhas simplificadas com meshoptimizer/gltfpack no export dos GLBs dos mapas), culling por distancia e a juncao de pecas que ja fizemos. Nao e urgente: o gargalo medido foi subir textura, nao triangulos.
+
+### [Claude] 13/11/2026 - Regra: Optical Lens Flare em todo efeito de habilidade
+
+- Decisao do dono: os efeitos visuais das habilidades de TODOS os personagens devem, por regra, conter o efeito **Optical Lens Flare** (Starburst Flare Anamorfico / Feixe Radioso de Luz Pura).
+- Composicao: (1) nucleo incandescente em losango/diamante de alta intensidade; (2) feixes anamorficos afilados que se dissolvem no ar com queda exponencial (soft falloff); (3) zero arestas poligonais, deve parecer energia luminosa pura e nao peca 3D dura.
+- Gravado em `.claude/skills/estilo-fx-refinado/SKILL.md` (secao 2.1 + item do checklist) e na memoria do Claude. Nenhum codigo de jogo alterado.
+
+### [Antigravity] 13/11/2026 - Benchmark Técnico do L2 Royale Web & Diretriz de Transformação Visual (Visual L2 + Ação Dragon Nest)
+
+- **Auditoria Técnica do L2 Royale (`play.l2royale.com`)**:
+  - *Arquitetura*: Web Client proprietário em WebGL/WASM servido via CDN dedicado (`cdn.l2rift.com`), portando assets originais e completos do Lineage 2 Interlude (modelos, animações, texturas, interface nativa).
+  - *Diagnóstico Visual*: A sensação de polimento e "jogo impecável" deve-se a:
+    1. Unidade estética total dos assets originais da NCSoft (rig anatômico nobre, malhas e texturas pintadas à mão com specular).
+    2. Iluminação com ACES Filmic Tone Mapping e sRGB, eliminando brancos estourados e sombras duras.
+    3. Reflexos metálicos com IBL (Environment Map) em armaduras e lâminas.
+    4. UI com Design System autêntico de MMORPG clássico (molduras chanfradas de ferro e bronze, cantoneiras decoradas, barras texturizadas com relevo e fontes clássicas).
+- **Decisão Estratégica do Dono**:
+  - **Jogabilidade e Habilidades**: Mantidas 100% as nossas! O combate de ação rápida estilo Dragon Nest (mira no centro, combos, esquiva, fluidez mobile/PC) e as habilidades com efeitos refinados (optical lens flares, partículas fluidas com ruído curl e véus 360°) permanecem como a identidade única do IS BLADE.
+  - **Transformação Visual e Layout**: Trazer para o IS BLADE a cara visual autêntica do Lineage 2 em 4 frentes:
+    1. *Interface Completa*:
+       - **Target Window Clássica**: Moldura ornamentada em ferro e bronze chanfrado, ícone de classe/mob, nível colorido pela diferença de nível, nome e barras de HP/MP/CP com relevo.
+       - **Janela de Status / Character (U / C)**: Atributos clássicos do L2 (P.Atk, M.Atk, P.Def, M.Def, Atk.Spd, Cast.Spd, Critical, Speed, etc.), barras de EXP/SP e pontos distribuíveis.
+       - **Inventário em Grade com Paperdoll (I)**: Slots metálicos, silhueta anatômica de equipamento (elmo, peito, pernas, luvas, botas, arma, escudo, joias, capa) e adena no rodapé.
+       - **Ícones Oficiais do L2**: Exibição dos ícones reais de itens e skills já iniciados no projeto (`Icon.utx`).
+    2. *As 4 Recomendações Técnicas Integradas*:
+       - **Iluminação & Pós-Processamento**: Ativar `ACESFilmicToneMapping`, `outputColorSpace = SRGBColorSpace`, sombras PCF Soft e Environment Map HDRI / IBL para reflexos vívidos nos metais.
+       - **Design System Dark Fantasy da UI**: Folha de estilo unificada para todas as janelas do jogo com bordas chanfradas e tipografia gótica/fantasia clássica.
+       - **Modelos PBR Padronizados**: Proporções nobres e malhas com materiais PBR completos, mantendo rigorosamente a proibição de geometrias maciças.
+       - **VFX Refinados Universais**: A nova linguagem visual de alta qualidade do Clérigo padronizada para todas as classes e chefes.
+- Registrado no `ROADMAP_IS_BLADE.md` e pronto para execução.

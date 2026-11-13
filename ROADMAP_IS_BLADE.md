@@ -111,6 +111,30 @@ Guia de desenho de skills (para ficar familiar e divertido):
 
 - [~] **Jogador IA e NPCs com vida** (ideia do dono, 08/11): `servidor/ia_jogador.js` joga sozinho como humano (caça, sobe, party, PK, chat pelo Claude). SextaFeira ligada na VPS (09/11). Moradores com vida FEITOS (09/11): 6 moradores na cidade com rotina pelo relógio do jogo, andam desviando das casas, falam em balão e conversam (Claude com chave; frases prontas sem). Reações FEITAS (10/11): cumprimentam quem chega a 4,5 m e fogem de PK (o guarda Tomas avisa e não foge). Próximo: mais moradores e moradores nos mapas. **G** (Claude)
 
+---
+
+### PILAR DE TRANSFORMAÇÃO VISUAL & LAYOUT L2 (Benchmark L2 Royale - 13/11/2026)
+**Diretriz Master do Dono**: Manter 100% da jogabilidade de ação rápida (Dragon Nest) e as nossas habilidades, mas elevar o padrão visual, layout e acabamento para a estética autêntica de Lineage 2.
+
+- [ ] **Interface Completa com DNA de Lineage 2**:
+  - [ ] **Target Window Autêntica**: Moldura ornamentada em ferro e bronze chanfrado, ícone de classe/mob, nível com cor por faixa de dificuldade, nome em destaque e barras de HP/MP/CP com relevo.
+  - [ ] **Janela de Status / Character (U / C)**: Layout clássico do L2 com atributos numéricos (P.Atk, M.Atk, P.Def, M.Def, Atk.Spd, Cast.Spd, Crit, Speed), barra de EXP/SP e pontos distribuíveis.
+  - [ ] **Inventário Clássico com Paperdoll (I)**: Grade de slots metálicos com silhueta de equipamento corporal (arma, escudo, elmo, peito, calça, luvas, botas, joias, capa) e contador de adena em destaque.
+  - [ ] **Ícones Originais de Itens e Skills**: Conectar e exibir os ícones autênticos do L2 já extraídos no repositório (`Icon.utx`).
+
+- [ ] **As 4 Recomendações Técnicas de Pipeline e Renderização**:
+  - [ ] **1. Iluminação e Pós-Processamento de Cinema**:
+    - Ativar `renderer.toneMapping = THREE.ACESFilmicToneMapping` e calibrar exposição.
+    - Ativar `renderer.outputColorSpace = THREE.SRGBColorSpace` e `PCFSoftShadowMap`.
+    - Adicionar Environment Map HDRI / IBL (Image-Based Lighting) sutil para dar reflexo vívido e metálico a armaduras e lâminas.
+  - [ ] **2. Design System Dark Fantasy da UI**:
+    - Padronizar toda a interface em CSS/HTML com bordas chanfradas metálicas, cantoneiras decorativas, fundos escuros translúcidos e tipografia gótica/fantasia clássica (Cinzel / Friz Quadrata / Trajan).
+  - [ ] **3. Padronização de Modelos PBR**:
+    - Malhas com materiais PBR completos (Albedo, Normal Map, Roughness, Metalness) e proporções anatômicas nobres de alta fantasia.
+    - Cumprimento rigoroso da regra de ouro: zero geometrias maciças/secas.
+  - [ ] **4. VFX Refinados Universais**:
+    - Expandir a nova linguagem visual refinada do Clérigo (véus de energia 360°, optical flares e partículas com ruído curl) para o Mago, Guerreiro, Guardião e chefes de raide.
+
 ### FASE 5 — Lançar o Beta Demo e divulgar
 **Critérios para abrir o beta** (todos marcados):
 - [ ] Fases 0, 1 e 2 completas; Guardião, Mago e Guerreiro com 6 skills prontas.
