@@ -3829,8 +3829,12 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - *Target Window*: `TargetBack.png`, `TargetCloseButton.png`, `TargetCloseButton_click.png`, `TargetFrameAll.png`, `hpbar.png`, `hpbar_back.png`.
     - *Inventário & Paperdoll*: `InventoryBack.png`, `inventory_back.png`, `inventory_outline.png` (slot 64x64 com cantoneiras de metal), `inventory_outline_over.png` (highlight dourado de foco/hover), `inventory_trash.png`.
     - *Character Status*: `statusback.png`, `statusEXP1.png`, `SystemWindowButton.png`, `SystemWindowButton_click.png`.
-- **Fim da Interface Genérica (CSS Puro) $\rightarrow$ Texturas Reais do L2**:
-  - `prototipo/js/alvo_l2.js`: Fundo com `TargetBack.png`, botão fechar com `TargetCloseButton.png` e barra de HP com `hpbar.png` e `hpbar_back.png`.
-  - `prototipo/js/inventario_ui.js`: Fundo de metal escuro com `InventoryBack.png`, slots com moldura oficial `inventory_outline.png`, efeito hover com `inventory_outline_over.png` e botões de comando oficiais com `SystemWindowButton.png`.
-  - `prototipo/js/status.js`: Fundo oficial com `statusback.png`, barra de EXP original com `statusEXP1.png` e botões metálicos oficiais.
-  - Cachebusting atualizado para `alvo_l2.js?v=3`, `inventario_ui.js?v=4` e `status.js?v=3` na Arena e na Cidade.
+- **Diagnóstico de Transição para o Claude Code (Reconstrução 1:1 da UI Interlude)**:
+  - O layout atual do inventário ainda é o modal largo de protótipo web (820px em 2 colunas com caixas de texto).
+  - O que o jogo precisa de fato: A janela vertical clássica do Lineage 2 Interlude (largura nativa de 256px a 320px):
+    1. Topo: Abas [Inventory] e [Quest] com título clássico.
+    2. Meio-superior: Paperdoll oficial com silhueta e os 14 slots posicionados (Elmo, Peito, Pernas, Luvas, Botas, Arma, Escudo, Cueca, Capa, 2 Brincos, 2 Anéis, 1 Colar).
+    3. Meio-inferior: Grade autêntica 5 colunas x 8 linhas (40 slots) usando `inventory_outline.png`.
+    4. Rodapé: Ícones de Lixeira (`inventory_trash.png`), Livro de Receitas (`inventory_recipe.png`), Adena e Barra de Peso (`ps_weightbar1.png`).
+  - Target Window: Barra compacta clássica horizontal com nome, nível, botão de fechar original e barra de HP chanfrada.
+  - Todas as 37 texturas PNG estão prontas e extraídas em `prototipo/assets/ui/` para o Claude Code montar a estrutura 1:1.
