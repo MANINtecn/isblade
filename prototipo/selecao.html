@@ -989,6 +989,12 @@ function buildParticles(){
 
 var L2_WPN_AXIS_FIX = Math.PI / 2;
 
+/* CLAUDE [lobby-arma]: previa da arma pela classe (mago e clerigo usam o cajado, como no jogo; resto = espada de 2 maos) */
+function modeloArmaLobby(c){
+  var cls = c.classe || (c.weapon === 'staff' ? 'mago' : c.weapon === 'book' ? 'clerico' : '');
+  if(c.weapon === 'staff' || c.weapon === 'book' || cls === 'mago' || cls === 'clerico') return 'assets/armas/cedar_staff.glb';
+  return 'assets/personagens/dragon_slayer.glb';
+}
 function attachL2Item(root, boneName, glbUrl, options, cb){
   var opts = options || {};
   var holder = new THREE.Group();
@@ -1130,7 +1136,7 @@ function loadCharacter3D(){
         visible: true
       });
     } else if(c.weapon !== 'none'){
-      weaponObj = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/dragon_slayer.glb', {
+      weaponObj = attachL2Item(root, 'Weapon_R_Bone', modeloArmaLobby(c), {
         visible: true
       });
     }
@@ -1205,7 +1211,7 @@ function loadBackgroundCharacters3D(){
           visible: true
         });
       } else if(c.weapon !== 'none'){
-        attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/dragon_slayer.glb', {
+        attachL2Item(root, 'Weapon_R_Bone', modeloArmaLobby(c), {
           visible: true
         });
       }
