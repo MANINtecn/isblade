@@ -3868,3 +3868,21 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Cache-Busting & Sincronização**:
   - Scripts e folhas de estilo atualizados para `v=30` em `cidade.html` e `arena.html`.
   - Preview capturado e commitado em `preview_l2_interface.png`.
+
+### [Claude] 13/11/2026 - Horizonte da cidade volta, no ponto real dos mapas; lobby mostra o cajado
+- Lobby (`selecao.html`): mago e clerigo mostravam a Dragon Slayer na previa; agora `modeloArmaLobby(c)` carrega `assets/armas/cedar_staff.glb` (classe/arma cajado ou livro). Previa e por classe, nao pelo item equipado (inventario fica no servidor). NAO conferido visualmente.
+- Horizonte (`js/horizonte.js` v3 + `cidade.html`): o `setInterval` de 09/11 que escondia as silhuetas foi removido. Cada silhueta agora fica no ponto REAL do mapa (`mundo_grade.json -> mapas`: toi=torre, blazing=pantano, fortress, curuma), com escala = ESCALA x distancia/270 (mesmo tamanho aparente de antes) e altura do terreno; some a menos de 130 m do mapa. Modo baixa: distancia, escala e altura reduzidas juntas por camera.far. Backup: `horizonte.js.antes_real`.
+- Conferido (Playwright, Chrome por software): as 4 silhuetas nascem nas posicoes certas; com a cor trocada para vermelho, a da Fortaleza aparece na direcao certa atras das arvores. NAO conferido: aparencia final de dia em cada direcao (muralha tapa a vista de dentro da cidade; a captura da Torre caiu dentro de um modelo), nem celular. Itens 5 (cordilheira cobrir a base) e 7 (nome/seta) do plano ficaram para depois.
+
+### [Claude] 13/11/2026 - Emenda: 2 pontos de trava lidos do navegador do dono (autorizado)
+
+- Pontos (localStorage `isblade.malha_travas`, lidos do perfil do Chrome com autorizacao do dono): (-131.8, 196.4, y 12, reg 0, 'parede') e (-96.8, 114.8, y 0.6, reg 0, 'parede'); o terceiro (-172.7, 107.9, reg 2) e de 11:28, mais antigo. Os dois novos ficam no CAMPO (regiao 0) em volta da Fortaleza: o walkgrid do mapa (raio 100 m) passa da regiao dele, o chao do mapa fica 1-3 m abaixo do terreno com bordas esburacadas/paredes de borda, e `MapaVivo.bloq` mandava 'parede' num terreno livre.
+- Correcao (`mapa_vivo.js`, backup `.antes_borda`): `foraDaRegiao` - fora da regiao do mapa e com terreno andavel, `bloq` e `chao` ignoram o mapa e vale o terreno. Dentro da regiao nada muda. NAO testado no jogo ainda; dono precisa andar nos 2 pontos. Risco: enfeite/parede do mapa fora da regiao deixa de bloquear onde o terreno e andavel.
+
+### [Claude] 13/11/2026 - Desempenho da cidade (log de 30 min: 55,6 fps medio, minimo 2,3, 6% das janelas <30 fps)
+
+- Leitura do log: com 20-40 mobs o fps caia para 20-25 mesmo com a resolucao em 0.55, ou seja, gargalo de CPU (mobs/animacao/chamadas de desenho), nao de pixel. Texturas (1188 -> 1380) e geometrias (1419 -> 1524) cresciam; travadas de 300-460 ms no nascer/morrer de mobs; primeiro quadro em 4,6 s.
+- `cidade.html` `removeMob`: o mob 3D clonado compartilha geometria com o modelo em cache e o codigo descartava essa geometria (GPU perdia o buffer e reenviava a cada nascimento); agora so libera esqueleto (boneTexture, era o vazamento de texturas) e materiais do clone.
+- `cidade.html` `mob3dAnim`: LOD de animacao - ate 18 m todo quadro, 18-32 m a cada 2, acima a cada 4, com dt acumulado.
+- `qualidade.js`: ratio maximo limitado ao dpr real (a pagina usa min(dpr, ratio); 2 -> 1.6 -> 1.84 era giro em falso e disparava resize); piso 0.75 (antes 0.55) e so reduz apos 2 janelas ruins seguidas.
+- NAO testado no jogo (so `node --check` no qualidade.js). Falta novo log para comparar travadas e contagem de texturas/geometrias. Pendentes: primeiro quadro de 4,6 s (carregamento/shaders) e chamadas de desenho altas (material por mob impede agrupar). Commit `e47ee34`.
