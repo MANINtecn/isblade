@@ -112,7 +112,7 @@
         if(eqIt){
           var b = base(eqIt.base), r = R[eqIt.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
           h.push(
-            '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" title="' + esc(op.nome(eqIt)) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
+            '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" title="' + esc(op.nome(eqIt)) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
               U.icone(b, { tam: 32 }) +
               ((eqIt.en | 0) ? '<span class="en">+' + (eqIt.en | 0) + '</span>' : '') +
               ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
@@ -123,6 +123,30 @@
 
       // 2. GRADE DA MOCHILA (InventoryItem do XDAT: x=9, y=168, col=6, row=4, gapX=5, gapY=3)
       var bagItens = E.inv.items.filter(function(i){ return !eqUid[i.uid]; });
+
+      // Inclui consumíveis do jogador (Soulshots, Poções) na mochila
+      var consums = E.consum || window.CONSUM || {};
+      var consumDefs = {
+        soulshot: { name: 'Soulshot: No Grade', ico: 'soulshot', id: 'soulshot' },
+        spiritshot: { name: 'Spiritshot: No Grade', ico: 'spiritshot', id: 'spiritshot' },
+        pocao_vida: { name: 'Poção de Vida', ico: 'potion_health', id: 'pocao_vida' },
+        pergaminho_res: { name: 'Pergaminho de Ressurreição', ico: 'scroll_res', id: 'pergaminho_res' }
+      };
+      for(var cKey in consumDefs){
+        var qtd = consums[cKey];
+        if(qtd !== undefined && qtd > 0){
+          bagItens.push({
+            uid: '__c_' + cKey,
+            base: cKey,
+            id: consumDefs[cKey].id,
+            name: consumDefs[cKey].name,
+            ico: consumDefs[cKey].ico,
+            isConsum: true,
+            qtd: qtd
+          });
+        }
+      }
+
       h.push('<div class="l2-inv-count">' + bagItens.length + ' / 80</div>');
 
       var gx = 9, gy = 168;
@@ -132,14 +156,23 @@
         var row = Math.floor(idx / 6);
         var sx = gx + col * 37;
         var sy = gy + row * 35;
-        var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
-        h.push(
-          '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" data-u="' + esc(it.uid) + '" title="' + esc(op.nome(it)) + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
-            U.icone(b, { tam: 32 }) +
-            ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
-            ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
-          '</div>'
-        );
+        if(it.isConsum){
+          h.push(
+            '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" title="' + esc(it.name) + ' (x' + it.qtd + ')' + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
+              '<img src="assets/icones/' + it.ico + '.png" width="32" height="32" alt="" style="display:block;width:32px;height:32px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/potion_health.png\';"/>' +
+              '<span class="en" style="color:#ffd166;font-size:8px;">' + (it.qtd > 999 ? (it.qtd / 1000).toFixed(0) + 'k' : it.qtd) + '</span>' +
+            '</div>'
+          );
+        } else {
+          var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+          h.push(
+            '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" title="' + esc(op.nome(it)) + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
+              U.icone(b, { tam: 32 }) +
+              ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
+              ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
+            '</div>'
+          );
+        }
       }
 
       // 3. TOOLTIP / POPUP LATERAL DE AÇÕES DO ITEM SELECIONADO
@@ -179,6 +212,39 @@
     );
 
     box.innerHTML = h.join('');
+
+    // Drag & Drop de itens e consumíveis da mochila para a barra de atalhos (ShortcutWnd)
+    box.ondragstart = function(ev){
+      var t = ev.target.closest('.l2-item-slot'); if(!t) return;
+      var u = t.getAttribute('data-u'); if(!u) return;
+      var it = acha(u);
+      var payload = null;
+      if(it){
+        var b = base(it.base);
+        var iconKey = (b && b.id) || it.base || 'sword_long';
+        payload = JSON.stringify({
+          type: 'item',
+          uid: it.uid,
+          id: iconKey,
+          base: it.base,
+          name: op.nome(it),
+          ico: 'assets/icones/' + iconKey + '.png'
+        });
+      } else if(u.indexOf('__c_') === 0){
+        var cKey = u.replace('__c_', '');
+        var def = consumDefs[cKey] || { name: cKey, ico: cKey, id: cKey };
+        payload = JSON.stringify({
+          type: 'item',
+          id: def.id,
+          name: def.name,
+          ico: 'assets/icones/' + def.ico + '.png'
+        });
+      }
+      if(payload){
+        ev.dataTransfer.setData('text/plain', payload);
+        ev.dataTransfer.setData('application/json', payload);
+      }
+    };
 
     // Eventos (Duplo clique / clique rápido para equipar/desequipar fiel ao InventoryWnd.uc)
     box.onclick = function(ev){

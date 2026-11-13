@@ -3887,3 +3887,37 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - `qualidade.js`: ratio maximo limitado ao dpr real (a pagina usa min(dpr, ratio); 2 -> 1.6 -> 1.84 era giro em falso e disparava resize); piso 0.75 (antes 0.55) e so reduz apos 2 janelas ruins seguidas.
 - NAO testado no jogo (so `node --check` no qualidade.js). Falta novo log para comparar travadas e contagem de texturas/geometrias. Pendentes: primeiro quadro de 4,6 s (carregamento/shaders) e chamadas de desenho altas (material por mob impede agrupar). Commit `e47ee34`.
 - Commit c6d20c9 enviado (push em MANINtecn/isblade): mapa_vivo.js, tools/verifica_acesso.py e este diario.
+
+### [Antigravity] 13/11/2026 - Port Completo da Interface 1:1 Lineage 2 Interlude (XDAT + Classes .uc)
+- **Origem dos Dados & Engenharia Reversa**:
+  - Investigado e mapeado o schema completo de janelas decompiladas do `interface.xdat` em `C:\TECX SOFTHOUSE\L2 IKARUS INTERCROW\XDAT_Editor_Source\xml\ct0\windows\`:
+    - `0046_InventoryWnd.xml` (Inventário vertical nativo 256x382 px, 15 slots de Paperdoll e grade 6x4 de bolsa).
+    - `0126_StatusWnd.xml` (Janela de status do jogador 176x84 px com barras de CP, HP, MP, EXP, Level e Nome).
+    - `0122_ShortcutWnd.xml` (Barra de atalhos 492x46 px com 12 slots distribuídos em 3 blocos de 4, F1-F12).
+    - `0064_MenuWnd.xml` (Dock de botões do sistema 173x46 px com Status, Inventário, Mapa e Sistema).
+    - `0133_TargetStatusWnd.xml` (Janela de alvo oficial com vida, nível e perigo).
+  - Classes UnrealScript consultadas em `ferramentas para l2\Interface_Compiler\Interlude\interface\Classes\`:
+    - `InventoryWnd.uc`, `StatusWnd.uc`, `ShortCutWnd.uc`, `MenuWnd.uc`, `TargetStatusWnd.uc`.
+- **Texturas Oficiais Extraídas (1.326 arquivos PNG)**:
+  - Extração completa de `L2UI_CH3.utx` com `umodel_materials.exe` para `prototipo/assets/ui/exported/L2UI_CH3/Texture/`.
+  - Copiadas e integradas para `prototipo/assets/ui/`: `l2_inventory_bg_clean.png`, `l2_status_wnd_bg.png`, `l2_shortcut_bar_clean.png`, `l2_menu_wnd_bg.png`, `menubutton1..4.png`, `shortcut_f01..f12.png`, `ps_cpbar.png`, `ps_cpbar_back.png`, `ps_mpbar.png`, `ps_mpbar_back.png`, `ps_expbar.png`, `ps_expbar_back.png`, `hpbar.png`, `hpbar_back.png`.
+- **Eliminação Definitiva do HUD Legado do MU Online e Correção do Bug do Alvo**:
+  - Ocultados e desativados totalmente os dragões, orbes de vidro e frames legados do MU Online (`#mu-hud-bottom`, `.mu-hud-art`, `#top`).
+  - Corrigido o bug relatado pelo usuário de "2 targets e mostrando Baium ao bater no espantalho":
+    - `#top` desativado para eliminar a barra duplicada no topo.
+    - Em `cidade.html` e `arena.html`, a janela de alvo oficial (`AlvoL2` / `TargetStatusWnd`) recebe explicitamente `tipo: 'dummy'`, `sub: 'Alvo de Treino · Imortal'`, `nome: 'Espantalho de Treino'`, sem qualquer chance de exibir Baium na cidade.
+- **ShortcutWnd & Drag and Drop**:
+  - Implementado em `prototipo/js/l2_hud.js` com retrocompatibilidade total via `MuHud`.
+  - Suporte completo a arrastar e soltar (Drag & Drop):
+    - Itens da bolsa e consumíveis (poções, soulshots) do inventário podem ser arrastados para os 12 slots da barra.
+    - Skills (árvore e botões de skill) podem ser arrastadas diretamente para os slots da barra.
+    - Troca de posições (swap) entre slots ao arrastar um slot sobre outro.
+    - Clique com botão direito em Soulshots ativa/desativa Soulshot Automático com a clássica animação de borda giratória dourada do Lineage 2.
+- **Inventário 1:1 (inventario_ui.js)**:
+  - Fundo limpo `l2_inventory_bg_clean.png` (256x382 px) sem caixas azuis duplicadas ou artefatos de repetição.
+  - Paperdoll anatômico de 15 slots em posições milimétricas exatas do XDAT.
+  - Grade 6x4 de bolsa alinhada perfeitamente na textura, exibindo consumíveis com contagem (ex: 5k Soulshots).
+  - Duplo clique / clique rápido para equipar e desequipar.
+- **Folhas de Estilo e Integração**:
+  - Criado `prototipo/css/l2_hud.css` e linkado em `cidade.html`, `arena.html` e `preview_l2_interface.html`.
+  - `prototipo/js/mu_hud.js` unificado para redirecionar para a interface oficial do L2 sem quebrar dependências de código legado.

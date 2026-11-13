@@ -11,7 +11,8 @@
 
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
-<link rel="stylesheet" href="css/mu_hud.css?v=30">
+<link rel="stylesheet" href="css/l2_hud.css?v=35">
+<link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
 <script>
@@ -7399,9 +7400,20 @@ function buildSkills(){
   }).join('');
 
   Array.prototype.forEach.call(document.querySelectorAll('#skills button'),function(bt){
-
+    bt.setAttribute('draggable', 'true');
+    bt.addEventListener('dragstart', function(e){
+      var idx = +bt.getAttribute('data-i');
+      var s = SK[idx];
+      var payload = JSON.stringify({
+        type: 'skill',
+        skillSlot: idx,
+        name: s ? s.name : ('Skill ' + (idx + 1)),
+        ico: s && s.ico ? s.ico : ''
+      });
+      e.dataTransfer.setData('text/plain', payload);
+      e.dataTransfer.setData('application/json', payload);
+    });
     bt.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();req('skill',+bt.getAttribute('data-i'));});
-
   });
 
 }
@@ -8131,7 +8143,8 @@ var _alvoT=0;function alvoTick(){/* [alvo] janela do alvo estilo L2 (js/alvo_l2.
       nv: isDummy ? 1 : ((typeof DG!=='undefined'&&DG.on)?nivel('boss'):75),
       hp: S.hp,
       max: S.maxhp,
-      meuNv: S.lvl
+      meuNv: S.lvl,
+      sub: isDummy ? 'Alvo de Treino · Imortal' : 'Raid Boss'
     });
     return;
   }

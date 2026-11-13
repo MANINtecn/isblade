@@ -1,0 +1,462 @@
+/* ==========================================================================
+   l2_hud.css — Interface Oficial 1:1 Lineage 2 Interlude (Fiel ao interface.xdat)
+   - StatusWnd (176 x 84 px): Topo Esquerdo (Level, Nome, CP, HP, MP, EXP)
+   - ShortcutWnd (492 x 46 px): Rodapé Central (12 Slots F1-F12 em 3 blocos de 4)
+   - MenuWnd (173 x 46 px): Rodapé Direito (Status, Inv, Mapa, Sistema)
+   - TargetStatusWnd (176 x 46 px / 230 x 42 px): Topo Central
+   - Desativação completa do legado MU Online (dragões, orbes e frames duplicados)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. OCULTA ELEMENTOS LEGADOS DO MU ONLINE E DUPLICATAS
+   -------------------------------------------------------------------------- */
+#mu-hud-bottom,
+.mu-hud-art,
+.mu-target-art,
+.mu-target-crystal,
+#top.l2-target-active,
+#top {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   1. STATUS WND — JANELA DE STATUS DO JOGADOR (176 x 84 px)
+   Coordenadas de 0126_StatusWnd.xml: Topo Esquerdo (x=14, y=14)
+   -------------------------------------------------------------------------- */
+#l2-status-wnd {
+  position: fixed !important;
+  left: 14px !important;
+  top: 14px !important;
+  width: 176px !important;
+  height: 84px !important;
+  box-sizing: border-box !important;
+  background: transparent url("../assets/ui/l2_status_wnd_bg.png") no-repeat 0 0 / 176px 84px !important;
+  z-index: 8500 !important;
+  pointer-events: all !important;
+  user-select: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75) !important;
+  border-radius: 2px !important;
+}
+
+#l2-status-wnd .l2-st-level {
+  position: absolute;
+  left: 16px;
+  top: 9px;
+  width: 20px;
+  text-align: center;
+  font: 700 10.5px "Cinzel", Tahoma, Arial, sans-serif;
+  color: #ffd166;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+#l2-status-wnd .l2-st-name {
+  position: absolute;
+  left: 42px;
+  top: 8px;
+  width: 118px;
+  font: 700 10px Tahoma, Arial, sans-serif;
+  color: #f0e6c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+/* Barras oficiais do L2 (CP, HP, MP, EXP) */
+#l2-status-wnd .l2-bar-track {
+  position: absolute;
+  left: 16px;
+  width: 148px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+#l2-status-wnd .l2-bar-track.cp {
+  top: 27px;
+  height: 10px;
+  background: #09090b url("../assets/ui/ps_cpbar_back.png") repeat-x center;
+  border: 1px solid #1a1518;
+}
+
+#l2-status-wnd .l2-bar-track.hp {
+  top: 41px;
+  height: 10px;
+  background: #09090b url("../assets/ui/hpbar_back.png") repeat-x center;
+  border: 1px solid #1a1518;
+}
+
+#l2-status-wnd .l2-bar-track.mp {
+  top: 55px;
+  height: 10px;
+  background: #09090b url("../assets/ui/ps_mpbar_back.png") repeat-x center;
+  border: 1px solid #1a1518;
+}
+
+#l2-status-wnd .l2-bar-track.exp {
+  top: 69px;
+  height: 5px;
+  background: #050608 url("../assets/ui/ps_expbar_back.png") repeat-x center;
+  border: 1px solid #11141a;
+}
+
+#l2-status-wnd .l2-bar-fill {
+  height: 100%;
+  transition: width 0.12s linear;
+}
+
+#l2-status-wnd .l2-bar-fill.cp {
+  background: #cf9b15 url("../assets/ui/ps_cpbar.png") repeat-x center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+#l2-status-wnd .l2-bar-fill.hp {
+  background: #b01018 url("../assets/ui/hpbar.png") repeat-x center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+#l2-status-wnd .l2-bar-fill.mp {
+  background: #1e5ba8 url("../assets/ui/ps_mpbar.png") repeat-x center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+#l2-status-wnd .l2-bar-fill.exp {
+  background: #3bb2d9 url("../assets/ui/ps_expbar.png") repeat-x center;
+}
+
+#l2-status-wnd .l2-bar-track span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 7.5px Tahoma, Arial, sans-serif;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   2. SHORTCUT WND — BARRA DE ATALHOS DE COMBATE (492 x 46 px)
+   Coordenadas de 0122_ShortcutWnd.xml: Rodapé Centralizado (x: 50%, y: bottom 14px)
+   -------------------------------------------------------------------------- */
+#l2-shortcut-wnd {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 12px !important;
+  transform: translateX(-50%) !important;
+  width: 492px !important;
+  height: 46px !important;
+  box-sizing: border-box !important;
+  background: transparent url("../assets/ui/l2_shortcut_bar_clean.png") no-repeat 0 0 / 492px 46px !important;
+  z-index: 8500 !important;
+  pointer-events: all !important;
+  user-select: none !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85) !important;
+}
+
+#l2-shortcut-wnd .l2-sc-slot {
+  position: absolute;
+  top: 7px;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 2px;
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+
+#l2-shortcut-wnd .l2-sc-slot:hover {
+  filter: brightness(1.18);
+  outline: 1px solid rgba(255, 209, 102, 0.8);
+}
+
+#l2-shortcut-wnd .l2-sc-slot.drag-over {
+  outline: 2px solid #ffd166;
+  background: rgba(255, 209, 102, 0.2);
+}
+
+#l2-shortcut-wnd .l2-sc-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#l2-shortcut-wnd .l2-sc-key {
+  position: absolute;
+  right: 1px;
+  bottom: 0px;
+  font: 800 7px Tahoma, Arial, sans-serif;
+  color: #f1ebd7;
+  text-shadow: 0 1px 2px #000, 0 0 2px #000;
+  pointer-events: none;
+}
+
+/* Cooldown Fill Overlay (Escurecimento vindo de cima para baixo ou radial) */
+#l2-shortcut-wnd .l2-sc-cd-fill {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+  height: 0%;
+  transition: height 0.1s linear;
+  border-radius: 2px;
+}
+
+#l2-shortcut-wnd .l2-sc-cd-txt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 10px Tahoma, Arial, sans-serif;
+  color: #fff;
+  text-shadow: 0 1px 3px #000, 0 0 5px #000;
+  pointer-events: none;
+}
+
+/* Borda rotativa de Soulshot Automático estilo Lineage 2 */
+#l2-shortcut-wnd .l2-sc-auto-border {
+  display: none;
+  position: absolute;
+  inset: -2px;
+  border: 2px dashed #ffe066;
+  border-radius: 3px;
+  pointer-events: none;
+  animation: l2-spin-border 3.6s linear infinite;
+  box-shadow: 0 0 6px rgba(255, 224, 102, 0.8), inset 0 0 4px rgba(255, 224, 102, 0.4);
+}
+
+@keyframes l2-spin-border {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   3. MENU WND — DOCK DO MENU DE SISTEMA (173 x 46 px)
+   Coordenadas de 0064_MenuWnd.xml: Rodapé Direito (bottom: 12px, right: 14px)
+   Botões: Status (x:20), Inv (x:57), Mapa (x:94), Sistema (x:131)
+   -------------------------------------------------------------------------- */
+#l2-menu-wnd {
+  position: fixed !important;
+  right: 14px !important;
+  bottom: 12px !important;
+  width: 173px !important;
+  height: 46px !important;
+  box-sizing: border-box !important;
+  background: transparent url("../assets/ui/l2_menu_wnd_bg.png") no-repeat 0 0 / 173px 46px !important;
+  z-index: 8500 !important;
+  pointer-events: all !important;
+  user-select: none !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.85) !important;
+}
+
+#l2-menu-wnd .l2-mn-btn {
+  position: absolute;
+  top: 6px;
+  width: 32px;
+  height: 34px;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 32px 34px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.08s ease;
+}
+
+#l2-menu-wnd .l2-mn-btn:hover {
+  filter: brightness(1.2);
+}
+
+#l2-menu-wnd .l2-mn-btn:active {
+  transform: translateY(1px);
+}
+
+#l2-menu-wnd .l2-mn-btn.status {
+  left: 20px;
+  background-image: url("../assets/ui/menubutton1.png");
+}
+#l2-menu-wnd .l2-mn-btn.status:hover {
+  background-image: url("../assets/ui/menubutton1_over.png");
+}
+
+#l2-menu-wnd .l2-mn-btn.inv {
+  left: 57px;
+  background-image: url("../assets/ui/menubutton2.png");
+}
+#l2-menu-wnd .l2-mn-btn.inv:hover {
+  background-image: url("../assets/ui/menubutton2_over.png");
+}
+
+#l2-menu-wnd .l2-mn-btn.map {
+  left: 94px;
+  background-image: url("../assets/ui/menubutton3.png");
+}
+#l2-menu-wnd .l2-mn-btn.map:hover {
+  background-image: url("../assets/ui/menubutton3_over.png");
+}
+
+#l2-menu-wnd .l2-mn-btn.sys {
+  left: 131px;
+  background-image: url("../assets/ui/menubutton4.png");
+}
+#l2-menu-wnd .l2-mn-btn.sys:hover {
+  background-image: url("../assets/ui/menubutton4_over.png");
+}
+
+/* --------------------------------------------------------------------------
+   4. TARGET STATUS WND — JANELA DE ALVO (alvo_l2.js)
+   -------------------------------------------------------------------------- */
+#alvoMob {
+  position: fixed !important;
+  left: 50% !important;
+  top: 18px !important;
+  transform: translateX(-50%) !important;
+  z-index: 8600 !important;
+  width: 230px !important;
+  max-width: 92vw !important;
+  padding: 5px 8px 6px 8px !important;
+  box-sizing: border-box !important;
+  border-radius: 2px !important;
+  background: #090d16 url("../assets/ui/TargetBack.png") no-repeat center / 100% 100% !important;
+  border: 1px solid #3c301c !important;
+  box-shadow: inset 0 0 0 1px #8a7038, inset 0 0 12px rgba(0, 0, 0, 0.9), 0 6px 20px rgba(0, 0, 0, 0.85) !important;
+  color: #eaf2ff !important;
+  font-family: "Cinzel", Georgia, serif !important;
+  pointer-events: all !important;
+  user-select: none !important;
+}
+
+#alvoMob .l2-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+#alvoMob .l2-esq {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+#alvoMob .l2-ico {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+#alvoMob .l2-nome {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000;
+}
+
+#alvoMob .l2-nv {
+  font-size: 9.5px;
+  font-weight: 800;
+  font-family: system-ui, sans-serif;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+#alvoMob .l2-fechar {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: none;
+  outline: none;
+  background: transparent url("../assets/ui/TargetCloseButton.png") no-repeat center;
+  cursor: pointer;
+}
+
+#alvoMob .l2-fechar:hover,
+#alvoMob .l2-fechar:active {
+  background-image: url("../assets/ui/TargetCloseButton_click.png");
+}
+
+#alvoMob .l2-sub {
+  font-size: 8.5px;
+  color: #8fa4c2;
+  font-family: system-ui, sans-serif;
+  margin: 2px 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#alvoMob .l2-trilho {
+  height: 9px;
+  border-radius: 1px;
+  background: #09090b url("../assets/ui/hpbar_back.png") repeat-x center;
+  border: 1px solid #1a1518;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.95);
+  position: relative;
+  overflow: hidden;
+}
+
+#alvoMob .l2-fill-hp {
+  height: 100%;
+  background: #b01018 url("../assets/ui/hpbar.png") repeat-x center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: width 0.12s ease;
+}
+
+#alvoMob .l2-txt-hp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7.5px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+  font-family: system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   5. RESPONSIVIDADE MOBILE
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  #l2-status-wnd {
+    transform: scale(0.85);
+    transform-origin: top left;
+    left: 8px !important;
+    top: 8px !important;
+  }
+  #l2-shortcut-wnd {
+    transform: translateX(-50%) scale(0.72) !important;
+    transform-origin: bottom center;
+    bottom: 4px !important;
+  }
+  #l2-menu-wnd {
+    transform: scale(0.85);
+    transform-origin: bottom right;
+    right: 8px !important;
+    bottom: 8px !important;
+  }
+}
