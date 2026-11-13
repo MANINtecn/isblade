@@ -3990,3 +3990,31 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Atualização do Jogo**:
   - `prototipo/js/l2_npcs.js` atualizado apontando para os 5 novos modelos nativos (`npc_clarissa.glb`, `npc_altran.glb`, `npc_galladucci.glb`, `npc_wilford.glb`, `npc_mammon.glb`).
   - Criada página de visualização 3D `prototipo/preview_npcs_l2.html` com screenshot validada em `preview_npcs_l2.png`.
+
+### [Antigravity] 13/11/2026 - Botões de "Trocar Personagem" (Restart), "Logout" e Padronização da Seção de Interface no Menu de Configurações
+- **Pedido do Usuário**:
+  - Inclusão dos botões de Logout e Trocar Personagem (Select Character / Restart) dentro do menu de configurações/sistema (`#cfg`), e padronização da seção de Interface nessa área.
+- **Implementação e Padronização Visual**:
+  - **Menu de Configurações Padronizado (`prototipo/cidade.html` e `prototipo/arena.html`)**:
+    1. **Ações de Sistema L2**:
+       - `cfgSelectChar`: `👥 TROCAR PERSONAGEM` (Troca de personagem / volta para tela de seleção).
+       - `cfgLogout`: `🚪 DESCONECTAR (LOGOUT)` (Desconecta da conta atual).
+    2. **Nova Seção de INTERFACE**:
+       - Separada de Gráficos e padronizada no topo do menu.
+       - Grade de acesso rápido com 4 botões nativos estilizados (`.l2-cfg-grid` e `.l2-cfg-btn.sub`):
+         - `🎒 INVENTÁRIO (I)`: Alterna a janela de inventário (`toggleInv()`).
+         - `⚔️ SKILLS (K)`: Alterna a janela de habilidades (`toggleSk()`).
+         - `👤 STATUS (U)`: Alterna a ficha de status e atributos (`Status.toggle()`).
+         - `🗺️ MAPA / MOUSE (M)`: Alterna painel de teleporte/locais na cidade ou mira na arena.
+       - Seletor de Estilo da Interface (Lineage 2 Oficial vs Clean compacta).
+    3. **Seção de GRÁFICOS**:
+       - Qualidade gráfica (Alta, Média, Baixa), Bloom luminoso e botão de Atualizar Jogo.
+    4. **Seção de SOM**:
+       - Controle deslizante de Volume e opção Mudo.
+    5. **Seção de ATALHOS DA BARRA**:
+       - Mapeamento e troca de teclas das skills e itens.
+  - **Estilização Visual L2 (`prototipo/css/l2_hud.css`)**:
+    - Adicionados `.l2-cfg-actions`, `.l2-cfg-grid`, `.l2-cfg-btn.select-char`, `.l2-cfg-btn.logout` e `.l2-cfg-btn.sub` (botões compactos de aço escuro com destaque dourado e bevel estilo L2).
+  - **Comportamento e Integração com Servidor/Storage**:
+    - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
+    - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.

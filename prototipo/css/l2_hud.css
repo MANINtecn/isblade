@@ -630,7 +630,88 @@
 }
 
 /* --------------------------------------------------------------------------
-   6. RESPONSIVIDADE MOBILE
+   6. BOTOES L2 DO MENU SYSTEM / CONFIGURACOES
+   -------------------------------------------------------------------------- */
+.l2-cfg-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.l2-cfg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+
+.l2-cfg-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 4px;
+  font: 700 11px Tahoma, Arial, sans-serif;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px #000;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: filter 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.l2-cfg-btn:hover {
+  filter: brightness(1.22);
+}
+
+.l2-cfg-btn:active {
+  transform: translateY(1px);
+}
+
+.l2-cfg-btn.select-char {
+  background: linear-gradient(180deg, #243550 0%, #152238 60%, #0d1624 100%);
+  border: 1.5px solid #5a7ea6;
+  color: #ffd166;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(160, 205, 255, 0.35), inset 0 0 6px rgba(90, 169, 255, 0.2);
+}
+
+.l2-cfg-btn.select-char:hover {
+  border-color: #8bb3e2;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(200, 225, 255, 0.5), 0 0 8px rgba(90, 169, 255, 0.4);
+}
+
+.l2-cfg-btn.logout {
+  background: linear-gradient(180deg, #3d1c24 0%, #291118 60%, #17090d 100%);
+  border: 1.5px solid #a65a6b;
+  color: #ffb8c2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 170, 190, 0.35), inset 0 0 6px rgba(255, 90, 120, 0.2);
+}
+
+.l2-cfg-btn.logout:hover {
+  border-color: #d67a8e;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 200, 215, 0.5), 0 0 8px rgba(255, 90, 120, 0.4);
+}
+
+.l2-cfg-btn.sub {
+  background: linear-gradient(180deg, #1e2636 0%, #131a26 60%, #0a0f18 100%);
+  border: 1px solid #455a75;
+  color: #d5e3f4;
+  padding: 8px 6px;
+  font-size: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.l2-cfg-btn.sub:hover {
+  border-color: #ffd166;
+  color: #ffd166;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 209, 102, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   7. RESPONSIVIDADE MOBILE
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   #l2-status-wnd {
