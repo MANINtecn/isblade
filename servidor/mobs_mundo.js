@@ -22,23 +22,26 @@ carrega();
 
 /* [campo] 09/11/2026: Campo de Talking Island (mundo aberto): relevo e spots vem do mapa-mundi (prototipo/assets/mundo/mundo_grade.*, tools/blender_mundo/exporta_mundo.py).
    Mob nao entra na cidade (100 m do centro) nem em celula nao andavel; spots por faixa de nivel. */
-const CAMPO_TIPOS = { '1-5': ['sapo_curuma'], '5-10': ['aranha_curuma'], '10-15': ['stakato_curuma', 'stalker_curuma'], '15-20': ['formiga_fort', 'olho_fort'] };
+const CAMPO_TIPOS = { '1-5': ['sapo_curuma'], '5-10': ['aranha_curuma'], '10-15': ['stakato_curuma', 'stalker_curuma'], '15-20': ['formiga_fort'] };      /* [auditoria 13/11] o Olho subiu para a Cruma (Nv 21) */
 const CAMPO_AGR = { '1-5': 0, '5-10': .15, '10-15': .25, '15-20': .3 };
 let CAMPO = null;
 function campo(){
   if(CAMPO !== null) return CAMPO;
   try {
     const dir = path.join(RAIZ, 'assets', 'mundo'), J = JSON.parse(fs.readFileSync(path.join(dir, 'mundo_grade.json'), 'utf8')), bin = fs.readFileSync(path.join(dir, 'mundo_grade.bin'));
-    const n = J.nx * J.nz, B = J.bytes_celula || 9, H = new Float32Array(n), A = new Uint8Array(n);
-    for(let k = 0; k < n; k++){ H[k] = bin.readInt16LE(k * B) / 100; A[k] = bin.readUInt8(k * B + 8); }
+    const n = J.nx * J.nz, B = J.bytes_celula || 9, H = new Float32Array(n), A = new Uint8Array(n), RG = new Uint8Array(n);
+    for(let k = 0; k < n; k++){ H[k] = bin.readInt16LE(k * B) / 100; A[k] = bin.readUInt8(k * B + 8); RG[k] = bin.readUInt8(k * B + 7); }
     const chao = (x, z) => {
       if(Math.hypot(x, z) < 100) return null; const fx = (x - J.x0) / J.passo, fz = (z - J.z0) / J.passo, i = Math.floor(fx), j = Math.floor(fz);
       if(i < 0 || j < 0 || i >= J.nx - 1 || j >= J.nz - 1 || !A[Math.round(fz) * J.nx + Math.round(fx)]) return null;
       const ax = fx - i, az = fz - j, k = j * J.nx + i, a = H[k] + (H[k + 1] - H[k]) * ax, b = H[k + J.nx] + (H[k + J.nx + 1] - H[k + J.nx]) * ax; return a + (b - a) * az;
     };
     /* [lagos] ponto de monstro que caiu em agua funda (celula nao andavel) vai para a margem mais proxima */
-    const margem = s => { if(chao(s.x, s.z) !== null) return [s.x, s.z]; for(let r = 4; r <= 60; r += 4) for(let a = 0; a < 360; a += 15){ const x = s.x + Math.cos(a * Math.PI / 180) * r, z = s.z + Math.sin(a * Math.PI / 180) * r; if(chao(x, z) !== null && chao(x + 5, z) !== null && chao(x - 5, z) !== null && chao(x, z + 5) !== null && chao(x, z - 5) !== null) return [x, z]; } return [s.x, s.z]; };
+    const noCampo = (x, z) => { if(chao(x, z) === null) return false; const i = Math.round((x - J.x0) / J.passo), j = Math.round((z - J.z0) / J.passo); return RG[j * J.nx + i] === 0; };      /* [auditoria 13/11] ponto do campo dentro da regiao de outro mapa tambem vai para fora (la vale o chao do mapa) */
+    const margem = s => { if(noCampo(s.x, s.z)) return [s.x, s.z]; for(let r = 4; r <= 60; r += 4) for(let a = 0; a < 360; a += 15){ const x = s.x + Math.cos(a * Math.PI / 180) * r, z = s.z + Math.sin(a * Math.PI / 180) * r; if(noCampo(x, z) && chao(x + 5, z) !== null && chao(x - 5, z) !== null && chao(x, z + 5) !== null && chao(x, z - 5) !== null) return [x, z]; } return [s.x, s.z]; };
     const spots = (J.spots || []).map((s, i) => { const L = CAMPO_TIPOS[s.faixa] || CAMPO_TIPOS['1-5'], m = margem(s), h = chao(m[0], m[1]); return { tipo: L[i % L.length], n: 4, raio: 7, agr: CAMPO_AGR[s.faixa] || 0, x: m[0], z: m[1], h: h === null ? s.y : h }; });
+    /* [auditoria 13/11] spots em volta dos mapas (data/spots.json -> mundo, coordenadas do MUNDO; gerados por tools/spots/rebalancear.js): tipo, dif (tabela de XP/drop), chefe */
+    for(const s of ((SP && SP.mundo && SP.mundo.spots) || [])){ const h = chao(s.x, s.z); if(h !== null) spots.push(Object.assign({ n: 4, raio: 7, agr: 0 }, s, { h })); }
     CAMPO = { G: { chao: (x, z) => chao(x, z) }, M: { dif: 'campo', respawn: 30, ativa: 90, solta: 120, spots } };
   } catch(e){ console.error('mobs_mundo: sem o campo do mundo aberto', e.message); CAMPO = false; }
   return CAMPO;
@@ -87,10 +90,10 @@ class Mundo {
   nasce(sp, vg, jog){
     const s = sp.s, T = DG.mobs[s.tipo]; if(!T) return; const p = this.ponto(s); if(!p) return;
     for(const P of jog) if(Math.hypot(P.x - p[0], P.z - p[1]) < 9) return;           /* nao nasce colado em ninguem */
-    const m = { id: this.novoId ? this.novoId() : this.prox++, dif: this.difMapa, tipo: s.tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp,
+    const m = { id: this.novoId ? this.novoId() : this.prox++, dif: s.dif || this.difMapa, tipo: s.tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp,
       agr: !!(s.chefe || T.agressivo || Math.random() < (s.agr || 0)), engaj: false, volta: false, vt: 0, st: 0, stT: 0, alvo: 0, dano: new Map(), foco: null, morto: false, mT: 0, chefe: !!s.chefe };
     this.mobs.set(m.id, m); vg.m = m;
-    if(s.chefe && this.aviso) this.aviso(T.name + ' apareceu em ' + ({ curuma: 'Cruma', fortress: 'Fortaleza', pantano: 'Pantano Flamejante' })[this.mapa] + '!');
+    if(s.chefe && this.aviso) this.aviso(T.name + ' apareceu em ' + (s.local || ({ curuma: 'Cruma', fortress: 'Fortaleza', pantano: 'Pantano Flamejante' })[this.mapa] || 'Talking Island') + '!');
   }
   /* jogadores vivos do canal (lista de J do server.js) */
   tick(t, dt, jog){

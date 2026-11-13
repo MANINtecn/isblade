@@ -13,6 +13,7 @@ function carrega(){
   try { DG = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'dungeon.json'), 'utf8')); } catch(e){ console.error('baium: sem dungeon.json', e.message); }
 }
 carrega();
+const NIVEL_DG = { normal: 85, medio: 92, hard: 99 }, VIDA_REF = 175, dpsJog = L => 20 + .95 * L, vidaJog = L => 175 + 8 * (L - 1);
 const BASE_HP = 1800, FOCO_S = 6, GMAX = 100;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const angDif = (a, b) => { let d = (b - a) % (Math.PI * 2); if(d > Math.PI) d -= Math.PI * 2; if(d < -Math.PI) d += Math.PI * 2; return d; };      /* igual ao angDiff do cliente: menor giro de a para b */
@@ -20,9 +21,14 @@ const fwd = a => [Math.sin(a), Math.cos(a)];
 const r1 = v => Math.round(v * 10) / 10;
 
 class Baium {
-  constructor(chave, x, z){
+  constructor(chave, x, z, jog){
     const D = DG && DG.difficulties && DG.difficulties[chave]; this.chave = chave; this.dif = D ? chave : 'normal';
-    this.max = Math.round(BASE_HP * (D ? D.bossHp : 1)); this.hp = this.max;
+    /* [auditoria 13/11] Baium na escala do jogo (nivel maximo 99). DG: nivel fixo por dificuldade (85 / 92 / 99). Duelo: dinamico, pelo nivel de quem acordou e pela vida de quem apanha.
+       vida = dano por segundo esperado de um jogador do nivel x 90 s (x bossHp na DG); no nivel 1 isso da ~1.900, perto dos 1.800 de antes.
+       dano = golpe do combate.json x (vida esperada do jogador / 175); 175 = vida do personagem novo, para quem os golpes foram desenhados. Na DG ja desconta o multiplicador que o cliente aplica (hurtPlayer). */
+    this.duelo = !D; this.nivel = D ? (NIVEL_DG[chave] || 85) : clamp((jog && jog.lv) | 0 || 1, 1, 99);
+    this.max = Math.round(dpsJog(this.nivel) * 90 * (D ? D.bossHp : 1)); this.hp = this.max;
+    this.dmgMul = D ? Math.max(1, vidaJog(this.nivel) / VIDA_REF) / (D.dmg || 1) : 1;
     this.ex = ARENA.spawn[0]; this.ez = ARENA.spawn[1]; this.eh = 0;
     if(typeof x === 'number' && typeof z === 'number' && Math.hypot(x - ARENA.centro[0], z - ARENA.centro[1]) < ARENA.raio){ this.ex = x; this.ez = z; }      /* onde o cliente posicionou o Baium (duelo: centro; DG: perto da porta) */
  this.ey = 0; this.evy = 0; this.air = false; this.airHits = 0;
@@ -58,7 +64,7 @@ class Baium {
     for(const P of vivos){
       if(!this.inAtk(atk, P.x, P.z)) continue;
       if(atk.parry) this.golpeados.add(P.id);
-      if(this.dano) this.dano(P, { t: 'dg', k: 'mdmg', dmg: atk.dmg, cost: atk.cost || 30, parry: !!atk.parry, aoe: atk.type === 'circ', interrupt: true, stun: .45 });
+      if(this.dano) this.dano(P, { t: 'dg', k: 'mdmg', dmg: this.danoEm(P, atk.dmg), cost: atk.cost || 30, parry: !!atk.parry, aoe: atk.type === 'circ', interrupt: true, stun: .45 });
     }
   }
   /* seis raios: o 1o no jogador 0, o 2o perto do jogador 1, o 3o perto do chefe, ... (mesma ordem e tempos de triggerBaiumThunderStorm) */
@@ -68,7 +74,7 @@ class Baium {
     for(const s of strikes){
       if(this.raio) this.raio(r1(s[0]), r1(s[1]), s[2]);
       this.fila.push({ t: this.t + (s[2] + 380) / 1000, fn: vv => {                       /* o raio cai 380 ms depois do aviso: quem esta a menos de 2 m leva 20-27 */
-        for(const P of vv) if(Math.hypot(P.x - s[0], P.z - s[1]) < 2.0 && this.dano) this.dano(P, { t: 'dg', k: 'mdmg', dmg: Math.round(20 + Math.random() * 8), cost: 0, parry: false, aoe: true, interrupt: false, stun: .3 });
+        for(const P of vv) if(Math.hypot(P.x - s[0], P.z - s[1]) < 2.0 && this.dano) this.dano(P, { t: 'dg', k: 'mdmg', dmg: this.danoEm(P, 20 + Math.random() * 8), cost: 0, parry: false, aoe: true, interrupt: false, stun: .3 });
       } });
     }
   }
@@ -80,6 +86,7 @@ class Baium {
     if(launch && (this.gauge <= 0 || E.state === 'idle' || E.state === 'recover')) this.tryLaunch();
   }
   /* golpe de um jogador: d = dano, gd = dano na guarda do chefe, launch = lanca. Devolve true se matou. */
+  danoEm(P, d){ return Math.max(1, Math.round(d * (this.duelo ? Math.max(1, ((P && P.pmax) || VIDA_REF) / VIDA_REF) : this.dmgMul))); }      /* duelo: pela vida maxima de quem apanha */
   hit(d, gd, launch){
     if(this.dead) return false; d = clamp(d | 0, 0, 6000); if(!d) return false;
     this.hp = Math.max(0, this.hp - d); this.hitGauge(clamp(+gd || 6, 0, 60), !!launch);

@@ -17,14 +17,16 @@ const Prog = require('./progressao');
   ok(r.char && r.char.classe === 'mago' && r.char.weapon === 'staff', 'personagem Mago criado com cajado');
   const ws = new WebSocket('ws://localhost:8012/ws'); let ultProg = null, w = null;
   ws.on('message', d => { const m = JSON.parse(d); if(m.t === 'w') w = m; if(m.t === 'prog') ultProg = m; });
-  await new Promise(res => ws.on('open', () => { ws.send(JSON.stringify({ t: 'join', tk, cid: r.char.id, mapa: 'cidade' })); res(); })); await esp(400);
+  await new Promise(res => ws.on('open', () => { ws.send(JSON.stringify({ t: 'join', tk, cid: r.char.id, mapa: 'masmorra' })); res(); })); await esp(400);
   ok(w && w.prog && w.prog.lvl === 1 && w.prog.pontos === 0 && w.prog.classe === 'mago' && w.prog.st.int === 20, 'ao entrar: nv 1, 0 pontos, classe mago, INT 20');
-  const need1 = Prog.xpNeed(1), gan = Prog.xpAbate('normal', 'fantasma', 1), n = Math.ceil(need1 / gan);
-  for(let i = 0; i < n; i++){ ws.send(JSON.stringify({ t: 'xp', tipo: 'fantasma', dif: 'normal' })); await esp(190); }
+  const need1 = Prog.xpNeed(1), gan = Prog.xpAbate('normal', 'shade', 1), n = Math.ceil(need1 / gan);
+  for(let i = 0; i < n; i++){ ws.send(JSON.stringify({ t: 'xp', tipo: 'shade', dif: 'normal' })); await esp(2100); }
   await esp(300);
-  ok(ultProg && ultProg.lvl === 2 && ultProg.pontos === 2, `${n} fantasmas (${gan} xp cada) = nivel 2 com 2 pontos`);
-  ok(Prog.xpAbate('normal', 'fantasma', 40) < Prog.xpAbate('normal', 'fantasma', 20) * 0.5, 'mob fraco demais da bem menos xp (penalidade por nivel)');
-  ok(Prog.xpAbate('hard', 'anjo', 20) > Prog.xpAbate('normal', 'fantasma', 20) * 2, 'dificuldade maior da mais xp por abate (hard > normal no mesmo nivel)');
+  ok(ultProg && ultProg.lvl === 2 && ultProg.pontos === 2, `${n} sombras (${gan} xp cada) = nivel 2 com 2 pontos`);
+  ok(Prog.xpAbate('campo', 'sapo_curuma', 20) < Prog.xpAbate('campo', 'sapo_curuma', 2) * 0.5, 'mob fraco demais da bem menos xp (penalidade por nivel)');
+  ok(Prog.xpAbate('campo', 'formiga_fort', 14) > Prog.xpAbate('campo', 'stalker_curuma', 14), 'mob um pouco acima da mais xp (bonus)');
+  ok(Prog.xpAbate('pantano', 'golem_lava', 40) < Prog.xpAbate('pantano', 'golem_lava', 62) * 0.2 && Prog.NIVEL_MAX() === 99, 'mob muito acima nao da power-level (penalidade acima do limite)');
+  ws.send(JSON.stringify({ t: 'xp', tipo: 'arcanjo', dif: 'hard' })); await esp(2100); ok(ultProg.lvl === 2, 'tipo que nao e da DG por salas nao da xp por mensagem');
   ws.send(JSON.stringify({ t: 'xp', tipo: 'tipo_que_nao_existe', dif: 'normal' })); await esp(250);
   ok(ultProg.lvl === 2, 'tipo de mob desconhecido nao da xp');
   ws.send(JSON.stringify({ t: 'attr', v: { int: 5 } })); await esp(250);

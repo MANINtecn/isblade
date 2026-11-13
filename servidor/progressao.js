@@ -28,7 +28,7 @@ function xpAbate(dif, tipo, lvJog){
   const t = P.mobsNivel[dif] && P.mobsNivel[dif][tipo]; if(!t) return 0;
   const f = P.xpPorAbate, d = lvJog - t[0]; let fator = 1;
   if(d > f.semPenalidade) fator = Math.max(f.minimo, 1 - f.penalidadePorNivel * (d - f.semPenalidade));
-  else if(d < 0) fator = 1 + Math.min(f.bonusMax, f.bonusPorNivel * -d);
+  else if(d < 0){ fator = 1 + Math.min(f.bonusMax, f.bonusPorNivel * -d); const lim = f.acimaLimite === undefined ? 8 : f.acimaLimite; if(-d > lim) fator = Math.max(f.minimo, fator - (f.acimaPenalidade || .2) * (-d - lim)); }      /* [auditoria 13/11] mob muito acima: o bonus vira penalidade (sem carona nem power-level) */
   return Math.max(1, Math.round(xpMob(t[0]) * t[1] * fator));
 }
 

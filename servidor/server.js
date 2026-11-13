@@ -42,6 +42,7 @@ const Mobs = require('./mobs_mundo');
 const { Baium, baiumOk } = require('./baium');      /* [baium-servidor] a luta do Baium roda aqui */
 const Moradores = require('./moradores').cria({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [moradores] NPCs com rotina e conversa na cidade */
 const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
+const XP_SALAS = { shade: 1, caster: 1, brute: 1, mini_boss: 1, boss: 1 };      /* [auditoria 13/11] tipos da DG antiga por salas: os unicos aceitos na mensagem xp */
 function ganhaXp(J, v){
   if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
   J.lv = J.pers.level; Contas.grava(); envia(J, Object.assign({ t: 'prog', subiu: subiu ? 1 : 0, ganhou: v }, Prog.info(J.pers)));
@@ -474,8 +475,10 @@ wss.on('connection', ws => {
     }
     else if(m.t === 'mtaunt'){ const W = mundoDe(c); if(W && !J.morto) W.taunt(J, Math.min(12, +m.r || 10), agora()); }
     else if(m.t === 'xp'){
+      if(c.mapa !== 'masmorra') return;                             /* [auditoria 13/11] so a DG antiga por salas (mobs no navegador) usa o 'matei X'; cidade, pvp e mapas abertos nao */
+      if(c.dgsW || !XP_SALAS[String(m.tipo || '')] || (m.tipo === 'boss' && c.baium)) return;      /* ondas da Torre e Baium ja sao do servidor (abateMundo / bhit) */
       if(MAPAS[c.mapa].aberto) return;                               /* [mobs-servidor] mapa aberto: o XP sai do servidor (abateMundo), nao do "matei X" do cliente */                                          /* "matei X": o ganho vem da tabela do servidor, nao do cliente; limite de ritmo contra spam */
-      const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 90 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
+      const t = agora(); J.xpT = (J.xpT || []).filter(x => t - x < 60); if(J.xpT.length >= 30 || (J.xpT.length && t - J.xpT[J.xpT.length - 1] < .15)) return; J.xpT.push(t);
       const tipo = String(m.tipo || '').slice(0, 24), dif = String((c.dg && c.dg.key) || m.dif || 'normal').slice(0, 12); if(!/^[a-z0-9_]{1,24}$/.test(tipo)) return;
       const quem = (c.mapa === 'masmorra' && c.gid) ? [...c.jog.values()].filter(o => o.pers) : (J.pers ? [J] : []);
       for(const o of quem){ const v = Prog.xpAbate(dif, tipo, o.pers.level); if(tipo !== 'boss') ganhaXp(o, v); premia(o, tipo, dif, v); karmaMob(o, v); }      /* [baium] o Baium nao da XP, so a recompensa (item garantido + adena); v so entra na conta da adena */      /* grupo: todo mundo ganha, cada um pela sua diferenca de nivel */
@@ -497,7 +500,7 @@ wss.on('connection', ws => {
       else if(k === 'baium'){                                                          /* [baium-servidor] o cliente acordou o Baium e pede a luta ao servidor */
         const chave = String(m.dif || 'duelo').slice(0, 8); if(!baiumOk(chave)){ envia(J, { t: 'dgs', k: 'bnao' }); return; }
         if(!c.baium || c.baium.chave !== chave || (m.novo && c.baium.dead)){            /* luta nova: primeira vez, outra dificuldade, ou recomeco depois de morrer/ganhar */
-          const B = c.baium = new Baium(chave, +m.x, +m.z);
+          const B = c.baium = new Baium(chave, +m.x, +m.z, J);
           B.dano = (P, ev) => { if(c.jog.get(P.id) === P && !P.morto) envia(P, ev); };
           B.raio = (x, z, t) => difunde(c, { t: 'dg', k: 'bolt', x, z, t });
           B.snapFn = o => difunde(c, o);
@@ -506,7 +509,7 @@ wss.on('connection', ws => {
       }
       else if(k === 'bhit'){                                                           /* golpe no Baium: d = dano, gd = dano na guarda dele, l = lanca */
         const B = c.baium; if(!B || J.morto) return; const t = agora(); J.bhT = (J.bhT || []).filter(x => t - x < 1); if(J.bhT.length >= 30) return; J.bhT.push(t);
-        if(B.hit(+m.d || 0, +m.gd || 6, !!m.l)){                                    /* morreu: recompensa (item garantido + adena) para quem esta na luta; o Baium nao da XP */
+        if(B.hit(+m.d || 0, +m.gd || 6, !!m.l) && B.chave !== 'duelo'){                                    /* morreu: recompensa (item garantido + adena) para quem esta na luta; o Baium nao da XP */
           for(const P of c.jog.values()){ if(!P.pers) continue; const v = Math.max(1, Prog.xpAbate(B.dif, 'boss', P.pers.level)); premia(P, 'boss', B.dif, v); }
         }
       }

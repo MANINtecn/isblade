@@ -8119,7 +8119,7 @@ function basicTick(){
 var _alvoT=0;function alvoTick(){/* [alvo] janela do alvo estilo L2 (js/alvo_l2.js): mob sob a mira ou o ultimo atingido; chefe mirado ou atingido ha pouco */
   var t=performance.now();if(t-_alvoT<100||!window.AlvoL2)return;_alvoT=t;
   if(window.Net&&Net.alvo){AlvoL2.atualiza(null);return;}
-  var nivel=function(tp){var mn=DATA.prog&&DATA.prog.mobsNivel,d=(typeof DG!=='undefined'&&DG.diff)||'normal',e=mn&&mn[d]&&mn[d][tp];return e?e[0]:0;};
+  var nivel=function(tp){var mn=DATA.prog&&DATA.prog.mobsNivel,d=(typeof DG!=='undefined'&&DG.diff)||'normal',e=mn&&mn[d]&&mn[d][tp];if(!e&&mn)for(var k in mn){if(mn[k]&&mn[k][tp]&&mn[k][tp].length){e=mn[k][tp];break;}}/* [auditoria 13/11] mob de outra tabela (mundo aberto tem varias) */return e?e[0]:0;};
   var m=(S.aimM&&!S.aimM.dead)?S.aimM:((S.ultMob&&!S.ultMob.dead&&t-S.ultMobT<6000)?S.ultMob:null);
   if(m&&m.T){AlvoL2.atualiza({nome:m.T.name,agr:!!m.agr,tipo:'mob',nv:nivel(m.type),hp:m.hp,max:m.max,meuNv:S.lvl});return;}
   if(typeof BOSS_ON!=='undefined'&&BOSS_ON&&!S.dead&&(S.aimT||t-(S.ultBossT||0)<8000)){

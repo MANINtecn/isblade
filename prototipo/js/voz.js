@@ -95,8 +95,9 @@
     }).catch(function(){ MB = false; });
   }
   /* Voz.mob('brute','atk', distancia_em_m, {vol}) -> true se tratou (tocou ou esta em recarga), para o chamador nao tocar o som antigo. Some com a distancia. */
+  var MOB_ALIAS = { stakato_anciao: 'stakato_curuma', stalker_anciao: 'stalker_curuma', basilisco_anciao: 'basilisco_fort', ol_mahum_capitao: 'ol_mahum_fort', salamandra_ancia: 'salamandra_fogo', golem_anciao: 'golem_lava' };
   function mob(tipo, ev, dist, op){
-    op = op || {}; if(!ctx) return false; mobCarregar(); if(!MB || !MB[tipo]) return false;
+    op = op || {}; if(!ctx) return false; mobCarregar(); if(MB && !MB[tipo] && MOB_ALIAS[tipo]) tipo = MOB_ALIAS[tipo];      /* [auditoria 13/11] variantes usam a voz do mob de origem */ if(!MB || !MB[tipo]) return false;
     var agora = performance.now() / 1000, k = tipo + ':' + ev;
     if(agora - (mult[k] || -9) < (MCD[ev] || 0)) return true;
     var lista = MB[tipo][ev] || []; if(!lista.length) return false;

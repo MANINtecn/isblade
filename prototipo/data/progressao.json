@@ -1,6 +1,6 @@
 {
   "_nota": "Fonte unica da progressao (classes, nivel, pontos). O servidor (contas.js) e o cliente leem este arquivo; mudar aqui muda o balanceamento.",
-  "nivelMax": 400,
+  "nivelMax": 99,
   "nivelInicial": 1,
   "pontosPorNivel": 2,
   "resetPontos": {
@@ -159,104 +159,20 @@
     "penalidadePorNivel": 0.12,
     "minimo": 0.05,
     "bonusPorNivel": 0.08,
-    "bonusMax": 0.4
+    "bonusMax": 0.4,
+    "acimaLimite": 8,
+    "acimaPenalidade": 0.2,
+    "_acima": "13/11: mob mais de acimaLimite niveis acima do jogador perde acimaPenalidade do fator por nivel a mais (ate o minimo). Fecha a carona em party/DG e o power-level."
   },
   "mobsNivel": {
-    "_nota": "Nivel e peso de cada tipo de mob POR DIFICULDADE da dungeon (a chave que o cliente manda no abate). Tutorial entrega o nivel 20; a Torre (1o andar) tem 3 dificuldades no mesmo local: normal ~20-30, medio ~32-45, hard ~50-70. Chefe: nivel da dificuldade + peso alto. Acima do nivel ~70 ainda nao ha conteudo.",
-    "normal": {
-      "fantasma": [
-        20,
-        1
-      ],
-      "esqueleto": [
-        22,
-        1
-      ],
-      "vidente": [
-        24,
-        1.2
-      ],
-      "lamina": [
-        27,
-        4
-      ],
-      "shade": [
-        21,
-        1
-      ],
-      "brute": [
-        26,
-        3
-      ],
-      "caster": [
-        24,
-        1.2
-      ],
-      "mini_boss": [
-        27,
-        6
-      ],
-      "boss": [
-        30,
-        10
-      ]
-    },
-    "medio": {
-      "cao": [
-        32,
-        1
-      ],
-      "guarda_real": [
-        35,
-        1
-      ],
-      "cavaleiro": [
-        38,
-        1.2
-      ],
-      "erinia": [
-        36,
-        1.2
-      ],
-      "vidente": [
-        34,
-        1.2
-      ],
-      "comandante": [
-        42,
-        4
-      ],
-      "boss": [
-        45,
-        10
-      ]
-    },
-    "hard": {
-      "anjo": [
-        50,
-        1
-      ],
-      "xama": [
-        54,
-        1.2
-      ],
-      "overlord": [
-        60,
-        2
-      ],
-      "arcanjo": [
-        66,
-        4
-      ],
-      "boss": [
-        70,
-        10
-      ]
-    },
-    "campo": { "sapo_curuma": [2, 1], "aranha_curuma": [5, 1], "stakato_curuma": [9, 1.1], "stalker_curuma": [12, 1.2], "formiga_fort": [17, 1], "olho_fort": [21, 1.1] },
-    "curuma": {"sapo_curuma": [2, 1], "aranha_curuma": [5, 1], "stakato_curuma": [9, 1.1], "stalker_curuma": [12, 1.2], "chefe_curuma": [15, 8]},
-    "fortress": {"formiga_fort": [17, 1], "olho_fort": [21, 1.1], "basilisco_fort": [25, 1.1], "ol_mahum_fort": [28, 1.2], "chefe_fort": [30, 8]},
-    "pantano": {"salamandra_fogo": [32, 1], "magmagoil": [36, 1.1], "wyrm_fogo": [40, 1.1], "golem_lava": [43, 1.2], "chefe_blazing": [45, 8]}
+    "_nota": "13/11/2026 (tools/spots/rebalancear.js): [nivel, peso de XP] de cada mob por tabela (dif). campo 1-20; curuma (em volta da Cruma) 20-35; fortress (em volta da Fortaleza) 35-50; pantano 50-78; DG da Torre = fim de jogo: normal 80-85, medio 86-92, hard 93-99. peso = vida efetiva / vida da curva do nivel. shade/brute/caster/mini_boss = DG antiga por salas.",
+    "campo": {"sapo_curuma": [2, 1], "aranha_curuma": [6, 0.9], "stakato_curuma": [10, 1], "stalker_curuma": [13, 1.1], "formiga_fort": [17, 0.9]},
+    "curuma": {"olho_fort": [21, 0.8], "basilisco_fort": [25, 1], "stakato_anciao": [29, 1.1], "stalker_anciao": [32, 1.2], "chefe_curuma": [35, 9.4]},
+    "fortress": {"ol_mahum_fort": [38, 1], "basilisco_anciao": [42, 1.1], "ol_mahum_capitao": [46, 1.4], "chefe_fort": [49, 9.4]},
+    "pantano": {"salamandra_fogo": [52, 0.9], "magmagoil": [57, 0.8], "wyrm_fogo": [62, 1], "golem_lava": [67, 1.5], "salamandra_ancia": [71, 1], "golem_anciao": [75, 1.5], "chefe_blazing": [78, 9.4]},
+    "normal": {"fantasma": [80, 0.8], "esqueleto": [81, 1], "vidente": [82, 0.8], "lamina": [84, 5.9], "shade": [21, 1], "brute": [26, 3], "caster": [24, 1.2], "mini_boss": [27, 6], "boss": [85, 10]},
+    "medio": {"cao": [86, 0.9], "guarda_real": [87, 1], "erinia": [88, 0.9], "vidente": [88, 1.1], "cavaleiro": [89, 1.5], "comandante": [91, 5.9], "boss": [92, 10]},
+    "hard": {"anjo": [93, 1], "xama": [94, 0.8], "overlord": [96, 1.6], "arcanjo": [98, 5.9], "boss": [99, 10]}
   },
   "morte": { "_nota": "Morte estilo L2 nos mapas abertos (servidor/progressao.js -> perde): perde perdaXp x XP do nivel atual, a partir de nivelMin; nunca desce de nivel. Na DG e no PvP nao perde. Depois volta para a cidade.", "perdaXp": 0.04, "nivelMin": 10 },
   "efeitos": {

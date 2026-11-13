@@ -4,7 +4,7 @@
 'use strict';
 const { spawn } = require('child_process'), path = require('path'), os = require('os'), fs = require('fs');
 let WebSocket; try { WebSocket = require('ws'); } catch (e) { WebSocket = require(path.join(__dirname, '..', 'prototipo', 'node_modules', 'ws')); }
-const DIF = process.argv[2] || 'duelo', ESPERADO = { duelo: 1800, normal: 1800, medio: 2880, hard: 4320 }[DIF];
+const DIF = process.argv[2] || 'duelo', ESPERADO = { duelo: 1886, normal: 9068, medio: 15466, hard: 24635 }[DIF]      /* [auditoria 13/11] Baium na escala do nivel (baium.js): duelo com bot Nv 1; DG 85 / 92 / 99 */;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'isblade_baium_'));
 const srv = spawn(process.execPath, [path.join(__dirname, 'server.js')], { env: Object.assign({}, process.env, { PORT: '8014', AUTH: '0', DATA_DIR: dir }), stdio: ['ignore', 'pipe', 'pipe'] });
 let errSrv = ''; srv.stderr.on('data', d => { errSrv += d; });
@@ -42,7 +42,7 @@ const falha = msg => { console.log('FALHOU: ' + msg + (errSrv ? '\nstderr: ' + e
   console.log('apos 1 golpe (100 de dano, lancamento): hp ' + hp0 + ' -> ' + w.hp + ' | estado ' + w.st + ' ey ' + w.ey);
   if(w.hp >= hp0) return falha('o golpe nao tirou vida');
   // morte
-  B.send({ t: 'dgs', k: 'bhit', d: 6000, gd: 6, l: 0 }); await esp(600);
+  for(let i = 0; i < Math.ceil(ESPERADO / 6000) + 1; i++){ B.send({ t: 'dgs', k: 'bhit', d: 6000, gd: 6, l: 0 }); await esp(150); } await esp(600);      /* bate ate cair (vida agora passa de 6000) */
   const f1 = A.bs[A.bs.length - 1], f2 = B.bs[B.bs.length - 1];
   console.log('final: lider dead=' + f1.dead + ' hp ' + f1.hp + ' | outro dead=' + f2.dead + ' hp ' + f2.hp);
   if(!f1.dead || !f2.dead) return falha('a morte do Baium nao chegou aos dois');

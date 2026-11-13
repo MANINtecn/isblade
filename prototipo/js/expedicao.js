@@ -8,14 +8,14 @@
     { pg: 'cidade', txt: 'Ande pela cidade: <b>W A S D</b> (no celular, o joystick).', ok: function(s){ return ini && Math.hypot(s.px - ini[0], s.pz - ini[1]) > 6; } },
     { pg: 'cidade', txt: 'Abra o <b>inventario</b>: tecla <b>I</b> ou o botao I.', ev: 'inv', n: 1 },
     { pg: 'cidade', txt: 'Visite um <b>comerciante</b> (Galladucci ou Mammon): pocoes, soulshot e equipamento.', ok: function(){ return !!(window.Loja && Loja.aberta && Loja.aberta()); } },
-    { pg: 'cidade', txt: 'Saia pelo <b style="color:#40ffa0">portão da Cruma</b> e siga a estrada até a Torre de Cruma (níveis 1-15).', ok: function(){ return mapaAt() === 'curuma'; }, sempre: 1 },
-    { pg: 'arena', txt: 'Derrote <b>3 monstros</b>. Os mais fracos ficam perto da entrada.', ev: 'abate', n: 3 },
+    { pg: 'cidade', txt: 'Saia por qualquer <b style="color:#40ffa0">portão</b>: os monstros do Campo de Talking Island (níveis 1-20) ficam em volta da muralha.', ok: function(s){ return Math.hypot(s.px, s.pz) > 105 || !!mapaAt(); }, sempre: 1 },      /* [auditoria 13/11] o campo e a area 1-20; a Cruma virou 20-35 */
+    { pg: 'arena', txt: 'Derrote <b>3 monstros</b>. Os mais fracos ficam perto da muralha.', ev: 'abate', n: 3 },
     { pg: 'arena', txt: 'Use uma <b>skill</b>: <b>Q</b>, <b>E</b> ou <b>R</b>.', ev: 'skill', n: 1 },
     { pg: 'arena', txt: 'Pegue seu primeiro <b>drop</b> (adena ou item).', ev: 'drop', n: 1 },
     { txt: 'Chegue ao <b>nivel 5</b>.', ok: function(s){ return (s.lvl | 0) >= 5; } },
-    { txt: 'Chegue ao <b>nivel 15</b>. Mais longe da entrada = monstros mais fortes. Morrer fora da DG tira um pouco de XP (a partir do Nv 10).', ok: function(s){ return (s.lvl | 0) >= 15; } },
-    { txt: 'Nivel 15: va para a <b>Fortaleza</b> (saia da cidade e siga a estrada).', ok: function(s){ return mapaAt() === 'fortress' || (s.lvl | 0) >= 20; } },
-    { txt: 'Chegue ao <b>nivel 20</b>: o equipamento <b style="color:#7fd6a0">Grau D</b> libera (o Mammon vende).', ok: function(s){ return (s.lvl | 0) >= 20; } }
+    { txt: 'Chegue ao <b>nivel 15</b>. Mais longe da muralha = monstros mais fortes. Morrer fora da DG tira um pouco de XP (a partir do Nv 10).', ok: function(s){ return (s.lvl | 0) >= 15; } },
+    { txt: 'Nivel 15: cace as <b>Formigas Soldado</b> (Nv 17) no anel mais distante do campo.', ok: function(s){ return (s.lvl | 0) >= 18; } },
+    { txt: 'Chegue ao <b>nivel 20</b>: o equipamento <b style="color:#7fd6a0">Grau D</b> libera (o Mammon vende). Proxima area: os arredores da Torre de Cruma (Nv 20-35).', ok: function(s){ return (s.lvl | 0) >= 20; } }
   ];
   function mapaAt(){ try { return typeof op.mapa === 'function' ? op.mapa() : op.mapa; } catch(e){ return null; } }
   /* [pagina-unica] na cidade com o mundo aberto (op.unica) os passos de cacar valem em qualquer lugar fora da muralha */

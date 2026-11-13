@@ -13,7 +13,7 @@ const h = L => (tab[L].abates / rate);
 const fmt = x => x < 1 ? Math.round(x * 60) + ' min' : x < 48 ? x.toFixed(1) + ' h' : (x / 24).toFixed(1) + ' dias de jogo (24h)';
 console.log('abates/hora =', rate, ' | pontos por nivel =', P.pontosPorNivel, ' | pontos no nivel max =', P.pontosPorNivel * (P.nivelMax - 1));
 console.log('\nNIVEL  abates p/ subir  XP p/ subir     abates acum.   tempo acumulado');
-[2, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 300, 350, 400].forEach(L => {
+[2, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 99, 100, 150, 200, 250, 300, 350, 400].filter(L => L <= P.nivelMax).forEach(L => {
   const up = L < P.nivelMax ? Math.round(abates(L)) : '-', xp = L < P.nivelMax ? xpNivel(L) : '-';
   console.log(String(L).padStart(5), String(up).padStart(15), String(xp).padStart(13), String(Math.round(tab[L].abates)).padStart(15), '  ', fmt(h(L)));
 });
