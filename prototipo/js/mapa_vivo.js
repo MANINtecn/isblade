@@ -207,10 +207,12 @@ window.MapaVivo = (function(){
   V.info = function(){ var o = {}; for(var id in V.mapas){ var M = V.mapas[id]; o[id] = { estado: M.estado, bytes: !!M.bytes, baixando: !!M.bpend, fila: M.fila ? M.fila.length : 0, usavel: !!M.usavel, dReg: Math.round(M.dReg) }; } return o; };
   V.pronto = function(id){ var M = V.mapas[id]; return !!(M && (M.estado === 2 || M.usavel)); };
   V.porRegiao = function(r){ for(var id in CFG) if(CFG[id].regiao === r) return id; return null; };
+  function foraDaRegiao(M, x, z){ return !!(window.MundoCampo && MundoCampo.pronto && MundoCampo.regiao(x, z) !== M.C.regiao && MundoCampo.anda(x, z)); }
   V.chao = function(x, z, y){
     var best = null;
     for(var id in V.mapas){
       var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
+      if(foraDaRegiao(M, x, z)) continue;
       var l = local(M, x, z), yy = (y === undefined ? 1e4 : y) - M.X.y, h = chaoLocal(M, l[0], l[1], yy);
       if(h === null && y !== undefined) h = chaoProx(M, l[0], l[1], yy).h;                /* [emenda] chao do mapa um pouco acima/abaixo do terreno */
       if(h !== null){ h += M.X.y; if(best === null || (y !== undefined ? Math.abs(h - y) < Math.abs(best - y) : h > best)) best = h; }
@@ -221,6 +223,7 @@ window.MapaVivo = (function(){
   V.bloq = function(x0, z0, x1, z1, y){
     for(var id in V.mapas){
       var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
+      if(foraDaRegiao(M, x1, z1)) continue;                /* [borda] 13/11: o walkgrid passa da regiao do mapa; no campo em volta vale o terreno (era parede invisivel) */
       var b = local(M, x1, z1), yl = y - M.X.y, h = chaoLocal(M, b[0], b[1], yl);
       if(h === null){ var cp = chaoProx(M, b[0], b[1], yl); h = cp.h; if(h === null){ if(cp.acima && MundoCampo.regiao(x1, z1) === M.C.regiao){ V.motivo = 'estrutura'; return true; } continue; } }      /* [emenda] so chao do mapa longe demais: nao deixa andar enterrado */
       if(Math.abs(h - yl) > TOL) continue;
