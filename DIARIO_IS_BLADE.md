@@ -3886,3 +3886,4 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - `cidade.html` `mob3dAnim`: LOD de animacao - ate 18 m todo quadro, 18-32 m a cada 2, acima a cada 4, com dt acumulado.
 - `qualidade.js`: ratio maximo limitado ao dpr real (a pagina usa min(dpr, ratio); 2 -> 1.6 -> 1.84 era giro em falso e disparava resize); piso 0.75 (antes 0.55) e so reduz apos 2 janelas ruins seguidas.
 - NAO testado no jogo (so `node --check` no qualidade.js). Falta novo log para comparar travadas e contagem de texturas/geometrias. Pendentes: primeiro quadro de 4,6 s (carregamento/shaders) e chamadas de desenho altas (material por mob impede agrupar). Commit `e47ee34`.
+- Commit c6d20c9 enviado (push em MANINtecn/isblade): mapa_vivo.js, tools/verifica_acesso.py e este diario.
