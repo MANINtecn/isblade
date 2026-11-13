@@ -3945,3 +3945,48 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Menu mantido limpo contendo apenas: `GRAFICOS`, `SOM` e `ATALHOS DA BARRA (SKILLS)`.
 - **Validação**:
   - Testado via Playwright Headless Chrome com screenshot gerado em `preview_cfg_cleaned.png`.
+
+### [Claude] 13/11/2026 - Correcoes da auditoria no servidor (3 de 6) + direcao nova do dono
+
+- **XP por mensagem fechado** (server.js): a mensagem `xp` so vale no canal masmorra, so para os tipos da DG antiga por salas (shade, caster, brute, mini_boss, boss), nunca quando as ondas/Baium sao do servidor; limite 30 por minuto (era 90). Teste: 20 mensagens na cidade = nivel 1, 0 adena, 0 itens (antes Nv 23). Resto: quem entra na masmorra sem iniciar a DG ainda pode mandar esses 5 tipos; o `mhit` continua confiando no dano do cliente.
+- **Mob muito acima nao da power-level** (progressao.js + progressao.json -> xpPorAbate.acimaLimite 8, acimaPenalidade 0.2): ate 8 niveis acima o bonus continua; depois perde 20% por nivel ate o piso de 5%. Nv 1 no Golem Nv 43: 176 -> 6 XP. Vale para party e DG.
+- **Duelo do Baium sem recompensa** (server.js, bhit): chave duelo nao chama premia (so divulgacao, pedido do dono). NAO testado com luta real.
+- teste_progressao.js atualizado (entra na masmorra, usa shade, 3 checagens novas): 13 de 13 ok. Backups: *.antes_auditoria. Sem commit ainda.
+- **Direcao do dono (13/11):** corrigir tudo; Fortaleza vira evento semanal de castelo de cla (mobs so em volta); mobs em volta da Cruma; Pantano com mobs na parte baixa (entrada pela lateral direita) e na parte alta; DG da Torre = fim de jogo para enfrentar o Baium; duelo do Baium so divulgacao, sem XP nem premio.
+- Medido: campo andavel a ate 90 m de cada mapa = Cruma 154 mil m2, Fortaleza 78 mil, Pantano 110 mil, Torre 127 mil. Da para gerar os spots de volta pelo mundo_grade (mesmo caminho dos 32 spots do campo). Falta o dono aprovar as faixas de nivel por area.
+
+### [Claude] 13/11/2026 - Rebalanceamento por area, nivel maximo 99 e spots novos (direcao do dono)
+
+- **Nivel maximo 99** (progressao.json). Nv 99 = 22.218 abates, cerca de 93 h a 240 abates/h. Nenhum personagem salvo estava acima disso.
+- **Ferramenta nova** `prototipo/tools/spots/rebalancear.js` (sem argumento so mostra; `gravar` grava dungeon.json, progressao.json e spots.json; pode rodar de novo). Regra unica: vida = 30 + 3L + 0,085L2 e dano = 2 + 0,38L + 0,004L2, vezes o papel do mob; peso de XP = vida efetiva / vida da curva (XP por ponto de vida igual para todos). Na DG os numeros gravados ja descontam o multiplicador da dificuldade.
+- **Areas:** Campo 1-20 (sapo 2, aranha 6, stakato 10, espreitador 13, formiga 17) | terreno da Cruma 20-35 (olho 21, basilisco 25, Stakato Anciao 29, Espreitador Sombrio 32, Rainha Stakato 35) | em volta da Fortaleza 35-50 (Ol Mahum 38, Basilisco Anciao 42, Capitao Ol Mahum 46, Comandante 49) | Pantano 50-78 (salamandra 52, magmagoil 57, serpe 62, golem 67; em volta: Salamandra Ancia 71, Golem de Magma 75; Senhor dos Dracos 78) | DG da Torre: normal 80-84, medio 86-91, hard 93-98.
+- **6 variantes novas** (mesmo modelo, 1,2x o tamanho, voz do mob de origem por alias em voz.js): stakato_anciao, stalker_anciao, basilisco_anciao, ol_mahum_capitao, salamandra_ancia, golem_anciao. Faltam modelos proprios.
+- **Spots:** Fortaleza por dentro = 0 (reservada ao castelo de cla semanal; os 13 antigos estao em spots.json.antes_auditoria). Cruma: 19 (2 tirados por cair fora da regiao). Em volta dos mapas: 21 novos em spots.json -> mundo (13 Fortaleza com o chefe, 8 Pantano), coordenadas do mundo. Total no mundo aberto: 84 spots, 0 sem chao valido, 0 colados, 0 do campo dentro da regiao de outro mapa (o servidor agora empurra para fora).
+- **Servidor** (mobs_mundo.js): le spots.json -> mundo; spot pode trazer dif e local proprios; campo 15-20 so formiga. **Cliente**: nivel do alvo procura o mob em qualquer tabela (cidade.html, arena.html); tutorial (expedicao.js) manda cacar no campo, nao mais na Cruma/Fortaleza.
+- **Drops por area:** campo sem grau; Cruma 70% D; Fortaleza D/C; Pantano e DG grau C.
+- **Testes:** teste_progressao 13 de 13; teste_dg_grupo normal PASSOU; teste_baium duelo PASSOU; simulador ok. NAO testado no navegador (mobs novos, nivel no alvo, tutorial).
+- **Pendente / decisao do dono:** (1) Baium ficou fraco para Nv 99 (1.800 de vida x bossHp, golpes de 18-44; jogador Nv 99 tem 850-1.500 de vida) - e combate, nao mexi. (2) Parte alta do Pantano: o plato a leste (30-40 m de altura) nao e alcancavel a pe pela malha; precisa de rampa ou teleporte para receber mobs. (3) Nao existe equipamento acima do grau C (Nv 40). (4) Castelo de cla semanal na Fortaleza: sistema novo, nao comecado. (5) mhit ainda confia no dano do cliente.
+- **Anotado a pedido do dono:** a Torre de Cruma e enfeite; o conteudo e o terreno em volta. Ela tem uma **cobertura la em cima onde cabe um chefe no futuro**. Por dentro da Cruma nao se sabe se existe mapa.
+- Backups: *.antes_auditoria. Sem commit.
+
+### [Claude] 13/11/2026 - Baium na escala do nivel (duelo dinamico) e rampas do Pantano
+
+- **Baium** (servidor/baium.js, aprovado pelo dono): DG com nivel fixo 85 / 92 / 99 = vida 9.068 / 15.466 / 24.635 (antes 1.800 / 2.880 / 4.320); golpes x4,8 a x5,5 sobre o combate.json (soco 18 vira ~87-99, martelo 44 vira ~213-241, ja contando o multiplicador que o cliente aplica). **Duelo dinamico:** vida pelo nivel de quem acordou (Nv 1 = 1.886, Nv 40 = 5.220, Nv 99 = 10.265, cerca de 90 s de luta) e dano pela vida maxima de quem apanha (175 de vida = golpes originais; 1.200 de vida = soco 123, martelo 302). Duelo continua sem XP nem premio.
+- teste_baium.js atualizado (vida esperada nova; bate ate cair): duelo, normal e hard PASSARAM. NAO testado no navegador. No modo local (sem servidor) o cliente ainda usa os numeros antigos, e o texto do arena.html ainda diz Raid Boss Lv 75.
+- **Rampas do Pantano:** o dono disse que ja fez 2 rampas no Blender (a que desce de frente para a que sobe). No mapa exportado (glb e walkgrid de 02/11) a subida para o plato existe perto de x 78-95, z -58 (coordenadas do mapa), mas tem 3 degraus de 2,3 a 2,5 m (alturas 7, 12 e 20 m); o jogo sobe no maximo 1,04 m por celula de 0,75 m, entao o plato segue inalcancavel. Nao ha .blend do Pantano mais novo que 02/11 no projeto e o Blender nao estava conectado ao MCP para conferir. Falta: abrir o .blend com as rampas, reexportar glb + walkgrid e so entao por os mobs Nv 71-78 la em cima.
+
+### [Antigravity] 13/11/2026 - Modelos Nativos Oficiais do Lineage 2 para os NPCs da Cidade
+- **Problema Relatado**:
+  - Os NPCs de Talking Island estavam utilizando os modelos jogáveis genéricos (anão jogador sem roupa, elf jogador sem roupa, etc.) em vez de suas malhas nativas oficiais do Lineage 2 Interlude.
+- **Engenharia Reversa & Extração Direta dos Pacotes do Cliente L2**:
+  - Consultado `npcgrp_dec.txt` e `LineageNpcs.ukx` / `LineageNpcsTex.utx` em `Cliente Interlud 300x`:
+    1. **Gatekeeper Clarissa** (ID 30080): `LineageNPCs.a_teleporter_FHuman_m00` com animação `a_teleporter_FHuman_anim` -> exportado `npc_clarissa.glb` (vestido clássico de GK Humana).
+    2. **Ferreiro Altran** (ID 30283): `LineageNPCs.a_smith_MDwarf_m00` com animação `a_smith_MDwarf_anim` -> exportado `npc_altran.glb` (Anão ferreiro oficial com avental de couro, barba espessa e martelo).
+    3. **Comerciante Galladucci** (ID 30097): `LineageNPCs.a_traderA_Mhuman_m00` com animação `a_traderA_Mhuman_anim` -> exportado `npc_galladucci.glb` (Mercador Humano nativo com túnica e adornos clássicos).
+    4. **Guarda-Volumes Wilford** (ID 30005): `LineageNPCs.a_warehouse_keeper_MDwarf_m00` com animação `a_warehouse_keeper_MDwarf_anim` -> exportado `npc_wilford.glb` (Guardião do Armazém Anão clássico).
+    5. **Mammon / Mercador dos Selos** (ID 31113/31092): `LineageNPCs.Black_Market_Trader_MDwarf_set_m00` com animação `Black_Market_trader_set_anim` -> exportado `npc_mammon.glb` (Mercador do Mercado Negro / Mammon clássico).
+- **Pipeline de Conversão Automatizado**:
+  - Criado script `prototipo/tools/montar_npc.py` e `prototipo/tools/exportar_todos_npcs.py` unindo `umodel_materials.exe` + Blender 5.1 (`io_scene_psk_psa`) para exportar malhas, esqueletos, animações `wait`/`idle` e texturas mapeadas em GLB leve otimizado para web.
+- **Atualização do Jogo**:
+  - `prototipo/js/l2_npcs.js` atualizado apontando para os 5 novos modelos nativos (`npc_clarissa.glb`, `npc_altran.glb`, `npc_galladucci.glb`, `npc_wilford.glb`, `npc_mammon.glb`).
+  - Criada página de visualização 3D `prototipo/preview_npcs_l2.html` com screenshot validada em `preview_npcs_l2.png`.

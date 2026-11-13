@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Preview NPCs Oficiais Lineage 2 Interlude</title>
+  <style>
+    body {
+      margin: 0;
+      background: #080c14;
+      color: #e2d6b5;
+      font-family: Tahoma, Arial, sans-serif;
+      overflow: hidden;
+    }
+    #info {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      z-index: 10;
+      background: rgba(10, 16, 28, 0.85);
+      border: 1px solid #3c5475;
+      border-radius: 6px;
+      padding: 12px 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+    }
+    h2 { margin: 0 0 6px; font-size: 16px; color: #ffd166; }
+    p { margin: 0; font-size: 12px; color: #9bb3d6; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <div id="info">
+    <h2>Lineage 2 Interlude - Modelos Nativos dos NPCs da Cidade</h2>
+    <p>Clarissa (Gatekeeper) &bull; Altran (Ferreiro) &bull; Galladucci (Comerciante) &bull; Wilford (Armazém) &bull; Mammon (Sete Selos)</p>
+  </div>
+  <canvas id="c"></canvas>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e1422);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 2.2, 7.5);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.0, 0);
+    controls.update();
+
+    // Luzes
+    const amb = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(amb);
+    const dir = new THREE.DirectionalLight(0xffedd0, 1.8);
+    dir.position.set(5, 12, 7);
+    dir.castShadow = true;
+    scene.add(dir);
+
+    // Chão
+    const floorGeo = new THREE.PlaneGeometry(30, 20);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x182030, roughness: 0.8 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const grid = new THREE.GridHelper(20, 20, 0x4a658a, 0x223048);
+    scene.add(grid);
+
+    const loader = new THREE.GLTFLoader();
+    const npcs = [
+      { file: 'assets/personagens/npc_clarissa.glb', x: -4.0, z: 0, name: 'Gatekeeper Clarissa' },
+      { file: 'assets/personagens/npc_altran.glb', x: -2.0, z: 0, name: 'Ferreiro Altran' },
+      { file: 'assets/personagens/npc_galladucci.glb', x: 0.0, z: 0, name: 'Mercador Galladucci' },
+      { file: 'assets/personagens/npc_wilford.glb', x: 2.0, z: 0, name: 'Armazém Wilford' },
+      { file: 'assets/personagens/npc_mammon.glb', x: 4.0, z: 0, name: 'Mammon dos Selos' }
+    ];
+
+    const mixers = [];
+
+    npcs.forEach(n => {
+      loader.load(n.file, gltf => {
+        const model = gltf.scene;
+        model.position.set(n.x, 0, n.z);
+        model.traverse(c => {
+          if (c.isMesh) {
+            c.castShadow = true;
+            c.receiveShadow = true;
+          }
+        });
+        scene.add(model);
+
+        if (gltf.animations && gltf.animations.length > 0) {
+          const mixer = new THREE.AnimationMixer(model);
+          const clip = THREE.AnimationClip.findByName(gltf.animations, 'idle') ||
+                       THREE.AnimationClip.findByName(gltf.animations, 'wait') ||
+                       gltf.animations[0];
+          if (clip) {
+            mixer.clipAction(clip).play();
+            mixers.push(mixer);
+          }
+        }
+      });
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+      mixers.forEach(m => m.update(dt));
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

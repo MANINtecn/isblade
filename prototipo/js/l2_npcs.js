@@ -915,6 +915,8 @@
       if(gltf.animations && gltf.animations.length > 0){
         var mixer = new THREE.AnimationMixer(model);
         var idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle') ||
+                       THREE.AnimationClip.findByName(gltf.animations, 'wait') ||
+                       THREE.AnimationClip.findByName(gltf.animations, 'Wait_Hand') ||
                        THREE.AnimationClip.findByName(gltf.animations, 'idle_hand') ||
                        gltf.animations[0];
         if(idleClip){
@@ -940,22 +942,24 @@
   // =========================================================================
 
   window.L2Npcs = {
+    npcs: npcs,
+    list: function(){ return npcs; },
     perto: function(){ return !!currentNPCNear && !activeDialog; },      /* [Claude] NPC perto com o aviso de falar (a cidade nao esconde o aviso; o botao do celular vira FALAR) */
     init: function(scene, gltfLoader){
       initUI();
 
       // 1. Gatekeeper Clarissa (Na frente do Portal Dimensional: x = -11.5, z = -11.5)
-      // Raw elf_f.glb = 43.56 de altura -> escala 2.15 / 43.56 ≈ 0.0494 (altura real de 2.15 metros)
+      // Modelo nativo 1:1 de Gatekeeper Humana do Lineage 2
       loadNpc(scene, gltfLoader, {
         data: GK_DATA,
-        modelPath: 'assets/personagens/elf_f.glb',
+        modelPath: 'assets/personagens/npc_clarissa.glb',
         x: -11.5,
         y: 0.0,
         z: -11.5,
         rotY: 0.65,
-        scale: 2.15 / 43.56,
-        targetH: 2.15,
-        nameY: 2.45,
+        scale: 1.0,
+        targetH: 1.75,
+        nameY: 2.10,
         nameScaleX: 2.2,
         nameScaleY: 0.55,
         subColor: '#00d5ff',
@@ -965,17 +969,17 @@
       });
 
       // 2. Ferreiro Altran (Na praça leste, perto das forjas: x = 11.5, z = -8.5)
-      // Raw dwarf_m.glb = 34.48 de altura -> escala 1.60 / 34.48 ≈ 0.0464 (altura real de 1.60 metros para anão)
+      // Modelo nativo 1:1 de Mestre Ferreiro Anão com avental, barba e martelo do Lineage 2
       loadNpc(scene, gltfLoader, {
         data: BLACKSMITH_DATA,
-        modelPath: 'assets/personagens/dwarf_m.glb',
+        modelPath: 'assets/personagens/npc_altran.glb',
         x: 11.5,
         y: 0.0,
         z: -8.5,
         rotY: -1.2,
-        scale: 1.60 / 34.48,
-        targetH: 1.60,
-        nameY: 1.95,
+        scale: 1.0,
+        targetH: 1.35,
+        nameY: 1.70,
         nameScaleX: 2.0,
         nameScaleY: 0.50,
         subColor: '#ff9d42',
@@ -985,17 +989,17 @@
       });
 
       // 3. Mercador dos Selos Mammon (No recanto místico: x = -16.0, z = 12.0)
-      // Raw magic_m.glb = 42.14 de altura -> escala 2.15 / 42.14 ≈ 0.0510 (altura real de 2.15 metros)
+      // Modelo nativo 1:1 do Black Market Trader / Mercador do Mammon do Lineage 2
       loadNpc(scene, gltfLoader, {
         data: MAMMON_DATA,
-        modelPath: 'assets/personagens/magic_m.glb',
+        modelPath: 'assets/personagens/npc_mammon.glb',
         x: -16.0,
         y: 0.0,
         z: 12.0,
         rotY: 1.1,
-        scale: 2.15 / 42.14,
-        targetH: 2.15,
-        nameY: 2.45,
+        scale: 1.0,
+        targetH: 1.40,
+        nameY: 1.75,
         nameScaleX: 2.4,
         nameScaleY: 0.60,
         subColor: '#c084fc',
@@ -1005,17 +1009,17 @@
       });
 
       // 4. Guarda-Volumes do Armazém Wilford (Na ala oeste: x = -13.5, z = 7.0)
-      // Raw dwarf_f.glb = 35.48 de altura -> escala 1.55 / 35.48 ≈ 0.0437 (altura real de 1.55 metros para anã)
+      // Modelo nativo 1:1 de Anão Guardião de Armazém clássico do Lineage 2
       loadNpc(scene, gltfLoader, {
         data: WAREHOUSE_DATA,
-        modelPath: 'assets/personagens/dwarf_f.glb',
+        modelPath: 'assets/personagens/npc_wilford.glb',
         x: -13.5,
         y: 0.0,
         z: 7.0,
         rotY: 0.85,
-        scale: 1.55 / 35.48,
-        targetH: 1.55,
-        nameY: 1.90,
+        scale: 1.0,
+        targetH: 1.35,
+        nameY: 1.70,
         nameScaleX: 2.3,
         nameScaleY: 0.55,
         subColor: '#38bdf8',
@@ -1025,17 +1029,17 @@
       });
 
       // 5. Comerciante de Equipamentos Galladucci (Na praça comercial leste: x = 13.5, z = 5.5)
-      // Raw elf_m.glb = 45.92 de altura -> escala 2.10 / 45.92 ≈ 0.0457 (altura real de 2.10 metros)
+      // Modelo nativo 1:1 de Mercador Humano com túnica e adornos clássicos do Lineage 2
       loadNpc(scene, gltfLoader, {
         data: TRADER_DATA,
-        modelPath: 'assets/personagens/elf_m.glb',
+        modelPath: 'assets/personagens/npc_galladucci.glb',
         x: 13.5,
         y: 0.0,
         z: 5.5,
         rotY: -1.35,
-        scale: 2.10 / 45.92,
-        targetH: 2.10,
-        nameY: 2.40,
+        scale: 1.0,
+        targetH: 1.80,
+        nameY: 2.15,
         nameScaleX: 2.5,
         nameScaleY: 0.55,
         subColor: '#4ade80',
