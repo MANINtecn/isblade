@@ -439,7 +439,198 @@
 }
 
 /* --------------------------------------------------------------------------
-   5. RESPONSIVIDADE MOBILE
+   5. MAGIC SKILL WND — JANELA DE HABILIDADES OFICIAL (256 x 335 px)
+   Coordenadas de 0053_MagicSkillWnd.xml: Janela L2 Nativa
+   -------------------------------------------------------------------------- */
+#skp, #skp.open {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 256px !important;
+  height: 335px !important;
+  box-sizing: border-box !important;
+  background: transparent url("../assets/ui/l2_skill_wnd_clean.png") no-repeat 0 0 / 256px 335px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 0.8) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  z-index: 9000 !important;
+  color: #eaf2ff !important;
+  font-family: Tahoma, Arial, sans-serif !important;
+  user-select: none !important;
+  pointer-events: all !important;
+}
+
+#skp:not(.open) {
+  display: none !important;
+}
+
+.l2-sk-title {
+  position: absolute;
+  left: 10px;
+  top: 2px;
+  font: 700 11px Tahoma, Arial, sans-serif;
+  color: #e2d6b5;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.l2-sk-close {
+  position: absolute;
+  right: 6px;
+  top: 4px;
+  width: 13px;
+  height: 13px;
+  border: none;
+  background: transparent url("../assets/ui/TargetCloseButton.png") no-repeat center;
+  cursor: pointer;
+  outline: none;
+}
+
+.l2-sk-close:hover {
+  background-image: url("../assets/ui/TargetCloseButton_click.png");
+}
+
+.l2-sk-tab {
+  position: absolute;
+  top: 8px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font: 700 10px Tahoma, sans-serif;
+  color: #8f9ba8;
+  cursor: pointer;
+}
+
+.l2-sk-tab.tab-act {
+  left: 12px;
+  width: 86px;
+}
+
+.l2-sk-tab.tab-pas {
+  left: 100px;
+  width: 86px;
+}
+
+.l2-sk-tab.ativa {
+  color: #ffd166;
+  text-shadow: 0 1px 2px #000;
+}
+
+.l2-sk-list {
+  position: absolute;
+  top: 36px;
+  left: 8px;
+  width: 240px;
+  height: 290px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
+
+.l2-sk-list::-webkit-scrollbar {
+  width: 6px;
+}
+.l2-sk-list::-webkit-scrollbar-thumb {
+  background: #3c301c;
+  border-radius: 3px;
+}
+
+.l2-sk-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px 6px;
+  font-size: 9.5px;
+  color: #ffd166;
+  border-bottom: 1px solid rgba(255, 209, 102, 0.2);
+  margin-bottom: 4px;
+}
+
+.l2-sk-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 2px;
+  cursor: grab;
+  border: 1px solid transparent;
+  transition: background 0.1s ease, border-color 0.1s ease;
+  margin-bottom: 3px;
+}
+
+.l2-sk-row:hover {
+  background: rgba(255, 209, 102, 0.12);
+  border-color: rgba(255, 209, 102, 0.35);
+}
+
+.l2-sk-row:active {
+  cursor: grabbing;
+}
+
+.l2-sk-row.on {
+  background: rgba(255, 209, 102, 0.08);
+}
+
+.l2-sk-row.lock {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.l2-sk-ico {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #3c301c;
+  border-radius: 2px;
+}
+
+.l2-sk-desc {
+  flex: 1;
+  min-width: 0;
+}
+
+.l2-sk-name {
+  display: block;
+  font-size: 10.5px;
+  color: #eaf2ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px #000;
+}
+
+.l2-sk-name .chk {
+  color: #7dff9a;
+  font-size: 9px;
+  margin-left: 3px;
+}
+
+.l2-sk-sub {
+  display: block;
+  font-size: 9px;
+  color: #8fa4c2;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.l2-sk-sub .lk {
+  color: #ff9a9a;
+}
+
+/* --------------------------------------------------------------------------
+   6. RESPONSIVIDADE MOBILE
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   #l2-status-wnd {

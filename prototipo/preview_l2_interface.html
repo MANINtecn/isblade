@@ -84,6 +84,16 @@
       height: 382px !important;
       max-height: none !important;
     }
+    #skp {
+      display: block !important;
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+      width: 256px !important;
+      height: 335px !important;
+      max-height: none !important;
+    }
     #alvoMob {
       display: block !important;
       position: relative !important;
@@ -112,11 +122,17 @@
     <div>
       <div id="invSlot"></div>
     </div>
+
+    <!-- Coluna 3: Janela de Skills (MagicSkillWnd) 1:1 Oficial do Lineage 2 -->
+    <div>
+      <div id="skpSlot"></div>
+    </div>
   </div>
 
   <script src="js/alvo_l2.js?v=30"></script>
   <script src="js/status.js?v=30"></script>
   <script src="js/inventario_ui.js?v=35"></script>
+  <script src="js/skills_ui.js?v=35"></script>
   <script type="module">
     import { L2Hud } from './js/l2_hud.js?v=35';
     window.S = { php: 14500, pmax: 14500, st: 100, lvl: 80, xp: 1425000, gauge: 100, gmax: 100 };
@@ -233,6 +249,26 @@
     };
 
     InvUI.render(invCaixa, estadoInv, ops);
+
+    // 4. Janela de Habilidades (MagicSkillWnd) do Lineage 2 Interlude
+    var skpCaixa = document.createElement('div');
+    skpCaixa.id = 'skp';
+    skpCaixa.className = 'open';
+    document.getElementById('skpSlot').appendChild(skpCaixa);
+
+    var SKILLS_EXEMPLO = [
+      { name: 'Power Strike', ico: 'assets/icones/sword_long.png', desc: 'Golpe poderoso no alvo', unlock: 1, range: 4 },
+      { name: 'Mortal Blow', ico: 'assets/icones/sword_long.png', desc: 'Ataque crítico letal', unlock: 5, range: 4 },
+      { name: 'Whirlwind', ico: 'assets/icones/sword_long.png', desc: 'Giro devastador em 360 graus', unlock: 10, range: 6 },
+      { name: 'War Cry', ico: 'assets/icones/sword_long.png', desc: 'Grito de guerra que eleva o P.Atk', unlock: 20 },
+      { name: 'Thunder Storm', ico: 'assets/icones/sword_long.png', desc: 'Tempestade elétrica que atordoa', unlock: 30, range: 8 },
+      { name: 'Ultimate Defense', ico: 'assets/icones/shield_guardian.png', desc: 'Defesa absoluta por 15 segundos', unlock: 40 }
+    ];
+
+    SkillsUI.render(skpCaixa, { name: 'Berserker Blade' }, SKILLS_EXEMPLO, 80, {
+      fechar: function(){},
+      skillCands: function(i){ return [SKILLS_EXEMPLO[i]]; }
+    });
   </script>
 </body>
 </html>

@@ -1,17 +1,20 @@
 /* ==========================================================================
    l2_hud.js — Interface Oficial 1:1 do Lineage 2 Interlude (Fiel ao interface.xdat)
    - StatusWnd (Topo Esquerdo 176x84): CP, HP, MP, EXP, Nível e Nome do Jogador
-   - ShortcutWnd (Rodapé Central 492x46): 12 Slots (F1 a F12) com Drag & Drop de
-     Skills e Itens/Consumíveis do Inventário, Cooldowns e Auto-Soulshot
+   - ShortcutWnd (Rodapé Central 492x46): 12 Slots acionados pelas teclas de ação
+     (Q, E, R, F, T, G / 1 a 6 / F1 a F12) sem atrapalhar a movimentação no WASD
+   - Drag & Drop de Skills e Itens/Consumíveis (Poções, Soulshots) para qualquer slot
+   - Auto-Soulshot oficial com borda giratória dourada
    - MenuWnd (Rodapé Direito 173x46): Botões Status (U), Inv (I), Mapa (M), Sistema (Alt+X)
-   - Retrocompatibilidade total com chamadas do MuHud
    ========================================================================== */
 
-const STORAGE_KEY = 'isblade.l2_shortcuts_v1';
+const STORAGE_KEY = 'isblade.l2_shortcuts_v2';
 const AUTO_SS_KEY = 'isblade.auto_soulshot';
+
+// Teclas de ação familiares (Q, E, R, F, T, G e números), mantendo WASD 100% livre para movimento!
+const DEFAULT_SLOT_KEYS = ['Q', 'E', 'R', 'F', 'T', 'G', '1', '2', '3', '4', '5', '6'];
 const SLOT_KEYS_F = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'];
 const SLOT_KEYS_NUM = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
-const RESERVED_KEYS = ['w', 'a', 's', 'd', 'q', 'e', 'r', 'f', 'c', 'v', 'b', 'm', 'i', 'u', 'o', 'j', 'k', 'l', ' ', 'shift', 'control', 'alt', 'tab', 'escape', 'enter'];
 
 // Posições X exatas dos 12 slots do ShortcutWnd extraídas de 0122_ShortcutWnd.xml
 const SHORTCUT_SLOT_X = [32, 69, 106, 143, 185, 222, 259, 296, 338, 375, 412, 449];
@@ -26,7 +29,7 @@ function perChar(k) {
 export const L2Hud = {
   initialized: false,
   slots: new Array(12).fill(null),
-  keys: SLOT_KEYS_F.slice(),
+  keys: DEFAULT_SLOT_KEYS.slice(),
   autoSoulshot: false,
 
   init: function() {
@@ -51,12 +54,15 @@ export const L2Hud = {
       this.autoSoulshot = localStorage.getItem(perChar(AUTO_SS_KEY)) === '1';
     } catch (_) {}
 
-    // Auto-popula primeiros slots com as skills da classe se estiver vazio pela primeira vez
+    // Popula inicialmente os slots com as skills desbloqueadas se a barra estiver vazia
     var hasAny = this.slots.some(function(d) { return d; });
     if (!hasAny) {
       for (var i = 0; i < 6; i++) {
         this.slots[i] = { type: 'skill', skillSlot: i, name: 'Skill ' + (i + 1), ico: '' };
       }
+      // Coloca Soulshot no slot 7 por padrão para conveniência
+      this.slots[6] = { type: 'item', id: 'soulshot', name: 'Soulshot: No Grade', ico: 'assets/icones/soulshot.png' };
+      this.slots[7] = { type: 'item', id: 'pocao_vida', name: 'Poção de Vida', ico: 'assets/icones/pocao_vida.png' };
       this.saveSlots();
     }
   },
@@ -69,7 +75,6 @@ export const L2Hud = {
   },
 
   createDom: function() {
-    // Remove qualquer resquício legado do MU Online do DOM
     var oldMu = document.getElementById('mu-hud-bottom');
     if (oldMu) oldMu.style.display = 'none';
 
@@ -97,12 +102,13 @@ export const L2Hud = {
       var slotsHtml = '';
       for (var i = 0; i < 12; i++) {
         var sx = SHORTCUT_SLOT_X[i];
+        var badgeKey = this.keys[i] || SLOT_KEYS_F[i];
         slotsHtml += `
-          <div class="l2-sc-slot" data-slot="${i}" style="left:${sx}px;" title="Slot ${i + 1} (${SLOT_KEYS_F[i]} / ${SLOT_KEYS_NUM[i]})">
+          <div class="l2-sc-slot" data-slot="${i}" style="left:${sx}px;" title="Slot ${i + 1} (Tecla: ${badgeKey})">
             <div class="l2-sc-icon"></div>
             <div class="l2-sc-cd-fill"></div>
             <div class="l2-sc-cd-txt"></div>
-            <span class="l2-sc-key">${SLOT_KEYS_F[i]}</span>
+            <span class="l2-sc-key">${badgeKey}</span>
             <div class="l2-sc-auto-border"></div>
           </div>
         `;
@@ -156,13 +162,12 @@ export const L2Hud = {
     // Slots da Barra de Atalhos (ShortcutWnd)
     var slots = document.querySelectorAll('.l2-sc-slot');
     slots.forEach(function(slotEl, idx) {
-      // Clique esquerdo: ativa skill ou item
       slotEl.addEventListener('click', function(e) {
         e.preventDefault();
         self.triggerSlot(idx);
       });
 
-      // Clique direito: se for soulshot/spiritshot, liga/desliga Auto-Soulshot!
+      // Clique direito: se for soulshot/spiritshot, liga/desliga Auto-Soulshot; senão, limpa o slot
       slotEl.addEventListener('contextmenu', function(e) {
         e.preventDefault();
         var data = self.slots[idx];
@@ -174,14 +179,13 @@ export const L2Hud = {
             if (window.banner) window.banner(self.autoSoulshot ? 'SOULSHOT ATIVADO' : 'SOULSHOT DESATIVADO', 'Disparo automático em combate', '#ffd166');
           } catch (_) {}
         } else {
-          // Limpa o slot
           self.slots[idx] = null;
           self.saveSlots();
           self.sync();
         }
       });
 
-      // Drag & Drop entre slots e recepção de itens/skills
+      // Drag & Drop livre entre slots e recepção de itens do inventário ou skills da janela de skills
       slotEl.setAttribute('draggable', 'true');
       slotEl.addEventListener('dragstart', function(e) {
         if (!self.slots[idx]) { e.preventDefault(); return; }
@@ -226,19 +230,37 @@ export const L2Hud = {
     window.addEventListener('keydown', function(e) {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       var k = e.key;
+      var kLow = k.toLowerCase();
 
-      // F1 a F12
-      if (/^F([1-9]|1[0-2])$/.test(k)) {
-        e.preventDefault();
-        var num = parseInt(k.substring(1), 10) - 1;
-        self.triggerSlot(num);
-        return;
+      // NUNCA interceptar WASD de movimentação!
+      if (kLow === 'w' || kLow === 'a' || kLow === 's' || kLow === 'd') return;
+
+      // 1. Teclas diretas atribuídas aos slots (Q, E, R, F, T, G / 1 a 6)
+      var slotIdx = -1;
+      for (var i = 0; i < 12; i++) {
+        var sk = (self.keys[i] || '').toLowerCase();
+        if (sk && sk === kLow) {
+          slotIdx = i;
+          break;
+        }
       }
 
-      // Números 1 a 9, 0, -, =
-      var numIdx = SLOT_KEYS_NUM.indexOf(k);
-      if (numIdx !== -1) {
-        self.triggerSlot(numIdx);
+      // 2. Números 1 a 6 como acionadores alternativos diretos
+      if (slotIdx === -1) {
+        var numMap = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7, '9': 8, '0': 9, '-': 10, '=': 11 };
+        if (numMap[k] !== undefined) {
+          slotIdx = numMap[k];
+        }
+      }
+
+      // 3. F1 a F12
+      if (slotIdx === -1 && /^F([1-9]|1[0-2])$/.test(k)) {
+        e.preventDefault();
+        slotIdx = parseInt(k.substring(1), 10) - 1;
+      }
+
+      if (slotIdx >= 0 && slotIdx < 12 && self.slots[slotIdx]) {
+        self.triggerSlot(slotIdx);
       }
     });
   },
@@ -248,13 +270,17 @@ export const L2Hud = {
     if (!data) return;
 
     if (data.type === 'skill') {
-      var origSkillBtns = document.querySelectorAll('#skills button');
-      var targetBtn = origSkillBtns[data.skillSlot];
-      if (targetBtn) {
-        targetBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
-        setTimeout(function() {
-          targetBtn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
-        }, 60);
+      if (typeof window.req === 'function') {
+        window.req('skill', data.skillSlot);
+      } else {
+        var origSkillBtns = document.querySelectorAll('#skills button');
+        var targetBtn = origSkillBtns[data.skillSlot];
+        if (targetBtn) {
+          targetBtn.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+          setTimeout(function() {
+            targetBtn.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, cancelable: true }));
+          }, 60);
+        }
       }
     } else if (data.type === 'item') {
       if (data.id === 'soulshot' || data.id === 'spiritshot' || (data.name && data.name.toLowerCase().indexOf('soulshot') >= 0)) {
@@ -262,8 +288,7 @@ export const L2Hud = {
       } else if (typeof window.usarConsumivel === 'function') {
         window.usarConsumivel(data.id || data.base);
       } else if (data.uid) {
-        // Equipa ou desequipa o item clicado
-        if (window.InvUI && typeof window.equipItem === 'function') {
+        if (typeof window.equipItem === 'function') {
           window.equipItem(data.uid);
         }
       }
@@ -279,6 +304,9 @@ export const L2Hud = {
       var data = self.slots[idx];
       var iconEl = slotEl.querySelector('.l2-sc-icon');
       var autoEl = slotEl.querySelector('.l2-sc-auto-border');
+      var keyEl = slotEl.querySelector('.l2-sc-key');
+
+      if (keyEl) keyEl.textContent = self.keys[idx] || SLOT_KEYS_F[idx];
 
       if (!data) {
         if (iconEl) iconEl.innerHTML = '';
@@ -288,12 +316,18 @@ export const L2Hud = {
 
       if (data.type === 'skill') {
         var skBtn = origSkillBtns[data.skillSlot];
-        var icoPath = data.ico || (skBtn && skBtn.querySelector('img') && skBtn.querySelector('img').src) || 'assets/icones/sword_long.png';
-        if (iconEl) iconEl.innerHTML = '<img src="' + icoPath + '" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';">';
+        var icoPath = data.ico || (skBtn && skBtn.querySelector('img') && skBtn.querySelector('img').src);
+        if (icoPath) {
+          iconEl.innerHTML = '<img src="' + icoPath + '" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';">';
+        } else if (data.svg) {
+          iconEl.innerHTML = '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + data.svg + '</div>';
+        } else {
+          iconEl.innerHTML = '<img src="assets/icones/sword_long.png" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;">';
+        }
         if (autoEl) autoEl.style.display = 'none';
       } else if (data.type === 'item') {
         var itemIco = data.ico || ('assets/icones/' + (data.id || data.base || 'sword_long') + '.png');
-        if (iconEl) iconEl.innerHTML = '<img src="' + itemIco + '" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/potion_health.png\';">';
+        if (iconEl) iconEl.innerHTML = '<img src="' + itemIco + '" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';">';
         if (autoEl) {
           var isSS = (data.id === 'soulshot' || data.id === 'spiritshot' || (data.name && data.name.toLowerCase().indexOf('soulshot') >= 0));
           autoEl.style.display = (isSS && self.autoSoulshot) ? 'block' : 'none';
@@ -301,11 +335,12 @@ export const L2Hud = {
       }
     });
 
-    // Mapeia atalhos das skills para o loop de entrada do jogo
+    // Sincroniza mapa de teclas para o loop do jogo
     var map = {};
     this.slots.forEach(function(d, i) {
       if (d && d.type === 'skill') {
-        map[SLOT_KEYS_NUM[i]] = d.skillSlot;
+        var k = (self.keys[i] || '').toLowerCase();
+        if (k) map[k] = d.skillSlot;
       }
     });
     if (typeof window.__hotbarKeys === 'function') window.__hotbarKeys(map);
@@ -373,29 +408,40 @@ export const L2Hud = {
   },
 
   keyOf: function(i) {
-    return SLOT_KEYS_F[i] || ('Slot ' + (i + 1));
+    return this.keys[i] || SLOT_KEYS_F[i] || ('Slot ' + (i + 1));
   },
 
   setKey: function(i, k) {
+    if (!k || k.length !== 1) return false;
+    var kUp = k.toUpperCase();
+    if (['W', 'A', 'S', 'D'].indexOf(kUp) >= 0) return false;
+    this.keys[i] = kUp;
+    this.saveSlots();
+    this.sync();
     return true;
   },
 
   resetKeys: function() {
-    this.keys = SLOT_KEYS_F.slice();
+    this.keys = DEFAULT_SLOT_KEYS.slice();
+    this.saveSlots();
     this.sync();
   },
 
   keyTrigger: function(k) {
-    var numIdx = SLOT_KEYS_NUM.indexOf(k);
-    if (numIdx !== -1 && this.slots[numIdx] && this.slots[numIdx].type === 'item') {
-      this.triggerSlot(numIdx);
-      return true;
+    var kLow = (k || '').toLowerCase();
+    for (var i = 0; i < 12; i++) {
+      if ((this.keys[i] || '').toLowerCase() === kLow) {
+        if (this.slots[i] && this.slots[i].type === 'item') {
+          this.triggerSlot(i);
+          return true;
+        }
+      }
     }
     return false;
   }
 };
 
-// Retrocompatibilidade para que chamadas existentes de MuHud continuem funcionando 100%
+// Retrocompatibilidade total para chamadas legadas
 export const MuHud = {
   get initialized() { return L2Hud.initialized; },
   get slots() { return L2Hud.slots; },
@@ -413,7 +459,6 @@ export const MuHud = {
 window.L2Hud = L2Hud;
 window.MuHud = MuHud;
 
-// Auto-inicializa ao carregar a página
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() { L2Hud.init(); });
 } else {

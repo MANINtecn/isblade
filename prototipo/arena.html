@@ -481,6 +481,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/expedicao.js?v=5"></script>
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=35"></script>
+<script src="js/skills_ui.js?v=35"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -7191,7 +7192,16 @@ function renderSk(){
 
   if(!skOpen)return;
 
-  var w=(DATA.armas && DATA.armas[WPN]) || (DATA.armas && DATA.armas.sword),ml=mastLevel(),h='<div class="hd"><b style="letter-spacing:.2em">SKILLS &middot; '+w.name+'</b><span style="color:#f5c451">Maestria Nv '+ml+'</span><button type="button" id="skClose">Fechar (K)</button></div>';
+  var w=(DATA.armas && DATA.armas[WPN]) || (DATA.armas && DATA.armas.sword),ml=mastLevel();
+  if(window.SkillsUI && SkillsUI.render){
+    SkillsUI.render($('#skp'), w, SK, ml, {
+      fechar: function(){ toggleSk(false); },
+      skillCands: skillCands,
+      skillIconSVG: skillIconSVG,
+      selectSkill: function(slot, idx){ selectSkill(slot, idx); }
+    });
+    return;
+  }
 
   w.skills.forEach(function(_,i){
 

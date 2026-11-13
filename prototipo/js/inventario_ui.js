@@ -6,7 +6,6 @@
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // Mapeamento dos 15 slots oficiais de equipamento do Lineage 2 (InventoryWnd.uc & 0046_InventoryWnd.xml)
-  // Coordenadas exatas relativas ao BackTexture (y - 20)
   var XDAT_SLOTS = {
     hair:      { x: 14,  y: 16, name: 'Hair' },
     helmet:    { x: 53,  y: 16, name: 'Head' },
@@ -25,19 +24,21 @@
     lfinger:   { x: 176, y: 92, name: 'LFinger' }
   };
 
-  function tipoDe(b){
-    if(!b) return 'item';
+  function tipoDe(b, it){
+    var id = (b && (b.id || b.base)) || (it && it.base);
+    if(id) return id;
+    if(!b) return 'sword_long';
     if(b.slot === 'weapon') return b.weapon === 'shield' ? 'shield_guardian' : (b.weapon === 'staff' ? 'staff_arcane' : 'sword_long');
     var map = { helmet: 'helmet_iron', chest: 'chest_plate', gloves: 'gloves_hide', boots: 'boots_swift' };
-    return map[b.slot] || b.id || 'item';
+    return map[b.slot] || b.id || 'sword_long';
   }
 
   U.icone = function(b, o){
     o = o || {};
-    var id = typeof b === 'string' ? b : (b && b.id);
+    var id = typeof b === 'string' ? b : (b && (b.id || b.base));
     var t = typeof b === 'string' ? b : tipoDe(b);
     var tam = o.tam || 32;
-    var iconKey = id || t;
+    var iconKey = id || t || 'sword_long';
     return '<img src="assets/icones/' + iconKey + '.png" width="' + tam + '" height="' + tam + '" alt="" style="display:block;width:' + tam + 'px;height:' + tam + 'px;object-fit:cover;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';"/>';
   };
 
@@ -52,7 +53,7 @@
       '  border:none !important;border-radius:0 !important;',
       '  box-shadow:0 12px 36px rgba(0,0,0,0.95), 0 0 1px rgba(0,0,0,0.8) !important;',
       '  padding:0 !important;margin:0 !important;overflow:visible !important;',
-      '  color:#eaf2ff !important;font-family:Tahoma, Arial, sans-serif !important;user-select:none !important;',
+      '  color:#eaf2ff !important;font-family:Tahoma, Arial, sans-serif !important;user-select:none !important;pointer-events:all !important;',
       '}',
       '#inv.open{display:block !important;}',
       '.l2-inv-title{position:absolute;left:10px;top:2px;font:700 11px Tahoma,Arial,sans-serif;color:#e2d6b5;letter-spacing:0.04em;text-shadow:0 1px 2px #000;pointer-events:none;}',
@@ -68,10 +69,10 @@
       '.l2-item-slot.sel::after{content:"";position:absolute;inset:-2px;background:url("assets/ui/inventory_outline_over.png") no-repeat center / 36px 36px;filter:drop-shadow(0 0 3px #ffd166);pointer-events:none;}',
       '.l2-item-slot .en{position:absolute;right:1px;top:1px;font:800 9px Tahoma,sans-serif;color:#7dff9a;text-shadow:0 1px 2px #000;pointer-events:none;}',
       '.l2-item-slot .gr{position:absolute;left:1px;bottom:1px;font:800 8.5px Tahoma,sans-serif;text-shadow:0 1px 2px #000;pointer-events:none;}',
-      '.l2-adena-txt{position:absolute;left:112px;top:336px;width:88px;text-align:right;font:700 10.5px Tahoma,Arial,sans-serif;color:#ffd166;text-shadow:0 1px 2px #000;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+      '.l2-adena-txt{position:absolute;left:110px;top:336px;width:90px;text-align:right;font:700 11px Tahoma,Arial,sans-serif;color:#ffd166;text-shadow:0 1px 2px #000;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
       '.l2-inv-recipe{position:absolute;left:14px;top:331px;width:34px;height:34px;cursor:pointer;background:transparent;}',
       '.l2-inv-trash{position:absolute;left:208px;top:331px;width:34px;height:34px;cursor:pointer;background:transparent;}',
-      '.l2-inv-tooltip{position:absolute;left:262px;top:0;width:210px;padding:8px 10px;background:#090d16 url("assets/ui/TargetBack.png") repeat;border:1px solid #3c301c;border-radius:2px;box-shadow:0 8px 24px rgba(0,0,0,0.9), inset 0 0 0 1px #8a7038;z-index:9999;}',
+      '.l2-inv-tooltip{position:absolute;left:262px;top:0;width:210px;padding:8px 10px;background:#090d16 url("assets/ui/TargetBack.png") repeat;border:1px solid #3c301c;border-radius:2px;box-shadow:0 8px 24px rgba(0,0,0,0.9), inset 0 0 0 1px #8a7038;z-index:9999;pointer-events:all;}',
       '.l2-inv-tooltip b{display:block;font-size:12px;color:#ffd166;font-family:"Cinzel", Georgia, serif;}',
       '.l2-inv-tooltip small{display:block;font-size:10px;color:#8fa4c2;margin-top:2px;}',
       '.l2-inv-tooltip-bts{display:flex;gap:4px;margin-top:8px;}',
@@ -88,7 +89,19 @@
     if(box && box.classList) box.classList.add('invui');
     var G = (E.itm && E.itm.graus) || { sem: { name: 'Sem grau', css: '#c9d1de' }, D: { name: 'Grau D', css: '#9fe6b8' }, C: { name: 'Grau C', css: '#ffe08a' } };
     var R = (E.itm && E.itm.rarities) || {};
-    var base = function(id){ return (E.itm && E.itm.bases && E.itm.bases[id]) || null; };
+    var base = function(id){
+      if(!id) return null;
+      if(E.itm && E.itm.bases){
+        if(Array.isArray(E.itm.bases)){
+          for(var bi = 0; bi < E.itm.bases.length; bi++){
+            if(E.itm.bases[bi].id === id) return E.itm.bases[bi];
+          }
+        } else if(E.itm.bases[id]){
+          return E.itm.bases[id];
+        }
+      }
+      return null;
+    };
     var acha = function(uidOrIt){
       if(!uidOrIt) return null; if(typeof uidOrIt === 'object') return uidOrIt;
       for(var k in E.inv.equip) if(E.inv.equip[k] && E.inv.equip[k].uid === uidOrIt) return E.inv.equip[k];
@@ -111,9 +124,10 @@
         var eqIt = acha(E.inv.equip[sKey]);
         if(eqIt){
           var b = base(eqIt.base), r = R[eqIt.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+          var iconItem = b || eqIt.base || 'sword_long';
           h.push(
             '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" title="' + esc(op.nome(eqIt)) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
-              U.icone(b, { tam: 32 }) +
+              U.icone(iconItem, { tam: 32 }) +
               ((eqIt.en | 0) ? '<span class="en">+' + (eqIt.en | 0) + '</span>' : '') +
               ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
             '</div>'
@@ -124,13 +138,14 @@
       // 2. GRADE DA MOCHILA (InventoryItem do XDAT: x=9, y=168, col=6, row=4, gapX=5, gapY=3)
       var bagItens = E.inv.items.filter(function(i){ return !eqUid[i.uid]; });
 
-      // Inclui consumíveis do jogador (Soulshots, Poções) na mochila
+      // Inclui consumíveis do jogador (Soulshots, Poções) na mochila com ícones oficiais
       var consums = E.consum || window.CONSUM || {};
       var consumDefs = {
         soulshot: { name: 'Soulshot: No Grade', ico: 'soulshot', id: 'soulshot' },
         spiritshot: { name: 'Spiritshot: No Grade', ico: 'spiritshot', id: 'spiritshot' },
-        pocao_vida: { name: 'Poção de Vida', ico: 'potion_health', id: 'pocao_vida' },
-        pergaminho_res: { name: 'Pergaminho de Ressurreição', ico: 'scroll_res', id: 'pergaminho_res' }
+        pocao_vida: { name: 'Poção de Vida', ico: 'pocao_vida', id: 'pocao_vida' },
+        pergaminho_res: { name: 'Pergaminho de Ressurreição', ico: 'pergaminho_res', id: 'pergaminho_res' },
+        pergaminho_volta: { name: 'Pergaminho de Retorno', ico: 'pergaminho_volta', id: 'pergaminho_volta' }
       };
       for(var cKey in consumDefs){
         var qtd = consums[cKey];
@@ -159,15 +174,16 @@
         if(it.isConsum){
           h.push(
             '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" title="' + esc(it.name) + ' (x' + it.qtd + ')' + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
-              '<img src="assets/icones/' + it.ico + '.png" width="32" height="32" alt="" style="display:block;width:32px;height:32px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/potion_health.png\';"/>' +
+              '<img src="assets/icones/' + it.ico + '.png" width="32" height="32" alt="" style="display:block;width:32px;height:32px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';"/>' +
               '<span class="en" style="color:#ffd166;font-size:8px;">' + (it.qtd > 999 ? (it.qtd / 1000).toFixed(0) + 'k' : it.qtd) + '</span>' +
             '</div>'
           );
         } else {
           var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+          var iconItem = b || it.base || 'sword_long';
           h.push(
             '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" title="' + esc(op.nome(it)) + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
-              U.icone(b, { tam: 32 }) +
+              U.icone(iconItem, { tam: 32 }) +
               ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
               ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
             '</div>'
@@ -177,22 +193,37 @@
 
       // 3. TOOLTIP / POPUP LATERAL DE AÇÕES DO ITEM SELECIONADO
       if(sel){
-        var it = acha(sel);
-        if(it){
-          var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
-          var slotEq = eqUid[it.uid];
-          var falta = (b && b.grau && b.grau !== 'sem' && (E.lvl || 1) < (g.lvlMin || 0));
+        if(sel.indexOf('__c_') === 0){
+          var cKey = sel.replace('__c_', '');
+          var cDef = consumDefs[cKey] || { name: cKey, ico: cKey, id: cKey };
+          var qtdC = consums[cKey] || 1;
           h.push(
             '<div class="l2-inv-tooltip">',
-            '  <b style="color:' + (r.css || '#ffd166') + '">' + esc(op.nome(it)) + ((it.en | 0) ? ' +' + (it.en | 0) : '') + '</b>',
-            '  <small>' + esc(r.name || 'Comum') + ' · ' + esc(g.name || 'Sem Grau') + '</small>',
-            '  <small style="color:#d4af37">' + esc(op.statsDe ? statTxt(op.statsDe(it)) : '') + '</small>',
+            '  <b style="color:#ffd166">' + esc(cDef.name) + '</b>',
+            '  <small>Consumível · Quantidade: ' + qtdC + '</small>',
             '  <div class="l2-inv-tooltip-bts">',
-            (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '"' + (falta ? ' disabled' : '') + '>EQUIPAR</button>'),
-            (slotEq ? '' : '<button type="button" class="l2-inv-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
+            '    <button type="button" class="l2-inv-btn" data-a="usar" data-v="' + esc(cDef.id) + '">USAR</button>',
             '  </div>',
             '</div>'
           );
+        } else {
+          var it = acha(sel);
+          if(it){
+            var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+            var slotEq = eqUid[it.uid];
+            var falta = (b && b.grau && b.grau !== 'sem' && (E.lvl || 1) < (g.lvlMin || 0));
+            h.push(
+              '<div class="l2-inv-tooltip">',
+              '  <b style="color:' + (r.css || '#ffd166') + '">' + esc(op.nome(it)) + ((it.en | 0) ? ' +' + (it.en | 0) : '') + '</b>',
+              '  <small>' + esc(r.name || 'Comum') + ' · ' + esc(g.name || 'Sem Grau') + '</small>',
+              '  <small style="color:#d4af37">' + esc(op.statsDe ? statTxt(op.statsDe(it)) : '') + '</small>',
+              '  <div class="l2-inv-tooltip-bts">',
+              (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '"' + (falta ? ' disabled' : '') + '>EQUIPAR</button>'),
+              (slotEq ? '' : '<button type="button" class="l2-inv-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
+              '  </div>',
+              '</div>'
+            );
+          }
         }
       }
     } else {
@@ -212,6 +243,10 @@
     );
 
     box.innerHTML = h.join('');
+
+    // Previne que cliques no inventário vazem para o mundo ou fechem a mira
+    box.onpointerdown = function(ev){ ev.stopPropagation(); };
+    box.onmousedown = function(ev){ ev.stopPropagation(); };
 
     // Drag & Drop de itens e consumíveis da mochila para a barra de atalhos (ShortcutWnd)
     box.ondragstart = function(ev){
@@ -255,6 +290,7 @@
       if(a === 'tab-quest'){ aba = 'quest'; U.render(box, E, op); return; }
       if(a === 'equip'){ op.equip(v); sel = null; conf = ''; return; }
       if(a === 'tirar'){ op.tirar(v); sel = null; conf = ''; return; }
+      if(a === 'usar'){ op.usar && op.usar(v); sel = null; conf = ''; return; }
       if(a === 'desc'){
         if(conf === v){ op.descartar(v); sel = null; conf = ''; return; }
         conf = v; U.render(box, E, op); return;
@@ -262,6 +298,11 @@
       var u = t.getAttribute('data-u');
       if(u){
         if(sel === u){
+          if(u.indexOf('__c_') === 0){
+            var cKey = u.replace('__c_', '');
+            op.usar && op.usar(cKey);
+            sel = null; conf = ''; return;
+          }
           // Segundo clique imediato: equipa se estiver na bolsa, desequipa se estiver equipado (como no L2)
           var item = acha(u);
           if(item){
