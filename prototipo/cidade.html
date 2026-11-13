@@ -11429,7 +11429,9 @@ function mob3dAnim(m,dt){
   else if(m.state==='windup')mob3dTocar(m,'atkwait');
   else if(m.state==='recover'){if(m.cur!=='atk'){var cl=m.acoes.atk&&m.acoes.atk.getClip();mob3dTocar(m,'atk',{uma:true,fade:.08,vel:cl?mobClamp(cl.duration/Math.max(.5,m.T.rec*.85),1,2.6):1});}}
   else mob3dTocar(m,mv?'run':'wait',{vel:mv?mobClamp(m.T.speed/2.6,.8,1.8):1});
-  if(Math.hypot(m.x-S.px,m.z-S.pz)<45)m.mixer.update(dt);
+  /* [perf] LOD de animacao: perto = todo quadro; medio (>18 m) = 1 a cada 2; longe (>32 m) = 1 a cada 4 (o dt acumulado mantem a velocidade) */
+  var dd=Math.hypot(m.x-S.px,m.z-S.pz);
+  if(dd<45){m._ad=(m._ad||0)+dt;m._af=(m._af||0)+1;var cada=dd<18?1:(dd<32?2:4);if(m._af>=cada||m.dead){m.mixer.update(m._ad);m._ad=0;m._af=0;}}
 }
 function mobPorId(id){for(var i=0;i<MOBS.length;i++)if(MOBS[i].nid===id)return MOBS[i];return null;}
 function mobSrvSnap(L){
@@ -11552,7 +11554,9 @@ function removeMob(m){
 
 
 
-  m.g.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});
+  /* [perf] mob 3D clonado COMPARTILHA geometria/texturas com o modelo em cache: descartar a geometria derrubava o buffer na GPU e re-enviava a cada nascimento (travadas).
+     So libera o que e do clone: esqueleto (boneTexture) e materiais clonados. Boneco provisorio (sem mixer) tem geometria propria e continua descartando. */
+  m.g.traverse(function(n){if(n.isSkinnedMesh&&n.skeleton)n.skeleton.dispose();if(n.geometry&&!m.mixer)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});
 
 
 
