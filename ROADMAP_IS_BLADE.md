@@ -183,3 +183,18 @@ Divulgação:
 
 Vídeos de bastidores podem sair desde a semana 1; o convite para jogar fica para a semana 9.
 - [ ] **Shuriken do mago saindo como quadrado preto (dono, 10/11)**: corrigi NaN nos shaders (pow de base negativa, normalize de vetor zero) mas não confirmei na máquina do dono. Se continuar: pedir qualidade gráfica e placa de vídeo e desligar o efeito parte por parte.
+
+
+---
+
+## 6. Atualização de Interface Lineage 2 Interlude (13/11/2026)
+- [x] **Eliminação de Alvo Duplo e Correção do Baium no Espantalho**:
+  - Removida injeção de target legado do `mu_hud.js` e ocultados elementos do `#top`.
+  - O alvo na cidade é categoricamente o Espantalho de Treino (Nv 1 · Imortal · 🎯).
+- [x] **Target Window Oficial Lineage 2 (230px)**:
+  - Fundo oficial `TargetBack.png`, barra de vida `hpbar.png` e botão `TargetCloseButton.png`.
+- [x] **Inventário Vertical Autêntico 1:1 (300px)**:
+  - Substituição do modal largo de 820px pela janela vertical de 300px estilo Interlude.
+  - Paperdoll anatômico no topo, grade 5x8 (40 slots com moldura oficial `inventory_outline.png`), abas Inventory/Quest e rodapé com Adena e botões de ação.
+- [x] **Extração de 37 Texturas Oficiais do L2 Interlude**:
+  - Extraídas diretamente do cliente oficial (`l2ui.utx` e `L2UI_CH3.utx`).

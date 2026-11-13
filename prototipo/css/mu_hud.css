@@ -75,8 +75,11 @@
 }
 
 #top.l2-target-active {
-  opacity: 1 !important;
-  transform: translateX(-50%) translateY(0) !important;
+  display: none !important;
+}
+
+.mu-target-art, .mu-target-crystal, #l2-target-name {
+  display: none !important;
 }
 
 #top::before,

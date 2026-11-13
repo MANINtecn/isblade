@@ -3838,3 +3838,33 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     4. Rodapé: Ícones de Lixeira (`inventory_trash.png`), Livro de Receitas (`inventory_recipe.png`), Adena e Barra de Peso (`ps_weightbar1.png`).
   - Target Window: Barra compacta clássica horizontal com nome, nível, botão de fechar original e barra de HP chanfrada.
   - Todas as 37 texturas PNG estão prontas e extraídas em `prototipo/assets/ui/` para o Claude Code montar a estrutura 1:1.
+
+
+### [Antigravity] 13/11/2026 - Reconstrução 1:1 da Interface Oficial Lineage 2 Interlude & Eliminação Definitiva da Barra Dupla de Alvo
+
+- **Eliminação Definitiva da Barra Dupla de Target**:
+  - **Causa Raiz**: O arquivo `prototipo/js/mu_hud.js` possuía rotina legada que injetava nós DOM (`.mu-target-art`, `#l2-target-name`, `.mu-hp-bar`) dentro de `#top` a cada tick de mira, competindo diretamente com a janela de alvo oficial `#alvoMob` (`alvo_l2.js`).
+  - **Solução Aplicada**:
+    - Injeção de target legada removida de `mu_hud.js`.
+    - `#top.l2-target-active`, `.mu-target-art`, `.mu-target-crystal` e `#l2-target-name` ocultados com `display: none !important` em `mu_hud.css`.
+    - O alvo agora é controlado 100% exclusivamente pelo `alvo_l2.js`.
+- **Correção da Leitura do Espantalho de Treino**:
+  - `cidade.html` inicializa `S.en.name = "Espantalho de Treino"` nativamente.
+  - Em `cidade.html`, a função `alvoTick()` detecta que quando o jogador está na cidade (`!DG.on`), o alvo é categoricamente o **Espantalho de Treino (Nv 1 · Imortal · 🎯)**, sem qualquer chance de exibir Baium.
+  - `arena.html` também ajustado para validar `TRAIN.on`.
+- **Target Window Oficial Lineage 2 Interlude (230px)**:
+  - Reconstruído em `prototipo/js/alvo_l2.js`:
+    - Dimensão compacta oficial (230px de largura) centralizada no topo.
+    - Fundo `TargetBack.png`, botão de fechar oficial `TargetCloseButton.png` (com hover `TargetCloseButton_click.png`).
+    - Trilho `hpbar_back.png` e preenchimento `hpbar.png`.
+- **Inventário Vertical Autêntico 1:1 (300px)**:
+  - Reconstruído em `prototipo/js/inventario_ui.js`:
+    - Fim definitivo do modal largo de 820px. Agora é a janela vertical nativa de 300px estilo Interlude.
+    - Fundo `InventoryBack.png`, abas `[Inventory]` e `[Quest]`, botão de fechar oficial.
+    - **Paperdoll anatômico** no topo com silhueta e slots de Elmo, Arma/Escudo, Peitoral, Luvas e Botas.
+    - **Grade de Mochila 5 colunas x 8 linhas (40 slots)** com a moldura oficial `inventory_outline.png` e highlight dourado `inventory_outline_over.png`.
+    - **Tooltip flutuante** elegante com ações de Equipar, Tirar e Descartar.
+    - **Rodapé autêntico**: Contador de Adena oficial (`adena.png`), ícone de Livro de Receitas (`inventory_recipe.png`) e Lixeira (`inventory_trash.png`).
+- **Cache-Busting & Sincronização**:
+  - Scripts e folhas de estilo atualizados para `v=30` em `cidade.html` e `arena.html`.
+  - Preview capturado e commitado em `preview_l2_interface.png`.

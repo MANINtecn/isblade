@@ -607,73 +607,11 @@ export const MuHud = {
       msgObs.observe(msgEl, { childList: true, characterData: true, subtree: true });
     }
 
-    var topEl = document.getElementById('top');
-    if (topEl && !document.getElementById('l2-target-name')) {
-      var tgtArt = document.createElement('img');
-      tgtArt.className = 'mu-target-art';
-      tgtArt.src = 'assets/hud/mu_target_frame_clean.png?v=9';
-      tgtArt.alt = '';
-      tgtArt.draggable = false;
-      topEl.insertBefore(tgtArt, topEl.firstChild);
-
-      var tgtName = document.createElement('div');
-      tgtName.id = 'l2-target-name';
-      tgtName.textContent = 'Espantalho de Treino';
-      topEl.insertBefore(tgtName, topEl.firstChild);
-
-      var firstBar = topEl.querySelector('.bar'); if (firstBar) firstBar.classList.add('mu-hp-bar');   /* o CSS usava :first-of-type, mas a div do nome entra antes e escondia a barra de vida */
-      if (firstBar && !document.getElementById('mu-target-hp-liquid')) {
-        var tgtLiq = document.createElement('img');
-        tgtLiq.className = 'mu-target-crystal';
-        tgtLiq.id = 'mu-target-hp-liquid';
-        tgtLiq.src = 'assets/hud/mu_target_hp_fill.png?v=9';
-        tgtLiq.alt = '';
-        tgtLiq.draggable = false;
-        firstBar.insertBefore(tgtLiq, firstBar.firstChild);
-      }
-    }
-
+    /* Target bar is managed exclusively by Lineage 2 target window (js/alvo_l2.js) */
     var self = this;
     setInterval(function() {
       var S = window.S;
-      var topBox = document.getElementById('top');
-      if (!S || !topBox) return;
-
-      var isArena = location.pathname.toLowerCase().indexOf('arena') !== -1;
-      var distEnemy = Math.hypot((S.px || 0) - (S.ex || 0), (S.pz || 0) - (S.ez || 0));
-      var hasTarget = !!(S.aimT || S.aimM || S.fightOn || S.combo > 0 || (isArena && !S.dead && distEnemy < 28) || (!isArena && distEnemy < 14));
-
-      topBox.classList.toggle('l2-target-active', hasTarget);
-
-      if (hasTarget) {
-        var nameEl = document.getElementById('l2-target-name');
-        var ehpTxt = document.getElementById('ehptxt');
-        var tgtLiq = document.getElementById('mu-target-hp-liquid');
-        var tgtPct = 100;
-
-        if (nameEl) {
-          if (S.aimM && S.aimM.T) {
-            nameEl.textContent = S.aimM.T.name + '  ·  Nv. ' + (S.aimM.T.lvl || 1);
-            var mHp = Math.max(0, Math.round(S.aimM.hp));
-            var mMax = Math.max(1, Math.round(S.aimM.maxhp));
-            tgtPct = Math.max(0, Math.min(100, (mHp / mMax) * 100));
-            if (ehpTxt) ehpTxt.textContent = mHp + ' / ' + mMax;
-          } else if (isArena) {
-            nameEl.textContent = '👑 Baium  ·  Raid Boss (Nv. 75)';
-            var bHp = Math.max(0, Math.round(S.hp));
-            var bMax = Math.max(1, Math.round(S.maxhp));
-            tgtPct = Math.max(0, Math.min(100, (bHp / bMax) * 100));
-            if (ehpTxt) ehpTxt.textContent = bHp + ' / ' + bMax;
-          } else {
-            nameEl.textContent = 'Espantalho de Treino  ·  Nv. 1';
-            tgtPct = 100;
-            if (ehpTxt) ehpTxt.textContent = 'ALVO DE TREINO';
-          }
-        }
-        if (tgtLiq) {
-          tgtLiq.style.clipPath = 'inset(0 ' + (100 - tgtPct).toFixed(1) + '% 0 0)'; vp(tgtLiq, tgtPct);
-        }
-      }
+      if (!S) return;
 
       // Sincroniza cooldowns das skills equipadas nos slots customizáveis
       var origSkillBtns = document.querySelectorAll('#skills button');

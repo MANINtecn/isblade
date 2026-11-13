@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>IS BLADE - Preview Interface Lineage 2</title>
+  <title>IS BLADE - Interface Oficial Lineage 2 Interlude</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -16,7 +16,6 @@
       overflow: hidden;
       position: relative;
     }
-    /* Grid de fundo sutil de fantasia escura */
     body::before {
       content: '';
       position: absolute;
@@ -35,48 +34,43 @@
       z-index: 10;
     }
     .titulo-showcase h1 {
-      font-size: 20px;
-      letter-spacing: 0.28em;
+      font-size: 18px;
+      letter-spacing: 0.24em;
       color: #ffd166;
       text-shadow: 0 0 12px rgba(255,209,102,0.5), 0 2px 4px #000;
       text-transform: uppercase;
     }
     .titulo-showcase p {
       font-family: system-ui, sans-serif;
-      font-size: 11.5px;
+      font-size: 11px;
       color: #8fa4c2;
-      letter-spacing: 0.1em;
-      margin-top: 3px;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
     }
     .layout-showcase {
-      display: grid;
-      grid-template-columns: 460px 1fr;
-      gap: 24px;
-      padding: 18px 36px;
-      max-width: 1720px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 36px;
+      padding: 16px 20px;
+      max-width: 1400px;
       margin: 0 auto;
-      align-items: start;
       position: relative;
       z-index: 2;
     }
-    .coluna-status {
+    .col-esq {
       display: flex;
       flex-direction: column;
       gap: 16px;
+      align-items: center;
     }
-    .coluna-inv {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    /* Estilização direta das janelas para garantir que fiquem visíveis no screenshot */
     #stp {
       display: block !important;
       position: relative !important;
       left: auto !important;
       top: auto !important;
       transform: none !important;
-      width: 100% !important;
+      width: 320px !important;
       max-height: none !important;
     }
     #inv {
@@ -85,12 +79,8 @@
       left: auto !important;
       top: auto !important;
       transform: none !important;
-      width: 100% !important;
+      width: 300px !important;
       max-height: none !important;
-    }
-    /* Target Window colocada de forma gloriosa no topo ou na coluna */
-    .alvo-wrapper {
-      margin-bottom: 4px;
     }
     #alvoMob {
       display: block !important;
@@ -98,69 +88,63 @@
       left: auto !important;
       top: auto !important;
       transform: none !important;
-      width: 100% !important;
+      width: 230px !important;
     }
   </style>
 </head>
 <body>
 
   <div class="titulo-showcase">
-    <h1>IS BLADE &bull; Interface Clássica Lineage 2</h1>
-    <p>Target Window &bull; Character Status (U) &bull; Inventário com Paperdoll (I) &bull; Ícones Oficiais do Icon.utx</p>
+    <h1>IS BLADE &bull; Interface Oficial Lineage 2 Interlude</h1>
+    <p>Target Window Compacta &bull; Character Status (U) &bull; Inventário Clássico Vertical 1:1 com Paperdoll e Grade 5x8 (I)</p>
   </div>
 
   <div class="layout-showcase">
-    <!-- Coluna Esquerda: Target Window + Character Status -->
-    <div class="coluna-status">
-      <div class="alvo-wrapper" id="alvoSlot"></div>
+    <!-- Coluna Esquerda: Target Window Compacta + Character Status (U) -->
+    <div class="col-esq">
+      <div id="alvoSlot"></div>
       <div id="stpSlot"></div>
     </div>
 
-    <!-- Coluna Direita: Inventário com Paperdoll e Ícones Oficiais -->
-    <div class="coluna-inv">
+    <!-- Coluna Direita: Inventário Vertical 1:1 Oficial do Lineage 2 -->
+    <div>
       <div id="invSlot"></div>
     </div>
   </div>
 
-  <script src="js/alvo_l2.js"></script>
-  <script src="js/status.js"></script>
-  <script src="js/inventario_ui.js"></script>
+  <script src="js/alvo_l2.js?v=30"></script>
+  <script src="js/status.js?v=30"></script>
+  <script src="js/inventario_ui.js?v=30"></script>
   <script>
-    // 1. Iniciar e Exibir Alvo L2 (Chefe Épico)
-    AlvoL2.atualiza('Valakas - Dragão do Fogo', 85, 320000, 320000, 80, 'boss');
+    // 1. Target Window Compacta do Lineage 2 Interlude
+    AlvoL2.atualiza({
+      nome: 'Espantalho de Treino',
+      tipo: 'dummy',
+      nv: 1,
+      hp: 99999,
+      max: 99999,
+      meuNv: 80
+    });
     var alvoMob = document.getElementById('alvoMob');
-    if(alvoMob) {
-      document.getElementById('alvoSlot').appendChild(alvoMob);
-    }
+    if(alvoMob) document.getElementById('alvoSlot').appendChild(alvoMob);
 
-    // 2. Iniciar e Exibir Janela de Character Status (U)
+    // 2. Character Status (U)
     var stpEl = document.getElementById('stp');
     if(stpEl) {
       stpEl.classList.add('on');
       document.getElementById('stpSlot').appendChild(stpEl);
     }
-    Status.abrir({
+    Status.abrir && Status.abrir({
       nome: 'Ikarus Herói',
       classe: 'Paladino Imperial',
       lvl: 80,
       xp: 1425000,
       xpMax: 2000000,
       pts: 5,
-      attr: { for: 48, int: 22, agi: 36, vit: 45 },
-      calc: function(a){
-        return {
-          dano: Math.round(a.for * 34.5),
-          pmax: 8200 + a.vit * 140,
-          stm: 450 + a.agi * 12,
-          vel: 1.15
-        };
-      },
-      salvar: function(n, p){
-        console.log('Salvo:', n, p);
-      }
+      attr: { for: 48, int: 22, agi: 36, vit: 45 }
     });
 
-    // 3. Iniciar e Exibir Inventário L2 (I)
+    // 3. Inventário Clássico Vertical do Lineage 2 (I)
     var invCaixa = document.createElement('div');
     invCaixa.id = 'inv';
     invCaixa.className = 'invui';
@@ -198,6 +182,7 @@
     var estadoInv = {
       itm: {
         bases: ITM_DICT,
+        slots: { helmet: 'Elmo', weapon: 'Arma', chest: 'Peitoral', gloves: 'Luvas', boots: 'Botas' },
         rarities: {
           comum: { name: 'Comum', css: '#9e9e9e' },
           incomum: { name: 'Incomum', css: '#4ade80' },
@@ -219,13 +204,7 @@
       pmax: 14500,
       conj: null,
       adena: 2458900,
-      consum: {
-        pocao_vida: 250,
-        soulshot: 5000,
-        spiritshot: 3200,
-        pergaminho_volta: 15,
-        pergaminho_res: 8
-      },
+      consum: {},
       lvl: 80,
       lojaDados: null
     };
