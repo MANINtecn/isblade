@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>IS BLADE - Preview Interface Lineage 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at 50% 35%, #182238 0%, #0a0d14 70%, #05070a 100%);
+      color: #eaf2ff;
+      font-family: 'Cinzel', Georgia, serif;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Grid de fundo sutil de fantasia escura */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(circle, rgba(212,175,55,0.06) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px, 80px 80px, 80px 80px;
+      pointer-events: none;
+    }
+    .titulo-showcase {
+      text-align: center;
+      padding-top: 14px;
+      position: relative;
+      z-index: 10;
+    }
+    .titulo-showcase h1 {
+      font-size: 20px;
+      letter-spacing: 0.28em;
+      color: #ffd166;
+      text-shadow: 0 0 12px rgba(255,209,102,0.5), 0 2px 4px #000;
+      text-transform: uppercase;
+    }
+    .titulo-showcase p {
+      font-family: system-ui, sans-serif;
+      font-size: 11.5px;
+      color: #8fa4c2;
+      letter-spacing: 0.1em;
+      margin-top: 3px;
+    }
+    .layout-showcase {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 24px;
+      padding: 18px 36px;
+      max-width: 1720px;
+      margin: 0 auto;
+      align-items: start;
+      position: relative;
+      z-index: 2;
+    }
+    .coluna-status {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .coluna-inv {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    /* Estilização direta das janelas para garantir que fiquem visíveis no screenshot */
+    #stp {
+      display: block !important;
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+      width: 100% !important;
+      max-height: none !important;
+    }
+    #inv {
+      display: block !important;
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+      width: 100% !important;
+      max-height: none !important;
+    }
+    /* Target Window colocada de forma gloriosa no topo ou na coluna */
+    .alvo-wrapper {
+      margin-bottom: 4px;
+    }
+    #alvoMob {
+      display: block !important;
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+      width: 100% !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="titulo-showcase">
+    <h1>IS BLADE &bull; Interface Clássica Lineage 2</h1>
+    <p>Target Window &bull; Character Status (U) &bull; Inventário com Paperdoll (I) &bull; Ícones Oficiais do Icon.utx</p>
+  </div>
+
+  <div class="layout-showcase">
+    <!-- Coluna Esquerda: Target Window + Character Status -->
+    <div class="coluna-status">
+      <div class="alvo-wrapper" id="alvoSlot"></div>
+      <div id="stpSlot"></div>
+    </div>
+
+    <!-- Coluna Direita: Inventário com Paperdoll e Ícones Oficiais -->
+    <div class="coluna-inv">
+      <div id="invSlot"></div>
+    </div>
+  </div>
+
+  <script src="js/alvo_l2.js"></script>
+  <script src="js/status.js"></script>
+  <script src="js/inventario_ui.js"></script>
+  <script>
+    // 1. Iniciar e Exibir Alvo L2 (Chefe Épico)
+    AlvoL2.atualiza('Valakas - Dragão do Fogo', 85, 320000, 320000, 80, 'boss');
+    var alvoMob = document.getElementById('alvoMob');
+    if(alvoMob) {
+      document.getElementById('alvoSlot').appendChild(alvoMob);
+    }
+
+    // 2. Iniciar e Exibir Janela de Character Status (U)
+    var stpEl = document.getElementById('stp');
+    if(stpEl) {
+      stpEl.classList.add('on');
+      document.getElementById('stpSlot').appendChild(stpEl);
+    }
+    Status.abrir({
+      nome: 'Ikarus Herói',
+      classe: 'Paladino Imperial',
+      lvl: 80,
+      xp: 1425000,
+      xpMax: 2000000,
+      pts: 5,
+      attr: { for: 48, int: 22, agi: 36, vit: 45 },
+      calc: function(a){
+        return {
+          dano: Math.round(a.for * 34.5),
+          pmax: 8200 + a.vit * 140,
+          stm: 450 + a.agi * 12,
+          vel: 1.15
+        };
+      },
+      salvar: function(n, p){
+        console.log('Salvo:', n, p);
+      }
+    });
+
+    // 3. Iniciar e Exibir Inventário L2 (I)
+    var invCaixa = document.createElement('div');
+    invCaixa.id = 'inv';
+    invCaixa.className = 'invui';
+    document.getElementById('invSlot').appendChild(invCaixa);
+
+    var ITENS_EXEMPLO = [
+      { uid: 'w1', base: 'sword_long_c', grau: 'C', enc: 7, rar: 'raro', slot: 'weapon' },
+      { uid: 's1', base: 'shield_guardian_c', grau: 'C', enc: 6, rar: 'raro', slot: 'weapon', weapon: 'shield' },
+      { uid: 'h1', base: 'helmet_iron_c', grau: 'C', enc: 4, rar: 'incomum', slot: 'helmet' },
+      { uid: 'c1', base: 'chest_plate_c', grau: 'C', enc: 5, rar: 'epico', slot: 'chest' },
+      { uid: 'g1', base: 'gloves_hide_c', grau: 'C', enc: 4, rar: 'incomum', slot: 'gloves' },
+      { uid: 'b1', base: 'boots_swift_c', grau: 'C', enc: 4, rar: 'incomum', slot: 'boots' },
+      // Mochila com armas D e normais, cajados, pocoes, soulshots
+      { uid: 'w2', base: 'sword_long_d', grau: 'D', enc: 3, rar: 'incomum', slot: 'weapon' },
+      { uid: 'w3', base: 'staff_arcane_c', grau: 'C', enc: 4, rar: 'raro', slot: 'weapon', weapon: 'staff' },
+      { uid: 'w4', base: 'staff_arcane_d', grau: 'D', enc: 0, rar: 'comum', slot: 'weapon', weapon: 'staff' },
+      { uid: 's2', base: 'shield_guardian_d', grau: 'D', enc: 0, rar: 'comum', slot: 'weapon', weapon: 'shield' },
+      { uid: 'c2', base: 'chest_plate_d', grau: 'D', enc: 2, rar: 'comum', slot: 'chest' }
+    ];
+
+    var ITM_DICT = {
+      sword_long_c: { id: 'sword_long_c', name: 'Berserker Blade', slot: 'weapon', grau: 'C', atk: 185 },
+      shield_guardian_c: { id: 'shield_guardian_c', name: 'Full Plate Shield', slot: 'weapon', weapon: 'shield', grau: 'C', def: 120 },
+      helmet_iron_c: { id: 'helmet_iron_c', name: 'Composite Helmet', slot: 'helmet', grau: 'C', def: 62 },
+      chest_plate_c: { id: 'chest_plate_c', name: 'Full Plate Armor', slot: 'chest', grau: 'C', def: 240 },
+      gloves_hide_c: { id: 'gloves_hide_c', name: 'Composite Gauntlets', slot: 'gloves', grau: 'C', def: 48 },
+      boots_swift_c: { id: 'boots_swift_c', name: 'Composite Boots', slot: 'boots', grau: 'C', def: 48 },
+      sword_long_d: { id: 'sword_long_d', name: 'Claymore', slot: 'weapon', grau: 'D', atk: 112 },
+      staff_arcane_c: { id: 'staff_arcane_c', name: "Ghoul's Staff", slot: 'weapon', weapon: 'staff', grau: 'C', matk: 165 },
+      staff_arcane_d: { id: 'staff_arcane_d', name: 'Ghost Staff', slot: 'weapon', weapon: 'staff', grau: 'D', matk: 95 },
+      shield_guardian_d: { id: 'shield_guardian_d', name: 'Composite Shield', slot: 'weapon', weapon: 'shield', grau: 'D', def: 85 },
+      chest_plate_d: { id: 'chest_plate_d', name: 'Brigandine Tunic', slot: 'chest', grau: 'D', def: 145 }
+    };
+
+    var estadoInv = {
+      itm: {
+        bases: ITM_DICT,
+        rarities: {
+          comum: { name: 'Comum', css: '#9e9e9e' },
+          incomum: { name: 'Incomum', css: '#4ade80' },
+          raro: { name: 'Raro', css: '#38bdf8' },
+          epico: { name: 'Épico', css: '#c084fc' }
+        }
+      },
+      inv: {
+        items: ITENS_EXEMPLO.slice(6),
+        equip: {
+          helmet: ITENS_EXEMPLO[2],
+          weapon: ITENS_EXEMPLO[0],
+          chest: ITENS_EXEMPLO[3],
+          gloves: ITENS_EXEMPLO[4],
+          boots: ITENS_EXEMPLO[5]
+        }
+      },
+      st: { for: 48, int: 22, agi: 36, vit: 45 },
+      pmax: 14500,
+      conj: null,
+      adena: 2458900,
+      consum: {
+        pocao_vida: 250,
+        soulshot: 5000,
+        spiritshot: 3200,
+        pergaminho_volta: 15,
+        pergaminho_res: 8
+      },
+      lvl: 80,
+      lojaDados: null
+    };
+
+    var ops = {
+      equip: function(uid){ console.log('Equipar', uid); },
+      tirar: function(slot){ console.log('Tirar', slot); },
+      descartar: function(uid){ console.log('Descartar', uid); },
+      usar: function(id){ console.log('Usar', id); },
+      fechar: function(){},
+      statsDe: function(it){
+        var b = ITM_DICT[it.base];
+        return b ? ('P.Atk +' + (b.atk||0) + ' | P.Def +' + (b.def||0)) : '';
+      },
+      nome: function(it){
+        var b = ITM_DICT[it.base];
+        return b ? b.name : it.base;
+      }
+    };
+
+    InvUI.render(invCaixa, estadoInv, ops);
+  </script>
+</body>
+</html>

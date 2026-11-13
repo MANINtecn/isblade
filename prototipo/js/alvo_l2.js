@@ -1,6 +1,6 @@
-/* Janela do ALVO Autêntica estilo Lineage 2 (Mobs, Chefes e Jogadores).
-   Moldura metálica chanfrada com cantoneiras de bronze, brasão circular,
-   nível com a paleta oficial de perigo do L2 e barra de HP 3D em relevo. */
+/* Janela do ALVO Autêntica estilo Lineage 2 (Mobs, Chefes, Espantalho e Jogadores).
+   Utiliza as texturas originais extraídas de l2ui.utx e L2UI_CH3.utx do cliente Lineage 2 Interlude:
+   TargetBack.png, TargetCloseButton.png, hpbar_back.png e hpbar.png. */
 (function(){
   var A = window.AlvoL2 = {}, el = null, ult = '';
 
@@ -16,6 +16,7 @@
 
   function iconeAlvo(nome, nv, tipo){
     var n = (nome || '').toLowerCase();
+    if(tipo === 'dummy' || n.indexOf('espantalho') >= 0) return '🎯';
     if(n.indexOf('baium') >= 0 || tipo === 'boss') return '👑';
     if(n.indexOf('guardi') >= 0) return '🛡️';
     if(n.indexOf('mago') >= 0 || n.indexOf('feitic') >= 0) return '🔮';
@@ -23,7 +24,7 @@
     if(n.indexOf('espadachim') >= 0 || n.indexOf('guerreiro') >= 0) return '⚔️';
     if(tipo === 'player') return '👤';
     if(nv >= 30) return '💀';
-    return '👹';
+    return '👺';
   }
 
   function monta(){
@@ -31,11 +32,11 @@
     var st = document.createElement('style');
     st.textContent = [
       '#alvoMob{',
-      '  position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:64;display:none;',
-      '  width:310px;max-width:92vw;padding:8px 12px 10px 12px;border-radius:4px;',
-      '  background:linear-gradient(180deg, rgba(22,28,42,0.96) 0%, rgba(10,14,24,0.98) 100%);',
-      '  border:2px solid #5a4828;',
-      '  box-shadow:inset 0 0 0 1px #a4823e, inset 0 0 16px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.75);',
+      '  position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:64;display:none;',
+      '  width:320px;max-width:92vw;padding:8px 12px 10px 12px;border-radius:2px;',
+      '  background:#0c101a url("assets/ui/TargetBack.png") repeat;',
+      '  border:2px solid #3c301c;',
+      '  box-shadow:inset 0 0 0 1px #8a7038, inset 0 0 18px rgba(0,0,0,0.95), 0 8px 24px rgba(0,0,0,0.85);',
       '  color:#eaf2ff;font-family:"Cinzel", Georgia, "Times New Roman", serif;pointer-events:all;user-select:none;',
       '}',
       '#alvoMob .l2-topo{display:flex;align-items:center;gap:9px;}',
@@ -53,31 +54,36 @@
       '  text-shadow:0 1px 3px #000, 0 0 8px rgba(0,0,0,0.9);',
       '}',
       '#alvoMob .l2-badge-nv{',
-      '  font-size:10px;font-weight:800;padding:1px 5px;border-radius:3px;',
-      '  background:rgba(0,0,0,0.65);border:1px solid #4a3a1f;flex-shrink:0;',
+      '  font-size:10px;font-weight:800;padding:1px 5px;border-radius:2px;',
+      '  background:rgba(0,0,0,0.75);border:1px solid #4a3a1f;flex-shrink:0;',
       '  font-family:system-ui, sans-serif;letter-spacing:0.02em;',
       '}',
       '#alvoMob .l2-sub{',
-      '  font-size:10px;font-weight:600;color:#8fa4c2;letter-spacing:0.03em;',
+      '  font-size:10px;font-weight:600;color:#9eb3cc;letter-spacing:0.03em;',
       '  font-family:system-ui, sans-serif;margin-top:1px;',
       '}',
       '#alvoMob .l2-fechar{',
-      '  width:18px;height:18px;border-radius:3px;background:rgba(0,0,0,0.45);',
-      '  border:1px solid #5a4828;color:#a4823e;cursor:pointer;display:flex;',
-      '  align-items:center;justify-content:center;font-size:12px;line-height:1;margin-left:4px;',
-      '  transition:all 0.15s ease;',
+      '  width:16px;height:16px;flex-shrink:0;border:none;outline:none;',
+      '  background:transparent url("assets/ui/TargetCloseButton.png") no-repeat center;',
+      '  cursor:pointer;margin-left:4px;',
+      '  transition:transform 0.1s ease;',
       '}',
-      '#alvoMob .l2-fechar:hover{background:#a4823e;color:#000;}',
+      '#alvoMob .l2-fechar:hover, #alvoMob .l2-fechar:active{',
+      '  background-image:url("assets/ui/TargetCloseButton_click.png");',
+      '}',
       '#alvoMob .l2-barras{margin-top:7px;display:flex;flex-direction:column;gap:4px;}',
       '#alvoMob .l2-trilho{',
-      '  height:9px;border-radius:2px;background:#140507;border:1px solid #45151a;',
-      '  box-shadow:inset 0 1px 3px rgba(0,0,0,0.95);position:relative;overflow:hidden;',
+      '  height:11px;border-radius:1px;',
+      '  background:#09090b url("assets/ui/hpbar_back.png") repeat-x center;',
+      '  border:1px solid #20181a;box-shadow:inset 0 1px 3px rgba(0,0,0,0.95);',
+      '  position:relative;overflow:hidden;',
       '}',
       '#alvoMob .l2-trilho.mp{background:#040d1a;border-color:#142d54;}',
       '#alvoMob .l2-trilho.cp{background:#1a1404;border-color:#544314;}',
       '#alvoMob .l2-fill-hp{',
-      '  height:100%;background:linear-gradient(180deg, #ff7a6b 0%, #e61c1c 42%, #a80808 55%, #590000 100%);',
-      '  box-shadow:inset 0 1px 0 rgba(255,255,255,0.45), 0 0 8px rgba(230,28,28,0.5);',
+      '  height:100%;',
+      '  background:#b01018 url("assets/ui/hpbar.png") repeat-x center;',
+      '  box-shadow:inset 0 1px 0 rgba(255,255,255,0.45);',
       '  transition:width 0.15s ease;',
       '}',
       '#alvoMob .l2-fill-mp{',
@@ -120,7 +126,19 @@
     var cor = corNivel(a.nv, a.meuNv);
     var ico = iconeAlvo(a.nome, a.nv, a.tipo);
     var pct = Math.ceil(kHp * 100);
-    var sub = a.sub || (a.tipo === 'boss' ? 'Raid Boss' : (a.nv ? 'Monstro Nv ' + a.nv : 'Alvo'));
+    
+    var sub = a.sub;
+    if(!sub){
+      if(a.tipo === 'dummy' || (a.nome && a.nome.toLowerCase().indexOf('espantalho') >= 0)){
+        sub = 'Alvo de Treino · Imortal';
+      } else if(a.tipo === 'boss'){
+        sub = 'Raid Boss';
+      } else if(a.nv){
+        sub = 'Monstro Nv ' + a.nv;
+      } else {
+        sub = 'Alvo';
+      }
+    }
     if(a.agr) sub += ' · Agressivo';
 
     var html = [
@@ -133,7 +151,7 @@
       '    </div>',
       '    <div class="l2-sub">' + sub + '</div>',
       '  </div>',
-      '  <button class="l2-fechar" title="Fechar alvo (Esc)">×</button>',
+      '  <button class="l2-fechar" title="Fechar alvo (Esc)"></button>',
       '</div>',
       '<div class="l2-barras">',
       '  <div class="l2-trilho">',

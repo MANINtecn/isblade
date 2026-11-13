@@ -3818,3 +3818,19 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Esclarecimento do Bug da Coluna Cortada (C5 Prece / C4 Purificação)**:
   - O screenshot enviado pelo dono mostrou o defeito do script antigo (`clerigo_skills.py.v1`), onde a função `mat_feixe` usava uma rampa linear no eixo X que zerava o alpha na metade do cilindro, criando o aspecto de "calha aberta" ou "coluna pela metade".
   - Na versão corrigida e aprovada (`clerigo_skills.py`), as colunas foram substituídas pela geometria cilíndrica de Véu 360° sem cortes, o efeito C5 (Prece - Buff de Grupo de Ataque Nv 25) recebeu a Coroa/Halo de Bênção Dourada sobre os aliados, e C4 (Purificação) recebeu o Halo que desce lavando as impurezas.
+
+### [Antigravity] 13/11/2026 - Correção do Bug dos 2 Targets (Espantalho/Baium) e Extração das Texturas Oficiais do L2 (L2UI.utx e L2UI_CH3.utx)
+
+- **Correção dos 2 Targets e do Baium no Espantalho**:
+  - Em `prototipo/cidade.html` e `prototipo/arena.html`, a barra antiga de HP (`#ehpfill` / `#ehptxt`) foi desativada durante combate/mira para não sobrepor o `AlvoL2`.
+  - A função `alvoTick()` foi corrigida: ela agora lê dinamicamente `S.en.name`. Ao bater no Espantalho de Treino, o alvo é exibido corretamente como **Espantalho de Treino · Nv 1 · Imortal** (ícone 🎯), sem mais exibir o Baium Nv 75 indevidamente.
+- **Extração Oficial de Texturas de UI do Lineage 2 Interlude**:
+  - Extraídas 37 texturas autênticas de `Cliente Interlud 300x\systextures\l2ui.utx` e `L2UI_CH3.utx` com `umodel` para `prototipo/assets/ui/`:
+    - *Target Window*: `TargetBack.png`, `TargetCloseButton.png`, `TargetCloseButton_click.png`, `TargetFrameAll.png`, `hpbar.png`, `hpbar_back.png`.
+    - *Inventário & Paperdoll*: `InventoryBack.png`, `inventory_back.png`, `inventory_outline.png` (slot 64x64 com cantoneiras de metal), `inventory_outline_over.png` (highlight dourado de foco/hover), `inventory_trash.png`.
+    - *Character Status*: `statusback.png`, `statusEXP1.png`, `SystemWindowButton.png`, `SystemWindowButton_click.png`.
+- **Fim da Interface Genérica (CSS Puro) $\rightarrow$ Texturas Reais do L2**:
+  - `prototipo/js/alvo_l2.js`: Fundo com `TargetBack.png`, botão fechar com `TargetCloseButton.png` e barra de HP com `hpbar.png` e `hpbar_back.png`.
+  - `prototipo/js/inventario_ui.js`: Fundo de metal escuro com `InventoryBack.png`, slots com moldura oficial `inventory_outline.png`, efeito hover com `inventory_outline_over.png` e botões de comando oficiais com `SystemWindowButton.png`.
+  - `prototipo/js/status.js`: Fundo oficial com `statusback.png`, barra de EXP original com `statusEXP1.png` e botões metálicos oficiais.
+  - Cachebusting atualizado para `alvo_l2.js?v=3`, `inventario_ui.js?v=4` e `status.js?v=3` na Arena e na Cidade.

@@ -786,12 +786,12 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
 <script src="js/musica.js?v=1"></script>
-<script src="js/alvo_l2.js?v=2"></script>
+<script src="js/alvo_l2.js?v=3"></script>
 <script src="js/loja.js?v=6"></script>
 <script src="js/arma_grau.js?v=1"></script>
 <script src="js/expedicao.js?v=6"></script>
 <script src="js/modo_camera.js?v=1"></script>
-<script src="js/inventario_ui.js?v=3"></script>
+<script src="js/inventario_ui.js?v=4"></script>
 <script src="js/moradores.js?v=2"></script>
 <script src="js/mundo_campo.js?v=5"></script>
 <script src="js/mapa_vivo.js?v=12"></script>
@@ -800,7 +800,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
 <script src="js/agua_l2.js?v=1"></script>
-<script src="js/status.js?v=2"></script>
+<script src="js/status.js?v=3"></script>
 <script src="js/l2_teleport.js?v=2"></script>
 <script src="js/l2_npcs.js?v=4"></script>
 <script src="js/horizonte.js?v=2"></script>
@@ -892,7 +892,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-  <div class="bar"><i id="ehpfill"></i><b id="ehptxt"></b></div>
+  <div class="bar" style="display:none"><i id="ehpfill"></i><b id="ehptxt"></b></div>
 
 
 
@@ -15524,7 +15524,19 @@ var _alvoT=0;function alvoTick(){/* [alvo] janela do alvo estilo L2 (js/alvo_l2.
   var nivel=function(tp){var mn=DATA.prog&&DATA.prog.mobsNivel,d=(typeof DG!=='undefined'&&DG.diff)||'normal',e=mn&&mn[d]&&mn[d][tp];return e?e[0]:0;};
   var m=(S.aimM&&!S.aimM.dead)?S.aimM:((S.ultMob&&!S.ultMob.dead&&t-S.ultMobT<6000)?S.ultMob:null);
   if(m&&m.T){AlvoL2.atualiza({nome:m.T.name,agr:!!m.agr,tipo:'mob',nv:nivel(m.type),hp:m.hp,max:m.max,meuNv:S.lvl});return;}
-  if(typeof BOSS_ON!=='undefined'&&BOSS_ON&&!S.dead&&(S.aimT||t-(S.ultBossT||0)<8000)){AlvoL2.atualiza({nome:'Baium',tipo:'boss',nv:(typeof DG!=='undefined'&&DG.on)?nivel('boss'):75,hp:S.hp,max:S.maxhp,meuNv:S.lvl});return;}
+  if(typeof BOSS_ON!=='undefined'&&BOSS_ON&&!S.dead&&(S.aimT||t-(S.ultBossT||0)<8000)){
+    var bNome = (S.en && S.en.name) || 'Baium';
+    var isDummy = bNome.indexOf('Espantalho') >= 0;
+    AlvoL2.atualiza({
+      nome: bNome,
+      tipo: isDummy ? 'dummy' : 'boss',
+      nv: isDummy ? 1 : ((typeof DG!=='undefined'&&DG.on)?nivel('boss'):75),
+      hp: S.hp,
+      max: S.maxhp,
+      meuNv: S.lvl
+    });
+    return;
+  }
   AlvoL2.atualiza(null);
 }
 function frame2(dt,T){

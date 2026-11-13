@@ -1,6 +1,6 @@
 /* status.js — Tela de CHARACTER STATUS Autêntica estilo Lineage 2 (tecla U / botão "Status" do HUD).
-   Moldura metálica chanfrada em bronze/ouro, brasão clássico, barra de XP 3D,
-   distribuição de atributos e estatísticas de combate (P.Atk, P.Def, Vida, Estamina, Velocidade). */
+   Utiliza as texturas originais extraídas de l2ui.utx e L2UI_CH3.utx do cliente Lineage 2 Interlude:
+   statusback.png, statusEXP1.png, hpbar_back.png, SystemWindowButton.png e TargetCloseButton.png. */
 (function(){
   if(window.Status) return;
   var P = null, el = null, aberto = false, pend = { for: 0, int: 0, agi: 0, vit: 0 }, ATTRS = ['for', 'int', 'agi', 'vit'];
@@ -8,66 +8,76 @@
   var CSS = [
     '#stp{',
     '  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9500;',
-    '  width:min(540px,94vw);max-height:92vh;overflow:auto;',
-    '  background:linear-gradient(180deg, rgba(22,28,44,0.98) 0%, rgba(10,14,24,0.99) 100%);',
-    '  border:2px solid #5a4828;border-radius:4px;',
-    '  box-shadow:inset 0 0 0 1px #a4823e, inset 0 0 24px rgba(0,0,0,0.85), 0 16px 48px rgba(0,0,0,0.85);',
+    '  width:min(520px,94vw);max-height:92vh;overflow:auto;',
+    '  background:#0c101a url("assets/ui/statusback.png") repeat;',
+    '  border:2px solid #3c301c;border-radius:2px;',
+    '  box-shadow:inset 0 0 0 1px #8a7038, inset 0 0 24px rgba(0,0,0,0.95), 0 16px 48px rgba(0,0,0,0.85);',
     '  color:#eaf2ff;font-family:"Cinzel", Georgia, serif;padding:14px 18px;display:none;',
     '  user-select:none;-webkit-user-select:none;',
     '}',
     '#stp.on{display:block}',
-    '#stp .stp-hd{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(164,130,62,0.25);padding-bottom:10px;margin-bottom:12px;}',
+    '#stp .stp-hd{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(138,112,56,0.3);padding-bottom:10px;margin-bottom:12px;}',
     '#stp .stp-hd h3{margin:0;font-size:16px;letter-spacing:.16em;color:#ffd166;text-shadow:0 1px 3px #000;display:flex;align-items:center;gap:8px;}',
     '#stp .stp-hd .sub{color:#8fa4c2;font-size:11px;letter-spacing:.04em;font-family:system-ui, sans-serif;margin-top:2px;}',
-    '#stp .x{width:22px;height:22px;border-radius:3px;background:rgba(0,0,0,0.45);border:1px solid #5a4828;color:#a4823e;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;transition:all 0.15s ease;}',
-    '#stp .x:hover{background:#a4823e;color:#000;}',
+    '#stp .x{width:16px;height:16px;flex-shrink:0;border:none;outline:none;background:transparent url("assets/ui/TargetCloseButton.png") no-repeat center;cursor:pointer;transition:transform 0.1s ease;}',
+    '#stp .x:hover, #stp .x:active{background-image:url("assets/ui/TargetCloseButton_click.png");}',
     '#stp .xp-bloco{margin-bottom:12px;}',
-    '#stp .xp-trilho{height:10px;border-radius:2px;background:#090d18;border:1px solid #4a3c20;box-shadow:inset 0 1px 4px rgba(0,0,0,0.95);position:relative;overflow:hidden;}',
-    '#stp .xp-fill{height:100%;background:linear-gradient(90deg, #1c72e6 0%, #4facfe 50%, #facc15 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);transition:width 0.2s ease;}',
+    '#stp .xp-trilho{height:11px;border-radius:1px;background:#09090b url("assets/ui/hpbar_back.png") repeat-x center;border:1px solid #1a1a1f;box-shadow:inset 0 1px 4px rgba(0,0,0,0.95);position:relative;overflow:hidden;}',
+    '#stp .xp-fill{height:100%;background:#1c72e6 url("assets/ui/statusEXP1.png") repeat-x center;box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);transition:width 0.2s ease;}',
     '#stp .xpt{font-size:10px;color:#8fa4c2;font-family:system-ui, sans-serif;display:flex;justify-content:space-between;margin-top:3px;}',
-    '#stp .pts{margin:10px 0 12px;padding:8px 12px;border-radius:3px;background:linear-gradient(180deg, rgba(35,48,75,0.7) 0%, rgba(14,20,32,0.85) 100%);border:1px solid #5a4828;box-shadow:inset 0 0 0 1px #8a6c32;display:flex;justify-content:space-between;align-items:center;font-family:system-ui, sans-serif;font-weight:700;}',
+    '#stp .pts{margin:10px 0 12px;padding:8px 12px;border-radius:2px;background:#0b0f18 url("assets/ui/TargetBack.png") repeat;border:1px solid #3c301c;box-shadow:inset 0 0 0 1px #8a7038;display:flex;justify-content:space-between;align-items:center;font-family:system-ui, sans-serif;font-weight:700;}',
     '#stp .pts b{color:#ffd166;font-size:18px;font-family:"Cinzel", Georgia, serif;}',
-    '#stp .sec-tit{font-size:11px;letter-spacing:.14em;color:#d4af37;margin:12px 0 6px;font-weight:700;border-bottom:1px solid rgba(164,130,62,0.18);padding-bottom:3px;}',
+    '#stp .sec-tit{font-size:11px;letter-spacing:.14em;color:#d4af37;margin:12px 0 6px;font-weight:700;border-bottom:1px solid rgba(138,112,56,0.25);padding-bottom:3px;}',
     '#stp .row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-family:system-ui, sans-serif;}',
     '#stp .row .nm{flex:1;min-width:0}',
     '#stp .row .nm b{display:block;font-size:13px;color:#fff;font-family:"Cinzel", Georgia, serif;letter-spacing:0.04em;}',
     '#stp .row .nm small{color:#8fa4c2;font-size:10.5px;line-height:1.3;display:block;margin-top:1px;}',
     '#stp .row .val{min-width:64px;text-align:right;font:800 17px system-ui;color:#ffd166}',
     '#stp .row .val em{font-style:normal;color:#7ee0a0;font-size:12px;margin-left:3px}',
-    '#stp button{background:linear-gradient(180deg, #2a3a5c 0%, #121a2c 100%);border:1px solid #5a4828;box-shadow:inset 0 0 0 1px #8a6c32;border-radius:3px;color:#eaf2ff;font:700 12px system-ui;min-width:34px;min-height:30px;cursor:pointer;padding:0 8px;transition:all 0.15s ease;}',
-    '#stp button:hover:not(:disabled){background:linear-gradient(180deg, #3d5485 0%, #1a253f 100%);border-color:#d4af37;}',
+    '#stp button{background:url("assets/ui/SystemWindowButton.png") no-repeat center / 100% 100%;border:1px solid #3c301c;border-radius:2px;color:#f0e6c8;font:700 11.5px "Cinzel", Georgia, serif;min-width:32px;min-height:28px;cursor:pointer;padding:0 8px;text-shadow:0 1px 2px #000;transition:all 0.12s ease;}',
+    '#stp button:hover:not(:disabled){background-image:url("assets/ui/SystemWindowButton_click.png");color:#ffffff;border-color:#d4af37;}',
     '#stp button:disabled{opacity:.35;cursor:default}',
-    '#stp button.pri{background:linear-gradient(180deg, #d4a017 0%, #8a6500 100%);border-color:#ffd166;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 8px rgba(212,160,23,0.4);font-weight:800;}',
+    '#stp button.pri{filter:brightness(1.2) sepia(0.3);font-weight:800;}',
     '#stp .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;padding:6px 0 10px;font-family:system-ui, sans-serif;font-size:11.5px;}',
     '#stp .stats-grid div{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);padding:3px 0;}',
     '#stp .stats-grid span{color:#8fa4c2;}',
     '#stp .stats-grid b{color:#fff;}',
     '#stp .foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}',
-    '#stp .foot button{flex:1 1 30%;min-height:38px;font-size:11.5px;letter-spacing:0.04em;}',
+    '#stp .foot button{flex:1 1 30%;min-height:36px;font-size:11.5px;letter-spacing:0.04em;}',
     '#stp .aviso{margin-top:10px;font-size:11px;color:#ff9a9a;font-family:system-ui, sans-serif;}',
     '#stBtn{position:fixed;z-index:60;left:10px;top:10px;display:none;}'
   ].join('\n');
 
   function css(){
-    if(document.getElementById('stpcss')) return;
-    var s = document.createElement('style'); s.id = 'stpcss'; s.textContent = CSS;
-    document.head.appendChild(s);
+    var s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s);
   }
 
   function carrega(cb){
-    if(P) return cb();
-    fetch('data/progressao.json?v=1').then(function(r){ return r.json(); }).then(function(j){ P = j; cb(); }).catch(function(){ P = { classes: {}, atributos: {}, efeitos: {} }; cb(); });
+    if(P) return cb && cb();
+    fetch('data/progressao.json').then(function(r){ return r.json(); }).then(function(j){
+      P = j; cb && cb();
+    }).catch(function(){
+      P = { atributos: { for: { nome: 'Força' }, int: { nome: 'Inteligência' }, agi: { nome: 'Agilidade' }, vit: { nome: 'Vitalidade' } } };
+      cb && cb();
+    });
   }
 
-  function S(){ return window.S || {}; }
-  function gastos(){ return ATTRS.reduce(function(a, k){ return a + pend[k]; }, 0); }
+  function S(){
+    try { if(window.Net && Net.getS) return Net.getS(); } catch(e){}
+    try { if(typeof S !== 'undefined') return S; } catch(e){}
+    return {};
+  }
+
   function livres(){ return Math.max(0, (S().pontos | 0) - gastos()); }
+  function gastos(){ return pend.for + pend.int + pend.agi + pend.vit; }
 
   function efeito(k){
-    var e = P.efeitos || {}, c = (P.classes || {})[S().classe] || {}, dano = c.danoAttr === k;
-    if(k === 'for' || k === 'int') return dano ? '+' + e.danoPct + '% de dano por ponto (sua classe usa ' + (k === 'for' ? 'Força' : 'Inteligência') + ')' : 'Não afeta o dano principal';
-    if(k === 'agi') return '+' + (e.corridaPorAgi * 100).toFixed(1) + '% vel. corrida por ponto (máx +' + Math.round(e.corridaMax * 100) + '%)';
-    return '+' + e.vidaPorVit + ' vida, +' + e.defesaPorVit + '% defesa e +' + e.estaminaPorVit + '% regen. estamina';
+    var e = (P && P.efeitos && P.efeitos[k]) || {};
+    if(k === 'for') return '+' + e.danoPorFor + '% dano físico';
+    if(k === 'int') return '+' + e.danoPorInt + '% dano mágico';
+    if(k === 'agi') return '+' + e.critPorAgi + '% crítico e +' + e.recargaPorAgi + '% recarga';
+    if(k === 'vit') return '+' + e.vidaPorVit + ' vida e +' + e.estaminaPorVit + '% regen. estamina';
+    return '';
   }
 
   function build(){
@@ -88,7 +98,7 @@
 
   function render(){
     if(!el || !P) return;
-    var s = S(), c = (P.classes || {})[s.classe] || {}, on = !!(window.Net && Net.on), st = s.atr || {}, base = c.inicial || {};
+    var s = S(), c = (P.classes || {})[s.classe] || {}, on = !!(window.Net && Net.on), st = s.atr || {};
     var need = s.need || 1, pct = Math.min(100, Math.round((s.xp | 0) / need * 100));
     var pmax = s.pmax || s.maxhp || 100;
     var danoTotal = 100 + (s.st ? (s.st.dano || 0) : 0);
@@ -101,7 +111,7 @@
       '    <h3>🛡️ ' + (c.nome || 'Guerreiro') + ' · Nv ' + (s.lvl || 1) + '</h3>',
       '    <div class="sub">' + (c.armaNome || 'Combatente') + (s.max ? ' · Nível máx ' + s.max : '') + '</div>',
       '  </div>',
-      '  <button class="x" data-a="x" title="Fechar (Esc / U)">✕</button>',
+      '  <button class="x" data-a="x" title="Fechar (Esc / U)"></button>',
       '</div>',
       '<div class="xp-bloco">',
       '  <div class="xp-trilho"><div class="xp-fill" style="width:' + pct + '%"></div></div>',
