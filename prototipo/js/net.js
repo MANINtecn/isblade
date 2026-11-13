@@ -264,11 +264,23 @@ export const Net = (function(){
       '#btnReturnCity,#netBtn,#mbfs,#btnFightBaiumDirect{margin-top:var(--party-h,0px)!important}' +
       '#netPed{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:66;display:none;min-width:250px;max-width:94vw;padding:10px 12px;border-radius:10px;background:rgba(8,12,24,.94);box-shadow:inset 0 0 0 2px #ffd166,0 8px 24px rgba(0,0,0,.7);color:#fff;font:600 13px system-ui,sans-serif;text-align:center}' +
       '#netPed b{color:#ffd166}#netPed .a{display:flex;gap:8px;margin-top:8px}#netPed button{flex:1;padding:10px 6px;border-radius:8px;border:0;font:800 12px system-ui,sans-serif;letter-spacing:.06em;cursor:pointer}#netPed .ok{background:#2fae5a;color:#fff}#netPed .no{background:#3a4260;color:#dbe6ff}#netPed small{display:block;color:#8fa6c4;font-weight:500;margin-top:2px}' +
-      '#netAlvo{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:64;display:none;min-width:230px;max-width:92vw;padding:8px 10px;border-radius:10px;background:rgba(8,12,24,.88);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45),0 6px 20px rgba(0,0,0,.6);color:#e8f3ff;font:600 12px system-ui,sans-serif}' +
-      '#netAlvo .t{display:flex;align-items:center;gap:8px;margin-bottom:6px}#netAlvo .t b{flex:1;font-size:13px;letter-spacing:.06em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#netAlvo .t small{color:#8fa6c4;font-weight:500}#netAlvo .x{background:none;border:0;color:#8fa6c4;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}' +
-      '#netAlvo .hp{height:6px;border-radius:3px;background:#222a40;overflow:hidden;margin-bottom:7px}#netAlvo .hp b{display:block;height:100%;background:#f03a2e;transition:width .15s}' +
-      '#netAlvo .a{display:flex;gap:6px;flex-wrap:wrap}#netAlvo .a button{flex:1;min-width:64px;padding:8px 6px;border-radius:7px;border:1px solid rgba(120,196,255,.5);background:rgba(20,34,62,.9);color:#e8f3ff;font:700 11px system-ui,sans-serif;cursor:pointer;letter-spacing:.04em}' +
-      '#netAlvo .a button:disabled{opacity:.35;cursor:default}#netAlvo .a button:active{background:rgba(60,100,170,.9)}';
+      '#netAlvo{position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:64;display:none;width:310px;max-width:92vw;padding:8px 12px 10px 12px;border-radius:4px;background:linear-gradient(180deg, rgba(22,28,42,0.96) 0%, rgba(10,14,24,0.98) 100%);border:2px solid #5a4828;box-shadow:inset 0 0 0 1px #a4823e, inset 0 0 16px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.75);color:#eaf2ff;font-family:"Cinzel", Georgia, "Times New Roman", serif;user-select:none}' +
+      '#netAlvo .t{display:flex;align-items:center;gap:9px;margin-bottom:6px}' +
+      '#netAlvo .l2-brasao{width:32px;height:32px;border-radius:50%;flex-shrink:0;border:1px solid #d4af37;background:radial-gradient(circle, #22324f 0%, #0d1422 100%);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:inset 0 0 6px rgba(0,0,0,0.8), 0 0 6px rgba(212,175,55,0.4)}' +
+      '#netAlvo .l2-info{flex:1;min-width:0}' +
+      '#netAlvo .l2-nome-linha{display:flex;align-items:baseline;justify-content:space-between;gap:6px}' +
+      '#netAlvo .t b{font-size:13px;font-weight:700;letter-spacing:0.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000, 0 0 8px rgba(0,0,0,0.9);color:#fff}' +
+      '#netAlvo .l2-badge-nv{font-size:10px;font-weight:800;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.65);border:1px solid #4a3a1f;flex-shrink:0;font-family:system-ui, sans-serif;color:#ffd166}' +
+      '#netAlvo .t small{font-size:10px;font-weight:600;color:#8fa4c2;letter-spacing:0.03em;font-family:system-ui, sans-serif;display:block;margin-top:1px}' +
+      '#netAlvo .x{width:18px;height:18px;border-radius:3px;background:rgba(0,0,0,0.45);border:1px solid #5a4828;color:#a4823e;font-size:12px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s ease}' +
+      '#netAlvo .x:hover{background:#a4823e;color:#000}' +
+      '#netAlvo .hp{height:9px;border-radius:2px;background:#140507;border:1px solid #45151a;box-shadow:inset 0 1px 3px rgba(0,0,0,0.95);position:relative;overflow:hidden;margin-bottom:7px}' +
+      '#netAlvo .hp b{display:block;height:100%;background:linear-gradient(180deg, #ff7a6b 0%, #e61c1c 42%, #a80808 55%, #590000 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.45), 0 0 8px rgba(230,28,28,0.5);transition:width 0.15s ease}' +
+      '#netAlvo .a{display:flex;gap:6px;flex-wrap:wrap}' +
+      '#netAlvo .a button{flex:1;min-width:64px;padding:6px 4px;border-radius:3px;border:1px solid #5a4828;box-shadow:inset 0 0 0 1px #8a6c32;background:linear-gradient(180deg, #24334f 0%, #101826 100%);color:#eaf2ff;font:700 11px system-ui,sans-serif;cursor:pointer;letter-spacing:.04em;transition:all 0.15s ease}' +
+      '#netAlvo .a button:hover:not(:disabled){background:linear-gradient(180deg, #354b73 0%, #182338 100%);border-color:#d4af37}' +
+      '#netAlvo .a button:disabled{opacity:.35;cursor:default}' +
+      '#netAlvo .a button:active{background:linear-gradient(180deg, #101826 0%, #24334f 100%)}';
     document.head.appendChild(st);
   }
   function criaMenu(){
@@ -385,7 +397,9 @@ export const Net = (function(){
   function desenhaAlvo(){
     if(!alvoEl) return; var e = alvo(); if(!e){ alvoEl.style.display = 'none'; alvoEl._h = ''; return; }
     var g = N.grupo, souLider = !g || g.lider === N.sid, jaNoGrupo = noGrupo(e.id), k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
-    var h = '<div class="t"><b>' + esc(e.nome) + '</b><small>Nv ' + (e.lv || 1) + ' · ' + esc(bonito(e.raca)) + '</small><button class="x" data-a="x">×</button></div><div class="hp"><b style="width:' + Math.round(k * 100) + '%"></b></div><div class="a">' +
+    var ico = e.arma === 'shield' ? '🛡️' : (e.arma === 'staff' ? '🔮' : '⚔️');
+    var h = '<div class="t"><div class="l2-brasao">' + ico + '</div><div class="l2-info"><div class="l2-nome-linha"><b>' + esc(e.nome) + '</b><span class="l2-badge-nv">Nv ' + (e.lv || 1) + '</span></div><small>' + esc(bonito(e.raca)) + (e.arma === 'shield' ? ' · Guardião' : (e.arma === 'staff' ? ' · Mago' : ' · Espadachim')) + '</small></div><button class="x" data-a="x" title="Fechar alvo">×</button></div>' +
+      '<div class="hp"><b style="width:' + Math.round(k * 100) + '%"></b></div><div class="a">' +
       '<button data-a="grupo"' + ((jaNoGrupo || !souLider || e.party) ? ' disabled' : '') + '>' + (jaNoGrupo ? 'NO GRUPO' : 'GRUPO') + '</button>' +
       '<button data-a="duelo"' + ((N.mapa !== 'cidade' || N.duelo) ? ' disabled' : '') + '>DUELO</button><button data-a="perfil">PERFIL</button><button data-a="mais">MAIS</button></div>';
     if(alvoEl._h !== h){ alvoEl._h = h; alvoEl.innerHTML = h; } alvoEl.style.display = 'block';

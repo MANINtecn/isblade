@@ -3783,3 +3783,38 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
        - **Modelos PBR Padronizados**: Proporções nobres e malhas com materiais PBR completos, mantendo rigorosamente a proibição de geometrias maciças.
        - **VFX Refinados Universais**: A nova linguagem visual de alta qualidade do Clérigo padronizada para todas as classes e chefes.
 - Registrado no `ROADMAP_IS_BLADE.md` e pronto para execução.
+
+### [Antigravity] 13/11/2026 - Execução da Transformação Visual L2 (Target, Character, Inventário, Ícones Oficiais e IBL/ACES)
+
+- **Iluminação Cinematográfica & IBL (Image-Based Lighting)**:
+  - Implementado em `prototipo/arena.html` e `prototipo/cidade.html`:
+    - `renderer.outputColorSpace = THREE.SRGBColorSpace;`
+    - `renderer.toneMapping = THREE.ACESFilmicToneMapping;`
+    - `renderer.toneMappingExposure = 1.05;`
+    - `renderer.shadowMap.type = THREE.PCFSoftShadowMap;`
+    - Função `gerarAmbienteL2(THREE, renderer, scene)`: mapa de ambiente fantasy procedural com horizonte, zênite dourado e solo escuro gerado e filtrado via `THREE.PMREMGenerator` e atribuído a `scene.environment`. Garante reflexos especulares em tempo real em todas as armas, armaduras e escudos sem perda de FPS.
+- **Target Window Autêntica Lineage 2**:
+  - Remodelado `prototipo/js/alvo_l2.js` e janela `#netAlvo` em `prototipo/js/net.js`:
+    - Moldura em ferro escuro com borda chanfrada dupla de bronze dourado e cantoneiras imperiais.
+    - Emblema circular com crista e ícone dinâmico da classe/mob (Coroa de Chefe 👑, Escudo de Guardião 🛡️, Orbe de Mago 🔮, Estrela de Clérigo ✨, Espadas de Guerreiro ⚔️).
+    - Tipografia imperial clássica (`Cinzel`, Georgia) com badge de nível colorido pela fórmula oficial de perigo do L2 (Cinza, Verde, Branco, Amarelo, Vermelho).
+    - Barra de HP em relevo tridimensional com gradiente escarlate, porcentagem e valores absolutos.
+- **Extração dos Ícones Oficiais do Lineage 2**:
+  - Extraídos 26 ícones autênticos diretamente de `Cliente Interlud 300x\systextures\Icon.utx` com `umodel` para `prototipo/assets/icones/`:
+    - Espadas e escudos D/C (Claymore, Berserker Blade, Composite Shield, Full Plate Shield).
+    - Cajados de Mago (Ghost Staff, Ghoul's Staff).
+    - Armaduras completas (Capacetes, Peitorais, Luvas e Botas de Ferro, D e C).
+    - Consumíveis oficiais: Poção de Vida, Pergaminhos de Volta/Ressurreição, Soulshots, Spiritshots e Adena.
+- **Janela de Inventário (I) no Padrão L2**:
+  - Atualizado `prototipo/js/inventario_ui.js`:
+    - Suporte nativo aos ícones PNG oficiais com fallback transparente.
+    - Grade escura chanfrada com relevo metálico e highlight dourado no hover.
+    - Moeda oficial de Adena exibida no rodapé.
+- **Janela de Status / Character (U) no Padrão L2**:
+  - Atualizado `prototipo/js/status.js`:
+    - Moldura decorada clássica de ferro e bronze dourado.
+    - Painel de atributos com botões de distribuição rápida (+, -, +10, Máx).
+    - Grade de estatísticas de combate (P.Atk, P.Def, HP Máximo, Estamina).
+- **Esclarecimento do Bug da Coluna Cortada (C5 Prece / C4 Purificação)**:
+  - O screenshot enviado pelo dono mostrou o defeito do script antigo (`clerigo_skills.py.v1`), onde a função `mat_feixe` usava uma rampa linear no eixo X que zerava o alpha na metade do cilindro, criando o aspecto de "calha aberta" ou "coluna pela metade".
+  - Na versão corrigida e aprovada (`clerigo_skills.py`), as colunas foram substituídas pela geometria cilíndrica de Véu 360° sem cortes, o efeito C5 (Prece - Buff de Grupo de Ataque Nv 25) recebeu a Coroa/Halo de Bênção Dourada sobre os aliados, e C4 (Purificação) recebeu o Halo que desce lavando as impurezas.

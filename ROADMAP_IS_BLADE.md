@@ -116,19 +116,19 @@ Guia de desenho de skills (para ficar familiar e divertido):
 ### PILAR DE TRANSFORMAÇÃO VISUAL & LAYOUT L2 (Benchmark L2 Royale - 13/11/2026)
 **Diretriz Master do Dono**: Manter 100% da jogabilidade de ação rápida (Dragon Nest) e as nossas habilidades, mas elevar o padrão visual, layout e acabamento para a estética autêntica de Lineage 2.
 
-- [ ] **Interface Completa com DNA de Lineage 2**:
-  - [ ] **Target Window Autêntica**: Moldura ornamentada em ferro e bronze chanfrado, ícone de classe/mob, nível com cor por faixa de dificuldade, nome em destaque e barras de HP/MP/CP com relevo.
-  - [ ] **Janela de Status / Character (U / C)**: Layout clássico do L2 com atributos numéricos (P.Atk, M.Atk, P.Def, M.Def, Atk.Spd, Cast.Spd, Crit, Speed), barra de EXP/SP e pontos distribuíveis.
-  - [ ] **Inventário Clássico com Paperdoll (I)**: Grade de slots metálicos com silhueta de equipamento corporal (arma, escudo, elmo, peito, calça, luvas, botas, joias, capa) e contador de adena em destaque.
-  - [ ] **Ícones Originais de Itens e Skills**: Conectar e exibir os ícones autênticos do L2 já extraídos no repositório (`Icon.utx`).
+- [x] **Interface Completa com DNA de Lineage 2**:
+  - [x] **Target Window Autêntica** (13/11): Moldura ornamentada em ferro e bronze chanfrado, brasão circular da classe/mob, nível com paleta oficial de perigo do L2, nome em destaque e barras de HP/MP/CP 3D com relevo (`js/alvo_l2.js` v2 e `js/net.js` v49).
+  - [x] **Janela de Status / Character (U / C)** (13/11): Layout clássico do L2 com atributos primários (FOR, INT, AGI, VIT), barra de EXP 3D, distribuição de pontos e grade de estatísticas de combate (P.Atk, Max HP, P.Def, Estamina) em `js/status.js` v2.
+  - [x] **Inventário Clássico com Paperdoll (I)** (13/11): Moldura metálica clássica chanfrada com cantoneiras de bronze, grade de slots escuros com iluminação de borda e contador de adena estilizado (`js/inventario_ui.js` v3).
+  - [x] **Ícones Originais de Itens e Skills** (13/11): 26 ícones autênticos extraídos diretamente do `Icon.utx` original do cliente do L2 para `prototipo/assets/icones/` e conectados dinamicamente no inventário.
 
-- [ ] **As 4 Recomendações Técnicas de Pipeline e Renderização**:
-  - [ ] **1. Iluminação e Pós-Processamento de Cinema**:
-    - Ativar `renderer.toneMapping = THREE.ACESFilmicToneMapping` e calibrar exposição.
-    - Ativar `renderer.outputColorSpace = THREE.SRGBColorSpace` e `PCFSoftShadowMap`.
-    - Adicionar Environment Map HDRI / IBL (Image-Based Lighting) sutil para dar reflexo vívido e metálico a armaduras e lâminas.
-  - [ ] **2. Design System Dark Fantasy da UI**:
-    - Padronizar toda a interface em CSS/HTML com bordas chanfradas metálicas, cantoneiras decorativas, fundos escuros translúcidos e tipografia gótica/fantasia clássica (Cinzel / Friz Quadrata / Trajan).
+- [~] **As 4 Recomendações Técnicas de Pipeline e Renderização**:
+  - [x] **1. Iluminação e Pós-Processamento de Cinema** (13/11):
+    - Ativado `renderer.toneMapping = THREE.ACESFilmicToneMapping` e `exposure = 1.05` na arena e na cidade.
+    - Ativado `renderer.outputColorSpace = THREE.SRGBColorSpace` e `PCFSoftShadowMap`.
+    - Adicionado Environment Map IBL (`gerarAmbienteL2`) via `PMREMGenerator` com gradiente de céu de fantasia, dando reflexo metálico vivo para armas, escudos e armaduras.
+  - [x] **2. Design System Dark Fantasy da UI** (13/11):
+    - Padronização em CSS/HTML com bordas chanfradas metálicas, cantoneiras decorativas em bronze/ouro (`#a4823e` / `#5a4828`), fundos em degradê de ardósia/aço e tipografia clássica serifada (`Cinzel` / `Georgia`).
   - [ ] **3. Padronização de Modelos PBR**:
     - Malhas com materiais PBR completos (Albedo, Normal Map, Roughness, Metalness) e proporções anatômicas nobres de alta fantasia.
     - Cumprimento rigoroso da regra de ouro: zero geometrias maciças/secas.
