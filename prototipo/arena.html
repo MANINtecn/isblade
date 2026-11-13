@@ -638,18 +638,6 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
   <h3>CONFIGURACOES</h3>
 
-  <a href="cidade.html" style="display:block;margin:8px 0 14px;padding:10px 14px;background:rgba(245,196,81,.18);border:1.5px solid var(--gold);color:var(--gold);font-weight:800;text-decoration:none;text-align:center;border-radius:6px;font-size:12px;letter-spacing:.06em;pointer-events:auto;cursor:pointer">🏰 SAIR DO DUELO E VOLTAR PARA A VILA</a>
-
-  <label><input type="checkbox" id="cfgCombo"><span>Interface de combos e gestos<small>Livro de combos, guia do proximo golpe, botoes 1-6 e barra da sequencia. Funcao em espera, sera retomada no futuro.</small></span></label>
-
-  <h3 style="margin-top:14px">MODO DE JOGO</h3>
-
-  <div id="cfgMode" class="wpn"><button type="button" data-m="dungeon">Santuario + Dungeon</button><button type="button" data-m="duel">Arena do chefe</button></div>
-
-  <button id="cfgRestart" type="button" style="margin-top:6px;pointer-events:auto;cursor:pointer;font:inherit;font-size:11px;color:var(--ink);background:rgba(90,169,255,.1);border:1px solid var(--line);border-radius:3px;padding:3px 10px">Voltar ao santuario</button>
-
-  <div class="hint" style="margin-top:6px">Trocar o modo recarrega o jogo. Santuario + Dungeon: voce comeca num santuario, entra no portal e escolhe a dificuldade (Normal, Medio ou Hard): 3 salas com obstaculos e mobs e o chefe no fim.</div>
-
   <h3 style="margin-top:14px">GRAFICOS</h3>
 
   <label><input type="checkbox" id="cfgBloom"><span>Brilho nos efeitos (bloom)<small>Da o acabamento macio e luminoso das skills. Desligue se o jogo ficar pesado.</small></span></label>
@@ -662,14 +650,6 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <div style="display:flex;align-items:center;gap:8px"><span>Volume</span><input type="range" id="cfgVol" min="0" max="100" step="5" style="flex:1"><b id="cfgVolV" style="width:34px;text-align:right"></b></div>
 
   <label style="margin-top:6px"><input type="checkbox" id="cfgMute"><span>Mudo</span></label>
-
-  <h3 style="margin-top:14px">MODO TREINO</h3>
-
-  <label><input type="checkbox" id="cfgTrain"><span>Alvo de treino<small>O chefe nao ataca nem morre, e aparece um medidor de dano, DPS e combo.</small></span></label>
-
-  <label style="margin-top:6px"><input type="checkbox" id="cfgNoCd"><span>Sem recarga das skills</span></label>
-
-  <label style="margin-top:6px"><input type="checkbox" id="cfgInf"><span>Estamina infinita</span></label>
 
   <h3 style="margin-top:14px">ATALHOS DA BARRA (SKILLS)</h3>
 
@@ -7490,19 +7470,19 @@ function buildPad(){
 
   var cb=$('#cfgCombo'),btn=$('#cfgBtn'),box=$('#cfg');
 
-  function setCombo(on){document.body.classList.toggle('combo-ui',on);cb.checked=on;try{localStorage.setItem('isblade.comboUI',on?'1':'0');}catch(_){}}
+  function setCombo(on){document.body.classList.toggle('combo-ui',on);if(cb)cb.checked=on;try{localStorage.setItem('isblade.comboUI',on?'1':'0');}catch(_){}}
 
   var saved=false;try{saved=localStorage.getItem('isblade.comboUI')==='1';}catch(_){}
 
   setCombo(saved);
 
-  cb.addEventListener('change',function(){setCombo(cb.checked);});
+  if(cb)cb.addEventListener('change',function(){setCombo(cb.checked);});
 
-  btn.addEventListener('click',function(){box.classList.toggle('open');});
+  if(btn)btn.addEventListener('click',function(){box.classList.toggle('open');});
 
-  ['invBtn','skBtn'].forEach(function(id){var b=document.getElementById(id);b.addEventListener('pointerdown',function(e){e.stopPropagation();});b.addEventListener('click',function(){if(id==='invBtn')toggleInv();else toggleSk();});});
+  ['invBtn','skBtn'].forEach(function(id){var b=document.getElementById(id);if(b){b.addEventListener('pointerdown',function(e){e.stopPropagation();});b.addEventListener('click',function(){if(id==='invBtn')toggleInv();else toggleSk();});}});
 
-  ['pointerdown','keydown'].forEach(function(ev){box.addEventListener(ev,function(e){e.stopPropagation();});btn.addEventListener(ev,function(e){e.stopPropagation();});});
+  ['pointerdown','keydown'].forEach(function(ev){if(box)box.addEventListener(ev,function(e){e.stopPropagation();});if(btn)btn.addEventListener(ev,function(e){e.stopPropagation();});});
 
 
 
@@ -7516,7 +7496,7 @@ function buildPad(){
 
   });
 
-  $('#cfgRestart').addEventListener('click',function(){if(DG.on){dgHub();}else gestMsg('Disponivel no modo Santuario + Dungeon');});
+  var rst=$('#cfgRestart');if(rst)rst.addEventListener('click',function(){if(DG.on){dgHub();}else gestMsg('Disponivel no modo Santuario + Dungeon');});
 
   /* graficos */
 
@@ -7538,13 +7518,11 @@ function buildPad(){
 
   var cT=$('#cfgTrain'),cN=$('#cfgNoCd'),cI=$('#cfgInf');
 
-  cT.checked=TRAIN.on;cN.checked=TRAIN.nocd;cI.checked=TRAIN.inf;
+  if(cT){cT.checked=TRAIN.on;cT.addEventListener('change',function(){TRAIN.on=cT.checked;saveTrain();if(TRAIN.on)trainReset();else{S.en.wait=1.2;renderTrain(true);}});}
 
-  cT.addEventListener('change',function(){TRAIN.on=cT.checked;saveTrain();if(TRAIN.on)trainReset();else{S.en.wait=1.2;renderTrain(true);}});
+  if(cN){cN.checked=TRAIN.nocd;cN.addEventListener('change',function(){TRAIN.nocd=cN.checked;saveTrain();});}
 
-  cN.addEventListener('change',function(){TRAIN.nocd=cN.checked;saveTrain();});
-
-  cI.addEventListener('change',function(){TRAIN.inf=cI.checked;saveTrain();});
+  if(cI){cI.checked=TRAIN.inf;cI.addEventListener('change',function(){TRAIN.inf=cI.checked;saveTrain();});}
 
   $('#trainReset').addEventListener('click',function(){trainReset();});
 

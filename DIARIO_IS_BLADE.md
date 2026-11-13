@@ -3921,3 +3921,27 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Folhas de Estilo e Integração**:
   - Criado `prototipo/css/l2_hud.css` e linkado em `cidade.html`, `arena.html` e `preview_l2_interface.html`.
   - `prototipo/js/mu_hud.js` unificado para redirecionar para a interface oficial do L2 sem quebrar dependências de código legado.
+
+### [Claude] 13/11/2026 - Auditoria (so leitura): progressao, XP dos mobs, spots e dificuldade
+
+- Nada foi alterado no jogo. Medido com script proprio sobre progressao.json, dungeon.json, spots.json, mundo_grade e os modulos do servidor; a falha 1 foi confirmada em servidor temporario (porta 8013, dados em pasta temporaria).
+- **1 (grave) XP por mensagem:** server.js aceita `{t:xp, tipo, dif}` na cidade, no pvp e na masmorra com tipo/dif escolhidos pelo cliente. Teste: 20 mensagens (arcanjo/hard) em 4 s parado na cidade = Nv 1 -> 23, 17.091 adena e 24 itens. O `mhit` tambem confia no dano do cliente (ate 2.500 por golpe, 30/s).
+- **2 Bonus de XP sem limite de diferenca:** Nv 1 que mata (ou esta na party a 40 m de quem mata) Golem de Lava Nv 43 ganha 176 XP, mais de 2 niveis por abate; na DG todos ganham XP cheio sem divisao.
+- **3 Teto de conteudo:** mapa aberto acaba no Nv 43; Nv 50 precisa de 336 golens por nivel (ideal 182), Nv 55+ cai no piso de 5%. Entre 46 e 50 so a DG hard. Acima de ~72 nada da XP util (nivelMax 400).
+- **4 XP x vida do mob desalinhado:** fantasma Nv 20 (60 de vida) rende 0,90 XP por ponto de vida, formiga Nv 17 rende 0,56, cavaleiro 0,28, anjo 0,19, overlord 0,18. Videntes pagam demais; mobs de armadura pagam de menos. O ritmo de 240 abates/h do simulador nao vale acima do Nv 45.
+- **5 Spots:** os 78 spots tem chao valido (0 falhas em 200 sorteios cada). Problemas de posicao: 2 spots de Espreitador da Cruma ficam fora da regiao da Cruma (campo), um deles com o chao do mapa 6 m abaixo do terreno; 5 spots do campo caem dentro da regiao de outro mapa (um na regiao da Torre); 1 par colado a 10,9 m (Stakato Nv 9 do campo x Olho Nv 21 da Fortaleza). NAO conferido visualmente.
+- **6 Menores:** Cruma repete os 4 mobs do campo (Nv 2-12); golem tem so 8 mobs (uns 4 jogadores); skillsNivel sem clerico; shade/brute/caster/mini_boss com nivel mas sem uso em spot/torre; data/mundo.json esta velho e ninguem le (vale o mundo_grade.json); sem nivel minimo para entrar nas DGs.
+- Arquivos de mapa, walkgrid e modelos de mob: nenhum faltando. Renderizacao dos mapas NAO foi testada no navegador nesta auditoria.
+- Correcoes ficam para depois da resposta do dono (regra: perguntar antes de mexer em servidor/dados).
+
+### [Antigravity] 13/11/2026 - Limpeza do Menu de Configurações (Config Modal)
+- **Elementos removidos conforme solicitação visual com X vermelho**:
+  - Removido botão `🏰 SAIR DO DUELO E VOLTAR PARA A VILA` do topo do menu de configurações.
+  - Removido checkbox e texto descritivo `Interface de combos e gestos`.
+  - Removida seção inteira `MODO DE JOGO` (`Santuario + Dungeon`, `Arena do chefe`, botão `Voltar ao santuario` e dica informativa).
+  - Removida seção inteira `MODO TREINO` (`Alvo de treino`, `Sem recarga das skills`, `Estamina infinita`).
+- **Segurança de Código**:
+  - Adicionadas verificações defensivas em `cidade.html` e `arena.html` para evitar erros de `null` em listeners (`addEventListener`) dos elementos removidos.
+  - Menu mantido limpo contendo apenas: `GRAFICOS`, `SOM` e `ATALHOS DA BARRA (SKILLS)`.
+- **Validação**:
+  - Testado via Playwright Headless Chrome com screenshot gerado em `preview_cfg_cleaned.png`.
