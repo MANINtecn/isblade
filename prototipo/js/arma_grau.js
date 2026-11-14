@@ -60,7 +60,7 @@
     },
     human_fighter: {
       sem: {
-        chest: 'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_u_sp.png',
+        chest: 'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_u.png',
         legs:  'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_l_sp.png',
         gloves:'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_g.png',
         boots: 'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_b.png'
@@ -530,7 +530,7 @@
 
     // Se o modelo 3D carregado já for uma armadura 3D completa nativa (GLB dedicado com armadura embutida),
     // NÃO sobrescrever com texturas 2D planas, pois as malhas e materiais originais do L2 já estão aplicados perfeitamente.
-    var glbUrl = (rig._currentGlbUrl || '').toLowerCase();
+    var glbUrl = (rig._currentGlbUrl || rig.modelUrl || '').toLowerCase();
     if(glbUrl.indexOf('_nograde.glb') >= 0 ||
        glbUrl.indexOf('_brigandine.glb') >= 0 ||
        glbUrl.indexOf('_fullplate.glb') >= 0 ||
@@ -691,6 +691,7 @@
       sem:   'assets/personagens/human_fighter_nograde.glb?v=2',
       D:     'assets/personagens/human_fighter_brigandine.glb?v=2',
       C:     'assets/personagens/human_fighter_fullplate.glb?v=2',
+      B:     'assets/personagens/human_fighter_doom.glb?v=2',
       A:     'assets/personagens/human_fighter_imperial.glb?v=2'
     }
   };

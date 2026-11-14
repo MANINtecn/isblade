@@ -17605,6 +17605,7 @@ function loadL2Player(modelUrl, sword, cb){
     cb({
       isL2: true,
       modelUrl: modelUrl,
+      _currentGlbUrl: modelUrl,
       root: root,
 
 
@@ -17784,6 +17785,8 @@ function switchCharacter(type){
 
         vrm = r;
         window.vrm = r;
+        r._currentGlbUrl = resolvedGlb;
+        r.modelUrl = resolvedGlb;
 
     /* >>> CLAUDE [guardiao] 2026-10-27 — junta os clipes g_* do Guardiao ao personagem */ Guardiao.anexarClipes(r, THREE); /* <<< CLAUDE [guardiao] */
 

@@ -19,7 +19,7 @@
   },
   "armazem": { "_nota": "Wilford: bau da CONTA (todos os personagens usam o mesmo). max = itens; taxa = adena por item guardado (retirar e de graca).", "max": 60, "taxa": 10 },
   "lojas": {
-    "galladucci": ["pocao_vida", "pergaminho_volta", "pergaminho_res", "soulshot", "spiritshot", "sword_long", "shield_guardian", "staff_arcane", "helmet_iron", "chest_plate", "gloves_hide", "boots_swift"],
-    "mammon": ["pocao_vida", "pergaminho_volta", "pergaminho_res", "soulshot", "spiritshot", "sword_long_d", "shield_guardian_d", "staff_arcane_d", "helmet_iron_d", "chest_plate_d", "gloves_hide_d", "boots_swift_d"]
+    "galladucci": ["pocao_vida", "pergaminho_volta", "pergaminho_res", "soulshot", "spiritshot", "sword_long", "shield_guardian", "staff_arcane", "helmet_iron", "chest_plate", "legs_plate", "gloves_hide", "boots_swift"],
+    "mammon": ["pocao_vida", "pergaminho_volta", "pergaminho_res", "soulshot", "spiritshot", "sword_long_d", "shield_guardian_d", "staff_arcane_d", "helmet_iron_d", "chest_plate_d", "legs_plate_d", "gloves_hide_d", "boots_swift_d"]
   }
 }

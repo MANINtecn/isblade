@@ -43,7 +43,12 @@
     var t = typeof b === 'string' ? b : tipoDe(b);
     var tam = o.tam || 32;
     var iconKey = id || t || 'sword_long';
-    return '<img src="assets/icones/' + iconKey + '.png" width="' + tam + '" height="' + tam + '" alt="" style="display:block;width:' + tam + 'px;height:' + tam + 'px;object-fit:cover;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';"/>';
+    var fallback = 'sword_long';
+    if(b && b.slot){
+      var slotMap = { helmet: 'helmet_iron', chest: 'chest_plate', legs: 'legs_plate', gloves: 'gloves_hide', boots: 'boots_swift', shield: 'shield_guardian', weapon: 'sword_long' };
+      fallback = slotMap[b.slot] || 'sword_long';
+    }
+    return '<img src="assets/icones/' + iconKey + '.png" width="' + tam + '" height="' + tam + '" alt="" style="display:block;width:' + tam + 'px;height:' + tam + 'px;object-fit:cover;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/' + fallback + '.png\';"/>';
   };
 
   function estilo(){
