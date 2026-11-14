@@ -105,12 +105,25 @@
       return null;
     };
     var acha = function(uidOrIt){
-      if(!uidOrIt) return null; if(typeof uidOrIt === 'object') return uidOrIt;
-      for(var k in E.inv.equip) if(E.inv.equip[k] && E.inv.equip[k].uid === uidOrIt) return E.inv.equip[k];
-      for(var i = 0; i < E.inv.items.length; i++) if(E.inv.items[i].uid === uidOrIt) return E.inv.items[i];
+      if(!uidOrIt) return null;
+      if(typeof uidOrIt === 'object') return uidOrIt;
+      if(E.inv && Array.isArray(E.inv.items)){
+        for(var i = 0; i < E.inv.items.length; i++){
+          if(E.inv.items[i] && E.inv.items[i].uid === uidOrIt) return E.inv.items[i];
+        }
+      }
       return null;
     };
-    var eqUid = {}; for(var k in E.inv.equip) if(E.inv.equip[k]) eqUid[E.inv.equip[k].uid] = k;
+    var eqUid = {};
+    if(E.inv && E.inv.equip){
+      for(var k in E.inv.equip){
+        var val = E.inv.equip[k];
+        if(val){
+          var itemUid = (typeof val === 'object' && val.uid) ? val.uid : String(val);
+          eqUid[itemUid] = k;
+        }
+      }
+    }
 
     var h = [
       '<div class="l2-inv-title">Inventory</div>',
@@ -314,6 +327,27 @@
           }
         }
         sel = u; conf = ''; U.render(box, E, op); return;
+      }
+    };
+
+    // Duplo clique nativo: equipa da bolsa ou desequipa da Paperdoll imediatamente
+    box.ondblclick = function(ev){
+      var t = ev.target.closest('[data-u]');
+      if(!t || !box.contains(t)) return;
+      ev.stopPropagation();
+      var u = t.getAttribute('data-u');
+      if(u){
+        if(u.indexOf('__c_') === 0){
+          var cKey = u.replace('__c_', '');
+          op.usar && op.usar(cKey);
+          sel = null; conf = ''; return;
+        }
+        var item = acha(u);
+        if(item){
+          if(eqUid[item.uid]) op.tirar(eqUid[item.uid]);
+          else op.equip(item.uid);
+          sel = null; conf = ''; return;
+        }
       }
     };
     if (window.L2Drag && typeof window.L2Drag.restore === 'function') {

@@ -91,6 +91,7 @@
   <!-- Janela de Skills (Nativa do L2) -->
   <div id="skp" class="open"></div>
 
+  <script src="js/arma_grau.js?v=38"></script>
   <script src="js/inventario_ui.js?v=38"></script>
   <script src="js/skills_ui.js?v=38"></script>
   <script type="module">
@@ -98,55 +99,133 @@
     window.S = { php: 14500, pmax: 14500, st: 100, lvl: 80, xp: 1425000, gauge: 100, gmax: 100 };
     L2Hud.init();
 
-    // Renderiza o Inventário com itens de teste
-    InvUI.render(document.getElementById('inv'), {
-      itm: {
-        bagMax: 80,
-        rarities: {
-          comum: { name: 'Comum', css: '#c9d1de', mult: 1, affixes: 0 },
-          raro: { name: 'Raro', css: '#5aa9ff', mult: 1.3, affixes: 1 },
-          epico: { name: 'Épico', css: '#c77dff', mult: 1.6, affixes: 2 },
-          lendario: { name: 'Lendário', css: '#ffd166', mult: 2.0, affixes: 3 }
-        },
-        slots: {
-          hair: 'Cabelo', helmet: 'Elmo', hair2: 'Acessório', underwear: 'Camisa', neck: 'Colar',
-          weapon: 'Arma', chest: 'Peitoral', shield: 'Escudo', rear: 'Brinco D', lear: 'Brinco E',
-          gloves: 'Luvas', legs: 'Calça', boots: 'Botas', rfinger: 'Anel D', lfinger: 'Anel E'
-        },
-        stats: { pAtk: { name: 'P.Atk', unit: '' }, pDef: { name: 'P.Def', unit: '' } }
+    // Estado do inventário para teste interativo 100% funcional
+    const itmData = {
+      bagMax: 80,
+      rarities: {
+        normal: { name: 'Normal', css: '#c9d1e6', mult: 1, affixes: 0 },
+        raro: { name: 'Raro', css: '#5aa9ff', mult: 1.3, affixes: 1 },
+        epico: { name: 'Épico', css: '#b45aff', mult: 1.7, affixes: 2 },
+        lendario: { name: 'Lendário', css: '#ffd166', mult: 2.3, affixes: 3 }
       },
-      inv: {
-        equip: {
-          weapon: 'item_sword_kesh',
-          helmet: 'item_helm_doom',
-          chest: 'item_armor_doom',
-          shield: 'item_shield_doom'
-        },
-        items: [
-          { uid: 'item_sword_kesh', base: 'keshanberk', rar: 'epico', en: 7 },
-          { uid: 'item_helm_doom', base: 'doom_helmet', rar: 'raro', en: 4 },
-          { uid: 'item_armor_doom', base: 'doom_armor', rar: 'epico', en: 6 },
-          { uid: 'item_shield_doom', base: 'shield_doom', rar: 'raro', en: 5 },
-          { uid: 'it_soulshot', base: 'soulshot', rar: 'comum' },
-          { uid: 'it_pocao', base: 'pocao_vida', rar: 'comum' }
-        ]
+      slots: {
+        hair: 'Cabelo', helmet: 'Elmo', hair2: 'Acessório', underwear: 'Camisa', neck: 'Colar',
+        weapon: 'Arma', chest: 'Peitoral', shield: 'Escudo', rear: 'Brinco D', lear: 'Brinco E',
+        gloves: 'Luvas', legs: 'Calça', boots: 'Botas', rfinger: 'Anel D', lfinger: 'Anel E'
       },
-      st: { pAtk: 980, pDef: 720 },
-      pmax: 14500,
-      conj: null,
-      adena: 4850200,
-      srv: true,
-      consum: { soulshot: 1500, pocao_vida: 50 },
-      lvl: 80
-    }, {
-      equip: function(uid){ console.log('Equipar:', uid); },
-      tirar: function(slot){ console.log('Tirar slot:', slot); },
-      descartar: function(uid){ console.log('Descartar:', uid); },
-      usar: function(cKey){ console.log('Usar:', cKey); },
-      fechar: function(){ document.getElementById('inv').classList.toggle('open'); },
-      statsDe: function(){ return { pAtk: 240, pDef: 120 }; },
-      nome: function(it){ return it.base || 'Item L2'; }
-    });
+      graus: {
+        sem: { name: 'Sem grau', css: '#9aa4b8', nivel: 1 },
+        D: { name: 'Grau D', css: '#7fd6a0', nivel: 20 },
+        C: { name: 'Grau C', css: '#ffd36a', nivel: 40 },
+        B: { name: 'Grau B', css: '#5aa9ff', nivel: 52 },
+        A: { name: 'Grau A', css: '#b45aff', nivel: 61 }
+      },
+      conjunto: {
+        pecas: ['helmet', 'chest', 'gloves', 'boots'],
+        D: { vida: 10, defesa: 5 },
+        C: { vida: 15, dano: 5, defesa: 7 },
+        B: { vida: 20, dano: 8, defesa: 10 },
+        A: { vida: 25, dano: 12, defesa: 14 }
+      },
+      bases: {
+        sword_long: { id: 'sword_long', name: 'Espada de Duas Mãos', slot: 'weapon', grau: 'sem' },
+        brigandine_helmet: { id: 'brigandine_helmet', name: 'Brigandine Helmet', slot: 'helmet', grau: 'D' },
+        brigandine_tunic: { id: 'brigandine_tunic', name: 'Brigandine Tunic', slot: 'chest', grau: 'D' },
+        brigandine_gaiters: { id: 'brigandine_gaiters', name: 'Brigandine Gaiters', slot: 'legs', grau: 'D' },
+        brigandine_gauntlets: { id: 'brigandine_gauntlets', name: 'Brigandine Gauntlets', slot: 'gloves', grau: 'D' },
+        brigandine_boots: { id: 'brigandine_boots', name: 'Brigandine Boots', slot: 'boots', grau: 'D' },
+        claymore: { id: 'claymore', name: 'Claymore', slot: 'weapon', grau: 'D' },
+        fullplate_helmet: { id: 'fullplate_helmet', name: 'Full Plate Helmet', slot: 'helmet', grau: 'C' },
+        fullplate_armor: { id: 'fullplate_armor', name: 'Full Plate Armor', slot: 'chest', grau: 'C' },
+        fullplate_gauntlets: { id: 'fullplate_gauntlets', name: 'Full Plate Gauntlets', slot: 'gloves', grau: 'C' },
+        fullplate_boots: { id: 'fullplate_boots', name: 'Full Plate Boots', slot: 'boots', grau: 'C' },
+        berserker_blade: { id: 'berserker_blade', name: 'Berserker Blade', slot: 'weapon', grau: 'C' },
+        doom_helmet: { id: 'doom_helmet', name: 'Doom Helmet', slot: 'helmet', grau: 'B' },
+        doom_armor: { id: 'doom_armor', name: 'Doom Plate Armor', slot: 'chest', grau: 'B' },
+        doom_gauntlets: { id: 'doom_gauntlets', name: 'Doom Gauntlets', slot: 'gloves', grau: 'B' },
+        doom_boots: { id: 'doom_boots', name: 'Doom Boots', slot: 'boots', grau: 'B' },
+        tallum_helmet: { id: 'tallum_helmet', name: 'Tallum Helm', slot: 'helmet', grau: 'A' },
+        tallum_armor: { id: 'tallum_armor', name: 'Tallum Plate Armor', slot: 'chest', grau: 'A' },
+        tallum_gauntlets: { id: 'tallum_gauntlets', name: 'Tallum Gauntlets', slot: 'gloves', grau: 'A' },
+        tallum_boots: { id: 'tallum_boots', name: 'Tallum Boots', slot: 'boots', grau: 'A' },
+        dragon_slayer: { id: 'dragon_slayer', name: 'Dragon Slayer', slot: 'weapon', grau: 'A' }
+      }
+    };
+
+    const invState = {
+      equip: {
+        weapon: 'it_swd0'
+      },
+      items: [
+        { uid: 'it_swd0', base: 'sword_long', rar: 'normal' },
+        { uid: 'it_brig_tunic', base: 'brigandine_tunic', rar: 'raro' },
+        { uid: 'it_brig_helm', base: 'brigandine_helmet', rar: 'normal' },
+        { uid: 'it_brig_gait', base: 'brigandine_gaiters', rar: 'normal' },
+        { uid: 'it_brig_gaunt', base: 'brigandine_gauntlets', rar: 'normal' },
+        { uid: 'it_brig_boot', base: 'brigandine_boots', rar: 'normal' },
+        { uid: 'it_fp_armor', base: 'fullplate_armor', rar: 'epico' },
+        { uid: 'it_fp_helm', base: 'fullplate_helmet', rar: 'raro' },
+        { uid: 'it_fp_gaunt', base: 'fullplate_gauntlets', rar: 'raro' },
+        { uid: 'it_fp_boot', base: 'fullplate_boots', rar: 'raro' },
+        { uid: 'it_doom_armor', base: 'doom_armor', rar: 'epico' },
+        { uid: 'it_doom_helm', base: 'doom_helmet', rar: 'epico' },
+        { uid: 'it_doom_gaunt', base: 'doom_gauntlets', rar: 'epico' },
+        { uid: 'it_doom_boot', base: 'doom_boots', rar: 'epico' },
+        { uid: 'it_tallum_armor', base: 'tallum_armor', rar: 'lendario' },
+        { uid: 'it_tallum_helm', base: 'tallum_helmet', rar: 'lendario' },
+        { uid: 'it_tallum_gaunt', base: 'tallum_gauntlets', rar: 'lendario' },
+        { uid: 'it_tallum_boot', base: 'tallum_boots', rar: 'lendario' },
+        { uid: 'it_ds', base: 'dragon_slayer', rar: 'lendario' }
+      ]
+    };
+
+    function baseOf(id){ return itmData.bases[id] || null; }
+    function findItem(uid){ return invState.items.find(i => i.uid === uid) || null; }
+
+    function render(){
+      InvUI.render(document.getElementById('inv'), {
+        itm: itmData,
+        inv: invState,
+        st: { pAtk: 980, pDef: 720 },
+        pmax: 14500,
+        conj: ArmaGrau.conjunto(itmData, invState.equip, baseOf, findItem),
+        adena: 5420000,
+        srv: false,
+        consum: { soulshot: 1500, pocao_vida: 50 },
+        lvl: 80
+      }, {
+        equip: function(uid){
+          const it = findItem(uid);
+          if(!it) return;
+          const b = baseOf(it.base);
+          if(!b || !b.slot) return;
+          invState.equip[b.slot] = it.uid;
+          render();
+        },
+        tirar: function(slot){
+          if(slot === 'weapon') return;
+          delete invState.equip[slot];
+          render();
+        },
+        descartar: function(uid){
+          if(Object.values(invState.equip).includes(uid)) return;
+          invState.items = invState.items.filter(i => i.uid !== uid);
+          render();
+        },
+        usar: function(cKey){ console.log('Usar consumível:', cKey); },
+        fechar: function(){ document.getElementById('inv').classList.toggle('open'); },
+        statsDe: function(it){
+          const b = baseOf(it.base);
+          return (b && b.slot === 'weapon') ? { dano: 30 } : { vida: 100, defesa: 10 };
+        },
+        nome: function(it){
+          const b = baseOf(it.base);
+          return b ? b.name : (it.base || 'Item');
+        }
+      });
+    }
+
+    render();
 
     // Renderiza a Janela de Skills com habilidades de teste
     SkillsUI.render(document.getElementById('skp'), { name: 'Dual Keshanberk' }, [

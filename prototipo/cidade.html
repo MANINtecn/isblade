@@ -789,10 +789,10 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/musica.js?v=1"></script>
 <script src="js/alvo_l2.js?v=30"></script>
 <script src="js/loja.js?v=6"></script>
-<script src="js/arma_grau.js?v=1"></script>
+<script src="js/arma_grau.js?v=39"></script>
 <script src="js/expedicao.js?v=6"></script>
 <script src="js/modo_camera.js?v=1"></script>
-<script src="js/inventario_ui.js?v=38"></script>
+<script src="js/inventario_ui.js?v=39"></script>
 <script src="js/skills_ui.js?v=38"></script>
 <script src="js/moradores.js?v=2"></script>
 <script src="js/mundo_campo.js?v=5"></script>
@@ -12939,7 +12939,11 @@ function applyStats(){
 
   var AT=(function(){var PR=DATA.prog,c=PR&&PR.classes&&PR.classes[S.classe],e=PR&&PR.efeitos;if(!c||!e||!S.atr)return null;var b=c.inicial,d=function(k){return Math.max(0,(S.atr[k]|0)-(b[k]|0));};return {dano:d(c.danoAttr)*e.danoPct,vida:d('vit')*e.vidaPorVit+((S.lvl||1)-1)*(e.vidaPorNivel||0),defesa:d('vit')*e.defesaPorVit,estamina:d('vit')*e.estaminaPorVit,run:Math.min(e.corridaMax,d('agi')*e.corridaPorAgi)};})();/* [atributos] pontos do status (U) */
   if(AT){ST.dano+=AT.dano;ST.vida+=AT.vida;ST.defesa+=AT.defesa;ST.estamina+=AT.estamina;}
-  var CJ=null;try{CJ=ArmaGrau.conjunto(ITM,INV.equip,baseOf,findItem);}catch(_){}S.conj=CJ;if(CJ)ST.dano+=CJ.dano;/* [graus] set completo: +% de dano e de vida */
+  var CJ=null;try{CJ=ArmaGrau.conjunto(ITM,INV.equip,baseOf,findItem);}catch(_){}S.conj=CJ;
+  if(CJ){
+    if(CJ.dano) ST.dano += CJ.dano;
+    if(CJ.defesa) ST.defesa = (ST.defesa || 0) + CJ.defesa;
+  }/* [graus] set completo: +% de dano, vida e defesa */
   RUN=P.run*(1+(AT?AT.run:0));
   var _pm0=S.pmax;S.pmax=Math.round((BASE_HP+ST.vida)*(1+(CJ?CJ.vida:0)/100));S.php=(S.php>=_pm0-.5&&!S.pdead)?S.pmax:Math.min(S.php,S.pmax);/* vida cheia continua cheia quando a maxima sobe (antes entrava com 100/338) */
 
@@ -13006,7 +13010,8 @@ function equipItem(uid){som('equipar');/* [sons-l2] */
 
 
 
-  if(b.slot==='weapon'){setWeapon(wpnDoItem(b.weapon));armaGrau();}
+  if(b.slot==='weapon'){setWeapon(wpnDoItem(b.weapon));}
+  armaGrau();
 
 
 
@@ -13027,7 +13032,7 @@ function unequipSlot(slot){
 
 
 
-  delete INV.equip[slot];saveInv();applyStats();renderInv();
+  delete INV.equip[slot];armaGrau();saveInv();applyStats();renderInv();
 
 
 
@@ -13120,7 +13125,17 @@ function dropLoot(){
 function itemName(it){return ((it.en|0)?'+'+(it.en|0)+' ':'')+baseOf(it.base).name;}
 function statsDe(it){return (window.Loja&&Loja.stats)?Loja.stats(it):it.stats;}/* [ferreiro] status com o encantamento */
 /* [graus] 08/11/2026: Sem grau / D / C (data/itens.json -> graus, conjunto; js/arma_grau.js). Modelo da arma pelo grau; set completo da bonus; nivel minimo para equipar (o servidor confere). */
-function armaGrau(rig){try{var w=findItem(INV.equip.weapon);ArmaGrau.aplica(rig||vrm,w&&baseOf(w.base),attachL2Item);}catch(_){}}
+function armaGrau(rig){
+  try{
+    var targetRig = rig || vrm;
+    var w = findItem(INV.equip.weapon);
+    var sh = findItem(INV.equip.shield);
+    if(window.ArmaGrau){
+      ArmaGrau.aplica(targetRig, w && baseOf(w.base), attachL2Item, sh && baseOf(sh.base));
+      ArmaGrau.aplicaArmadura(targetRig, INV.equip, baseOf, findItem);
+    }
+  }catch(_){}
+}
 function grauTag(b){try{return ArmaGrau.tag(ITM,b,S.lvl||1);}catch(_){return '';}}
 
 

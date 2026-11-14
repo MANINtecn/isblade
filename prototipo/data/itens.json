@@ -1,5 +1,5 @@
 {
-  "_nota": "Itens do IS BLADE. Armas e armaduras NAO dao skills: dao STATUS, que variam pela RARIDADE (normal, raro, epico, lendario). stats = status base (multiplicados por 'mult' da raridade); 'affixes' = status extras sorteados (quantidade = 'affixes' da raridade). weight = chance relativa de cair do chefe.",
+  "_nota": "Itens Oficiais do Lineage 2 Interlude no IS BLADE. Armas e armaduras dao STATUS multiplicados pela RARIDADE (normal, raro, epico, lendario). Possui conjuntos de Grau Sem, D, C, B e A com bonus de set completos e trocas no corpo 3D.",
 
   "rarities": {
     "normal":   { "name": "Normal",   "css": "#c9d1e6", "mult": 1.0, "affixes": 0, "weight": 60 },
@@ -9,55 +9,143 @@
   },
 
   "stats": {
-    "dano":     { "name": "Dano",              "unit": "%" },
-    "vida":     { "name": "Vida",              "unit": ""  },
-    "defesa":   { "name": "Defesa",            "unit": "%" },
-    "estamina": { "name": "Regen. de estamina","unit": "%" }
+    "dano":     { "name": "P.Atk / Dano",      "unit": "%" },
+    "vida":     { "name": "HP / Vida Máxima",  "unit": ""  },
+    "defesa":   { "name": "P.Def / Defesa",    "unit": "%" },
+    "estamina": { "name": "Regen. Estamina",   "unit": "%" }
   },
 
   "affixes": { "dano": 4, "vida": 15, "defesa": 2, "estamina": 6 },
 
-  "slots": { "weapon": "Arma", "helmet": "Elmo", "chest": "Peitoral", "gloves": "Luvas", "boots": "Botas" },
+  "slots": {
+    "weapon": "Arma",
+    "shield": "Escudo",
+    "helmet": "Elmo",
+    "chest": "Peitoral",
+    "legs": "Calça",
+    "gloves": "Luvas",
+    "boots": "Botas",
+    "neck": "Colar",
+    "rear": "Brinco",
+    "lear": "Brinco",
+    "rfinger": "Anel",
+    "lfinger": "Anel",
+    "underwear": "Camisa",
+    "hair": "Cabelo",
+    "hair2": "Acessório"
+  },
 
   "graus": {
-    "_nota": "Grau do equipamento (como no L2): nivel = nivel minimo para EQUIPAR; os status das bases D e C ja sao x1.6 e x2.4 do Sem grau. A raridade multiplica por cima. venda = multiplicador do preco de venda ao comerciante. Arma: 'modelo' troca o modelo na mao (sem 'modelo' = fica o modelo atual do jogo, ex.: escudo IS do Guardiao).",
+    "_nota": "Graus oficiais do Lineage 2: nivel = requisito minimo para equipar.",
     "sem": { "name": "Sem grau", "css": "#9aa4b8", "nivel": 1,  "venda": 1 },
     "D":   { "name": "Grau D",   "css": "#7fd6a0", "nivel": 20, "venda": 4 },
-    "C":   { "name": "Grau C",   "css": "#ffd36a", "nivel": 40, "venda": 10 }
+    "C":   { "name": "Grau C",   "css": "#ffd36a", "nivel": 40, "venda": 10 },
+    "B":   { "name": "Grau B",   "css": "#5aa9ff", "nivel": 52, "venda": 25 },
+    "A":   { "name": "Grau A",   "css": "#b45aff", "nivel": 61, "venda": 50 }
   },
 
   "conjunto": {
-    "_nota": "Set completo: elmo, peitoral, luvas e botas do MESMO grau equipados. Bonus em % sobre a vida maxima e sobre o dano total.",
+    "_nota": "Bonus de Set completo oficial do Lineage 2 Interlude.",
     "pecas": ["helmet", "chest", "gloves", "boots"],
-    "D": { "vida": 10 },
-    "C": { "vida": 15, "dano": 5 }
+    "D": { "vida": 10, "defesa": 5, "name": "Conjunto Grau D (+10% HP, +5% Def)" },
+    "C": { "vida": 15, "dano": 5, "defesa": 7, "name": "Conjunto Grau C (+15% HP, +5% Dano, +7% Def)" },
+    "B": { "vida": 20, "dano": 8, "defesa": 10, "name": "Conjunto Grau B (+20% HP, +8% Dano, +10% Def)" },
+    "A": { "vida": 25, "dano": 12, "defesa": 14, "name": "Conjunto Grau A (+25% HP, +12% Dano, +14% Def)" },
+    "sets": {
+      "brigandine": { "nome": "Brigandine Heavy Set (D)", "grau": "D", "pecas": ["helmet", "chest", "legs", "gloves", "boots"], "vida": 15, "defesa": 8 },
+      "fullplate":  { "nome": "Full Plate Heavy Set (C)",  "grau": "C", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 20, "defesa": 10 },
+      "doom":       { "nome": "Doom Plate Heavy Set (B)",  "grau": "B", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 25, "defesa": 12 },
+      "tallum":     { "nome": "Tallum Heavy Set (A)",      "grau": "A", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 28, "dano": 15, "defesa": 14 }
+    }
   },
 
   "bases": [
     { "id": "sword_long", "name": "Espada de Duas Mãos", "slot": "weapon", "grau": "sem", "weapon": "sword", "modelo": "assets/armas/twohanded_sword.glb", "stats": { "dano": 10 } },
-    { "id": "shield_guardian", "name": "Escudo do Recruta", "slot": "weapon", "grau": "sem", "weapon": "shield", "stats": { "dano": 7, "defesa": 3 } },
+    { "id": "shield_guardian", "name": "Escudo do Recruta", "slot": "shield", "grau": "sem", "weapon": "shield", "stats": { "dano": 5, "defesa": 3 } },
     { "id": "staff_arcane", "name": "Cajado de Cedro", "slot": "weapon", "grau": "sem", "weapon": "staff", "modelo": "assets/armas/cedar_staff.glb", "stats": { "dano": 12 } },
     { "id": "helmet_iron", "name": "Elmo de Ferro", "slot": "helmet", "grau": "sem", "stats": { "vida": 20, "defesa": 2 } },
     { "id": "chest_plate", "name": "Peitoral de Placas", "slot": "chest", "grau": "sem", "stats": { "vida": 40, "defesa": 4 } },
+    { "id": "legs_plate", "name": "Calça de Placas", "slot": "legs", "grau": "sem", "stats": { "vida": 25, "defesa": 3 } },
     { "id": "gloves_hide", "name": "Luvas de Couro", "slot": "gloves", "grau": "sem", "stats": { "dano": 3, "estamina": 4 } },
     { "id": "boots_swift", "name": "Botas Ligeiras", "slot": "boots", "grau": "sem", "stats": { "estamina": 8, "vida": 10 } },
-    { "id": "sword_long_d", "name": "Claymore", "slot": "weapon", "grau": "D", "weapon": "sword", "modelo": "assets/armas/claymore.glb", "stats": { "dano": 16 } },
-    { "id": "shield_guardian_d", "name": "Escudo Composto", "slot": "weapon", "grau": "D", "weapon": "shield", "modelo": "assets/armas/composite_shield.glb", "stats": { "dano": 11.2, "defesa": 4.8 } },
-    { "id": "staff_arcane_d", "name": "Cajado Fantasma", "slot": "weapon", "grau": "D", "weapon": "staff", "modelo": "assets/armas/ghost_staff.glb", "stats": { "dano": 19.2 } },
-    { "id": "helmet_iron_d", "name": "Elmo de Mithril", "slot": "helmet", "grau": "D", "stats": { "vida": 32, "defesa": 3.2 } },
-    { "id": "chest_plate_d", "name": "Peitoral de Mithril", "slot": "chest", "grau": "D", "stats": { "vida": 64, "defesa": 6.4 } },
-    { "id": "gloves_hide_d", "name": "Luvas de Mithril", "slot": "gloves", "grau": "D", "stats": { "dano": 4.8, "estamina": 6.4 } },
-    { "id": "boots_swift_d", "name": "Botas de Mithril", "slot": "boots", "grau": "D", "stats": { "estamina": 12.8, "vida": 16 } },
-    { "id": "sword_long_c", "name": "Lâmina do Berserker", "slot": "weapon", "grau": "C", "weapon": "sword", "modelo": "assets/armas/berserker_blade.glb", "stats": { "dano": 24 } },
-    { "id": "shield_guardian_c", "name": "Escudo de Placa Completa", "slot": "weapon", "grau": "C", "weapon": "shield", "modelo": "assets/armas/full_plate_shield.glb", "stats": { "dano": 16.8, "defesa": 7.2 } },
-    { "id": "staff_arcane_c", "name": "Cajado do Carniçal", "slot": "weapon", "grau": "C", "weapon": "staff", "modelo": "assets/armas/ghouls_staff.glb", "stats": { "dano": 28.8 } },
-    { "id": "helmet_iron_c", "name": "Elmo de Placa Completa", "slot": "helmet", "grau": "C", "stats": { "vida": 48, "defesa": 4.8 } },
-    { "id": "chest_plate_c", "name": "Peitoral de Placa Completa", "slot": "chest", "grau": "C", "stats": { "vida": 96, "defesa": 9.6 } },
-    { "id": "gloves_hide_c", "name": "Luvas de Placa Completa", "slot": "gloves", "grau": "C", "stats": { "dano": 7.2, "estamina": 9.6 } },
-    { "id": "boots_swift_c", "name": "Botas de Placa Completa", "slot": "boots", "grau": "C", "stats": { "estamina": 19.2, "vida": 24 } }
+
+    { "id": "bastard_sword", "name": "Bastard Sword", "slot": "weapon", "grau": "D", "weapon": "sword", "modelo": "assets/armas/bastard_sword.glb", "stats": { "dano": 18 } },
+    { "id": "claymore", "name": "Claymore", "slot": "weapon", "grau": "D", "weapon": "sword", "modelo": "assets/armas/claymore.glb", "stats": { "dano": 20 } },
+    { "id": "sword_long_d", "name": "Claymore D", "slot": "weapon", "grau": "D", "weapon": "sword", "modelo": "assets/armas/claymore.glb", "stats": { "dano": 20 } },
+    { "id": "composite_shield", "name": "Composite Shield", "slot": "shield", "grau": "D", "weapon": "shield", "modelo": "assets/armas/composite_shield.glb", "stats": { "dano": 6, "defesa": 5 } },
+    { "id": "shield_guardian_d", "name": "Escudo Composto", "slot": "shield", "grau": "D", "weapon": "shield", "modelo": "assets/armas/composite_shield.glb", "stats": { "dano": 6, "defesa": 5 } },
+    { "id": "ghost_staff", "name": "Ghost Staff", "slot": "weapon", "grau": "D", "weapon": "staff", "modelo": "assets/armas/ghost_staff.glb", "stats": { "dano": 22 } },
+    { "id": "staff_arcane_d", "name": "Cajado Fantasma", "slot": "weapon", "grau": "D", "weapon": "staff", "modelo": "assets/armas/ghost_staff.glb", "stats": { "dano": 22 } },
+    { "id": "brigandine_helmet", "name": "Brigandine Helmet", "slot": "helmet", "grau": "D", "set": "brigandine", "stats": { "vida": 35, "defesa": 4 } },
+    { "id": "helmet_iron_d", "name": "Brigandine Helmet", "slot": "helmet", "grau": "D", "set": "brigandine", "stats": { "vida": 35, "defesa": 4 } },
+    { "id": "brigandine_tunic", "name": "Brigandine Tunic", "slot": "chest", "grau": "D", "set": "brigandine", "stats": { "vida": 70, "defesa": 8 } },
+    { "id": "chest_plate_d", "name": "Brigandine Tunic", "slot": "chest", "grau": "D", "set": "brigandine", "stats": { "vida": 70, "defesa": 8 } },
+    { "id": "brigandine_gaiters", "name": "Brigandine Gaiters", "slot": "legs", "grau": "D", "set": "brigandine", "stats": { "vida": 45, "defesa": 5 } },
+    { "id": "brigandine_gauntlets", "name": "Brigandine Gauntlets", "slot": "gloves", "grau": "D", "set": "brigandine", "stats": { "dano": 5, "estamina": 7 } },
+    { "id": "gloves_hide_d", "name": "Brigandine Gauntlets", "slot": "gloves", "grau": "D", "set": "brigandine", "stats": { "dano": 5, "estamina": 7 } },
+    { "id": "brigandine_boots", "name": "Brigandine Boots", "slot": "boots", "grau": "D", "set": "brigandine", "stats": { "estamina": 14, "vida": 18 } },
+    { "id": "boots_swift_d", "name": "Brigandine Boots", "slot": "boots", "grau": "D", "set": "brigandine", "stats": { "estamina": 14, "vida": 18 } },
+
+    { "id": "berserker_blade", "name": "Berserker Blade", "slot": "weapon", "grau": "C", "weapon": "sword", "modelo": "assets/armas/berserker_blade.glb", "stats": { "dano": 26 } },
+    { "id": "sword_long_c", "name": "Lâmina Berserker", "slot": "weapon", "grau": "C", "weapon": "sword", "modelo": "assets/armas/berserker_blade.glb", "stats": { "dano": 26 } },
+    { "id": "samurai_longsword", "name": "Samurai Longsword", "slot": "weapon", "grau": "C", "weapon": "sword", "modelo": "assets/armas/samurai_longsword.glb", "stats": { "dano": 28 } },
+    { "id": "full_plate_shield", "name": "Full Plate Shield", "slot": "shield", "grau": "C", "weapon": "shield", "modelo": "assets/armas/full_plate_shield.glb", "stats": { "dano": 8, "defesa": 8 } },
+    { "id": "shield_guardian_c", "name": "Escudo Full Plate", "slot": "shield", "grau": "C", "weapon": "shield", "modelo": "assets/armas/full_plate_shield.glb", "stats": { "dano": 8, "defesa": 8 } },
+    { "id": "ghouls_staff", "name": "Ghoul's Staff", "slot": "weapon", "grau": "C", "weapon": "staff", "modelo": "assets/armas/ghouls_staff.glb", "stats": { "dano": 30 } },
+    { "id": "staff_arcane_c", "name": "Cajado Carniçal", "slot": "weapon", "grau": "C", "weapon": "staff", "modelo": "assets/armas/ghouls_staff.glb", "stats": { "dano": 30 } },
+    { "id": "fullplate_helmet", "name": "Full Plate Helmet", "slot": "helmet", "grau": "C", "set": "fullplate", "stats": { "vida": 55, "defesa": 6 } },
+    { "id": "helmet_iron_c", "name": "Full Plate Helmet", "slot": "helmet", "grau": "C", "set": "fullplate", "stats": { "vida": 55, "defesa": 6 } },
+    { "id": "fullplate_armor", "name": "Full Plate Armor", "slot": "chest", "grau": "C", "set": "fullplate", "stats": { "vida": 110, "defesa": 12 } },
+    { "id": "chest_plate_c", "name": "Full Plate Armor", "slot": "chest", "grau": "C", "set": "fullplate", "stats": { "vida": 110, "defesa": 12 } },
+    { "id": "fullplate_gauntlets", "name": "Full Plate Gauntlets", "slot": "gloves", "grau": "C", "set": "fullplate", "stats": { "dano": 8, "estamina": 10 } },
+    { "id": "gloves_hide_c", "name": "Full Plate Gauntlets", "slot": "gloves", "grau": "C", "set": "fullplate", "stats": { "dano": 8, "estamina": 10 } },
+    { "id": "fullplate_boots", "name": "Full Plate Boots", "slot": "boots", "grau": "C", "set": "fullplate", "stats": { "estamina": 20, "vida": 28 } },
+    { "id": "boots_swift_c", "name": "Full Plate Boots", "slot": "boots", "grau": "C", "set": "fullplate", "stats": { "estamina": 20, "vida": 28 } },
+
+    { "id": "great_sword", "name": "Great Sword", "slot": "weapon", "grau": "B", "weapon": "sword", "modelo": "assets/armas/twohanded_sword.glb", "stats": { "dano": 36 } },
+    { "id": "valhalla", "name": "Sword of Valhalla", "slot": "weapon", "grau": "B", "weapon": "staff", "modelo": "assets/armas/cedar_staff.glb", "stats": { "dano": 40 } },
+    { "id": "doom_shield", "name": "Doom Shield", "slot": "shield", "grau": "B", "weapon": "shield", "modelo": "assets/armas/round_shield.glb", "stats": { "dano": 10, "defesa": 12 } },
+    { "id": "doom_helmet", "name": "Doom Helmet", "slot": "helmet", "grau": "B", "set": "doom", "stats": { "vida": 80, "defesa": 9 } },
+    { "id": "doom_armor", "name": "Doom Plate Armor", "slot": "chest", "grau": "B", "set": "doom", "stats": { "vida": 160, "defesa": 18 } },
+    { "id": "doom_gauntlets", "name": "Doom Gauntlets", "slot": "gloves", "grau": "B", "set": "doom", "stats": { "dano": 12, "estamina": 14 } },
+    { "id": "doom_boots", "name": "Doom Boots", "slot": "boots", "grau": "B", "set": "doom", "stats": { "estamina": 28, "vida": 40 } },
+
+    { "id": "dragon_slayer", "name": "Dragon Slayer", "slot": "weapon", "grau": "A", "weapon": "sword", "modelo": "assets/personagens/dragon_slayer.glb", "stats": { "dano": 50 } },
+    { "id": "sword_of_miracles", "name": "Sword of Miracles", "slot": "weapon", "grau": "A", "weapon": "staff", "modelo": "assets/armas/ghost_staff.glb", "stats": { "dano": 52 } },
+    { "id": "shield_imperial", "name": "Shield of Imperial", "slot": "shield", "grau": "A", "weapon": "shield", "modelo": "assets/armas/shield_is.glb", "stats": { "dano": 14, "defesa": 16 } },
+    { "id": "tallum_helmet", "name": "Tallum Helm", "slot": "helmet", "grau": "A", "set": "tallum", "stats": { "vida": 110, "defesa": 12 } },
+    { "id": "tallum_armor", "name": "Tallum Plate Armor", "slot": "chest", "grau": "A", "set": "tallum", "stats": { "vida": 220, "defesa": 24 } },
+    { "id": "tallum_gauntlets", "name": "Tallum Gauntlets", "slot": "gloves", "grau": "A", "set": "tallum", "stats": { "dano": 16, "estamina": 18 } },
+    { "id": "tallum_boots", "name": "Tallum Boots", "slot": "boots", "grau": "A", "set": "tallum", "stats": { "estamina": 38, "vida": 55 } }
   ],
 
-  "start": { "equip": { "weapon": ["sword_long", "normal"] }, "bag": [["shield_guardian", "normal"], ["staff_arcane", "normal"], ["helmet_iron", "normal"], ["chest_plate", "normal"], ["gloves_hide", "normal"], ["boots_swift", "normal"]] },
+  "start": {
+    "equip": {
+      "weapon": ["sword_long", "normal"]
+    },
+    "bag": [
+      ["brigandine_tunic", "raro"],
+      ["brigandine_helmet", "normal"],
+      ["brigandine_gauntlets", "normal"],
+      ["brigandine_boots", "normal"],
+      ["claymore", "raro"],
+      ["fullplate_armor", "raro"],
+      ["fullplate_helmet", "normal"],
+      ["fullplate_gauntlets", "normal"],
+      ["fullplate_boots", "normal"],
+      ["berserker_blade", "epico"],
+      ["doom_armor", "epico"],
+      ["doom_helmet", "raro"],
+      ["doom_gauntlets", "raro"],
+      ["doom_boots", "raro"],
+      ["great_sword", "epico"],
+      ["tallum_armor", "lendario"],
+      ["tallum_helmet", "epico"],
+      ["tallum_gauntlets", "epico"],
+      ["tallum_boots", "epico"],
+      ["dragon_slayer", "lendario"]
+    ]
+  },
 
-  "bagMax": 40
+  "bagMax": 80
 }
