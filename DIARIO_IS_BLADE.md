@@ -4035,23 +4035,26 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Antigravity] 14/11/2026 - Centralização Precisa do Brilho na Junção da Cruz e Elevação de Altura das Habilidades do Healer
+### [Antigravity] 14/11/2026 - Alinhamento Perfeito dos 12 Slots da ShortcutWnd e Aumento dos Ícones do MenuWnd
 
-- **Demandas do Usuário**:
-  1. **Cura Mirada (Skill 1 do Healer)**: Aumentar escala visual em 3x.
-  2. **Escudo Astral (Skill 3 do Healer)**: Aumentar escala visual em 5x.
-  3. **Alinhamento do Brilho da Cruz**: O brilho incandescente (flare de estrela) deve ficar exatamente na junção entre os braços horizontal e vertical da cruz sagrada, e não no topo ou abaixo.
-  4. **Prevenção de Base Enterrada**: Subir o Z/Y das cruzes (tanto no Escudo Astral quanto na Cura Mirada) para que a ponta inferior não fique enterrada no chão. No Escudo Astral, aproximar as cruzes do personagem sem afastá-las excessivamente.
-- **Ajustes Geométricos na Textura & Código**:
-  - **Mapeamento da Textura (`prototipo/assets/fx/clerigo_cruz_flare.png`)**:
-    - Identificada a estrutura de cruz latina na imagem 512x512.
-    - Textura reorientada verticalmente e recentralizada com exatidão no pixel (256, 256) na junção dos braços horizontal e vertical.
-    - Como o Three.js `Sprite` usa pivô padrão `(0.5, 0.5)`, o flare estelar centralizado na mesma posição fica perfeitamente travado dentro da intersecção da cruz latina.
-  - **Elevação e Escala em `prototipo/js/clerigo_fx.js`**:
-    - `C.criarCristal` (Cura Mirada): Cruz multiplicada em 3x (`multCura = 3`, 7.56m de altura total). Adicionado deslocamento vertical `yOffset = 0.45m` compartilhado com o brilho `nu`, mantendo a base da cruz a `+0.6m` acima do solo durante todo o trajeto.
-    - `C.cura` (Impacto no Solo): Elevado `yCruz = 1.18 * A`, fazendo a base inferior da cruz tocar com suavidade o glifo de cura no chão sem submergir no terreno.
-    - `C.escudo` (Escudo Astral): Cruzes multiplicadas em 5x (`multEscudo = 5`, 4.25m de altura cada). Raio de órbita mantido próximo ao corpo do herói (`r = 1.85m + ...`), e altura de órbita elevada para `alturaY = 2.35m`, garantindo que a base das 6 cruzes flutue com folga de `+0.22m` a `+0.4m` acima do chão.
-  - **Validação e Versionamento**:
-    - Validado visualmente via Playwright em `prototipo/preview_clerigo_skills.png`.
-    - Cache query atualizado para `v=8` em `clerigo_fx.js`, `cidade.html`, `arena.html` e `preview_clerigo_skills.html`.
-
+- **Problemas Relatados pelo Usuário**:
+  1. No menu do rodapé direito (MenuWnd), os ícones de Status, Mochila, Mapa e Sistema estavam minúsculos com um grande espaço vazio em volta.
+  2. Na barra de atalhos (ShortcutWnd), os slots de skills e itens estavam visivelmente desalinhados em relação aos nichos metálicos da textura de fundo.
+  3. Desejo de remover tarjas fixas de letras (como Q, E, R) sobrepostas às skills, deixando as habilidades soltas e limpas para serem arrastadas livremente para qualquer slot.
+- **Diagnóstico e Resolução Técnica**:
+  - **MenuWnd (Menu do Rodapé Direito)**:
+    - *Causa*: As texturas originais extraídas de UTX (`menubutton1.png` a `menubutton4.png` e `_over.png`) estavam em canvas 64x64 com a arte útil ocupando apenas `(0, 0, 36, 36)`. O CSS com `background-size: 32px 34px; background-position: center;` reduzia o desenho para 18x18px.
+    - *Correção*: Texturas recortadas para os 36x36px úteis. CSS atualizado para `width: 36px; height: 36px; top: 5px; background-size: 36px 36px;`, preenchendo a janela de forma destacada, nítida e com proporção oficial 1:1.
+  - **ShortcutWnd (Barra de Atalhos 492x46px)**:
+    - *Causa*: O vetor `SHORTCUT_SLOT_X` iniciava em 32px, gerando deslocamento de +11px à direita e quebrando o alinhamento com as divisórias dos nichos de 32x32px e os espaçadores entre os blocos de 4 slots.
+    - *Correção*: Mapeamento milimétrico comprovado via script de detecção pixel a pixel:
+      - Bloco 1 (F1-F4 / Q-F): `[21, 58, 95, 132]` (passo de +37px).
+      - Intervalo de bloco (+42px).
+      - Bloco 2 (F5-F8 / T-2): `[174, 211, 248, 285]` (passo de +37px).
+      - Intervalo de bloco (+42px).
+      - Bloco 3 (F9-F12 / 3-6): `[327, 364, 401, 438]` (passo de +37px).
+    - Ícones internos redimensionados para 32x32px (`width="32" height="32"`).
+    - Removida a sobreposição fixa da letra/tarja de atalho (`.l2-sc-key { display: none !important; }`), mantendo o ícone da skill 100% puro e solto como no Lineage 2 oficial.
+  - **Validação Visual**:
+    - Capturas geradas via Playwright em [preview_l2_interface.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_interface.png) e detalhe em [preview_l2_bar_and_menu_focus.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_bar_and_menu_focus.png).
+    - Cache query incrementada para `v=36` em `arena.html`, `cidade.html`, `preview_l2_interface.html` e `mu_hud.js`.

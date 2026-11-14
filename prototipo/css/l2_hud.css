@@ -195,13 +195,7 @@
 }
 
 #l2-shortcut-wnd .l2-sc-key {
-  position: absolute;
-  right: 1px;
-  bottom: 0px;
-  font: 800 7px Tahoma, Arial, sans-serif;
-  color: #f1ebd7;
-  text-shadow: 0 1px 2px #000, 0 0 2px #000;
-  pointer-events: none;
+  display: none !important;
 }
 
 /* Cooldown Fill Overlay (Escurecimento vindo de cima para baixo ou radial) */
@@ -265,15 +259,15 @@
 
 #l2-menu-wnd .l2-mn-btn {
   position: absolute;
-  top: 6px;
-  width: 32px;
-  height: 34px;
+  top: 5px;
+  width: 36px;
+  height: 36px;
   border: none;
   outline: none;
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 32px 34px;
+  background-size: 36px 36px;
   cursor: pointer;
   transition: transform 0.08s ease, filter 0.08s ease;
 }

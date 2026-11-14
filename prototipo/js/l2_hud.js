@@ -16,8 +16,8 @@ const DEFAULT_SLOT_KEYS = ['Q', 'E', 'R', 'F', 'T', 'G', '1', '2', '3', '4', '5'
 const SLOT_KEYS_F = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'];
 const SLOT_KEYS_NUM = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
 
-// Posições X exatas dos 12 slots do ShortcutWnd extraídas de 0122_ShortcutWnd.xml
-const SHORTCUT_SLOT_X = [32, 69, 106, 143, 185, 222, 259, 296, 338, 375, 412, 449];
+// Posições X exatas dos 12 slots do ShortcutWnd alinhadas à textura metálica do Lineage 2
+const SHORTCUT_SLOT_X = [21, 58, 95, 132, 174, 211, 248, 285, 327, 364, 401, 438];
 
 function perChar(k) {
   try {
@@ -318,16 +318,16 @@ export const L2Hud = {
         var skBtn = origSkillBtns[data.skillSlot];
         var icoPath = data.ico || (skBtn && skBtn.querySelector('img') && skBtn.querySelector('img').src);
         if (icoPath) {
-          iconEl.innerHTML = '<img src="' + icoPath + '" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';">';
+          iconEl.innerHTML = '<img src="' + icoPath + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';">';
         } else if (data.svg) {
-          iconEl.innerHTML = '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + data.svg + '</div>';
+          iconEl.innerHTML = '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + data.svg + '</div>';
         } else {
-          iconEl.innerHTML = '<img src="assets/icones/sword_long.png" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;">';
+          iconEl.innerHTML = '<img src="assets/icones/sword_long.png" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;">';
         }
         if (autoEl) autoEl.style.display = 'none';
       } else if (data.type === 'item') {
         var itemIco = data.ico || ('assets/icones/' + (data.id || data.base || 'sword_long') + '.png');
-        if (iconEl) iconEl.innerHTML = '<img src="' + itemIco + '" width="28" height="28" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';">';
+        if (iconEl) iconEl.innerHTML = '<img src="' + itemIco + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';">';
         if (autoEl) {
           var isSS = (data.id === 'soulshot' || data.id === 'spiritshot' || (data.name && data.name.toLowerCase().indexOf('soulshot') >= 0));
           autoEl.style.display = (isSS && self.autoSoulshot) ? 'block' : 'none';
