@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Preview L2 Sets - Elfa & Human Fighter</title>
+  <style>
+    body { margin: 0; background: #0c1017; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; }
+    #canvas-container { width: 100vw; height: 100vh; position: absolute; left: 0; top: 0; }
+    #hud { position: absolute; top: 16px; left: 16px; z-index: 10; background: rgba(10,14,24,0.85); border: 1px solid #c9a24a; padding: 12px 16px; border-radius: 6px; }
+    h2 { margin: 0 0 8px; font-size: 16px; color: #f5c451; }
+    .btns { display: flex; gap: 8px; }
+    button { background: #1a243a; color: #e8f0ff; border: 1px solid #3c4f7c; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #2b3a63; border-color: #f5c451; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="js/arma_grau.js?v=40"></script>
+</head>
+<body>
+  <div id="hud">
+    <h2 id="title">Preview Sets Lineage 2 (Elfa)</h2>
+    <div class="btns">
+      <button onclick="setGrau('sem')">Sem Armadura (Nativo)</button>
+      <button onclick="setGrau('D')">Set Grau D (Brigandine)</button>
+      <button onclick="setGrau('C')">Set Grau C (Full Plate)</button>
+      <button onclick="setGrau('B')">Set Grau B (Doom)</button>
+      <button onclick="setGrau('A')">Set Grau A (Tallum)</button>
+    </div>
+  </div>
+  <div id="canvas-container"></div>
+
+  <script>
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x181c24);
+
+    var camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.2, 3.2);
+
+    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    // Iluminação
+    var amb = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(amb);
+    var dir = new THREE.DirectionalLight(0xfff5e6, 1.2);
+    dir.position.set(3, 5, 4);
+    scene.add(dir);
+    var dirBack = new THREE.DirectionalLight(0x88bbff, 0.6);
+    dirBack.position.set(-3, 3, -4);
+    scene.add(dirBack);
+
+    // Chao
+    var grid = new THREE.GridHelper(10, 10, 0x445577, 0x223344);
+    scene.add(grid);
+
+    var currentRig = null;
+    var gltfLoader = new THREE.GLTFLoader();
+
+    // Mock das bases de dados para ArmaGrau
+    var mockBases = {
+      'd_chest': { id: 'd_chest', slot: 'chest', grau: 'D' },
+      'd_legs':  { id: 'd_legs',  slot: 'legs',  grau: 'D' },
+      'd_gloves':{ id: 'd_gloves',slot: 'gloves',grau: 'D' },
+      'd_boots': { id: 'd_boots', slot: 'boots', grau: 'D' },
+
+      'c_chest': { id: 'c_chest', slot: 'chest', grau: 'C' },
+      'c_legs':  { id: 'c_legs',  slot: 'legs',  grau: 'C' },
+      'c_gloves':{ id: 'c_gloves',slot: 'gloves',grau: 'C' },
+      'c_boots': { id: 'c_boots', slot: 'boots', grau: 'C' },
+
+      'b_chest': { id: 'b_chest', slot: 'chest', grau: 'B' },
+      'b_legs':  { id: 'b_legs',  slot: 'legs',  grau: 'B' },
+      'b_gloves':{ id: 'b_gloves',slot: 'gloves',grau: 'B' },
+      'b_boots': { id: 'b_boots', slot: 'boots', grau: 'B' },
+
+      'a_chest': { id: 'a_chest', slot: 'chest', grau: 'A' },
+      'a_legs':  { id: 'a_legs',  slot: 'legs',  grau: 'A' },
+      'a_gloves':{ id: 'a_gloves',slot: 'gloves',grau: 'A' },
+      'a_boots': { id: 'a_boots', slot: 'boots', grau: 'A' }
+    };
+
+    function baseOf(id){ return mockBases[id] || null; }
+    function findItem(uid){
+      if(!uid) return null;
+      return { uid: uid, base: uid };
+    }
+
+    gltfLoader.load('assets/personagens/elf_f.glb', function(gltf){
+      var root = gltf.scene;
+      var targetH = 2.25;
+      root.scale.setScalar(targetH / 42.78);
+      root.position.set(0, 0, 0);
+      scene.add(root);
+
+      currentRig = {
+        isL2: true,
+        root: root,
+        charType: 'elf_f',
+        modelUrl: 'assets/personagens/elf_f.glb'
+      };
+
+      // Inicializa sem armadura (nativo)
+      setGrau('sem');
+      window.isReady = true;
+    });
+
+    window.setGrau = function(grau){
+      if(!currentRig) return;
+      var equip = {};
+      if(grau !== 'sem'){
+        var pfx = grau.toLowerCase() + '_';
+        equip = {
+          chest: pfx + 'chest',
+          legs:  pfx + 'legs',
+          gloves:pfx + 'gloves',
+          boots: pfx + 'boots'
+        };
+      }
+      ArmaGrau.aplicaArmadura(currentRig, equip, baseOf, findItem);
+      document.getElementById('title').textContent = 'Preview Sets Lineage 2: ' + (grau === 'sem' ? 'Nativo (Sem Armadura)' : ('Set Grau ' + grau));
+    };
+
+    function animate(){
+      requestAnimationFrame(animate);
+      if(currentRig && currentRig.root){
+        currentRig.root.rotation.y += 0.005;
+      }
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>

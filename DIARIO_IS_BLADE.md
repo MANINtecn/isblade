@@ -4201,3 +4201,27 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - Mantida `"ligada": true, "qtd": 1`, garantindo que a **SextaFeira** permaneça ativa e independente.
 - **Validação**:
   - Módulos validados via Node.js: `moradores.js` retornando `snap: []`, `info: []` e sintaxe 100% funcional.
+
+### [Antigravity] 14/11/2026 - Correção da Renderização de Sets de Armadura (D, C, B, A) e Suporte Multiraça
+- **Problema Relatado**:
+  - Personagem feminina (Elfa Branca `elf_f`) aparecia com um "bodysuit preto" colado no corpo e as armaduras dos sets não renderizavam.
+- **Causa Raiz Identificada**:
+  - O arquivo `prototipo/js/arma_grau.js` utilizava uma tabela fixa com caminhos exclusivos de `MFighter` (Humano Guerreiro Masculino).
+  - Ao carregar uma personagem como a Elfa, o código sobrescrevia os materiais com as texturas masculinas. Devido à incompatibilidade de UV e áreas com alfa transparente/nulo, a malha resultava em um corpo inteiramente preto.
+  - Além disso, quando desequipado (`grau: 'sem'`), em vez de restaurar a textura nativa do modelo GLB (roupa íntima/biquíni original), ele forçava a textura do MFighter.
+  - O Three.js interpretava o canal alfa especular (`_sp.png`) como transparência/opacidade se `mat.transparent` não estivesse explicitamente como `false`.
+- **Implementação e Correções**:
+  - `prototipo/js/arma_grau.js`:
+    - Implementada função de detecção dinâmica e precisa de raça `detectRace(rig)` cobrindo as 12 raças do L2 (`elf_f`, `human_fighter`, `human_fighter_female`, `elf_m`, `darkelf_f`, `darkelf_m`, `dwarf_f`, `dwarf_m`, `orc_f`, `orc_m`, `magic_f`, `magic_m`).
+    - Criada tabela completa `RACE_TEXTURES` com caminhos reais de texturas extraídas do Lineage 2 Interlude para todos os graus (D: Brigandine, C: Full Plate, B: Doom, A: Tallum).
+    - Preservação do mapa original (`mat._origMap = mat.map`): restaura a roupa íntima nativa perfeitamente ao desequipar qualquer peça ou conjunto.
+    - Calibração de materiais no Three.js: `mat.transparent = false`, `mat.alphaTest = 0`, `mat.opacity = 1.0`, `mat.depthWrite = true` e codificação sRGB.
+  - Cache de versão atualizado para `arma_grau.js?v=40` em `cidade.html` e `arena.html`.
+- **Validação**:
+  - Criado ambiente de teste `prototipo/preview_l2_sets.html` e executada validação automatizada via Playwright.
+  - Comprovada restauração do visual nativo e renderização perfeita dos Sets D, C, B e A na Elfa Branca:
+    - Nativo: Roupa íntima de renda branca original restaurada (`preview_l2_elfa_nativo.png`).
+    - Grau D: Brigandine com peitoral e manoplas (`preview_l2_elfa_set_d.png`).
+    - Grau C: Full Plate azul metálico com detalhes dourados (`preview_l2_elfa_set_c.png`).
+    - Grau B: Doom Plate cromado escuro (`preview_l2_elfa_set_b.png`).
+    - Grau A: Tallum nobre com detalhes de seda e ouro (`preview_l2_elfa_set_a.png`).
