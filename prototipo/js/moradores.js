@@ -4,7 +4,21 @@
    mensagens do servidor (net.js): Moradores.info(lista) · Moradores.snap(m) · Moradores.fala(n, texto) · Moradores.resposta(n, texto)
    por quadro: Moradores.tick(dt) · tecla E: Moradores.interage() (true = tratou) · Moradores.perto() (aviso de falar ativo) */
 (function(){
-  var M = window.Moradores = {}, ctx = null, T = null, L = {}, INFO = {}, perto = null, conv = null, el = null, carregando = {};
+  var ATIVO = false; /* NPCs andarilhos desativados a pedido do usuario: mantem apenas IA SextaFeira */
+  var M = window.Moradores = {};
+  M.init = function(){};
+  M.info = function(){};
+  M.snap = function(){};
+  M.fala = function(){};
+  M.resposta = function(){};
+  M.tick = function(){};
+  M.perto = function(){ return false; };
+  M.lista = function(){ return []; };
+  M.interage = function(){ return false; };
+  M.fecha = function(){};
+  M.aberta = function(){ return false; };
+  if(!ATIVO) return;
+  var ctx = null, T = null, L = {}, INFO = {}, perto = null, conv = null, el = null, carregando = {};
   var RAIO_FALA = 3.6;
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   M.init = function(o){ ctx = o; T = o.THREE; };

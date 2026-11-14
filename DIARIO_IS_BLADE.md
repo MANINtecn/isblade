@@ -4181,3 +4181,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     3. Reabertura ao pressionar 'o' novamente.
     4. Fechamento ao clicar no botão 'X'.
     5. Abertura ao clicar no ícone de engrenagem do rodapé (`#l2BtnSys`).
+
+### [Antigravity] 14/11/2026 - Desativação dos NPCs Andarilhos da Cidade (Moradores) e Preservação da IA Autônoma SextaFeira
+- **Pedido do Usuário**:
+  - Desativar completamente os NPCs andarilhos na cidade e manter apenas a **SextaFeira**, que é uma IA independente e autônoma.
+- **Análise Arquitetural**:
+  - *NPCs Andarilhos*: eram os 6 "Moradores de Talking Island" simulados por `servidor/moradores.js` e renderizados por `prototipo/js/moradores.js` (Guarda Tomas, aprendiz, etc.), que geravam rotas A* pela praça com balões de conversa.
+  - *NPCs Oficiais do L2*: são os 5 NPCs fixos com display e diálogo nativo do Lineage 2 (`prototipo/js/l2_npcs.js`): Clarissa, Altran, Galladucci, Wilford e Mammon (mantidos 100% ativos e com escalas oficiais).
+  - *SextaFeira*: é um processo de IA de jogador real (`servidor/ia_jogador.js`, conta `ia_sextafeira`, personagem `SextaFeira`) configurado em `servidor/ia_config.json` (`ligada: true, qtd: 1`). Ela conecta via WebSocket ao servidor como jogadora comum, caça em Cruma, conversa no chat e evolui autonomamente.
+- **Implementação**:
+  - `servidor/moradores.js`:
+    - Adicionada flag `ATIVO = false` para desativar a simulação e instanciamento dos moradores andarilhos.
+    - `cria()` retorna stubs seguros com `snap: () => []`, `info: () => []`, `tick: () => {}`, `conversa: async () => null`.
+    - Elimina completamente o tráfego de rede e CPU de simulação de rotas sem quebrar o `server.js`.
+  - `prototipo/js/moradores.js`:
+    - Adicionada flag `ATIVO = false` com stubs seguros para todos os métodos de `window.Moradores` (`init`, `info`, `snap`, `fala`, `tick`, `perto`, `lista`, `interage`, `fecha`, `aberta`).
+    - Nenhuma malha 3D ou sprite de morador andarilho é carregado no cliente.
+  - `servidor/ia_config.json`:
+    - Mantida `"ligada": true, "qtd": 1`, garantindo que a **SextaFeira** permaneça ativa e independente.
+- **Validação**:
+  - Módulos validados via Node.js: `moradores.js` retornando `snap: []`, `info: []` e sintaxe 100% funcional.

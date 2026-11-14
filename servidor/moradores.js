@@ -75,7 +75,19 @@ function respostaPronta(M, txt){
 }
 
 /* ---- mundo ---- */
+const ATIVO = false; /* NPCs andarilhos desativados a pedido do usuario: mantem apenas IA SextaFeira */
 function cria(opts){
+  if(!ATIVO){
+    return {
+      tick: () => {},
+      snap: () => [],
+      conversa: async () => null,
+      info: () => [],
+      claude: () => false,
+      rota: () => null,
+      encaixa: (x, z) => [x, z]
+    };
+  }
   const dir = opts.dir; iniciaClaude(dir);
   const LUG = {}; for(const k in (D && D.lugares) || {}){ const [x, z] = D.lugares[k]; LUG[k] = encaixa(x, z); }
   const MS = ((D && D.moradores) || []).map((m, i) => { const p = LUG[(m.rotina.dia || ['praca'])[0]] || [0, 6]; return Object.assign({}, m, { n: i + 1, x: p[0], z: p[1], f: 0, a: 'idle', rota: null, espT: 0, conversa: 0, olha: null, ultFala: 0, mem: new Map() }); });
