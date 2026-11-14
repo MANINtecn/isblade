@@ -146,6 +146,7 @@ function mundoDe(c){
     W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); };
     W.tiro = (m, Q, s) => difunde(c, { t: 'mtiro', id: m.id, a: Q.id, s: Math.round(s * 100) / 100 });
     W.aviso = txt => difunde(c, { t: 'pkmsg', m: txt });
+    W.tele = o => difunde(c, o);                                        /* [chefes-marcados] marcas no chao dos golpes do chefe */
   }
   return c.mundo;
 }

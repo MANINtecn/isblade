@@ -11416,7 +11416,51 @@ function mobSrvAtualiza(m,dt){
   mob3dAnim(m,dt);
   if(m.dead){m.deadT+=dt;if(m.deadT>2.6)removeMob(m);}
 }
-function mobSrvDano(m){if(S.pdead)return;playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
+/* >>> CLAUDE [chefes-marcados] 14/11/2026 (dono): golpes dos chefes de campo marcados no chao, como o Baium. O servidor (mobs_mundo.js -> iaChefe) manda `mtele`
+   com as marcas [tipo, x, z, altura, angulo, a, b, espera, duracao]: cone (a = raio, b = meio-angulo), rect (a = comprimento, b = largura), hex (a = raio; area de 6 lados).
+   A marca aparece fraca e ENCHE ate a hora do dano; quem estiver dentro quando enche, apanha (o `mdmg` traz a marca em `z` e o jogo confere a propria posicao). Formas so angulares. */
+var TELES=[];
+function teleGeo(k,a,b){
+  if(k==='rect'){var g=new THREE.PlaneGeometry(b,a);g.translate(0,-a/2,0);return g;}
+  if(k==='cone')return new THREE.CircleGeometry(a,Math.max(2,Math.round(b*4)),-Math.PI/2-b,b*2);
+  return new THREE.CircleGeometry(a,6);
+}
+function teleDentro(q,px,pz,mg){
+  var dx=px-q[1],dz=pz-q[2],d=Math.hypot(dx,dz),ang=q[3],a=q[4],b=q[5];
+  if(q[0]==='hex')return d<=a*.92+mg;
+  if(q[0]==='cone'){if(d>a+mg)return false;if(d<1)return true;var df=Math.atan2(dx,dz)-ang;while(df>Math.PI)df-=6.2832;while(df<-Math.PI)df+=6.2832;return Math.abs(df)<=b+mg/d;}
+  var s=Math.sin(ang),c=Math.cos(ang),fr=dx*s+dz*c,la=dx*c-dz*s;return fr>=-.6-mg&&fr<=a+mg&&Math.abs(la)<=b/2+mg;
+}
+function teleSome(p){scene.remove(p.g);p.geo.dispose();p.ed.geometry.dispose();p.ed.material.dispose();p.base.material.dispose();p.fill.material.dispose();var i=TELES.indexOf(p);if(i>=0)TELES.splice(i,1);}
+function mobSrvTele(e){
+  if(!e||!e.L)return;
+  e.L.forEach(function(q){
+    var k=q[0],x=q[1],z=q[2],ys=q[3],ang=q[4],a=q[5],b=q[6];
+    if(Math.hypot(x-S.px,z-S.pz)>80)return;
+    var geo=teleGeo(k,a,b),G=new THREE.Group();
+    function mk(cor,ord,dy){var m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:cor,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.rotation.x=-Math.PI/2;m.position.y=dy;m.renderOrder=ord;G.add(m);return m;}
+    var base=mk(0xff3a1a,3,0),fill=mk(0xffb030,4,.012);
+    var ed=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xffe2a0,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));ed.rotation.x=-Math.PI/2;ed.position.y=.024;ed.renderOrder=5;G.add(ed);
+    /* altura: o ponto mais alto do chao debaixo da marca (em ladeira a marca fica um pouco acima, mas nunca enterrada) */
+    var s=Math.sin(ang),c=Math.cos(ang),y=getGroundHeight(x,z,ys),P=k==='hex'?[[a*.7,0],[-a*.7,0],[0,a*.7],[0,-a*.7]]:[[s*a*.5,c*a*.5],[s*a,c*a]];
+    P.forEach(function(o){var h=getGroundHeight(x+o[0],z+o[1],ys);if(h>y&&h-y<3)y=h;});
+    G.position.set(x,y+.14,z);G.rotation.y=ang;G.visible=false;scene.add(G);
+    TELES.push({g:G,geo:geo,base:base,fill:fill,ed:ed,k:k,id:e.id,d:q[7]||0,dur:Math.max(.2,q[8]||.8),t:0});
+  });
+}
+function teleTick(dt){
+  for(var i=TELES.length-1;i>=0;i--){
+    var p=TELES[i];p.t+=dt;var u=(p.t-p.d)/p.dur;
+    if(u<0)continue;
+    if(u<1){var mo=mobPorId(p.id);if(!mo||mo.dead){teleSome(p);continue;}/* chefe caiu antes do golpe: a marca some */
+      p.g.visible=true;p.base.material.opacity=.2+.12*u;p.ed.material.opacity=.95;p.fill.material.opacity=.34+.3*u;
+      if(p.k==='rect')p.fill.scale.set(1,Math.max(.001,u),1);else p.fill.scale.set(Math.max(.001,u),Math.max(.001,u),1);}
+    else{var v=(u-1)*p.dur/.2;if(v>=1){teleSome(p);continue;}/* estouro: clarao curto na hora do dano */
+      p.fill.scale.set(1,1,1);p.fill.material.color.setHex(0xfff0c8);p.fill.material.opacity=.85*(1-v);p.base.material.opacity=.3*(1-v);p.ed.material.opacity=1-v;}
+  }
+}
+/* <<< CLAUDE [chefes-marcados] */
+function mobSrvDano(m){if(S.pdead)return;if(m.z&&!teleDentro(m.z,S.px,S.pz,.35))return;/* [chefes-marcados] golpe marcado: so pega quem esta dentro da marca */playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){}});}
 var TIROS=[];
 function mobSrvTiro(e){
   var mo=mobPorId(e.id);if(!mo)return;var cor=parseInt(((mo.T&&mo.T.css)||'#43d9ff').slice(1),16);
@@ -11862,7 +11906,7 @@ function mobStrike(m){
 
 
 function updateMobs(dt){
-  tirosTick(dt);/* [mob3d-cidade] */
+  tirosTick(dt);/* [mob3d-cidade] */teleTick(dt);/* [chefes-marcados] */
 
 
 
@@ -18211,7 +18255,7 @@ Net.init({
   suporte:suporteRecebe,alvoSuporte:alvoSuporte,/* [clerigo] fase 2 */
   curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,on);},/* [clerigo] */
   getY:function(){return S.py||0;},alturaRemota:function(y){return y;},chaoRemoto:function(x,z){return getGroundHeight(x,z);},/* [pagina-unica] outros jogadores no relevo do mundo */
-  ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,/* [mob3d-cidade] mobs do servidor no campo */
+  ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,mtele:mobSrvTele,/* [chefes-marcados] *//* [mob3d-cidade] mobs do servidor no campo */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},

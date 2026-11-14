@@ -166,12 +166,12 @@
   },
   "mobsNivel": {
     "_nota": "13/11/2026 (tools/spots/rebalancear.js): [nivel, peso de XP] de cada mob por tabela (dif). campo 1-20; curuma (em volta da Cruma) 20-35; fortress (em volta da Fortaleza) 35-50; pantano 50-78; DG da Torre = fim de jogo: normal 80-85, medio 86-92, hard 93-99. peso = vida efetiva / vida da curva do nivel. shade/brute/caster/mini_boss = DG antiga por salas.",
-    "campo": {"sapo_curuma": [2, 1], "aranha_curuma": [6, 0.9], "stakato_curuma": [10, 1], "stalker_curuma": [13, 1.1], "formiga_fort": [17, 0.9]},
-    "curuma": {"olho_fort": [21, 0.8], "basilisco_fort": [25, 1], "stakato_anciao": [29, 1.1], "stalker_anciao": [32, 1.2], "chefe_curuma": [35, 9.4]},
+    "campo": {"sapo_curuma": [2, 1], "aranha_curuma": [6, 0.9], "stakato_curuma": [10, 1], "stalker_curuma": [13, 1.1], "formiga_fort": [17, 0.9], "chefe20_formiga": [20, 9.4], "chefe20_stakato": [20, 9.4], "chefe20_aranha": [20, 9.4]},
+    "curuma": {"olho_fort": [21, 0.8], "basilisco_fort": [25, 1], "stakato_anciao": [29, 1.1], "stalker_anciao": [32, 1.1], "chefe_curuma": [35, 9.4]},
     "fortress": {"ol_mahum_fort": [38, 1], "basilisco_anciao": [42, 1.1], "ol_mahum_capitao": [46, 1.4], "chefe_fort": [49, 9.4]},
     "pantano": {"salamandra_fogo": [52, 0.9], "magmagoil": [57, 0.8], "wyrm_fogo": [62, 1], "golem_lava": [67, 1.5], "salamandra_ancia": [71, 1], "golem_anciao": [75, 1.5], "chefe_blazing": [78, 9.4]},
     "normal": {"fantasma": [80, 0.8], "esqueleto": [81, 1], "vidente": [82, 0.8], "lamina": [84, 5.9], "shade": [21, 1], "brute": [26, 3], "caster": [24, 1.2], "mini_boss": [27, 6], "boss": [85, 10]},
-    "medio": {"cao": [86, 0.9], "guarda_real": [87, 1], "erinia": [88, 0.9], "vidente": [88, 1.1], "cavaleiro": [89, 1.5], "comandante": [91, 5.9], "boss": [92, 10]},
+    "medio": {"cao": [86, 0.8], "guarda_real": [87, 1], "erinia": [88, 0.9], "vidente": [88, 1.1], "cavaleiro": [89, 1.5], "comandante": [91, 5.9], "boss": [92, 10]},
     "hard": {"anjo": [93, 1], "xama": [94, 0.8], "overlord": [96, 1.6], "arcanjo": [98, 5.9], "boss": [99, 10]}
   },
   "morte": { "_nota": "Morte estilo L2 nos mapas abertos (servidor/progressao.js -> perde): perde perdaXp x XP do nivel atual, a partir de nivelMin; nunca desce de nivel. Na DG e no PvP nao perde. Depois volta para a cidade.", "perdaXp": 0.04, "nivelMin": 10 },

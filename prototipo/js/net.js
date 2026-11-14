@@ -194,6 +194,7 @@ export const Net = (function(){
     } else if(m.t === 'ms'){ if(ctx.ms) ctx.ms(m.m);                   /* [mobs-servidor] mobs do mapa aberto */
     } else if(m.t === 'mdmg'){ if(ctx.mdmg) ctx.mdmg(m);
     } else if(m.t === 'mtiro'){ if(ctx.mtiro) ctx.mtiro(m);
+    } else if(m.t === 'mtele'){ if(ctx.mtele) ctx.mtele(m);            /* [chefes-marcados] marcas no chao dos golpes do chefe */
     } else if(m.t === 'cla'){ N.cla = m.cla; N.claCfg = { nv: m.nv, adena: m.adena, max: m.max }; if(menuAberto) renderMenu();      /* [cla] */
     } else if(m.t === 'clatag'){ e = remotos.get(m.id); if(e){ e.cla = m.cla || ''; if(e.tag) desenhaTag(e); }
     } else if(m.t === 'clareq'){ pedCla = { de: m.de, nome: m.nome, cla: m.cla, ate: Date.now() + 20000 }; ctx.banner('CONVITE DE CLÃ', m.nome + ' convida você para ' + m.cla, '#ffd166'); desenhaPed();
