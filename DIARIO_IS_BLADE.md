@@ -4065,3 +4065,27 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - **Validação Visual**:
     - Validação de hover gravada em [preview_l2_menu_hover_focus.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_menu_hover_focus.png).
     - Cache query de CSS e JS incrementada para `v=37` em `arena.html`, `cidade.html`, `preview_l2_interface.html` e `mu_hud.js`.
+
+### [Claude] 14/11/2026 - Dano na tela modelo Cabal + soulshot fora das skills + extracao do SS original do L2
+- Novo js/dano_tela.js (DanoTela.num), usado em arena.html e cidade.html (backup .antes_dano_tela): normal amarelo, critico azul (hoje = golpe PERFEITO; nao existe sistema de critico), dano recebido vermelho, pilha por alvo, sem total. Fonte provisoria Teko 600 (OFL) em assets/fonts/teko600.woff2. Previa: preview_dano_tela.html. Sai no instante do golpe (applyHit/hitList).
+- Skills nao mostram mais o soulshot (brilho, faisca e estouro); o bonus de dano continua.
+- SS original extraido: lineageeffect.u (Ver111 = XOR 0xAC) -> classes it_soul_shot_d_ca (4 emissores: Glow fx_m_t0000 quadros 7-8 x6 em anel r=5 girando 1 s; Spirits malha spirit_gun00/fx_m_t0084 x3; estouro skill_power01/fx_m_t0050 x5 0,4 s; flash fx_m_t0056 0,5 s) e it_spirit_shot_d_ca (+ circulos fx_m_t0060/fx_m_t0116). Texturas em trabalho_l2fx/export_ss. Parsers em trabalho_l2fx/ferramentas (dec.py descriptografa; ue.py lista; props2.py le os emissores: python props2.py ue.py pacote.dec <indice>). PENDENTE: o Glow e o flash sao ANEIS (conflito com a regra de evitar redondo) - aguardando o dono decidir antes de montar na mao.
+
+### [Antigravity] 14/11/2026 - Janelas Móveis e Arrastáveis do Lineage 2 Interlude (Barra de HP, Inventário e Janela de Skills)
+
+- **Demanda do Usuário**:
+  - Tornar o Inventário (`#inv`), a Janela de Skills (`#skp`) e a Barra de HP / Status do Jogador (`#l2-status-wnd`) completamente móveis e arrastáveis pela tela.
+- **Implementação do Módulo `L2Drag` (`prototipo/js/l2_hud.js`)**:
+  - Sistema universal de arraste baseado em Pointer Events (`pointerdown`, `pointermove`, `pointerup` / `pointercancel`), funcionando tanto com mouse de PC quanto com toque em celular/tablet (`setPointerCapture`).
+  - **Handles de Arraste Inteligentes**:
+    - **Barra de HP / Status (`#l2-status-wnd`)**: Toda a área da janela atua como handle (`cursor: grab / grabbing`), sem conflito com textos de nome ou nível.
+    - **Inventário (`#inv`)**: Arrastável pela barra de título superior (`.l2-inv-title` e área de topo). Cliques nos botões de fechar, abas, slots de itens e botões internos NÃO disparam o arraste. Não interfere no Drag & Drop de itens para a barra de atalhos.
+    - **Janela de Skills (`#skp`)**: Arrastável pela barra de título superior (`.l2-sk-title` e área de topo). Cliques em abas, botão fechar e na lista de skills NÃO disparam o arraste. Não interfere no Drag & Drop de habilidades para a barra de atalhos.
+  - **Z-Index Dinâmico**: Ao clicar ou tocar em qualquer uma das três janelas, ela sobe para o topo (`bringWindowToFront`).
+  - **Limites da Viewport (Clamping)**: As janelas não se perdem fora da tela (respeitam margens da tela e se adaptam dinamicamente a `resize`).
+  - **Abertura Concorrente**: Removido o fechamento mútuo entre Inventário e Janela de Skills em `arena.html` e `cidade.html`, permitindo ao jogador manter ambas abertas ao mesmo tempo em lados opostos da tela, igual ao Lineage 2 original.
+  - **Persistência Completa**: As coordenadas `(x, y)` de cada janela são salvas no `localStorage` (`isblade.pos_l2_status`, `isblade.pos_l2_skp`, `isblade.pos_l2_inv`) e restauradas automaticamente ao recarregar a página.
+- **Testes Automatizados e Validação Visual**:
+  - Validado via Playwright Headless Chrome com teste de arraste simultâneo das 3 janelas, persistência em `localStorage` e recarregamento da página.
+  - Screenshot oficial salva em `preview_l2_janelas_moveis.png`.
+  - Cache query incrementada para `v=38` em `css/l2_hud.css`, `js/l2_hud.js`, `js/inventario_ui.js` e `js/skills_ui.js`.

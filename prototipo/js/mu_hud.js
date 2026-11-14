@@ -3,7 +3,7 @@
    Substitui definitivamente os orbes e dragões do MU Online pela interface 1:1 do L2 Interlude.
    ========================================================================== */
 
-import { L2Hud, MuHud as L2MuHud } from './l2_hud.js?v=37';
+import { L2Hud, MuHud as L2MuHud } from './l2_hud.js?v=38';
 
 export const MuHud = L2MuHud;
 

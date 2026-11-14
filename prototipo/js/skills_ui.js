@@ -120,5 +120,9 @@
         if(op.selectSkill) op.selectSkill(slot, idx);
       }
     };
+
+    if (window.L2Drag && typeof window.L2Drag.restore === 'function') {
+      window.L2Drag.restore('skp');
+    }
   };
 })();

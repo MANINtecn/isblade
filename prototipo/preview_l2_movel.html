@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>IS BLADE - Janelas Móveis e Arrastáveis do Lineage 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/l2_hud.css?v=38">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at 50% 35%, #182238 0%, #0a0d14 70%, #05070a 100%);
+      color: #eaf2ff;
+      font-family: 'Cinzel', Georgia, serif;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(circle, rgba(212,175,55,0.06) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px, 80px 80px, 80px 80px;
+      pointer-events: none;
+    }
+    .titulo-showcase {
+      text-align: center;
+      padding-top: 14px;
+      position: relative;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .titulo-showcase h1 {
+      font-size: 18px;
+      letter-spacing: 0.24em;
+      color: #ffd166;
+      text-shadow: 0 0 12px rgba(255,209,102,0.5), 0 2px 4px #000;
+      text-transform: uppercase;
+    }
+    .titulo-showcase p {
+      font-family: system-ui, sans-serif;
+      font-size: 11.5px;
+      color: #8fa4c2;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+    .instrucoes-box {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8, 14, 26, 0.88);
+      border: 1px solid #3c301c;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-family: system-ui, sans-serif;
+      font-size: 11px;
+      color: #ffd166;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+      z-index: 8000;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .instrucoes-box span { color: #fff; }
+    .instrucoes-box b { color: #7dff9a; }
+  </style>
+</head>
+<body>
+
+  <div class="titulo-showcase">
+    <h1>IS BLADE &bull; Janelas Móveis e Arrastáveis do Lineage 2</h1>
+    <p>Clique e arraste a Barra de HP, o Inventário e a Janela de Skills para qualquer lugar da tela!</p>
+  </div>
+
+  <div class="instrucoes-box">
+    <div>🖱️ <b>Barra de HP</b>: Arraste pelo corpo ou topo</div>
+    <div>🎒 <b>Inventário (I)</b>: Arraste pela barra de título</div>
+    <div>⚔️ <b>Skills (K)</b>: Arraste pela barra de título</div>
+    <div>💾 <span>Posições salvas automaticamente</span></div>
+  </div>
+
+  <!-- Janela de Inventário (Natival do L2) -->
+  <div id="inv" class="open invui"></div>
+
+  <!-- Janela de Skills (Nativa do L2) -->
+  <div id="skp" class="open"></div>
+
+  <script src="js/inventario_ui.js?v=38"></script>
+  <script src="js/skills_ui.js?v=38"></script>
+  <script type="module">
+    import { L2Hud, L2Drag } from './js/l2_hud.js?v=38';
+    window.S = { php: 14500, pmax: 14500, st: 100, lvl: 80, xp: 1425000, gauge: 100, gmax: 100 };
+    L2Hud.init();
+
+    // Renderiza o Inventário com itens de teste
+    InvUI.render(document.getElementById('inv'), {
+      itm: {
+        bagMax: 80,
+        rarities: {
+          comum: { name: 'Comum', css: '#c9d1de', mult: 1, affixes: 0 },
+          raro: { name: 'Raro', css: '#5aa9ff', mult: 1.3, affixes: 1 },
+          epico: { name: 'Épico', css: '#c77dff', mult: 1.6, affixes: 2 },
+          lendario: { name: 'Lendário', css: '#ffd166', mult: 2.0, affixes: 3 }
+        },
+        slots: {
+          hair: 'Cabelo', helmet: 'Elmo', hair2: 'Acessório', underwear: 'Camisa', neck: 'Colar',
+          weapon: 'Arma', chest: 'Peitoral', shield: 'Escudo', rear: 'Brinco D', lear: 'Brinco E',
+          gloves: 'Luvas', legs: 'Calça', boots: 'Botas', rfinger: 'Anel D', lfinger: 'Anel E'
+        },
+        stats: { pAtk: { name: 'P.Atk', unit: '' }, pDef: { name: 'P.Def', unit: '' } }
+      },
+      inv: {
+        equip: {
+          weapon: 'item_sword_kesh',
+          helmet: 'item_helm_doom',
+          chest: 'item_armor_doom',
+          shield: 'item_shield_doom'
+        },
+        items: [
+          { uid: 'item_sword_kesh', base: 'keshanberk', rar: 'epico', en: 7 },
+          { uid: 'item_helm_doom', base: 'doom_helmet', rar: 'raro', en: 4 },
+          { uid: 'item_armor_doom', base: 'doom_armor', rar: 'epico', en: 6 },
+          { uid: 'item_shield_doom', base: 'shield_doom', rar: 'raro', en: 5 },
+          { uid: 'it_soulshot', base: 'soulshot', rar: 'comum' },
+          { uid: 'it_pocao', base: 'pocao_vida', rar: 'comum' }
+        ]
+      },
+      st: { pAtk: 980, pDef: 720 },
+      pmax: 14500,
+      conj: null,
+      adena: 4850200,
+      srv: true,
+      consum: { soulshot: 1500, pocao_vida: 50 },
+      lvl: 80
+    }, {
+      equip: function(uid){ console.log('Equipar:', uid); },
+      tirar: function(slot){ console.log('Tirar slot:', slot); },
+      descartar: function(uid){ console.log('Descartar:', uid); },
+      usar: function(cKey){ console.log('Usar:', cKey); },
+      fechar: function(){ document.getElementById('inv').classList.toggle('open'); },
+      statsDe: function(){ return { pAtk: 240, pDef: 120 }; },
+      nome: function(it){ return it.base || 'Item L2'; }
+    });
+
+    // Renderiza a Janela de Skills com habilidades de teste
+    SkillsUI.render(document.getElementById('skp'), { name: 'Dual Keshanberk' }, [
+      { name: 'Cura Mirada', desc: 'Recupera HP do alvo à distância', unlock: 1, ico: 'assets/icones/healer_cura_mirada.png', pronta: true },
+      { name: 'Escudo Astral', desc: 'Invoca cruzes sagradas de proteção', unlock: 1, ico: 'assets/icones/healer_escudo_astral.png', pronta: true },
+      { name: 'Lâmina de Luz', desc: 'Golpe sagrado perfurante', unlock: 1, ico: 'assets/icones/healer_lamina_luz.png', pronta: true },
+      { name: 'Mortal Blow', desc: 'Ataque fatal nas costas do alvo', unlock: 1, ico: 'assets/icones/mortal_blow.png', pronta: true },
+      { name: 'Power Strike', desc: 'Golpe poderoso concentrado', unlock: 1, ico: 'assets/icones/power_strike.png', pronta: true }
+    ], 10, {
+      fechar: function(){ document.getElementById('skp').classList.toggle('open'); },
+      skillCands: function(i){ return null; },
+      skillIconSVG: function(cand, sz){ return ''; },
+      selectSkill: function(slot, idx){ console.log('Select skill:', slot, idx); }
+    });
+  </script>
+</body>
+</html>

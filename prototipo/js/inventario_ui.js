@@ -47,16 +47,18 @@
     var s = document.createElement('style');
     s.textContent = [
       '#inv, #inv.invui{',
-      '  position:fixed !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%) !important;z-index:9000 !important;',
+      '  position:fixed !important;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9000;',
       '  width:256px !important;height:382px !important;box-sizing:border-box !important;',
       '  background:transparent url("assets/ui/l2_inventory_bg_clean.png") no-repeat 0 0 / 256px 382px !important;',
       '  border:none !important;border-radius:0 !important;',
       '  box-shadow:0 12px 36px rgba(0,0,0,0.95), 0 0 1px rgba(0,0,0,0.8) !important;',
       '  padding:0 !important;margin:0 !important;overflow:visible !important;',
       '  color:#eaf2ff !important;font-family:Tahoma, Arial, sans-serif !important;user-select:none !important;pointer-events:all !important;',
+      '  touch-action:none;',
       '}',
       '#inv.open{display:block !important;}',
-      '.l2-inv-title{position:absolute;left:10px;top:2px;font:700 11px Tahoma,Arial,sans-serif;color:#e2d6b5;letter-spacing:0.04em;text-shadow:0 1px 2px #000;pointer-events:none;}',
+      '.l2-inv-title{position:absolute;left:10px;top:2px;font:700 11px Tahoma,Arial,sans-serif;color:#e2d6b5;letter-spacing:0.04em;text-shadow:0 1px 2px #000;pointer-events:all;cursor:grab;}',
+      '.l2-inv-title:active{cursor:grabbing;}',
       '.l2-inv-close{position:absolute;right:6px;top:4px;width:13px;height:13px;border:none;background:transparent url("assets/ui/TargetCloseButton.png") no-repeat center;cursor:pointer;outline:none;}',
       '.l2-inv-close:hover{background-image:url("assets/ui/TargetCloseButton_click.png");}',
       '.l2-inv-tab{position:absolute;top:139px;height:20px;line-height:20px;text-align:center;font:700 10px Tahoma,sans-serif;color:#8f9ba8;cursor:pointer;}',
@@ -314,6 +316,9 @@
         sel = u; conf = ''; U.render(box, E, op); return;
       }
     };
+    if (window.L2Drag && typeof window.L2Drag.restore === 'function') {
+      window.L2Drag.restore('inv');
+    }
   };
 
   function statTxt(st){

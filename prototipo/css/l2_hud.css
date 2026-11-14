@@ -27,17 +27,23 @@
    -------------------------------------------------------------------------- */
 #l2-status-wnd {
   position: fixed !important;
-  left: 14px !important;
-  top: 14px !important;
+  left: 14px;
+  top: 14px;
   width: 176px !important;
   height: 84px !important;
   box-sizing: border-box !important;
   background: transparent url("../assets/ui/l2_status_wnd_bg.png") no-repeat 0 0 / 176px 84px !important;
-  z-index: 8500 !important;
+  z-index: 8500;
   pointer-events: all !important;
   user-select: none !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75) !important;
   border-radius: 2px !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+#l2-status-wnd.l2-dragging {
+  cursor: grabbing !important;
 }
 
 #l2-status-wnd .l2-st-level {
@@ -427,9 +433,9 @@
    -------------------------------------------------------------------------- */
 #skp, #skp.open {
   position: fixed !important;
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 256px !important;
   height: 335px !important;
   box-sizing: border-box !important;
@@ -440,11 +446,12 @@
   padding: 0 !important;
   margin: 0 !important;
   overflow: hidden !important;
-  z-index: 9000 !important;
+  z-index: 9000;
   color: #eaf2ff !important;
   font-family: Tahoma, Arial, sans-serif !important;
   user-select: none !important;
   pointer-events: all !important;
+  touch-action: none;
 }
 
 #skp:not(.open) {
@@ -459,7 +466,28 @@
   color: #e2d6b5;
   letter-spacing: 0.04em;
   text-shadow: 0 1px 2px #000;
-  pointer-events: none;
+  pointer-events: all !important;
+  cursor: grab;
+}
+
+.l2-sk-title:active {
+  cursor: grabbing !important;
+}
+
+/* Arraste universal de janelas do L2 */
+.l2-inv-title {
+  cursor: grab;
+  pointer-events: all !important;
+}
+.l2-inv-title:active {
+  cursor: grabbing !important;
+}
+.l2-dragging, .l2-dragging * {
+  cursor: grabbing !important;
+}
+body.l2-body-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 .l2-sk-close {

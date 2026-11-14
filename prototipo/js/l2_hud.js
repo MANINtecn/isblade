@@ -41,7 +41,8 @@ export const L2Hud = {
     this.hookUpdates();
     this.initialized = true;
     this.sync();
-    console.log('⚔️ Interface Oficial Lineage 2 Interlude (StatusWnd + ShortcutWnd + MenuWnd) Ativa.');
+    L2Drag.init();
+    console.log('⚔️ Interface Oficial Lineage 2 Interlude (StatusWnd + ShortcutWnd + MenuWnd + Janelas Móveis) Ativa.');
   },
 
   loadSlots: function() {
@@ -466,6 +467,249 @@ export const L2Hud = {
     return false;
   }
 };
+
+/* ==========================================================================
+   L2Drag — Sistema de Janelas Móveis e Arrastáveis do Lineage 2 Interlude
+   Suporta: #l2-status-wnd (Status), #inv (Inventário), #skp (Skills)
+   Pointer Events universais (Mouse + Touch), Clamping na viewport,
+   Z-Index dinâmico e persistência no localStorage.
+   ========================================================================== */
+var _topZ = 9050;
+
+function bringWindowToFront(el) {
+  if (!el) return;
+  _topZ = Math.max(_topZ + 1, 9050);
+  el.style.setProperty('z-index', _topZ, 'important');
+}
+
+export const L2Drag = {
+  registry: {},
+
+  bringToFront: bringWindowToFront,
+
+  makeDraggable: function(el, opts) {
+    if (!el || el._l2DraggableInitialized) return;
+    el._l2DraggableInitialized = true;
+    opts = opts || {};
+
+    var self = this;
+    var id = opts.id || el.id;
+    var storageKey = opts.storageKey || ('isblade.pos_' + id);
+    var defPos = opts.defaultPos || { x: 20, y: 20 };
+    var canDrag = opts.canDrag || function() { return true; };
+    var width = opts.width || 256;
+    var height = opts.height || 300;
+
+    function applyPos(x, y, save) {
+      var winW = window.innerWidth || 1024;
+      var winH = window.innerHeight || 768;
+      var w = el.offsetWidth || width;
+      var h = el.offsetHeight || height;
+
+      var minX = 0;
+      var maxX = Math.max(0, winW - w);
+      var minY = 0;
+      var maxY = Math.max(0, winH - 34); // Permite ver pelo menos a barra superior
+
+      var cx = Math.round(Math.max(minX, Math.min(maxX, x)));
+      var cy = Math.round(Math.max(minY, Math.min(maxY, y)));
+
+      el.style.setProperty('left', cx + 'px', 'important');
+      el.style.setProperty('top', cy + 'px', 'important');
+      el.style.setProperty('right', 'auto', 'important');
+      el.style.setProperty('bottom', 'auto', 'important');
+      el.style.setProperty('transform', 'none', 'important');
+
+      if (save) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({ x: cx, y: cy }));
+        } catch (_) {}
+      }
+    }
+
+    function restorePos() {
+      try {
+        var raw = localStorage.getItem(storageKey);
+        if (raw) {
+          var p = JSON.parse(raw);
+          if (p && typeof p.x === 'number' && typeof p.y === 'number') {
+            applyPos(p.x, p.y, false);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      var def = typeof defPos === 'function' ? defPos() : defPos;
+      if (def && typeof def.x === 'number' && typeof def.y === 'number') {
+        applyPos(def.x, def.y, false);
+      }
+    }
+
+    self.registry[id] = {
+      el: el,
+      restore: restorePos,
+      apply: applyPos
+    };
+
+    restorePos();
+
+    el.addEventListener('pointerdown', function(e) {
+      bringWindowToFront(el);
+
+      if (!canDrag(e, el)) return;
+
+      var rect = el.getBoundingClientRect();
+      var startPointerX = e.clientX;
+      var startPointerY = e.clientY;
+      var startElX = rect.left;
+      var startElY = rect.top;
+      var isDragging = false;
+
+      function onPointerMove(ev) {
+        var dx = ev.clientX - startPointerX;
+        var dy = ev.clientY - startPointerY;
+
+        if (!isDragging && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
+          isDragging = true;
+          el.classList.add('l2-dragging');
+          document.body.classList.add('l2-body-dragging');
+          try {
+            if (typeof el.setPointerCapture === 'function') {
+              el.setPointerCapture(e.pointerId);
+            }
+          } catch (_) {}
+        }
+
+        if (isDragging) {
+          ev.preventDefault();
+          applyPos(startElX + dx, startElY + dy, false);
+        }
+      }
+
+      function onPointerUp(ev) {
+        window.removeEventListener('pointermove', onPointerMove, true);
+        window.removeEventListener('pointerup', onPointerUp, true);
+        window.removeEventListener('pointercancel', onPointerUp, true);
+
+        if (isDragging) {
+          el.classList.remove('l2-dragging');
+          document.body.classList.remove('l2-body-dragging');
+          try {
+            if (typeof el.releasePointerCapture === 'function') {
+              el.releasePointerCapture(e.pointerId);
+            }
+          } catch (_) {}
+          var curRect = el.getBoundingClientRect();
+          applyPos(curRect.left, curRect.top, true);
+        }
+      }
+
+      window.addEventListener('pointermove', onPointerMove, { capture: true, passive: false });
+      window.addEventListener('pointerup', onPointerUp, { capture: true });
+      window.addEventListener('pointercancel', onPointerUp, { capture: true });
+    });
+  },
+
+  restore: function(id) {
+    if (!this.registry[id]) {
+      this.bindTarget(id);
+    }
+    if (this.registry[id] && typeof this.registry[id].restore === 'function') {
+      this.registry[id].restore();
+    }
+  },
+
+  bindTarget: function(id) {
+    var self = this;
+    if (id === 'status') {
+      var stEl = document.getElementById('l2-status-wnd');
+      if (stEl) {
+        self.makeDraggable(stEl, {
+          id: 'status',
+          storageKey: 'isblade.pos_l2_status',
+          width: 176,
+          height: 84,
+          defaultPos: { x: 14, y: 14 },
+          canDrag: function(e, el) {
+            if (e.button !== 0 && e.pointerType === 'mouse') return false;
+            if (e.target && e.target.closest('button, input, textarea, a, [data-no-drag]')) return false;
+            return true;
+          }
+        });
+      }
+    } else if (id === 'skp') {
+      var skEl = document.getElementById('skp');
+      if (skEl) {
+        self.makeDraggable(skEl, {
+          id: 'skp',
+          storageKey: 'isblade.pos_l2_skp',
+          width: 256,
+          height: 335,
+          defaultPos: function() {
+            var w = window.innerWidth || 1024;
+            return (w >= 900)
+              ? { x: 200, y: 100 }
+              : { x: Math.max(10, Math.round((w - 256) / 2) - 20), y: 70 };
+          },
+          canDrag: function(e, el) {
+            if (e.button !== 0 && e.pointerType === 'mouse') return false;
+            if (!e.target) return false;
+            if (e.target.closest('.l2-sk-close, .l2-sk-tab, .l2-sk-row, .l2-sk-list, button, input, textarea, a')) return false;
+            var rect = el.getBoundingClientRect();
+            var relY = e.clientY - rect.top;
+            return relY >= 0 && relY <= 34;
+          }
+        });
+      }
+    } else if (id === 'inv') {
+      var invEl = document.getElementById('inv');
+      if (invEl) {
+        self.makeDraggable(invEl, {
+          id: 'inv',
+          storageKey: 'isblade.pos_l2_inv',
+          width: 256,
+          height: 382,
+          defaultPos: function() {
+            var w = window.innerWidth || 1024;
+            return (w >= 900)
+              ? { x: Math.max(10, w - 256 - 20), y: 80 }
+              : { x: Math.max(10, Math.round((w - 256) / 2) + 20), y: 80 };
+          },
+          canDrag: function(e, el) {
+            if (e.button !== 0 && e.pointerType === 'mouse') return false;
+            if (!e.target) return false;
+            if (e.target.closest('.l2-inv-close, .l2-inv-tab, .l2-item-slot, .l2-slot-eq, .l2-inv-recipe, .l2-inv-trash, .l2-inv-tooltip, button, input, textarea, a')) return false;
+            var rect = el.getBoundingClientRect();
+            var relY = e.clientY - rect.top;
+            return relY >= 0 && relY <= 34;
+          }
+        });
+      }
+    }
+  },
+
+  init: function() {
+    var self = this;
+    self.bindTarget('status');
+    self.bindTarget('skp');
+    self.bindTarget('inv');
+
+    // Clamping dinâmico se a viewport for redimensionada
+    var resizeTimer = null;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        Object.keys(self.registry).forEach(function(k) {
+          if (self.registry[k] && typeof self.registry[k].restore === 'function') {
+            self.registry[k].restore();
+          }
+        });
+      }, 100);
+    });
+  }
+};
+
+window.L2Drag = L2Drag;
 
 // Retrocompatibilidade total para chamadas legadas
 export const MuHud = {
