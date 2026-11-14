@@ -1289,7 +1289,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=30';
+import { MuHud } from './js/mu_hud.js?v=31';
 
 
 
@@ -9517,7 +9517,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-    tag=an.skill.name.toUpperCase()+' ';
+    tag='';/* [dano-tela] sem nome da skill junto do dano */
 
 
 

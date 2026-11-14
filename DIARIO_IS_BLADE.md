@@ -4125,3 +4125,8 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - ssTiro (arena/cidade): o brilho generico (arma pintada de ciano via Brilho.soulshot) saiu; agora dispara o SS L2 na mao. So no ataque basico (skills sem SS visual).
 - Correcao em producao: o commit fff5feb levou arena/cidade chamando DanoTela sem o js/dano_tela.js (dano em mob quebrava). Este commit sobe dano_tela.js + fonte.
 - Atencao: o DIARIO em disco foi sobrescrito 2x por versao antiga (editor com buffer velho); restaurado do HEAD.
+
+### [Claude] 14/11/2026 - Sem nome da skill no dano; barra de CP nao cai mais no ataque
+- Dano na tela: o rotulo em cima do numero (chefe/boneco de treino) trazia o NOME DA SKILL; agora so os avisos de estado (FRAQUEZA, ATORDOADA, AEREO). arena/cidade: tag=an.skill.name -> tag=vazio.
+- CP: a barra de CP do HUD L2 (js/l2_hud.js) lia S.gauge, que e a GUARDA DO INIMIGO (cai a cada golpe ate GUARDA QUEBRADA) - por isso parecia consumir CP no ataque basico. O personagem ainda nao tem CP: barra fica cheia (100) ate existir o sistema. Cache: l2_hud v39, mu_hud v31.
+- DIARIO sobrescrito pela 3a vez por versao velha em disco; restaurado do HEAD.

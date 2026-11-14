@@ -396,7 +396,7 @@ export const L2Hud = {
       // CP
       var cpFill = document.getElementById('l2CpFill');
       var cpVal = document.getElementById('l2CpVal');
-      var cpPct = Math.min(100, Math.max(0, ((S.gauge !== undefined ? S.gauge : 100) / (S.gmax || 100)) * 100));
+      var cpPct = 100; // [cp] personagem ainda nao tem CP; S.gauge era a GUARDA DO INIMIGO (caia a cada golpe)
       if (cpFill) cpFill.style.width = cpPct.toFixed(1) + '%';
       if (cpVal) cpVal.textContent = Math.round(cpPct) + ' / 100';
 
