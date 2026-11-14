@@ -4158,3 +4158,26 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 ### [Claude] 14/11/2026 - Critico de verdade (numero azul modelo Cabal)
 - Antes o azul so saia no golpe PERFEITO, que exige desenhar o golpe (gesto q>=0,72); clique/tecla entram com q=0,5, entao nunca saia azul e skill nunca critava.
 - Agora (decisao do dono): 10% de chance, x1,5, sorteado A CADA GOLPE (basico, skills, projeteis, areas; mobs e chefe), numero azul. Valores em data/combate.json -> player.critChance / critMult (tambem no painel F2). Golpes de outros jogadores do grupo (dome) ja chegam calculados. Backup .antes_critico. Depois: itens com chance de critico extra.
+
+### [Antigravity] 14/11/2026 - Correção da Tecla 'O' (Opções/Configurações), Escape e Janela Móvel de Configurações
+- **Problema Relatado**:
+  - Pressionar a letra 'O' (Opções) no teclado não abria a janela de configurações do jogo.
+- **Causa Raiz Identificada**:
+  - Conflito de múltiplos listeners globais de `keydown` no `window`: tanto o `js/l2_hud.js` quanto o script interno de `cidade.html`/`arena.html` tratavam a tecla 'O' chamando `cfgBtn.click()`.
+  - Como o primeiro listener não executava `e.stopImmediatePropagation()`, o evento continuava e o segundo listener disparava outro `cfgBtn.click()` na mesma fração de milissegundo.
+  - O método `box.classList.toggle('open')` era chamado duas vezes consecutivas: adicionava a classe `open` e imediatamente a removia, fazendo com que a janela nunca permanecesse aberta.
+- **Implementação e Correções**:
+  - Criada função canônica e unificada `window.toggleCfg(force)` em `cidade.html` e `arena.html`.
+  - Em `js/l2_hud.js`:
+    - Tratamento de `kLow === 'o'` com `e.preventDefault()`, `e.stopImmediatePropagation()` e chamada direta a `window.toggleCfg()`.
+    - Adicionado suporte a fechar a janela ao pressionar `Escape`.
+    - Adicionado botão de fechar clássico `✕` (`#cfgCloseBtn`) no cabeçalho de `#cfg`.
+    - Adicionado suporte a movimentação/arrasto da janela `#cfg` via `L2Drag` (`bindTarget('cfg')`).
+  - Cache atualizado para `l2_hud.js?v=40` e `mu_hud.js?v=32`.
+- **Validação Automatizada**:
+  - Teste automatizado com Playwright (`teste_tecla_o.py`) validou:
+    1. Abertura ao pressionar 'o'.
+    2. Fechamento ao pressionar 'Escape'.
+    3. Reabertura ao pressionar 'o' novamente.
+    4. Fechamento ao clicar no botão 'X'.
+    5. Abertura ao clicar no ícone de engrenagem do rodapé (`#l2BtnSys`).

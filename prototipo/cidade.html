@@ -1292,7 +1292,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=31';
+import { MuHud } from './js/mu_hud.js?v=32';
 
 
 
@@ -13904,6 +13904,18 @@ function buildPad(){
 
   var cb=$('#cfgCombo'),btn=$('#cfgBtn'),box=$('#cfg');
 
+  window.toggleCfg = function(force){
+    if(!box) box = document.getElementById('cfg');
+    if(!box) return;
+    var willOpen = (typeof force === 'boolean') ? force : !box.classList.contains('open');
+    if(willOpen){
+      box.classList.add('open');
+      if(window.L2Drag && L2Drag.bringToFront) L2Drag.bringToFront(box);
+    } else {
+      box.classList.remove('open');
+    }
+  };
+
   function setCombo(on){document.body.classList.toggle('combo-ui',on);if(cb)cb.checked=on;try{localStorage.setItem('isblade.comboUI',on?'1':'0');}catch(_){}}
 
   var saved=false;try{saved=localStorage.getItem('isblade.comboUI')==='1';}catch(_){}
@@ -13912,7 +13924,10 @@ function buildPad(){
 
   if(cb)cb.addEventListener('change',function(){setCombo(cb.checked);});
 
-  if(btn)btn.addEventListener('click',function(){box.classList.toggle('open');});
+  if(btn)btn.addEventListener('click',function(e){e.stopPropagation();window.toggleCfg();});
+
+  var closeBtn=document.getElementById('cfgCloseBtn');
+  if(closeBtn)closeBtn.addEventListener('click',function(e){e.stopPropagation();window.toggleCfg(false);});
 
   ['invBtn','skBtn'].forEach(function(id){var b=document.getElementById(id);if(b){b.addEventListener('pointerdown',function(e){e.stopPropagation();});b.addEventListener('click',function(){if(id==='invBtn')toggleInv();else toggleSk();});}});
 
@@ -14787,11 +14802,11 @@ window.addEventListener('keydown',function(e){
 
   else if(k==='i')toggleInv();
 
-  else if(k==='o'){var b=document.getElementById('cfgBtn');if(b)b.click();}/* [opcoes] Menu de Opcoes (O) */
+  else if(k==='o'){if(window.toggleCfg)window.toggleCfg();else{var b=document.getElementById('cfgBtn');if(b)b.click();}}/* [opcoes] Menu de Opcoes (O) */
 
   else if(k==='x'){if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
 
-  else if(k==='escape'&&DG.menu)closeDiff();
+  else if(k==='escape'){var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
 
   else if(k==='k')toggleSk();
 

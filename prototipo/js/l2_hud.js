@@ -158,9 +158,13 @@ export const L2Hud = {
       }
     };
     var bSys = document.getElementById('l2BtnSys');
-    if (bSys) bSys.onclick = function() {
-      var cfgBtn = document.getElementById('cfgBtn');
-      if (cfgBtn) cfgBtn.click();
+    if (bSys) bSys.onclick = function(e) {
+      if (e) e.stopPropagation();
+      if (window.toggleCfg) window.toggleCfg();
+      else {
+        var cfgBtn = document.getElementById('cfgBtn');
+        if (cfgBtn) cfgBtn.click();
+      }
     };
 
     // Slots da Barra de Atalhos (ShortcutWnd)
@@ -244,15 +248,35 @@ export const L2Hud = {
       // C = Character Status / Atributos
       // X = Menu de Ações (party, trade, duelo, clã, etc.)
       if (kLow === 'o') {
-        var cfgBtn = document.getElementById('cfgBtn');
-        if (cfgBtn) cfgBtn.click();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (typeof window.toggleCfg === 'function') {
+          window.toggleCfg();
+        } else {
+          var cfgBox = document.getElementById('cfg');
+          if (cfgBox) cfgBox.classList.toggle('open');
+        }
         return;
       }
+      if (kLow === 'escape') {
+        var cfgBox = document.getElementById('cfg');
+        if (cfgBox && cfgBox.classList.contains('open')) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (typeof window.toggleCfg === 'function') window.toggleCfg(false);
+          else cfgBox.classList.remove('open');
+          return;
+        }
+      }
       if (kLow === 'c') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         if (window.Status && Status.toggle) Status.toggle();
         return;
       }
       if (kLow === 'x') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         if (window.Net && Net.alterna) Net.alterna();
         else {
           var nb = document.getElementById('netBtn');
@@ -685,6 +709,28 @@ export const L2Drag = {
           }
         });
       }
+    } else if (id === 'cfg') {
+      var cfgEl = document.getElementById('cfg');
+      if (cfgEl) {
+        self.makeDraggable(cfgEl, {
+          id: 'cfg',
+          storageKey: 'isblade.pos_l2_cfg',
+          width: 300,
+          height: 480,
+          defaultPos: function() {
+            var w = window.innerWidth || 1024;
+            return { x: Math.max(10, w - 320), y: 60 };
+          },
+          canDrag: function(e, el) {
+            if (e.button !== 0 && e.pointerType === 'mouse') return false;
+            if (!e.target) return false;
+            if (e.target.closest('button, input, select, textarea, label, a, .row')) return false;
+            var rect = el.getBoundingClientRect();
+            var relY = e.clientY - rect.top;
+            return relY >= 0 && relY <= 48;
+          }
+        });
+      }
     }
   },
 
@@ -693,6 +739,7 @@ export const L2Drag = {
     self.bindTarget('status');
     self.bindTarget('skp');
     self.bindTarget('inv');
+    self.bindTarget('cfg');
 
     // Clamping dinâmico se a viewport for redimensionada
     var resizeTimer = null;

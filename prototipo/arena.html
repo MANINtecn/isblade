@@ -636,7 +636,10 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 <div id="cfg" class="ui">
 
-  <h3>CONFIGURACOES</h3>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(255,209,102,0.25);cursor:grab;" id="cfgHeader">
+    <h3 style="margin:0;font-size:12px;letter-spacing:.2em;color:var(--sys,#ffd166);font-weight:700;">⚙️ CONFIGURAÇÕES (O)</h3>
+    <button type="button" id="cfgCloseBtn" style="background:transparent;border:0;color:#94a3b8;font-size:16px;cursor:pointer;padding:2px 6px;line-height:1;" title="Fechar (Esc)">✕</button>
+  </div>
 
   <div class="l2-cfg-actions">
     <button id="cfgSelectChar" type="button" class="l2-cfg-btn select-char" title="Trocar de personagem (volta para a tela de seleção)">👥 TROCAR PERSONAGEM</button>
@@ -728,7 +731,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 import { Torre } from './js/torre.js?v=10';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=31';
+import { MuHud } from './js/mu_hud.js?v=32';
 
 window.THREE = THREE;
 
@@ -7502,6 +7505,18 @@ function buildPad(){
 
   var cb=$('#cfgCombo'),btn=$('#cfgBtn'),box=$('#cfg');
 
+  window.toggleCfg = function(force){
+    if(!box) box = document.getElementById('cfg');
+    if(!box) return;
+    var willOpen = (typeof force === 'boolean') ? force : !box.classList.contains('open');
+    if(willOpen){
+      box.classList.add('open');
+      if(window.L2Drag && L2Drag.bringToFront) L2Drag.bringToFront(box);
+    } else {
+      box.classList.remove('open');
+    }
+  };
+
   function setCombo(on){document.body.classList.toggle('combo-ui',on);if(cb)cb.checked=on;try{localStorage.setItem('isblade.comboUI',on?'1':'0');}catch(_){}}
 
   var saved=false;try{saved=localStorage.getItem('isblade.comboUI')==='1';}catch(_){}
@@ -7510,7 +7525,10 @@ function buildPad(){
 
   if(cb)cb.addEventListener('change',function(){setCombo(cb.checked);});
 
-  if(btn)btn.addEventListener('click',function(){box.classList.toggle('open');});
+  if(btn)btn.addEventListener('click',function(e){e.stopPropagation();window.toggleCfg();});
+
+  var closeBtn=document.getElementById('cfgCloseBtn');
+  if(closeBtn)closeBtn.addEventListener('click',function(e){e.stopPropagation();window.toggleCfg(false);});
 
   ['invBtn','skBtn'].forEach(function(id){var b=document.getElementById(id);if(b){b.addEventListener('pointerdown',function(e){e.stopPropagation();});b.addEventListener('click',function(){if(id==='invBtn')toggleInv();else toggleSk();});}});
 
@@ -7778,11 +7796,11 @@ window.addEventListener('keydown',function(e){
 
   else if(k==='i')toggleInv();
 
-  else if(k==='o'){var b=document.getElementById('cfgBtn');if(b)b.click();}/* [opcoes] Menu de Opcoes (O) */
+  else if(k==='o'){if(window.toggleCfg)window.toggleCfg();else{var b=document.getElementById('cfgBtn');if(b)b.click();}}/* [opcoes] Menu de Opcoes (O) */
 
   else if(k==='x'){if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
 
-  else if(k==='escape'&&DG.menu)closeDiff();
+  else if(k==='escape'){var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
 
   else if(k==='k')toggleSk();
 
