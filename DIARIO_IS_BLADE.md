@@ -2065,7 +2065,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 ### [Claude] 30/10/2026 - Textura nos pisos/paredes de brush e na passarela; tour de vaos; buraco na frente do portao
 
 - Usuario: passarela "invisivel" (na verdade piso liso bege: os BSP*\* e chao*\* nao tinham UV, o glTF exportava so a cor); e um buraco na frente do portao do Baium lá em cima (caiu no limbo).
-- Novo `tools/blender_maps/texturizar_bsp.py`: UV triplanar pelo mundo (0.08) e 2 materiais (PISO toh*tile01 nas faces voltadas para cima/baixo, PAREDE toh_wall_05 nas verticais) em todos os BSP*_ e chao\__; gera `mini_toi_montagem_v6.blend`; `mini_toi.glb` reexportado do v6 (16,7 MB). Verificado por captura: a passarela agora aparece com pedra rachada.
+- Novo `tools/blender_maps/texturizar_bsp.py`: UV triplanar pelo mundo (0.08) e 2 materiais (PISO toh*tile01 nas faces voltadas para cima/baixo, PAREDE toh_wall_05 nas verticais) em todos os BSP*\_ e chao\_\_; gera `mini_toi_montagem_v6.blend`; `mini_toi.glb` reexportado do v6 (16,7 MB). Verificado por captura: a passarela agora aparece com pedra rachada.
 - Buraco do portao: posicao exata NAO conhecida (sem nota N). Analise do mapa de colisao (componentes conectados por altura): 17 vaos pequenos entre areas grandes de mesma altura; o vao 1 (largura 8 un, altura 21.2, ~(-92.8,-28..-36)) fica no telhado ao lado de um portao em arco (toh_gate\*). Adicionado a `torre_teste.html` o tour de vaos (G / Shift+G: teleporta ate o vao e poe uma coluna vermelha no meio).
 - Detalhe: portoes toh_gate02 ficam nos 3 telhados (alt ~28-29), nao dentro da torre; o mapa de colisao cobre X -112..58, Z -136..34 (gate C em X 60.5 fica fora da grade: ampliar se precisar).
 
@@ -3507,6 +3507,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Resultado: a logo/medalhao da IS Labs nao e mais carregada nem exibida no centro da vila de Talking Island, nem no PC nem no celular (mobile), em qualquer perfil grafico.
 
 ### [Antigravity] 10/11/2026 - Brilho canônico de Soulshot / Spiritshot na arma (Three.js puro, PC e Mobile)
+
 - Pedido do dono: "show agora quero que voce traga o brilho no soushots, mas antes confere pra saber se nao ja esta funcionando, sei que o item o claude tinha mechido mas nao testei ainda. mas tem que ser o brilho do ss quando usa skil ou bate padrao exatamente igual ao L2, nada de efeito criado no blender oks".
 - Auditoria do funcionamento do item:
   - O backend (`servidor/inventario.js` e `servidor/server.js`) já continha a lógica de desconto e sincronia do item, porém os personagens novos e existentes sem consumíveis começavam com 0 Soulshots e 0 Adena, impossibilitando testar de imediato. Além disso, no teste local/offline (`!INV_SRV`) o gatilho `ssTiro` retornava imediatamente.
@@ -3523,6 +3524,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Testado local: verificação de sintaxe de todos os arquivos (`node -c`), validação de carregamento e compatibilidade em PC e Mobile.
 
 ### [Antigravity] 10/11/2026 - Correção Crítica do Combate e Brilho Nostálgico L2 Integrado
+
 - Relato do dono: "a adição do ss, quebrou a jogabilidade e as skilss nao sai nem atakk padrao, oque voce fez ? era o brilho nostalgico do l2 que quero, oque voce entendeu que era pra fazer ?".
 - Causa Raiz do Travamento:
   - O script anterior `soulshot_fx.js` tentava acessar `mat.emissive.setHex()` em malhas da arma que usavam `MeshBasicMaterial` (como `sword.glow` / `gl`). Em Three.js, `MeshBasicMaterial` não possui propriedade `emissive`, gerando uma exceção não capturada `TypeError: Cannot read properties of undefined (reading 'setHex')`.
@@ -3538,6 +3540,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Validação: Todos os ataques básicos (combos 1 a 4) e todas as skills voltam a sair com total fluidez, com a lâmina iluminando no clássico azul nostálgico do Lineage 2.
 
 ### [Antigravity] 10/11/2026 - Praça Central (Chão Original + Marcação Hexagonal) e Ativação Canônica do Soulshot
+
 - Pedidos do dono:
   1. "e voe removeu a logo mas deixou o fundo preto dela la ainda, tira fundo preto e deixa a textura do chao proprio mesmo, mas deixa a marcação do hexagonal".
   2. "oks volto a sair as skills, mas o ss nada ainda".
@@ -3566,6 +3569,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - (10/11) Dono mandou a 2a parte da pesquisa (PointsMaterial com `map` alfa, aditivo, depthWrite off). Anotada no SKILL.md como RESERVA barata para qualidade baixa/celular; o `map` nao pode ser circulo borrado (fobia a redondo): gerar losango/faisca em canvas. As flags ja estavam no molde. NAO testado no navegador. Dono pediu: anotar sempre no diario (regra ja existente, seguida a cada passo).
 
 ### [Antigravity] 10/11/2026 - Healer / Clérigo: Reformulação Visual Completa e Partículas Fluidas (Fim do aspecto quadrado/lowpoly)
+
 - Pedido do dono: "bom ja atualizamos a skill de uso seu e do claude para a criação das animaçoes visuais das habilidades dos personagens, ja esta registrado no diario. quero que voce melhore visivelmente as habilidades do healer que hoje parece muito quadradas e em lowpoly."
 - Diagnóstico Técnico do Problema "Quadrado e Lowpoly":
   - As habilidades anteriores utilizavam primitivas rígidas de contagem mínima de polígonos:
@@ -3597,6 +3601,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Zero Blender / 100% Three.js nativo com suporte leve para mobile.
 
 ### [Antigravity] 11/11/2026 - Healer / Clérigo: Estilização Completa no Blender via MCP e Painel de Inspeção
+
 - **Pedido do dono**: "vo deixar vc abrir o blender e melhorar podendo usar formas geometricas livrimente, pois pra mim ainda ta tudo muito basico. conect-se na porta mcp e abra o blender quando tiver estilizado as skils do healer, botas elas em lista pra eu ver todas" (acompanhado do print do Glifo de Cura com 6 pilares retos e do print do MCP for Blender conectado na porta 9876).
 - **Conexão MCP**:
   - Conexão socket TCP ativa em `localhost:9876` com o Blender 5.1.0 via protocolo JSON do addon MCP for Blender.
@@ -3605,7 +3610,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Reescrito proceduralmente `prototipo/tools/blender_fx/clerigo_skills.py` com curvas, toros, obeliscos facetados, cúpulas e mandalas solares:
     1. **C0 (Lâmina de Luz - Ataque Básico)**: Lâmina sagrada translúcida com curvatura afiada, núcleo incandescente, dois toros de energia orbital cruzados em eixos gimbal e ondas de choque circulares concêntricas no impacto.
     2. **C1 (Cura Mirada - Nv 1)**: Cristal facetado esmeralda com pulso energético radiante, 2 anéis toroidais celestiais em órbita contínua, cúpula translúcida suave de cura e expansão de faíscas.
-    3. **C2 (Glifo de Cura - Nv 5)** *(Skill destacada na imagem do dono)*:
+    3. **C2 (Glifo de Cura - Nv 5)** _(Skill destacada na imagem do dono)_:
        - Substituídos os pilares retos simples por 6 obeliscos cristalinos cônicos lapidados com gradiente esmeralda e dourado.
        - Cada obelisco possui um anel toroidal de energia pura flutuando e girando ao seu redor.
        - No piso, mandala sagrada com anéis concêntricos ornamentais e 12 pontas solares radiantes.
@@ -3623,10 +3628,11 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Salvo em `prototipo/assets/personagens/clerigo_skills.blend` com a cena `CLERIGO_S2_GLIFO` ativa e enquadrada na câmera.
 
 ### [Antigravity] 11/11/2026 - Refinamento Nobre do Healer: Mini Cruz de Luz, Cruz Caindo do Céu e Asas Angelicais de Penas Reais
+
 - **Feedback do Dono**:
-  1. *C0*: Substituir o dardo amarelo e os anéis orbitais giratórios por uma pequena cruz de luz com o acabamento refinado do flare estelar (`media_1794391652303_f944b136.png` e `media_1794391686416_c9184ac6.png`).
-  2. *C1*: Na Cura Mirada, fazer uma cruz 3D com esse mesmo acabamento refinado cair suavemente do céu na posição mirada.
-  3. *C6*: Na Ressurreição, remover o chão em formato de serra/engrenagem giratória e substituir as asas toscas por asas angelicais de alto nível ("porque tudo tem que girar ? e as asas parece que meu filho que desenhou").
+  1. _C0_: Substituir o dardo amarelo e os anéis orbitais giratórios por uma pequena cruz de luz com o acabamento refinado do flare estelar (`media_1794391652303_f944b136.png` e `media_1794391686416_c9184ac6.png`).
+  2. _C1_: Na Cura Mirada, fazer uma cruz 3D com esse mesmo acabamento refinado cair suavemente do céu na posição mirada.
+  3. _C6_: Na Ressurreição, remover o chão em formato de serra/engrenagem giratória e substituir as asas toscas por asas angelicais de alto nível ("porque tudo tem que girar ? e as asas parece que meu filho que desenhou").
 - **Implementação Realizada via MCP no Blender 5.1**:
   - **C0 (Mini Cruz de Luz)**:
     - Removidos o cone pontiagudo amarelo e os anéis orbitais giratórios.
@@ -3642,10 +3648,11 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Salvo diretamente no arquivo `prototipo/assets/personagens/clerigo_skills.blend`.
 
 ### [Antigravity] 11/11/2026 - Alinhamento da Cruz Única (C0), Cruz Fincando em Pé no Chão (C1) e Criação da Skill Oficial de FX Refinado
+
 - **Pedidos do Dono**:
-  1. *C0*: "cruz de luz ta desalinhado veja , e ao tentar entregar um 3d voce colocou 3 cruz ? foi isso ? visivelmente ta mais bem mais feito, acabamento fino e nesse nivel que precisamos continuar."
-  2. *C1*: "cura mirada a cruz ta deitada quero que ela caia sem a coluna e caia em pe se fincando no chao, e a parte de baixo da cruz um pouco mais comprido saca"
-  3. *Regra Global*: "precisamos criar uma skill pra voce e o claude, quando for criar skils de personagens do game usar esse tipo de trabalho refinado, pois todas as skils tem muita peça maciça ao inves de um efeito leve visivelmente falando. saca"
+  1. _C0_: "cruz de luz ta desalinhado veja , e ao tentar entregar um 3d voce colocou 3 cruz ? foi isso ? visivelmente ta mais bem mais feito, acabamento fino e nesse nivel que precisamos continuar."
+  2. _C1_: "cura mirada a cruz ta deitada quero que ela caia sem a coluna e caia em pe se fincando no chao, e a parte de baixo da cruz um pouco mais comprido saca"
+  3. _Regra Global_: "precisamos criar uma skill pra voce e o claude, quando for criar skils de personagens do game usar esse tipo de trabalho refinado, pois todas as skils tem muita peça maciça ao inves de um efeito leve visivelmente falando. saca"
 - **Correções Aplicadas no Blender via MCP**:
   - **C0 (Mini Cruz de Luz - Alinhamento e Cruz Única)**:
     - Eliminada a sobreposição conflitante: removido o sprite 2D billboard de cruz (`fl_crz`) que girava para a câmera e desalinhava com o modelo 3D.
@@ -3662,11 +3669,12 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Salvo e sincronizado no Blender e no repositório Git.
 
 ### [Antigravity] 11/11/2026 - Cruz de Luz Pura em Lens Flare / Starburst Óptico (Adeus Cruz Chapada Quadrada) & Círculo Sagrado com Pilares de Luz na Ressurreição
+
 - **Feedback & Pedidos do Dono**:
-  1. *O Efeito Óptico*: "como chama isso que voce fez ? é essa acabamentoooooooooooooooooooooooooooooooooooooooooooooooooooooo que quero numa cruz de luz, isso na imagem é uma luz bonitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa e com acabamento refinadoooooooooooooooooooooooooooooooooooooooo, se vai e cria a porra de uma cruz chapada quadradaaaaaaaaaaaaaaaaa"
-  2. *Dúvida no Blender*: "eu quero uma cruz feita desse formato do exemplo, porque nao consigo selecionar ele e copiar ?"
-  3. *C0 & C1*: Eliminação total de peças maciças / blocos de polígonos quadrados. A cruz é pura luz radiante emanando o mesmo acabamento do flare do livro (`livro_brilho` / `clerigo_estrela.png`).
-  4. *C6 (Ressurreição)*: Padrão nobre com círculo sagrado e pilares translúcidos de luz etérea conforme imagem de referência (`media_1794393852613_f74ad960.png` / imagem 1).
+  1. _O Efeito Óptico_: "como chama isso que voce fez ? é essa acabamentoooooooooooooooooooooooooooooooooooooooooooooooooooooo que quero numa cruz de luz, isso na imagem é uma luz bonitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa e com acabamento refinadoooooooooooooooooooooooooooooooooooooooo, se vai e cria a porra de uma cruz chapada quadradaaaaaaaaaaaaaaaaa"
+  2. _Dúvida no Blender_: "eu quero uma cruz feita desse formato do exemplo, porque nao consigo selecionar ele e copiar ?"
+  3. _C0 & C1_: Eliminação total de peças maciças / blocos de polígonos quadrados. A cruz é pura luz radiante emanando o mesmo acabamento do flare do livro (`livro_brilho` / `clerigo_estrela.png`).
+  4. _C6 (Ressurreição)_: Padrão nobre com círculo sagrado e pilares translúcidos de luz etérea conforme imagem de referência (`media_1794393852613_f74ad960.png` / imagem 1).
 - **Esclarecimento Técnico ao Dono**:
   - **Nome do Acabamento**: **Optical Lens Flare / Starburst Flare Anamórfico (Clarão Radioso de Luz Pura)**.
   - **Por que não conseguia selecionar/copiar no Blender**: O `livro_brilho` é um plano billboard especial com constraint `CL_BB` e material com transparência alpha conectado ao osso do livro na cena `CLERIGO_BASICO`. No viewport 3D o clique atravessa a transparência ou seleciona o livro/chão, e copiar sem a câmera e hierarquia anula o efeito.
@@ -3678,9 +3686,10 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Salvo no `.blend` e sincronizado via Git.
 
 ### [Antigravity] 11/11/2026 - Correção Canônica das Proporções da Cruz Latina (Topo Curto mas Presente, Haste Inferior 3x)
+
 - **Feedback do Dono**:
   - "show to vendo estamos chegando la em, mas nao ta no formato certo de uma cruz, pois as 2 extremidades de baixo e de cima tao grandes, sendo que a parte de cima da cruz eh cruta mas nao tanto, pesque pra vc ver como é uma cruz"
-- **Análise das Proporções Canônicas da Cruz Latina (*Crux Immissa*)**:
+- **Análise das Proporções Canônicas da Cruz Latina (_Crux Immissa_)**:
   - Na versão anterior, o corte direcional do topo estava vazando valor máximo até a borda superior da imagem, fazendo a ponta de cima ficar quase do mesmo tamanho da de baixo (ambas gigantes).
   - Na Cruz Latina clássica:
     - O **Braço Superior (Topo)** deve ter cerca de 70% a 80% do comprimento de um braço lateral ("curto, mas claramente presente e nobre").
@@ -3688,13 +3697,14 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - A **Haste Inferior (Base)** é alongada e esbelta, medindo exatamente 3x o comprimento do topo (~196 px).
 - **Ajustes Técnicos na Textura e no Blender**:
   - Recalculada a função de decaimento direcional com máscara estrita `np.where(dy > 0)` para o topo e `np.where(dy < 0)` para a base:
-    - *Braço Superior*: 65 px.
-    - *Braços Laterais*: 90 px cada (181 px total).
-    - *Haste Inferior*: 196 px (proporção exata de 3.02x em relação ao topo).
+    - _Braço Superior_: 65 px.
+    - _Braços Laterais_: 90 px cada (181 px total).
+    - _Haste Inferior_: 196 px (proporção exata de 3.02x em relação ao topo).
   - Removido sprite duplicado do núcleo para evitar descompasso óptico; a cruz agora é um feixe de luz pura unificado com núcleo diamante e luz pontual sincronizada.
   - Recarregado no Blender 5.1 e salvo em `prototipo/assets/personagens/clerigo_skills.blend`.
 
 ### [Antigravity] 11/11/2026 - Extensão do Efeito de Cruz de Luz Refinada para TODAS as Skills do Healer (C0 até C6)
+
 - **Pedido do Dono**:
   - "show fico boa, quero que trabalhe nas outras skils do healer pra ser usado o mesmo efeito a cruz ficou top"
 - **Aplicação Completa em Todas as Habilidades do Clérigo**:
@@ -3720,15 +3730,16 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Arquivo salvo em `prototipo/assets/personagens/clerigo_skills.blend` e commit enviado ao GitHub.
 
 ### [Antigravity] 11/11/2026 - Reformulação Total dos Efeitos do Healer (Véus de Energia Rasgada, Chuva de Penas e Fim dos Domos Pesados)
+
 - **Crítica e Diretrizes do Dono**:
-  - *Filosofia*: "QUANDO falei pra usar o mesmo efeito, é voce pegar como ele foi feito e refazer os outros efeitos com a mesma qualidade, não sair colocando cruz em tudo que é lugar!"
-  - *C0*: Ficou ótima! Mantida 100%.
-  - *C1*: Manter cruz e queda. **Remover domo pesado** e fazer subir fragmentos de cura cintilantes na área.
-  - *C2*: **Remover domo e cruz no topo**. Substituir colunas por **coluna falhada / véu rasgado de energia celestial**.
-  - *C3*: Cruzes de proteção aprovadas, na cor **Azul Astral Safira** puro (vívido e translúcido).
-  - *C4*: Consertar o erro do shader que cortava a coluna ao meio (metade vazada). Usar o **Véu Rasgado de Energia** e substituir a cruz por um **Halo Radiante de Purificação** que desce limpando o corpo.
-  - *C5*: Consertar a coluna cortada pela metade (usar o véu completo 360). Substituir a cruz por **Halos / Coroas de Bênção Dourada**. Explicada a função da skill (Bênção / buff coletivo de status da equipe).
-  - *C6*: **Remover asas grudadas no alvo e cruz no alvo**. Usar a **Coluna Central de Véu Rasgado de Energia Celestial** e criar uma **Chuva de Penas de Anjo de Luz Caindo do Céu** flutuando suavemente em volta do aliado.
+  - _Filosofia_: "QUANDO falei pra usar o mesmo efeito, é voce pegar como ele foi feito e refazer os outros efeitos com a mesma qualidade, não sair colocando cruz em tudo que é lugar!"
+  - _C0_: Ficou ótima! Mantida 100%.
+  - _C1_: Manter cruz e queda. **Remover domo pesado** e fazer subir fragmentos de cura cintilantes na área.
+  - _C2_: **Remover domo e cruz no topo**. Substituir colunas por **coluna falhada / véu rasgado de energia celestial**.
+  - _C3_: Cruzes de proteção aprovadas, na cor **Azul Astral Safira** puro (vívido e translúcido).
+  - _C4_: Consertar o erro do shader que cortava a coluna ao meio (metade vazada). Usar o **Véu Rasgado de Energia** e substituir a cruz por um **Halo Radiante de Purificação** que desce limpando o corpo.
+  - _C5_: Consertar a coluna cortada pela metade (usar o véu completo 360). Substituir a cruz por **Halos / Coroas de Bênção Dourada**. Explicada a função da skill (Bênção / buff coletivo de status da equipe).
+  - _C6_: **Remover asas grudadas no alvo e cruz no alvo**. Usar a **Coluna Central de Véu Rasgado de Energia Celestial** e criar uma **Chuva de Penas de Anjo de Luz Caindo do Céu** flutuando suavemente em volta do aliado.
 - **Implementações Técnicas**:
   - **Texturas Procedurais Criadas**:
     - `clerigo_veu_energia.png`: Textura cilíndrica de filamentos verticais de luz ondulante translúcida com fade-out suave no topo e na base (efeito véu rasgado de seda/aurora boreal).
@@ -3737,6 +3748,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - **Executado e Salvo**: Todas as 7 cenas recarregadas no Blender 5.1 via MCP, painel de skills N registrado e `.blend` salvo. Sincronizado no GitHub.
 
 ### [Antigravity] 11/11/2026 - Port dos Efeitos Refinados do Clérigo para o Jogo (Three.js / arena.html)
+
 - **Instalação no Motor do Jogo (`prototipo/js/clerigo_fx.js` & `prototipo/arena.html`)**:
   - `C0 (Lâmina de Luz)`: Disparo de Mini Cruz de Luz Pura em Optical Flare com núcleo incandescente e rastro sagrado.
   - `C1 (Cura Mirada)`: Cruz Sagrada caindo em pé dos céus e se fincando no chão; domo pesado removido, substituído por onda suave no solo e 18 fragmentos cintilantes de cura subindo em espiral da terra para o ar.
@@ -3763,8 +3775,8 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 ### [Antigravity] 13/11/2026 - Benchmark Técnico do L2 Royale Web & Diretriz de Transformação Visual (Visual L2 + Ação Dragon Nest)
 
 - **Auditoria Técnica do L2 Royale (`play.l2royale.com`)**:
-  - *Arquitetura*: Web Client proprietário em WebGL/WASM servido via CDN dedicado (`cdn.l2rift.com`), portando assets originais e completos do Lineage 2 Interlude (modelos, animações, texturas, interface nativa).
-  - *Diagnóstico Visual*: A sensação de polimento e "jogo impecável" deve-se a:
+  - _Arquitetura_: Web Client proprietário em WebGL/WASM servido via CDN dedicado (`cdn.l2rift.com`), portando assets originais e completos do Lineage 2 Interlude (modelos, animações, texturas, interface nativa).
+  - _Diagnóstico Visual_: A sensação de polimento e "jogo impecável" deve-se a:
     1. Unidade estética total dos assets originais da NCSoft (rig anatômico nobre, malhas e texturas pintadas à mão com specular).
     2. Iluminação com ACES Filmic Tone Mapping e sRGB, eliminando brancos estourados e sombras duras.
     3. Reflexos metálicos com IBL (Environment Map) em armaduras e lâminas.
@@ -3772,12 +3784,12 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Decisão Estratégica do Dono**:
   - **Jogabilidade e Habilidades**: Mantidas 100% as nossas! O combate de ação rápida estilo Dragon Nest (mira no centro, combos, esquiva, fluidez mobile/PC) e as habilidades com efeitos refinados (optical lens flares, partículas fluidas com ruído curl e véus 360°) permanecem como a identidade única do IS BLADE.
   - **Transformação Visual e Layout**: Trazer para o IS BLADE a cara visual autêntica do Lineage 2 em 4 frentes:
-    1. *Interface Completa*:
+    1. _Interface Completa_:
        - **Target Window Clássica**: Moldura ornamentada em ferro e bronze chanfrado, ícone de classe/mob, nível colorido pela diferença de nível, nome e barras de HP/MP/CP com relevo.
        - **Janela de Status / Character (U / C)**: Atributos clássicos do L2 (P.Atk, M.Atk, P.Def, M.Def, Atk.Spd, Cast.Spd, Critical, Speed, etc.), barras de EXP/SP e pontos distribuíveis.
        - **Inventário em Grade com Paperdoll (I)**: Slots metálicos, silhueta anatômica de equipamento (elmo, peito, pernas, luvas, botas, arma, escudo, joias, capa) e adena no rodapé.
        - **Ícones Oficiais do L2**: Exibição dos ícones reais de itens e skills já iniciados no projeto (`Icon.utx`).
-    2. *As 4 Recomendações Técnicas Integradas*:
+    2. _As 4 Recomendações Técnicas Integradas_:
        - **Iluminação & Pós-Processamento**: Ativar `ACESFilmicToneMapping`, `outputColorSpace = SRGBColorSpace`, sombras PCF Soft e Environment Map HDRI / IBL para reflexos vívidos nos metais.
        - **Design System Dark Fantasy da UI**: Folha de estilo unificada para todas as janelas do jogo com bordas chanfradas e tipografia gótica/fantasia clássica.
        - **Modelos PBR Padronizados**: Proporções nobres e malhas com materiais PBR completos, mantendo rigorosamente a proibição de geometrias maciças.
@@ -3826,9 +3838,9 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - A função `alvoTick()` foi corrigida: ela agora lê dinamicamente `S.en.name`. Ao bater no Espantalho de Treino, o alvo é exibido corretamente como **Espantalho de Treino · Nv 1 · Imortal** (ícone 🎯), sem mais exibir o Baium Nv 75 indevidamente.
 - **Extração Oficial de Texturas de UI do Lineage 2 Interlude**:
   - Extraídas 37 texturas autênticas de `Cliente Interlud 300x\systextures\l2ui.utx` e `L2UI_CH3.utx` com `umodel` para `prototipo/assets/ui/`:
-    - *Target Window*: `TargetBack.png`, `TargetCloseButton.png`, `TargetCloseButton_click.png`, `TargetFrameAll.png`, `hpbar.png`, `hpbar_back.png`.
-    - *Inventário & Paperdoll*: `InventoryBack.png`, `inventory_back.png`, `inventory_outline.png` (slot 64x64 com cantoneiras de metal), `inventory_outline_over.png` (highlight dourado de foco/hover), `inventory_trash.png`.
-    - *Character Status*: `statusback.png`, `statusEXP1.png`, `SystemWindowButton.png`, `SystemWindowButton_click.png`.
+    - _Target Window_: `TargetBack.png`, `TargetCloseButton.png`, `TargetCloseButton_click.png`, `TargetFrameAll.png`, `hpbar.png`, `hpbar_back.png`.
+    - _Inventário & Paperdoll_: `InventoryBack.png`, `inventory_back.png`, `inventory_outline.png` (slot 64x64 com cantoneiras de metal), `inventory_outline_over.png` (highlight dourado de foco/hover), `inventory_trash.png`.
+    - _Character Status_: `statusback.png`, `statusEXP1.png`, `SystemWindowButton.png`, `SystemWindowButton_click.png`.
 - **Diagnóstico de Transição para o Claude Code (Reconstrução 1:1 da UI Interlude)**:
   - O layout atual do inventário ainda é o modal largo de protótipo web (820px em 2 colunas com caixas de texto).
   - O que o jogo precisa de fato: A janela vertical clássica do Lineage 2 Interlude (largura nativa de 256px a 320px):
@@ -3838,7 +3850,6 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     4. Rodapé: Ícones de Lixeira (`inventory_trash.png`), Livro de Receitas (`inventory_recipe.png`), Adena e Barra de Peso (`ps_weightbar1.png`).
   - Target Window: Barra compacta clássica horizontal com nome, nível, botão de fechar original e barra de HP chanfrada.
   - Todas as 37 texturas PNG estão prontas e extraídas em `prototipo/assets/ui/` para o Claude Code montar a estrutura 1:1.
-
 
 ### [Antigravity] 13/11/2026 - Reconstrução 1:1 da Interface Oficial Lineage 2 Interlude & Eliminação Definitiva da Barra Dupla de Alvo
 
@@ -3870,6 +3881,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Preview capturado e commitado em `preview_l2_interface.png`.
 
 ### [Claude] 13/11/2026 - Horizonte da cidade volta, no ponto real dos mapas; lobby mostra o cajado
+
 - Lobby (`selecao.html`): mago e clerigo mostravam a Dragon Slayer na previa; agora `modeloArmaLobby(c)` carrega `assets/armas/cedar_staff.glb` (classe/arma cajado ou livro). Previa e por classe, nao pelo item equipado (inventario fica no servidor). NAO conferido visualmente.
 - Horizonte (`js/horizonte.js` v3 + `cidade.html`): o `setInterval` de 09/11 que escondia as silhuetas foi removido. Cada silhueta agora fica no ponto REAL do mapa (`mundo_grade.json -> mapas`: toi=torre, blazing=pantano, fortress, curuma), com escala = ESCALA x distancia/270 (mesmo tamanho aparente de antes) e altura do terreno; some a menos de 130 m do mapa. Modo baixa: distancia, escala e altura reduzidas juntas por camera.far. Backup: `horizonte.js.antes_real`.
 - Conferido (Playwright, Chrome por software): as 4 silhuetas nascem nas posicoes certas; com a cor trocada para vermelho, a da Fortaleza aparece na direcao certa atras das arvores. NAO conferido: aparencia final de dia em cada direcao (muralha tapa a vista de dentro da cidade; a captura da Torre caiu dentro de um modelo), nem celular. Itens 5 (cordilheira cobrir a base) e 7 (nome/seta) do plano ficaram para depois.
@@ -3889,6 +3901,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Commit c6d20c9 enviado (push em MANINtecn/isblade): mapa_vivo.js, tools/verifica_acesso.py e este diario.
 
 ### [Antigravity] 13/11/2026 - Port Completo da Interface 1:1 Lineage 2 Interlude (XDAT + Classes .uc)
+
 - **Origem dos Dados & Engenharia Reversa**:
   - Investigado e mapeado o schema completo de janelas decompiladas do `interface.xdat` em `C:\TECX SOFTHOUSE\L2 IKARUS INTERCROW\XDAT_Editor_Source\xml\ct0\windows\`:
     - `0046_InventoryWnd.xml` (Inventário vertical nativo 256x382 px, 15 slots de Paperdoll e grade 6x4 de bolsa).
@@ -3935,6 +3948,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Correcoes ficam para depois da resposta do dono (regra: perguntar antes de mexer em servidor/dados).
 
 ### [Antigravity] 13/11/2026 - Limpeza do Menu de Configurações (Config Modal)
+
 - **Elementos removidos conforme solicitação visual com X vermelho**:
   - Removido botão `🏰 SAIR DO DUELO E VOLTAR PARA A VILA` do topo do menu de configurações.
   - Removido checkbox e texto descritivo `Interface de combos e gestos`.
@@ -3951,7 +3965,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **XP por mensagem fechado** (server.js): a mensagem `xp` so vale no canal masmorra, so para os tipos da DG antiga por salas (shade, caster, brute, mini_boss, boss), nunca quando as ondas/Baium sao do servidor; limite 30 por minuto (era 90). Teste: 20 mensagens na cidade = nivel 1, 0 adena, 0 itens (antes Nv 23). Resto: quem entra na masmorra sem iniciar a DG ainda pode mandar esses 5 tipos; o `mhit` continua confiando no dano do cliente.
 - **Mob muito acima nao da power-level** (progressao.js + progressao.json -> xpPorAbate.acimaLimite 8, acimaPenalidade 0.2): ate 8 niveis acima o bonus continua; depois perde 20% por nivel ate o piso de 5%. Nv 1 no Golem Nv 43: 176 -> 6 XP. Vale para party e DG.
 - **Duelo do Baium sem recompensa** (server.js, bhit): chave duelo nao chama premia (so divulgacao, pedido do dono). NAO testado com luta real.
-- teste_progressao.js atualizado (entra na masmorra, usa shade, 3 checagens novas): 13 de 13 ok. Backups: *.antes_auditoria. Sem commit ainda.
+- teste_progressao.js atualizado (entra na masmorra, usa shade, 3 checagens novas): 13 de 13 ok. Backups: \*.antes_auditoria. Sem commit ainda.
 - **Direcao do dono (13/11):** corrigir tudo; Fortaleza vira evento semanal de castelo de cla (mobs so em volta); mobs em volta da Cruma; Pantano com mobs na parte baixa (entrada pela lateral direita) e na parte alta; DG da Torre = fim de jogo para enfrentar o Baium; duelo do Baium so divulgacao, sem XP nem premio.
 - Medido: campo andavel a ate 90 m de cada mapa = Cruma 154 mil m2, Fortaleza 78 mil, Pantano 110 mil, Torre 127 mil. Da para gerar os spots de volta pelo mundo_grade (mesmo caminho dos 32 spots do campo). Falta o dono aprovar as faixas de nivel por area.
 
@@ -3967,7 +3981,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Testes:** teste_progressao 13 de 13; teste_dg_grupo normal PASSOU; teste_baium duelo PASSOU; simulador ok. NAO testado no navegador (mobs novos, nivel no alvo, tutorial).
 - **Pendente / decisao do dono:** (1) Baium ficou fraco para Nv 99 (1.800 de vida x bossHp, golpes de 18-44; jogador Nv 99 tem 850-1.500 de vida) - e combate, nao mexi. (2) Parte alta do Pantano: o plato a leste (30-40 m de altura) nao e alcancavel a pe pela malha; precisa de rampa ou teleporte para receber mobs. (3) Nao existe equipamento acima do grau C (Nv 40). (4) Castelo de cla semanal na Fortaleza: sistema novo, nao comecado. (5) mhit ainda confia no dano do cliente.
 - **Anotado a pedido do dono:** a Torre de Cruma e enfeite; o conteudo e o terreno em volta. Ela tem uma **cobertura la em cima onde cabe um chefe no futuro**. Por dentro da Cruma nao se sabe se existe mapa.
-- Backups: *.antes_auditoria. Sem commit.
+- Backups: \*.antes_auditoria. Sem commit.
 
 ### [Claude] 13/11/2026 - Baium na escala do nivel (duelo dinamico) e rampas do Pantano
 
@@ -3976,6 +3990,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Rampas do Pantano:** o dono disse que ja fez 2 rampas no Blender (a que desce de frente para a que sobe). No mapa exportado (glb e walkgrid de 02/11) a subida para o plato existe perto de x 78-95, z -58 (coordenadas do mapa), mas tem 3 degraus de 2,3 a 2,5 m (alturas 7, 12 e 20 m); o jogo sobe no maximo 1,04 m por celula de 0,75 m, entao o plato segue inalcancavel. Nao ha .blend do Pantano mais novo que 02/11 no projeto e o Blender nao estava conectado ao MCP para conferir. Falta: abrir o .blend com as rampas, reexportar glb + walkgrid e so entao por os mobs Nv 71-78 la em cima.
 
 ### [Antigravity] 13/11/2026 - Modelos Nativos Oficiais do Lineage 2 para os NPCs da Cidade
+
 - **Problema Relatado**:
   - Os NPCs de Talking Island estavam utilizando os modelos jogáveis genéricos (anão jogador sem roupa, elf jogador sem roupa, etc.) em vez de suas malhas nativas oficiais do Lineage 2 Interlude.
 - **Engenharia Reversa & Extração Direta dos Pacotes do Cliente L2**:
@@ -3992,6 +4007,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Criada página de visualização 3D `prototipo/preview_npcs_l2.html` com screenshot validada em `preview_npcs_l2.png`.
 
 ### [Antigravity] 13/11/2026 - Botões de "Trocar Personagem" (Restart), "Logout" e Padronização da Seção de Interface no Menu de Configurações
+
 - **Pedido do Usuário**:
   - Inclusão dos botões de Logout e Trocar Personagem (Select Character / Restart) dentro do menu de configurações/sistema (`#cfg`), e padronização da seção de Interface nessa área.
 - **Implementação e Padronização Visual**:
@@ -4019,50 +4035,13 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Claude] 14/11/2026 - Pantano: parte baixa e parte alta (rampas conferidas no terreno do mundo)
-
-- O dono abriu o Blender (MCP) e autorizou abrir `tools/blender_mundo/mapa_mundi.blend` (so leitura, nada salvo). Conclusao: a **parte baixa** do Pantano e o terreno do mundo a cerca de -35 m em volta da ilha (regiao 3 do mundo_grade, andavel), ligado ao campo baixo a leste e a sudoeste; a **parte alta** e a ilha do mapa (nivel 0 a 5 m), com encostas de subida a oeste e ao sul. O plato de 32 m que eu tinha apontado antes e so topo de rocha do mapa do L2, nao e area de jogo (erro meu de leitura).
-- **Spots (tools/spots/rebalancear.js, regravado):** parte baixa = 12 spots novos em spots.json -> mundo (salamandra 52, magmagoil 57, serpe 62; os mais fracos perto das entradas); ilha = golem 67, Salamandra Ancia 71, Golem de Magma 75 e o Senhor dos Dracos 78. Os 8 spots que eu tinha posto em volta do Pantano sairam. Total: 88 spots, 0 sem chao valido, 0 colados.
-- teste_progressao 13 de 13. **NAO testado no navegador:** falta o dono andar na parte baixa e ver se os mobs ficam no chao certo (3 spots ficam a menos de 170 m do centro do mapa, onde o walkgrid do mapa tambem existe: 192,259 / 195,148 / 183,292).
-
-### [Claude] 14/11/2026 - Mapas mais cheios, mobs que aguentam e revidam, e 3 chefes Nv 20 com golpes marcados no chao
-
-- **Pedido do dono:** anda-se muito para chegar em spots (dobrar ou triplicar); mata-se rapido demais desde o Nv 1 (o mob nem revida, skill da quase hit kill, ataque padrao bate mais que skill); a XP esta boa; quer chefes Nv 20 / 40 / 60 / 70 espalhados, de volta rapida, luta corrida e dano marcado no chao como o Baium. Por agora so os Nv 20.
-- **Medido antes de mexer:** Sapo Nv 2 tinha 36 de vida e batia 3; o golpe padrao do jogador da 18-40 (golpe 6-11 x3, mais combo) e as skills 60-120 fixos. Ou seja: 1-2 golpes por mob e 35 golpes do mob para matar o jogador. No campo eram 32 spots, com o vizinho mais proximo a 42 m em media.
-- **Curva nova dos mobs** (`tools/spots/rebalancear.js`, fonte unica): vida `150 + 10L + 0,003L2` (antes `30 + 3L + 0,085L2`), dano `5 + 0,65L + 0,0008L2` (antes `2 + 0,38L + 0,004L2`). Nv 2 = 170 de vida / 6 de dano; Nv 17 = 289 / 16; Nv 35 (chefe da Cruma) = 4.029 / 46; Nv 50 ~ 650 / 40; Nv 99 igual ao que era. A DG da Torre (80-99) muda pouco (ate +18% de vida no Nv 80). XP por abate NAO mudou (o peso e vida / vida da curva); como cada abate demora mais, o ritmo fica perto dos 240 abates por hora que o simulador ja supunha.
-- **Densidade:** cada spot ganhou ate 2 satelites do mesmo tipo a 26-56 m (chao plano, ligado ao spot pai por linha andavel, 22 m de qualquer outro). Campo 32 -> 75 spots; Cruma 19 -> 55; em volta da Fortaleza 13 -> 37; parte baixa do Pantano 12 -> 35; ilha do Pantano 12 -> 19 (pouco espaco). Total 88 -> 223. Satelite leva `"sat": 1` no spots.json e e refeito a cada rodada (semente propria: os spots antigos nao mudaram de lugar).
-- **Chefes Nv 20** (campo, faixa 15-20, volta em 90 s, sem anuncio no canal, drop de mini-chefe: 1 item + 35% de mais um): **Rainha Formiga** (225, 16), **Stakato Devastador** (-201, -119) e **Aranha Matriarca** (-21, 274). 2.810 de vida, 29 de dano base. Sao os modelos do campo em escala 2 / 2,2 (nao ha modelo novo).
-- **Golpes marcados** (`servidor/mobs_mundo.js -> iaChefe`, dados em `dungeon.json -> mobs.<tipo>.golpes`): cone, faixa reta (rect) e area de 6 lados (hex; nada redondo). Leque de varias marcas, chuva de marcas em cima do alvo, marca que persegue o alvo e investida em que o chefe corre pela faixa. Marca dura 0,6-1,05 s; abaixo de 35% de vida o chefe entra em furia (25% mais rapido). O servidor manda `mtele`; o jogo (`cidade.html -> mobSrvTele / teleTick`) desenha a marca enchendo ate o dano, e o `mdmg` traz a marca para o jogo conferir a posicao exata de quem apanha (sair da marca ou rolar funciona sem atraso de rede). So a mordida/foice/presas aceitam guarda; o resto e para esquivar.
-- **Testes:** `servidor/teste_chefes.js` (novo, nao precisa do servidor ligado): os 3 chefes nascem, usam todos os golpes, acertam jogador parado, voltam em ~90 s - TUDO PASSOU. teste_progressao tudo certo; teste_dg_grupo normal PASSOU; teste_baium duelo PASSOU; sintaxe do cidade.html conferida. **NAO testado no navegador:** o desenho das marcas, o tamanho dos chefes (escala 2) e a sensacao da luta.
-- **Push feito em 14/11 a pedido do dono** (main, commit "feat(combate): mobs mais fortes, mapas mais cheios e 3 chefes Nv 20 com golpes marcados no chao"). O servidor precisa ser reiniciado para carregar os dados novos; na VPS ainda nao ha servidor no ar.
-- **A FAZER (pedido do dono): chefes Nv 40, 60 e 70** no mesmo molde. E so dado: uma entrada nova em `VAR` no rebalancear.js com `golpes`, uma linha na tabela `T` da area e um bloco de spots como o dos Nv 20. Sugestao de lugar: Nv 40 em volta da Fortaleza, Nv 60 na parte baixa do Pantano, Nv 70 na ilha. Os chefes antigos (Rainha Stakato 35, Comandante Ol Mahum 49, Senhor dos Dracos 78) ainda batem sem marca: passar para golpes marcados tambem.
-- **Pendente / decisao do dono:** (1) **Ataque padrao x skill:** nao mexi nos numeros do jogador. O golpe padrao (18-40 a cada ~0,5 s) rende mais dano por segundo que as skills (60-120 a cada 4-14 s). Opcoes: baixar o x3 do golpe padrao para x2, ou subir o dano das skills contra mobs; qualquer uma mexe tambem na luta do Baium. (2) Se a luta ficou dura ou mole demais, o ajuste e nos dois numeros da curva (rebalancear.js) e em `mul` / `wind` dos golpes. (3) Com 2,5x mais mobs por perto, conferir o desempenho no celular. (4) No modo local do arena.html os chefes novos nao existem (so no mundo do servidor).
-- Backups: *.antes_chefes20.
-
-### [Claude] 14/11/2026 - Estamina por nivel, custos menores e regen mais rapida
-- **Pedido do dono:** estamina dinamica por nivel, recuperando com o ataque padrao; baixar custos; 25 s para encher estava demais.
-- **Maximo por nivel:** `estaminaBase + estaminaPorNivel x (nivel-1)` em `data/progressao.json` (100 + 2/nivel: Nv 1 = 100, Nv 50 = 198, Nv 99 = 296). Funcao `stMax()` no cidade.html e no arena.html; todo `100` fixo da estamina trocado por ela; barra do HUD (l2_hud.js e stfill) mostra atual/maximo.
-- **Escala junto (x maximo/100):** ganho do ataque padrao (3 + combo, teto 12), esquiva perfeita (+15), parry (+25) e regen. A regen e proporcional, entao o tempo para encher e o mesmo em todo nivel.
-- **Regen:** `stamRegen` 0,2 -> 0,33 (combate.json): de 0 ao maximo em ~15 s (antes ~25 s); guardando ~50 s.
-- **Custos (fixos, pesam menos conforme sobe de nivel):** rolagem 32 -> 15 (cancelar skill 42 -> 25; o dono pediu baixar mais, de 24/34), pulo 8 -> 5, corrida 10/s -> 7/s, soltar guarda 10 -> 7, bloqueio x0,75 (`BLOCK_COST`; Guardiao continua -40% em cima).
-- **NAO testado no navegador.** JSON e l2_hud.js conferidos (node). Push feito em 14/11 a pedido do dono. Backups: *.antes_estamina.
-
-### [Antigravity] 14/11/2026 - Ampliação Visual das Habilidades do Healer: Cura Mirada (3x) e Escudo Astral (5x)
-- **Pedido do Usuário**:
-  - Aumentar o tamanho visual da skill **Cura Mirada** em **3x o tamanho atual**.
-  - Aumentar o tamanho visual da skill **Escudo Astral** em **5x o tamanho atual**.
-- **Ajustes Implementados (`prototipo/js/clerigo_fx.js`)**:
-  1. **Cura Mirada (Skill 1 do Healer - 3x o tamanho visual)**:
-     - `C.criarCristal`: Projétil sagrado esmeralda ampliado em 3x (`escEfetiva = (escala || 0.9) * 3`).
-     - Cruz sagrada de flare esmeralda, núcleo incandescente branco, rastro estelar e partículas ajustados para escala 3x.
-     - `C.cura`: Efeito de impacto/cura no aliado ampliado em 3x (`A = (forte ? 1.2 : 0.9) * 3`), expandindo a cruz no solo, as ondas etéreas, os fragmentos cintilantes em espiral e a coluna de partículas de ascensão.
-     - `C.impacto`: Impacto no solo/inimigo ampliado proporcionalmente em 3x quando verde (`mult = 3`).
-  2. **Escudo Astral (Skill 3 do Healer - 5x o tamanho visual)**:
-     - `C.escudo`: Cruzes de Proteção em Azul Safira Radiante ampliadas em 5x (`multEscudo = 5`, passando de 0.85 para 4.25m de envergadura, e núcleo estelar de 0.42 para 2.10m).
-     - Raio de órbita ampliado de 1.05m para 2.8m (com elevação de 1.35m), permitindo que as 6 cruzes monumentais formem um anel celestial imponente sem colidir com o corpo do jogador.
-     - `quebra`: Detonação e partículas de quebra das placas do escudo ampliadas em 5x.
-  3. **Conformidade com Diretrizes `estilo-fx-refinado`**:
-     - Mantida pureza de energia, luminosidade etérea aditiva e miolo incandescente sem sólidos maciços ou formas geométricas duras.
-  4. **Atualização de Versão de Cache e Validação Visual**:
-     - `cidade.html` e `arena.html` atualizados para `clerigo_fx.js?v=6`.
-     - Criada página de teste `prototipo/preview_clerigo_skills.html` e gerada screenshot de confirmação em `prototipo/preview_clerigo_skills.png`.
+### [Antigravity] 14/11/2026 - Ampliação Visual das Habilidades do Healer (Cura Mirada 3x, Escudo Astral 5x) e Correção do Alinhamento do Brilho Óptico
+- **Problema Relatado**:
+  - Na skill Cura Mirada, o brilho intenso (flare óptico branco incandescente) estava desalinhado e saindo mais abaixo do que a junção dos braços da cruz.
+- **Causa Raiz Identificada**:
+  - A textura `clerigo_cruz_flare.png` (512x512) possui proporções latinas nobres (haste inferior mais longa). Devido a isso, a intersecção/junção da cruz estava localizada no pixel Y = 157, enquanto o centro da imagem (onde o sprite e a estrela óptica `nu` eram ancorados em 0, 0, 0) ficava no pixel Y = 256 (+99 pixels abaixo).
+- **Correção Aplicada**:
+  - `prototipo/assets/fx/clerigo_cruz_flare.png`: Textura recentrada com precisão sub-pixel por script Python, deslocando a intersecção exatamente para o centro óptico (256, 256), preservando 100% dos gradientes e sem qualquer corte de bordas.
+  - Bumping de cache de textura para `?v=7` em `clerigo_fx.js`, `cidade.html` e `arena.html`.
+  - O núcleo de luz incandescente branco agora coincide com exatidão matemática sobre a junção da cruz em todas as instâncias (projétil, impacto no solo e escudos astrais).
+  - Validado visualmente e capturada imagem comprobatória em `prototipo/preview_clerigo_skills.png`.

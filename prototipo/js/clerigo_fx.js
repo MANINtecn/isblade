@@ -146,7 +146,7 @@
   C.init = function(THREE_, cena_){
     if(T) return;
     T = THREE_; cena = cena_;
-    var tl = new T.TextureLoader(), v = '?v=5';
+    var tl = new T.TextureLoader(), v = '?v=7';
     ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo', 'cruz_flare', 'veu_energia', 'pena'].forEach(function(n){
       TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v);
     });
