@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Previa dano</title>
+<style>body{margin:0;width:640px;height:360px;background:radial-gradient(#5a2a10,#1a0c06);overflow:hidden}.dn{animation:none!important}</style></head><body>
+<div id="floats"></div>
+<script src="js/dano_tela.js"></script>
+<script>
+function put(v,x,y,t,r,k){var d=document.createElement('div');d.className='dn '+t;d.style.left=x+'px';d.style.top=y+'px';d.style.fontSize=({n:30,c:40,r:30})[t]+'px';if(r){var i=document.createElement('i');i.textContent=r;d.appendChild(i);}var b=document.createElement('b');b.textContent=v;d.appendChild(b);document.body.appendChild(d);}
+document.fonts.load("600 30px ISDano").then(function(){
+put('4352',140,90,'n');put('4352',150,128,'n');put('12831',130,170,'c');put('641',250,175,'r');
+put('13577',430,70,'c');put('14009',445,108,'c');put('13822',440,150,'c');put('86',440,230,'n','FRAQUEZA');put('34',300,290,'n');put('72',360,300,'n');
+document.title='pronto';});
+</script></body></html>

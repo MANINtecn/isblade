@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Previa SS L2</title>
+<style>body{margin:0;background:#0b0e14;color:#e8e2cf;font:600 13px system-ui}#lab{position:absolute;left:0;top:0;width:1280px;pointer-events:none}
+.r{position:absolute;left:6px;font-size:13px;color:#f5c451;text-shadow:0 1px 2px #000}.c{position:absolute;top:4px;font-size:12px;color:#9fb3d1}</style></head><body>
+<canvas id="cv" width="1280" height="1280"></canvas><div id="lab"></div>
+<script src="lib/three.min.js"></script>
+<script src="js/ss_l2.js"></script>
+<script>
+var ESC=+(new URLSearchParams(location.search).get('escala')||.04);
+var LIN=[['SOULSHOT com aneis (fiel)',false,false],['SOULSHOT sem aneis',false,true],['SPIRITSHOT com aneis (fiel)',true,false],['SPIRITSHOT sem aneis',true,true]];
+var TS=[.02,.12,.3,.7],W=320;
+var ren=new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true});ren.setScissorTest(true);ren.autoClear=false;
+var lab=document.getElementById('lab');
+TS.forEach(function(t,j){var d=document.createElement('div');d.className='c';d.style.left=(j*W+W/2-20)+'px';d.textContent='t = '+t+' s';lab.appendChild(d);});
+LIN.forEach(function(l,i){var d=document.createElement('div');d.className='r';d.style.top=(i*W+22)+'px';d.textContent=l[0];lab.appendChild(d);});
+function boneco(){var g=new THREE.Group(),m=new THREE.MeshBasicMaterial({color:0x2a3346});
+  [[.42,.75,.24,0,1.2],[.3,.3,.3,0,1.73],[.16,.8,.18,-.12,.42],[.16,.8,.18,.12,.42]].forEach(function(b){var x=new THREE.Mesh(new THREE.BoxGeometry(b[0],b[1],b[2]),m);x.position.set(b[3],b[4],0);g.add(x);});
+  var br=new THREE.Mesh(new THREE.BoxGeometry(.5,.12,.12),m);br.position.set(.42,1.1,0);g.add(br);
+  var mao=new THREE.Mesh(new THREE.BoxGeometry(.13,.13,.13),new THREE.MeshBasicMaterial({color:0x56607a}));mao.position.set(.7,1.1,0);g.add(mao);return g;}
+SSL2.carregar('assets/fx/ss_l2/').then(function(){
+  LIN.forEach(function(l,i){TS.forEach(function(t,j){
+    var sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(40,1,.05,50);cam.position.set(.5,1.25,4.2);cam.lookAt(.4,1.15,0);
+    sc.add(boneco());var fx=SSL2.criar({magia:l[1],semAneis:l[2],escala:ESC,seed:7});fx.grupo.position.set(.7,1.1,0);sc.add(fx.grupo);fx.avaliar(t);
+    var x=j*W,y=(3-i)*W;ren.setViewport(x,y,W,W);ren.setScissor(x,y,W,W);ren.setClearColor(0x0b0e14);ren.clear();ren.render(sc,cam);
+  });});
+  ren.setScissor(0,0,1280,1280);document.title='pronto';
+});
+</script></body></html>

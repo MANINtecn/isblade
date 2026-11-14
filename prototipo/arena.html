@@ -466,7 +466,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
 <script src="js/mobile.js?v=8"></script>
 <script src="js/qualidade.js?v=3"></script>
-<script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script>
+<script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=1"></script>
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
@@ -6948,7 +6948,7 @@ function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no da
   if(CONSUM[id]>0) CONSUM[id]--;
   /* ATIVA O BRILHO NOSTÁLGICO DO SOULSHOT NA ARMA (PC e Mobile) */
   if(!an.skill)try{/* [dano-tela] skill nao mostra soulshot (so o bonus de dano) */
-    if(window.Brilho&&Brilho.soulshot)Brilho.soulshot(vrm,wpnCaster(),(an.dur||0.45)*1000);
+    if(window.SSL2){var _mao=vrm&&vrm.root&&vrm.root.getObjectByName&&(vrm.root.getObjectByName('Bip01_R_Hand')||vrm.root.getObjectByName('Weapon_R_Bone'));if(_mao)SSL2.disparar(scene,_mao,{magia:wpnCaster()});}/* [ss-l2] soulshot/spiritshot ORIGINAL do L2 na mao (antes: arma pintada de ciano) */
     if(window.SFX){
       if(wpnCaster())SFX.play('spirits_shot_cast');
       else SFX.play('soulshot_cast');

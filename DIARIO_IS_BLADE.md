@@ -4089,3 +4089,10 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Validado via Playwright Headless Chrome com teste de arraste simultâneo das 3 janelas, persistência em `localStorage` e recarregamento da página.
   - Screenshot oficial salva em `preview_l2_janelas_moveis.png`.
   - Cache query incrementada para `v=38` em `css/l2_hud.css`, `js/l2_hud.js`, `js/inventario_ui.js` e `js/skills_ui.js`.
+
+### [Claude] 14/11/2026 - Soulshot/Spiritshot ORIGINAL do L2 na mao (com os aneis, decisao do dono)
+- Dono decidiu: fiel ao L2, com os aneis ("dar o braco a torcer" quando a fidelidade pede). Excecao a regra de evitar redondo SO para o SS original.
+- js/ss_l2.js: recria it_soul_shot_d_ca (Glow x6 em anel, Spirits spirit_gun00, Ignicao skill_power01, Flash fx_m_t0056) e it_spirit_shot_d_ca (+ MC/MC2) com os numeros do cliente; SSL2.disparar segue o osso Bip01_R_Hand; escala = escala de mundo do osso (unidade L2 -> metro), reserva 0,04; no maximo 3 ao mesmo tempo. Assets em prototipo/assets/fx/ss_l2 (texturas reduzidas + malhas em JSON; conversor trabalho_l2fx/ferramentas/pskx2json.py). Previa: preview_ss_l2.html.
+- ssTiro (arena/cidade): o brilho generico (arma pintada de ciano via Brilho.soulshot) saiu; agora dispara o SS L2 na mao. So no ataque basico (skills sem SS visual).
+- Correcao em producao: o commit fff5feb levou arena/cidade chamando DanoTela sem o js/dano_tela.js (dano em mob quebrava). Este commit sobe dano_tela.js + fonte.
+- Atencao: o DIARIO em disco foi sobrescrito 2x por versao antiga (editor com buffer velho); restaurado do HEAD.
