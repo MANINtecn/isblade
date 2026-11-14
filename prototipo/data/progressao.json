@@ -183,6 +183,9 @@
     "_vidaPorNivel": "08/11 (rebalanceamento aprovado pelo dono): +5 de vida por nivel para todas as classes. Sem isso a vida do mago/guerreiro ficava parada e no Pantano morriam em ~11 golpes (na Cruma eram ~34).",
     "defesaPorVit": 0.05,
     "estaminaPorVit": 0.3,
+    "estaminaBase": 100,
+    "estaminaPorNivel": 2,
+    "_estaminaPorNivel": "14/11 (pedido do dono): estamina maxima = estaminaBase + estaminaPorNivel x (nivel - 1); Nv 1 = 100, Nv 50 = 198, Nv 99 = 296. Ganho do ataque padrao, esquiva perfeita, parry e regen escalam junto (x maximo/100); os custos ficam fixos, entao pesam menos conforme sobe de nivel.",
     "corridaPorAgi": 0.001,
     "corridaMax": 0.25
   }

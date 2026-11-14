@@ -2409,6 +2409,10 @@ syncP();
 
 
 var STROKE_COST=0,STROKE_GAIN=4,SKILL_GAIN=6,ARENA=280.0;
+/* [estamina] 14/11: maximo cresce por nivel (data/progressao.json efeitos.estaminaBase + estaminaPorNivel); ganhos e regen escalam junto (fator stMax/100); bloqueio gasta 25% menos */
+var BLOCK_COST=.75;
+function stMax(){var e=DATA&&DATA.prog&&DATA.prog.efeitos;return Math.round(((e&&e.estaminaBase)||100)+(((typeof S!=="undefined"&&S&&S.lvl)||1)-1)*((e&&e.estaminaPorNivel)||0));}
+window.stMax=stMax;
 
 
 
@@ -9492,11 +9496,11 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  if(!an.skill&&!an.dome&&S.st<100){
+  if(!an.skill&&!an.dome&&S.st<stMax()){
 
 
 
-    var sg=Math.min(100-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX));
+    var sg=Math.min(stMax()-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX)*stMax()/100);
 
 
 
@@ -10155,9 +10159,9 @@ function doAct(type,arg){
 
 
 /* >>> CLAUDE [pulo] Espaco pula; a guarda virou a skill universal 'C' (segurar). Igual a arena.html. */
-var JUMP_V=12,JUMP_G=34,JUMP_COST=8;
+var JUMP_V=12,JUMP_G=34,JUMP_COST=5;
 /* >>> CLAUDE [corrida] Shift: esquiva NA HORA ao apertar; continuar segurando (> SPRINT_HOLD s) = correr; segurar (> SPRINT_HOLD s) = correr mais rapido, gastando estamina aos poucos. Ajustar aqui. */
-var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=10,SPRINT_MIN=12;
+var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=7,SPRINT_MIN=12;
 /* <<< CLAUDE [corrida] */
 function jumpH(){return S.jy||0;}
 function doJump(){
@@ -10971,7 +10975,7 @@ function resolveEnemyHit(atk){
 
 
 
-    gainFocus();S.st=Math.min(100,S.st+15);
+    gainFocus();S.st=Math.min(stMax(),S.st+15*stMax()/100);
 
 
 
@@ -10995,7 +10999,7 @@ function resolveEnemyHit(atk){
 
 
 
-      setEnemy('stagger',1.8);gainFocus();S.st=Math.min(100,S.st+25);
+      setEnemy('stagger',1.8);gainFocus();S.st=Math.min(stMax(),S.st+25*stMax()/100);
 
 
 
@@ -11011,11 +11015,11 @@ function resolveEnemyHit(atk){
 
 
 
-    if(S.st>=atk.cost){
+    if(S.st>=atk.cost*BLOCK_COST){
 
 
 
-      S.st-=atk.cost;S.stDelay=.9;
+      S.st-=atk.cost*BLOCK_COST;S.stDelay=.9;
 
 
 
@@ -11155,7 +11159,7 @@ function resetDuel(){
 
 
 
-  S.php=S.pmax;S.st=100;S.px=0;S.pz=6;S.face=Math.PI;S.ex=0;S.ez=-3;S.eh=0;S.hp=S.maxhp;S.dead=false;S.pdead=false;S.stun=0;S.rollT=-1;S.focus=0;S.guard=false;
+  S.php=S.pmax;S.st=stMax();S.px=0;S.pz=6;S.face=Math.PI;S.ex=0;S.ez=-3;S.eh=0;S.hp=S.maxhp;S.dead=false;S.pdead=false;S.stun=0;S.rollT=-1;S.focus=0;S.guard=false;
 
 
 
@@ -11736,7 +11740,7 @@ function hitMobs(an,rng,half){
 
 
 
-    if(!an.skill&&S.st<100){var sg=Math.min(100-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX));S.st+=sg;floatText('+'+(Math.round(sg*10)/10)+' EST','#f5c451',14,'p');}
+    if(!an.skill&&S.st<stMax()){var sg=Math.min(stMax()-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX)*stMax()/100);S.st+=sg;floatText('+'+(Math.round(sg*10)/10)+' EST','#f5c451',14,'p');}
 
 
 
@@ -11764,7 +11768,7 @@ function playerTakeHit(h){
 
 
 
-  if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){gainFocus();S.st=Math.min(100,S.st+15);floatText('ESQUIVA PERFEITA','#5aa9ff',22,'p');spark(S.px,1.6,S.pz,2.4,0x5aa9ff,.3);return;}
+  if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){gainFocus();S.st=Math.min(stMax(),S.st+15*stMax()/100);floatText('ESQUIVA PERFEITA','#5aa9ff',22,'p');spark(S.px,1.6,S.pz,2.4,0x5aa9ff,.3);return;}
 
 
 
@@ -11780,7 +11784,7 @@ function playerTakeHit(h){
 
 
 
-      if(h.onParry)h.onParry();gainFocus();S.st=Math.min(100,S.st+25);
+      if(h.onParry)h.onParry();gainFocus();S.st=Math.min(stMax(),S.st+25*stMax()/100);
 
 
 
@@ -11796,7 +11800,7 @@ function playerTakeHit(h){
 
 
 
-    var gcost=WPN==='shield'?h.cost*.6:h.cost;/* Guardiao (escudo) gasta 40% menos estamina ao bloquear */
+    var gcost=(WPN==='shield'?h.cost*.6:h.cost)*BLOCK_COST;/* Guardiao (escudo) gasta 40% menos estamina ao bloquear */
     if(S.st>=gcost){
 
 
@@ -12235,7 +12239,7 @@ function dgHub(){
 
 
 
-  S.php=S.pmax;S.st=100;resetFight();
+  S.php=S.pmax;S.st=stMax();resetFight();
 
 
 
@@ -12403,7 +12407,7 @@ function dgLoadRoom(i,retry){
 
 
 
-  S.st=100;S.php=retry?S.pmax:Math.min(S.pmax,S.php+Math.round(S.pmax*DGD.healOnEnter));
+  S.st=stMax();S.php=retry?S.pmax:Math.min(S.pmax,S.php+Math.round(S.pmax*DGD.healOnEnter));
 
 
 
@@ -15818,7 +15822,7 @@ function frame2(dt,T){
 
 
 
-  if(TRAIN.inf){S.st=100;S.stDelay=0;}
+  if(TRAIN.inf){S.st=stMax();S.stDelay=0;}
 
 
 
@@ -16179,7 +16183,7 @@ function frame2(dt,T){
 
 
 
-  if(S.stDelay>0)S.stDelay-=dt;else S.st=Math.min(100,S.st+(S.guard?6:20)*STAM_REGEN*(1+ST.estamina/100)*dt);
+  if(S.stDelay>0)S.stDelay-=dt;else S.st=Math.min(stMax(),S.st+(S.guard?6:20)*STAM_REGEN*stMax()/100*(1+ST.estamina/100)*dt);
   regenTick(dt);/* [regen] */if(!S.pdead)painelMorte(false);
 
 
@@ -16734,7 +16738,7 @@ function frame2(dt,T){
 
 
 
-  setW('stfill',S.st);
+  setW('stfill',S.st/stMax()*100);
 
 
 

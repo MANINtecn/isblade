@@ -1338,6 +1338,10 @@ function syncP(){/* copia P para as variaveis usadas no jogo (chamada no inicio 
 syncP();
 
 var STROKE_COST=0,STROKE_GAIN=4,SKILL_GAIN=6,ARENA=13.5;
+/* [estamina] 14/11: maximo cresce por nivel (data/progressao.json efeitos.estaminaBase + estaminaPorNivel); ganhos e regen escalam junto (fator stMax/100); bloqueio gasta 25% menos */
+var BLOCK_COST=.75;
+function stMax(){var e=DATA&&DATA.prog&&DATA.prog.efeitos;return Math.round(((e&&e.estaminaBase)||100)+(((typeof S!=="undefined"&&S&&S.lvl)||1)-1)*((e&&e.estaminaPorNivel)||0));}
+window.stMax=stMax;
 
 var ATK=DATA.boss.attacks;
 
@@ -4366,9 +4370,9 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
 
   if(!an.dome&&(!an.part||an.part===1))addMastery(an.skill?mastCfg().xpSkill:mastCfg().xpHit);/* skill de varios golpes conta uma vez */
 
-  if(!an.skill&&!an.dome&&S.st<100){
+  if(!an.skill&&!an.dome&&S.st<stMax()){
 
-    var sg=Math.min(100-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX));
+    var sg=Math.min(stMax()-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX)*stMax()/100);
 
     S.st+=sg;floatText('+'+(Math.round(sg*10)/10)+' EST','#f5c451',14,'p');/* mostra quanto de estamina o golpe devolveu */
 
@@ -4711,9 +4715,9 @@ function doAct(type,arg){
 }
 
 /* >>> CLAUDE [pulo] Espaco pula; a guarda virou a skill universal 'C' (segurar). Nao pula parado em skill/rolagem/atordoado/guardando; custa 8 de estamina. */
-var JUMP_V=12,JUMP_G=34,JUMP_COST=8;
+var JUMP_V=12,JUMP_G=34,JUMP_COST=5;
 /* >>> CLAUDE [corrida] Shift: esquiva NA HORA ao apertar; continuar segurando (> SPRINT_HOLD s) = correr; segurar (> SPRINT_HOLD s) = correr mais rapido, gastando estamina aos poucos. Ajustar aqui. */
-var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=10,SPRINT_MIN=12;
+var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=7,SPRINT_MIN=12;
 /* <<< CLAUDE [corrida] */
 function jumpH(){return (Torre.on)?Torre.altura:S.jy;}
 function doJump(){
@@ -5133,7 +5137,7 @@ function resolveEnemyHit(atk){
 
   if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){
 
-    gainFocus();S.st=Math.min(100,S.st+15);
+    gainFocus();S.st=Math.min(stMax(),S.st+15*stMax()/100);
 
     floatText('ESQUIVA PERFEITA','#5aa9ff',22,'p');spark(S.px,1.6,S.pz,2.4,0x5aa9ff,.3);return;
 
@@ -5145,7 +5149,7 @@ function resolveEnemyHit(atk){
 
     if(atk.parry&&S.guardT<=PARRY_W){
 
-      setEnemy('stagger',1.8);gainFocus();S.st=Math.min(100,S.st+25);
+      setEnemy('stagger',1.8);gainFocus();S.st=Math.min(stMax(),S.st+25*stMax()/100);
 
       if(clipsOn())playClip(vrm,'parry',{once:true,speed:1.5,fade:.05,hold:.45});
 
@@ -5153,9 +5157,9 @@ function resolveEnemyHit(atk){
 
     }
 
-    if(S.st>=atk.cost){
+    if(S.st>=atk.cost*BLOCK_COST){
 
-      S.st-=atk.cost;S.stDelay=.9;
+      S.st-=atk.cost*BLOCK_COST;S.stDelay=.9;
 
       SFX.play('block');floatText('BLOQUEOU','#8bc1ff',20,'p');spark(S.px+fp[0]*.9,1.7,S.pz+fp[1]*.9,2.0,0x8bc1ff,.3);
 
@@ -5230,7 +5234,7 @@ function resetDuel(){
 
   }
 
-  S.php=S.pmax;S.st=100;S.px=0;S.pz=6;S.face=Math.PI;S.ex=0;S.ez=-3;S.eh=0;S.hp=S.maxhp;S.dead=false;S.pdead=false;S.stun=0;S.rollT=-1;S.focus=0;S.guard=false;
+  S.php=S.pmax;S.st=stMax();S.px=0;S.pz=6;S.face=Math.PI;S.ex=0;S.ez=-3;S.eh=0;S.hp=S.maxhp;S.dead=false;S.pdead=false;S.stun=0;S.rollT=-1;S.focus=0;S.guard=false;
 
   setEnemy('idle');S.en.wait=1.4;S.anim=null;enemy.rotation.z=0;enemy.position.y=0;flip.rotation.x=0;resetFight();
 
@@ -5674,7 +5678,7 @@ function hitMobs(an,rng,half){
 
     addMastery(an.skill?mastCfg().xpSkill:mastCfg().xpHit);
 
-    if(!an.skill&&S.st<100){var sg=Math.min(100-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX));S.st+=sg;floatText('+'+(Math.round(sg*10)/10)+' EST','#f5c451',14,'p');}
+    if(!an.skill&&S.st<stMax()){var sg=Math.min(stMax()-S.st,clamp(STROKE_GAIN_MIN+S.combo*STROKE_GAIN_STEP,STROKE_GAIN_MIN,STROKE_GAIN_MAX)*stMax()/100);S.st+=sg;floatText('+'+(Math.round(sg*10)/10)+' EST','#f5c451',14,'p');}
 
     S.combo++;S.cT=2.4;S.maxCombo=Math.max(S.maxCombo,S.combo);
 
@@ -5688,7 +5692,7 @@ function hitMobs(an,rng,half){
 
 function playerTakeHit(h){
 
-  if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){gainFocus();S.st=Math.min(100,S.st+15);floatText('ESQUIVA PERFEITA','#5aa9ff',22,'p');spark(S.px,1.6,S.pz,2.4,0x5aa9ff,.3);return;}
+  if((S.rollT>IFR_A&&S.rollT<IFR_B)||S.ifr>0){gainFocus();S.st=Math.min(stMax(),S.st+15*stMax()/100);floatText('ESQUIVA PERFEITA','#5aa9ff',22,'p');spark(S.px,1.6,S.pz,2.4,0x5aa9ff,.3);return;}
 
   if(S.guard){
 
@@ -5696,7 +5700,7 @@ function playerTakeHit(h){
 
     if(h.parry&&S.guardT<=PARRY_W){
 
-      if(h.onParry)h.onParry();gainFocus();S.st=Math.min(100,S.st+25);
+      if(h.onParry)h.onParry();gainFocus();S.st=Math.min(stMax(),S.st+25*stMax()/100);
 
       if(clipsOn())playClip(vrm,'parry',{once:true,speed:1.5,fade:.05,hold:.45});
 
@@ -5704,7 +5708,7 @@ function playerTakeHit(h){
 
     }
 
-    var gcost=WPN==='shield'?h.cost*.6:h.cost;/* Guardiao (escudo) gasta 40% menos estamina ao bloquear */
+    var gcost=(WPN==='shield'?h.cost*.6:h.cost)*BLOCK_COST;/* Guardiao (escudo) gasta 40% menos estamina ao bloquear */
     if(S.st>=gcost){
 
       S.st-=gcost;S.stDelay=.9;SFX.play('block');floatText('BLOQUEOU','#8bc1ff',20,'p');spark(S.px+fp[0]*.9,1.7,S.pz+fp[1]*.9,2.0,0x8bc1ff,.3);
@@ -6282,7 +6286,7 @@ function startBaiumDirectFight(){
   while(PROJ.length){ var pj = PROJ.pop(); scene.remove(pj.g); }
   MOBS.slice().forEach(removeMob);
   S.px = 0; S.pz = 6; S.face = Math.PI; S.vx = 0; S.vz = 0; S.anim = null;
-  S.php = S.pmax; S.st = 100; S.guard = false; S.pdead = false;
+  S.php = S.pmax; S.st=stMax(); S.guard = false; S.pdead = false;
   S.maxhp = BOSS_BASE_HP; S.hp = S.maxhp;
   S.ex = 0; S.ez = -6; S.eh = 0; S.dead = false; S.deadT = 0;
   enemy.visible = true; enemy.rotation.x = 0; enemy.rotation.z = 0; enemy.position.y = 0;
@@ -6359,7 +6363,7 @@ function dgHub(){
 
   S.px=0;S.pz=1.5;S.face=Math.PI;S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;
 
-  S.php=S.pmax;S.st=100;resetFight();
+  S.php=S.pmax;S.st=stMax();resetFight();
 
   spawnPortal('enter');
   spawnCityPortal();
@@ -6407,7 +6411,7 @@ function torreDgLoad(retry){
   var bDirect=document.getElementById('btnFightBaiumDirect');if(bDirect)bDirect.style.display='none';
   while(PROJ.length){var pj=PROJ.pop();scene.remove(pj.g);}
   DG.room=0;DG.cleared=false;
-  S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;S.st=100;S.php=S.pmax;
+  S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;S.st=stMax();S.php=S.pmax;
   if(Torre.on)Torre.nasce(S,cfg.andar);else Torre.ativar(S,cfg.andar);
   Torre.andarDG=cfg.andar;S.face=Math.PI;
   if(retry)Torre.fecharPorta();
@@ -6521,7 +6525,7 @@ function pvpStart(){/* [pvp-torre] a arena de PvP e o circulo gigante do Baium (
   while(PROJ.length){var pj=PROJ.pop();scene.remove(pj.g);}
   DG.pvp=true;DG.run=false;DG.menu=false;DG.room=-1;DG.cleared=true;
   BOSS_ON=false;enemy.visible=false;S.dead=true;S.deadT=0;S.ex=0;S.ez=-500;setEnemy('idle');S.en.wait=1e9;
-  S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;S.php=S.pmax;S.st=100;resetFight();
+  S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;S.php=S.pmax;S.st=stMax();resetFight();
   var dif=$('#diff');if(dif)dif.classList.remove('open');
   banner('ARENA PVP','Arena livre: todos contra todos. Clique num jogador para grupo/duelo.','#ff6b6b');pvpExitBtn(true);renderHud();
   ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';DG.pvpTorre=true;Torre.fecharPorta();Torre.ativar(S,3);S.face=Math.PI/2;
@@ -6593,7 +6597,7 @@ function dgLoadRoom(i,retry){
 
   S.px=0;S.pz=10;S.face=Math.PI;S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;
 
-  S.st=100;S.php=retry?S.pmax:Math.min(S.pmax,S.php+Math.round(S.pmax*DGD.healOnEnter));
+  S.st=stMax();S.php=retry?S.pmax:Math.min(S.pmax,S.php+Math.round(S.pmax*DGD.healOnEnter));
 
   while(PROJ.length){var pj=PROJ.pop();scene.remove(pj.g);}
 
@@ -8186,7 +8190,7 @@ function frame2(dt,T){
 
   if(TRAIN.nocd)for(var tc=0;tc<S.cd.length;tc++)S.cd[tc]=0;
 
-  if(TRAIN.inf){S.st=100;S.stDelay=0;}
+  if(TRAIN.inf){S.st=stMax();S.stDelay=0;}
 
   renderTrain();
 
@@ -8370,7 +8374,7 @@ function frame2(dt,T){
 
 
 
-  if(S.stDelay>0)S.stDelay-=dt;else S.st=Math.min(100,S.st+(S.guard?6:20)*STAM_REGEN*(1+ST.estamina/100)*dt);
+  if(S.stDelay>0)S.stDelay-=dt;else S.st=Math.min(stMax(),S.st+(S.guard?6:20)*STAM_REGEN*stMax()/100*(1+ST.estamina/100)*dt);
   regenTick(dt);/* [regen] */
 
 
@@ -8646,7 +8650,7 @@ function frame2(dt,T){
 
   setT('estate',txt,colr);
 
-  setW('stfill',S.st);
+  setW('stfill',S.st/stMax()*100);
 
   if(typeof MuHud !== 'undefined' && MuHud.update) MuHud.update(S);
 

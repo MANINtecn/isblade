@@ -375,11 +375,12 @@ export const L2Hud = {
       if (cpVal) cpVal.textContent = Math.round(cpPct) + ' / 100';
 
       // MP (Stamina)
-      var st = Math.max(0, Math.round(S.st !== undefined ? S.st : 100));
+      var stMx = (typeof window.stMax === 'function') ? window.stMax() : 100; // [estamina] maximo por nivel
+      var st = Math.max(0, Math.round(S.st !== undefined ? S.st : stMx));
       var mpFill = document.getElementById('l2MpFill');
       var mpVal = document.getElementById('l2MpVal');
-      if (mpFill) mpFill.style.width = st + '%';
-      if (mpVal) mpVal.textContent = st + ' / 100';
+      if (mpFill) mpFill.style.width = Math.min(100, st / stMx * 100).toFixed(1) + '%';
+      if (mpVal) mpVal.textContent = st + ' / ' + stMx;
 
       // EXP
       var xpNeed = (typeof window.xpNeed === 'function' ? window.xpNeed(S.lvl) : 1000);
