@@ -4133,3 +4133,24 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 
 ### [Claude] 14/11/2026 - Soulshot na mao tambem nas skills (sem efeito no alvo)
 - Pedido do dono: skill mostra o SS original do L2 na mao (e o som de carga), uma vez por skill; o estouro azul no alvo continua so no ataque basico. ssTiro em arena/cidade: tirada a trava if(!an.skill) do disparo na mao.
+
+### [Antigravity] 14/11/2026 - Calibração Métrica da Escala de Todos os NPCs da Cidade (Clarissa, Altran, Galladucci, Wilford e Mammon)
+- **Problema Relatado**:
+  - A Gatekeeper Clarissa (e os NPCs nativos adicionados à Talking Island) estavam com tamanho visual reduzido em relação aos personagens dos jogadores (Clarissa com 1.77m batendo no peito da Elfa jogadora de 2.29m).
+- **Causa Raiz Identificada**:
+  - Os modelos exportados do L2 tinham alturas calibradas para 1.75m / 1.35m em unidade física humana real pelo Blender, enquanto o mundo do jogo e os personagens jogáveis usam a proporção métrica clássica do Lineage 2 onde humanos/elfos adultos medem `~2.25m` a `2.30m` (`targetH = 2.25 / 42.78`).
+  - No `l2_npcs.js`, `loadNpc` usava escala fixa `1.0` sem calcular a razão com `targetH`.
+- **Implementação e Correções**:
+  - `prototipo/js/l2_npcs.js`:
+    - Adicionado cálculo dinâmico de escala métrica via `Box3`: `var s = config.targetH / modelH; model.scale.set(s, s, s)`.
+    - Alinhamento milimétrico da base dos pés ao solo e compensação de pedestal: `model.position.y = (-box.min.y * s) + (config.pedestalY || 0)`.
+    - Alturas calibradas em proporção exata 1:1 com os personagens do Lineage 2:
+      - **Gatekeeper Clarissa**: `targetH = 2.22m` + pedestal rúnico de `0.08m` (topo em 2.30m, alinhada face a face com a elfa), `nameY = 2.58m`. Pedestal e círculo rúnico expandidos para acomodar a saia larga.
+      - **Ferreiro Altran**: `targetH = 1.68m` (anão musculoso robusto com bigorna proporcional), `nameY = 2.05m`.
+      - **Mercador Galladucci**: `targetH = 2.28m` (humano adulto nobre), balcão comercial elevado para altura de cintura de 2.28m, `nameY = 2.65m`.
+      - **Armazém Wilford**: `targetH = 1.68m` (anão veterano com balcão proporcional), `nameY = 2.05m`.
+      - **Mercador dos Selos Mammon**: `targetH = 1.85m` (místico dos Sete Selos com tapete expandido), `nameY = 2.25m`.
+  - `prototipo/cidade.html`: Cache do script atualizado para `l2_npcs.js?v=5`.
+  - `prototipo/preview_npcs_l2.html`: Atualizado para renderizar todos os NPCs com a escala oficial L2.
+- **Validação**:
+  - Capturas e testes comparativos validados (`preview_render_comparativo.png` e `preview_todos_npcs.png`).

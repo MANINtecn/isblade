@@ -74,11 +74,11 @@
 
     const loader = new THREE.GLTFLoader();
     const npcs = [
-      { file: 'assets/personagens/npc_clarissa.glb', x: -4.0, z: 0, name: 'Gatekeeper Clarissa' },
-      { file: 'assets/personagens/npc_altran.glb', x: -2.0, z: 0, name: 'Ferreiro Altran' },
-      { file: 'assets/personagens/npc_galladucci.glb', x: 0.0, z: 0, name: 'Mercador Galladucci' },
-      { file: 'assets/personagens/npc_wilford.glb', x: 2.0, z: 0, name: 'Armazém Wilford' },
-      { file: 'assets/personagens/npc_mammon.glb', x: 4.0, z: 0, name: 'Mammon dos Selos' }
+      { file: 'assets/personagens/npc_clarissa.glb', x: -4.0, z: 0, name: 'Gatekeeper Clarissa', targetH: 2.22, pedY: 0.08 },
+      { file: 'assets/personagens/npc_altran.glb', x: -2.0, z: 0, name: 'Ferreiro Altran', targetH: 1.68 },
+      { file: 'assets/personagens/npc_galladucci.glb', x: 0.0, z: 0, name: 'Mercador Galladucci', targetH: 2.28 },
+      { file: 'assets/personagens/npc_wilford.glb', x: 2.0, z: 0, name: 'Armazém Wilford', targetH: 1.68 },
+      { file: 'assets/personagens/npc_mammon.glb', x: 4.0, z: 0, name: 'Mammon dos Selos', targetH: 1.85 }
     ];
 
     const mixers = [];
@@ -86,7 +86,11 @@
     npcs.forEach(n => {
       loader.load(n.file, gltf => {
         const model = gltf.scene;
-        model.position.set(n.x, 0, n.z);
+        const box = new THREE.Box3().setFromObject(model);
+        const h = box.max.y - box.min.y;
+        const s = n.targetH ? (n.targetH / h) : 1.0;
+        model.scale.set(s, s, s);
+        model.position.set(n.x, (n.pedY || 0) + (-box.min.y * s), n.z);
         model.traverse(c => {
           if (c.isMesh) {
             c.castShadow = true;
