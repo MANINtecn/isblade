@@ -13013,7 +13013,7 @@ function equipItem(uid){som('equipar');/* [sons-l2] */
 
 
 
-  var b=baseOf(it.base);if((ArmaGrau.info(ITM,b).nivel|0)>(S.lvl||1)){gestMsg(ArmaGrau.info(ITM,b).name+': precisa do nivel '+ArmaGrau.info(ITM,b).nivel+'.');return;}INV.equip[b.slot]=uid;
+  var b=baseOf(it.base);INV.equip[b.slot]=uid;
 
 
 
@@ -13479,6 +13479,14 @@ function initInv(){
       var _alvo=INV.items.filter(function(i){var b=baseOf(i.base); return b && b.weapon===itemDaArma(WPN);})[0];
       if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===itemDaArma(WPN);})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
       if(_alvo){INV.equip.weapon=_alvo.uid;saveInv();}
+    }
+    if(WPN==='shield'&&!INV.equip.shield){
+      var _shd=INV.items.filter(function(i){return i.base==='shield_guardian';})[0];
+      if(!_shd){_shd=mkItem('shield_guardian','normal');INV.items.push(_shd);}
+      if(_shd){INV.equip.shield=_shd.uid;saveInv();}
+    }
+    if((WPN==='sword'||WPN==='staff')&&INV.equip.shield){
+      delete INV.equip.shield;saveInv();
     }
   }
   /* <<< CLAUDE [arma] */
@@ -17460,18 +17468,9 @@ function loadL2Player(modelUrl, sword, cb){
 
 
 
-    var swd = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/dragon_slayer.glb', {
-
-
-
+    var swd = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/twohanded_sword.glb', {
       visible: (WPN === 'sword'),
-
-
-
       loader: gltfLoader
-
-
-
     });
 
 

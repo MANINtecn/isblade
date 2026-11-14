@@ -61,7 +61,8 @@
 
   "bases": [
     { "id": "sword_long", "name": "Espada de Duas Mãos", "slot": "weapon", "grau": "sem", "weapon": "sword", "modelo": "assets/armas/twohanded_sword.glb", "stats": { "dano": 10 } },
-    { "id": "shield_guardian", "name": "Escudo do Recruta", "slot": "shield", "grau": "sem", "weapon": "shield", "stats": { "dano": 5, "defesa": 3 } },
+    { "id": "gladius", "name": "Gladius", "slot": "weapon", "grau": "sem", "weapon": "shield", "modelo": "assets/personagens/bastard_sword.glb", "stats": { "dano": 8 } },
+    { "id": "shield_guardian", "name": "Round Shield", "slot": "shield", "grau": "sem", "weapon": "shield", "modelo": "assets/personagens/round_shield.glb", "stats": { "dano": 3, "defesa": 5 } },
     { "id": "staff_arcane", "name": "Cajado de Cedro", "slot": "weapon", "grau": "sem", "weapon": "staff", "modelo": "assets/armas/cedar_staff.glb", "stats": { "dano": 12 } },
     { "id": "helmet_iron", "name": "Elmo de Ferro", "slot": "helmet", "grau": "sem", "stats": { "vida": 20, "defesa": 2 } },
     { "id": "chest_plate", "name": "Peitoral de Placas", "slot": "chest", "grau": "sem", "stats": { "vida": 40, "defesa": 4 } },
@@ -128,28 +129,7 @@
       "boots": ["boots_swift", "normal"],
       "helmet": ["helmet_iron", "normal"]
     },
-    "bag": [
-      ["brigandine_tunic", "raro"],
-      ["brigandine_helmet", "normal"],
-      ["brigandine_gauntlets", "normal"],
-      ["brigandine_boots", "normal"],
-      ["claymore", "raro"],
-      ["fullplate_armor", "raro"],
-      ["fullplate_helmet", "normal"],
-      ["fullplate_gauntlets", "normal"],
-      ["fullplate_boots", "normal"],
-      ["berserker_blade", "epico"],
-      ["doom_armor", "epico"],
-      ["doom_helmet", "raro"],
-      ["doom_gauntlets", "raro"],
-      ["doom_boots", "raro"],
-      ["great_sword", "epico"],
-      ["tallum_armor", "lendario"],
-      ["tallum_helmet", "epico"],
-      ["tallum_gauntlets", "epico"],
-      ["tallum_boots", "epico"],
-      ["dragon_slayer", "lendario"]
-    ]
+    "bag": []
   },
 
   "bagMax": 80

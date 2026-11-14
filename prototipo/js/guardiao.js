@@ -515,11 +515,9 @@ export const Guardiao = (function(){
     G.aoAtacar({ id: id }); later(function(){ G.fxBasico({ id: id }); }, base * cfg.hit);
   };
   G.rig = function(){ var r = ctx && ctx.getVrm(), pv = null, hd = null; if(!r) return null; r.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis') pv = o; if(o.name === 'Bip01_head') hd = o; }); return pv ? { pelvis: pv.position.toArray().map(function(n){ return +n.toFixed(1); }), k: r.guardiaoK, ky: r.guardiaoKy, dbg: r.guardiaoDbg } : 'sem pelvis'; };
-  /* modelo do escudo (desenvolvimento): padrao = escudo IS feito no Blender (shield_is.glb, ja no espaco do osso Shield_L_Bone, sem correcao de eixo L2);
-     localStorage 'isblade.escudo' = 'l2' volta ao composite_shield.glb original */
+  /* modelo do escudo: padrao = Round Shield oficial No-Grade do Lineage 2 (round_shield.glb) */
   G.escudoModelo = function(){
-    var l2 = false; try { l2 = localStorage.getItem('isblade.escudo') === 'l2'; } catch(e){}
-    return l2 ? { url: 'assets/personagens/composite_shield.glb', isL2: true } : { url: 'assets/personagens/shield_is.glb?v=4', isL2: false };
+    return { url: 'assets/personagens/round_shield.glb', isL2: true };
   };
   /* pre-aquecimento: roda UMA vez, longe do jogador (x=z=4000, fora da tela), o codigo real dos efeitos das 6 skills e dos 3 golpes e compila os shaders antes da 1a skill.
      guarda e devolve o que esse codigo mexe (posicao, buffs, tremor, arma) e nenhum efeito chega a ser desenhado perto do jogador. */

@@ -1,6 +1,10 @@
 /* inventario_ui.js — Interface Oficial 1:1 do Lineage 2 Interlude (Fiel ao interface.xdat & InventoryWnd.uc).
    Geometria nativa exata do XDAT: Janela 256x382 px, fundo L2UI_CH3.InventoryWnd.Inventory_Back,
-   Coordenadas de slots milimétricas do XDAT original (Paperdoll 15 slots + Grade 6x4 de 24 slots visíveis). */
+   Coordenadas de slots milimétricas do XDAT original (Paperdoll 15 slots + Grade 6x4 de 24 slots visíveis).
+   Equipamento e Desequipamento:
+   1. Click Direito (Right Click): Equipa da bolsa ou desequipa do paperdoll instantaneamente (como no L2).
+   2. Duplo Clique: Equipa da bolsa ou desequipa do paperdoll instantaneamente.
+   3. Arrastar e Soltar (Drag & Drop): Arrastar da bolsa para o boneco equipa; arrastar do boneco para a bolsa desequipa; arrastar para a lixeira descarta. */
 (function(){
   var U = window.InvUI = {}, sel = null, conf = '', css = false, aba = 'inv';
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -29,7 +33,7 @@
     if(id) return id;
     if(!b) return 'sword_long';
     if(b.slot === 'weapon') return b.weapon === 'shield' ? 'shield_guardian' : (b.weapon === 'staff' ? 'staff_arcane' : 'sword_long');
-    var map = { helmet: 'helmet_iron', chest: 'chest_plate', gloves: 'gloves_hide', boots: 'boots_swift' };
+    var map = { helmet: 'helmet_iron', chest: 'chest_plate', legs: 'legs_plate', gloves: 'gloves_hide', boots: 'boots_swift' };
     return map[b.slot] || b.id || 'sword_long';
   }
 
@@ -69,11 +73,16 @@
       '.l2-item-slot{position:absolute;width:32px;height:32px;box-sizing:border-box;cursor:pointer;background:transparent;}',
       '.l2-item-slot:hover::after{content:"";position:absolute;inset:-2px;background:url("assets/ui/inventory_outline_over.png") no-repeat center / 36px 36px;pointer-events:none;}',
       '.l2-item-slot.sel::after{content:"";position:absolute;inset:-2px;background:url("assets/ui/inventory_outline_over.png") no-repeat center / 36px 36px;filter:drop-shadow(0 0 3px #ffd166);pointer-events:none;}',
+      '.l2-item-slot.empty-slot{cursor:default;}',
+      '.l2-item-slot.empty-slot:hover::after{content:"";position:absolute;inset:0;background:rgba(255,209,102,0.15);border:1px dashed rgba(255,209,102,0.4);pointer-events:none;}',
       '.l2-item-slot .en{position:absolute;right:1px;top:1px;font:800 9px Tahoma,sans-serif;color:#7dff9a;text-shadow:0 1px 2px #000;pointer-events:none;}',
       '.l2-item-slot .gr{position:absolute;left:1px;bottom:1px;font:800 8.5px Tahoma,sans-serif;text-shadow:0 1px 2px #000;pointer-events:none;}',
+      '.l2-item-slot[draggable="true"]{cursor:grab;}',
+      '.l2-item-slot[draggable="true"]:active{cursor:grabbing;}',
       '.l2-adena-txt{position:absolute;left:110px;top:336px;width:90px;text-align:right;font:700 11px Tahoma,Arial,sans-serif;color:#ffd166;text-shadow:0 1px 2px #000;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
       '.l2-inv-recipe{position:absolute;left:14px;top:331px;width:34px;height:34px;cursor:pointer;background:transparent;}',
       '.l2-inv-trash{position:absolute;left:208px;top:331px;width:34px;height:34px;cursor:pointer;background:transparent;}',
+      '.l2-inv-trash:hover{filter:drop-shadow(0 0 4px #ff6a5a);}',
       '.l2-inv-tooltip{position:absolute;left:262px;top:0;width:210px;padding:8px 10px;background:#090d16 url("assets/ui/TargetBack.png") repeat;border:1px solid #3c301c;border-radius:2px;box-shadow:0 8px 24px rgba(0,0,0,0.9), inset 0 0 0 1px #8a7038;z-index:9999;pointer-events:all;}',
       '.l2-inv-tooltip b{display:block;font-size:12px;color:#ffd166;font-family:"Cinzel", Georgia, serif;}',
       '.l2-inv-tooltip small{display:block;font-size:10px;color:#8fa4c2;margin-top:2px;}',
@@ -141,11 +150,16 @@
           var b = base(eqIt.base), r = R[eqIt.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
           var iconItem = b || eqIt.base || 'sword_long';
           h.push(
-            '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" title="' + esc(op.nome(eqIt)) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
+            '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" data-eq="1" title="' + esc(op.nome(eqIt)) + ' (Clique direito para desequipar)" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
               U.icone(iconItem, { tam: 32 }) +
               ((eqIt.en | 0) ? '<span class="en">+' + (eqIt.en | 0) + '</span>' : '') +
               ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
             '</div>'
+          );
+        } else {
+          // Slot vazio do Paperdoll (pode receber arrastar e soltar de item da bolsa)
+          h.push(
+            '<div class="l2-item-slot empty-slot" data-slot="' + sKey + '" data-eq="1" title="' + esc(pos.name) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;"></div>'
           );
         }
       }
@@ -180,33 +194,40 @@
       h.push('<div class="l2-inv-count">' + bagItens.length + ' / 80</div>');
 
       var gx = 9, gy = 168;
-      for(var idx = 0; idx < Math.min(24, bagItens.length); idx++){
-        var it = bagItens[idx];
+      for(var idx = 0; idx < 24; idx++){
         var col = idx % 6;
         var row = Math.floor(idx / 6);
         var sx = gx + col * 37;
         var sy = gy + row * 35;
-        if(it.isConsum){
-          h.push(
-            '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" title="' + esc(it.name) + ' (x' + it.qtd + ')' + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
-              '<img src="assets/icones/' + it.ico + '.png" width="32" height="32" alt="" style="display:block;width:32px;height:32px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';"/>' +
-              '<span class="en" style="color:#ffd166;font-size:8px;">' + (it.qtd > 999 ? (it.qtd / 1000).toFixed(0) + 'k' : it.qtd) + '</span>' +
-            '</div>'
-          );
+        if(idx < bagItens.length){
+          var it = bagItens[idx];
+          if(it.isConsum){
+            h.push(
+              '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" data-bag="1" title="' + esc(it.name) + ' (x' + it.qtd + ') - Clique direito para usar" style="left:' + sx + 'px;top:' + sy + 'px;">' +
+                '<img src="assets/icones/' + it.ico + '.png" width="32" height="32" alt="" style="display:block;width:32px;height:32px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';"/>' +
+                '<span class="en" style="color:#ffd166;font-size:8px;">' + (it.qtd > 999 ? (it.qtd / 1000).toFixed(0) + 'k' : it.qtd) + '</span>' +
+              '</div>'
+            );
+          } else {
+            var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
+            var iconItem = b || it.base || 'sword_long';
+            h.push(
+              '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" data-bag="1" title="' + esc(op.nome(it)) + ' (Clique direito para equipar)" style="left:' + sx + 'px;top:' + sy + 'px;">' +
+                U.icone(iconItem, { tam: 32 }) +
+                ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
+                ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
+              '</div>'
+            );
+          }
         } else {
-          var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
-          var iconItem = b || it.base || 'sword_long';
+          // Slot vazio na mochila (pode receber arrastar e soltar de item do paperdoll para desequipar)
           h.push(
-            '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" title="' + esc(op.nome(it)) + '" style="left:' + sx + 'px;top:' + sy + 'px;">' +
-              U.icone(iconItem, { tam: 32 }) +
-              ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
-              ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
-            '</div>'
+            '<div class="l2-item-slot empty-slot" data-bag="1" style="left:' + sx + 'px;top:' + sy + 'px;"></div>'
           );
         }
       }
 
-      // 3. TOOLTIP / POPUP LATERAL DE AÇÕES DO ITEM SELECIONADO
+      // 3. TOOLTIP / POPUP LATERAL DE INFORMAÇÕES DO ITEM SELECIONADO
       if(sel){
         if(sel.indexOf('__c_') === 0){
           var cKey = sel.replace('__c_', '');
@@ -216,6 +237,7 @@
             '<div class="l2-inv-tooltip">',
             '  <b style="color:#ffd166">' + esc(cDef.name) + '</b>',
             '  <small>Consumível · Quantidade: ' + qtdC + '</small>',
+            '  <small style="color:#8fa4c2;margin-top:4px;display:block;">Dica: Clique com o botão direito para usar imediatamente.</small>',
             '  <div class="l2-inv-tooltip-bts">',
             '    <button type="button" class="l2-inv-btn" data-a="usar" data-v="' + esc(cDef.id) + '">USAR</button>',
             '  </div>',
@@ -231,6 +253,7 @@
               '  <b style="color:' + (r.css || '#ffd166') + '">' + esc(op.nome(it)) + ((it.en | 0) ? ' +' + (it.en | 0) : '') + '</b>',
               '  <small>' + esc(r.name || 'Comum') + ' · ' + esc(g.name || 'Sem Grau') + '</small>',
               '  <small style="color:#d4af37">' + esc(op.statsDe ? statTxt(op.statsDe(it)) : '') + '</small>',
+              '  <small style="color:#8fa4c2;margin-top:4px;display:block;">Dica: Botão direito para ' + (slotEq ? 'desequipar' : 'equipar') + ' ou arraste para ' + (slotEq ? 'a bolsa' : 'o corpo') + '.</small>',
               '  <div class="l2-inv-tooltip-bts">',
               (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '">EQUIPAR</button>'),
               (slotEq ? '' : '<button type="button" class="l2-inv-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
@@ -253,7 +276,7 @@
     h.push(
       '<div class="l2-adena-txt">' + (E.adena | 0).toLocaleString('pt-BR') + '</div>',
       '<div class="l2-inv-recipe" title="Livro de Receitas (Crystallize / Recipe)"></div>',
-      '<div class="l2-inv-trash" title="Lixeira (Descartar itens)"></div>'
+      '<div class="l2-inv-trash" title="Lixeira (Arraste itens aqui para descartar)"></div>'
     );
 
     box.innerHTML = h.join('');
@@ -262,12 +285,78 @@
     box.onpointerdown = function(ev){ ev.stopPropagation(); };
     box.onmousedown = function(ev){ ev.stopPropagation(); };
 
-    // Drag & Drop de itens e consumíveis da mochila para a barra de atalhos (ShortcutWnd)
+    // =========================================================================
+    // 1. CLIQUE COM BOTÃO DIREITO (RIGHT CLICK) — 100% FIEL AO LINEAGE 2 INTERLUDE
+    // =========================================================================
+    box.oncontextmenu = function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      var t = ev.target.closest('[data-u]');
+      if(!t || !box.contains(t)) return;
+      var u = t.getAttribute('data-u');
+      if(!u) return;
+
+      // Consumível -> Usa imediatamente
+      if(u.indexOf('__c_') === 0){
+        var cKey = u.replace('__c_', '');
+        op.usar && op.usar(cKey);
+        sel = null; conf = '';
+        return;
+      }
+
+      var item = acha(u);
+      if(!item) return;
+
+      if(eqUid[item.uid]){
+        // Item equipado no Paperdoll -> Desequipa para a bolsa
+        op.tirar(eqUid[item.uid]);
+      } else {
+        // Item na bolsa -> Equipa no Paperdoll
+        op.equip(item.uid);
+      }
+      sel = null; conf = '';
+    };
+
+    // =========================================================================
+    // 2. DUPLO CLIQUE (DOUBLE CLICK) — EQUIPA DA BOLSA OU TIRA DO PAPERDOLL
+    // =========================================================================
+    box.ondblclick = function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      var t = ev.target.closest('[data-u]');
+      if(!t || !box.contains(t)) return;
+      var u = t.getAttribute('data-u');
+      if(!u) return;
+
+      if(u.indexOf('__c_') === 0){
+        var cKey = u.replace('__c_', '');
+        op.usar && op.usar(cKey);
+        sel = null; conf = '';
+        return;
+      }
+
+      var item = acha(u);
+      if(!item) return;
+
+      if(eqUid[item.uid]){
+        op.tirar(eqUid[item.uid]);
+      } else {
+        op.equip(item.uid);
+      }
+      sel = null; conf = '';
+    };
+
+    // =========================================================================
+    // 3. ARRASTAR E SOLTAR (DRAG & DROP) — DA BOLSA PRO CORPO E DO CORPO PRA BOLSA
+    // =========================================================================
     box.ondragstart = function(ev){
       var t = ev.target.closest('.l2-item-slot'); if(!t) return;
       var u = t.getAttribute('data-u'); if(!u) return;
+      var slot = t.getAttribute('data-slot') || eqUid[u] || null;
+      var isEquipped = t.hasAttribute('data-eq') && !!slot;
       var it = acha(u);
       var payload = null;
+
       if(it){
         var b = base(it.base);
         var iconKey = (b && b.id) || it.base || 'sword_long';
@@ -277,7 +366,9 @@
           id: iconKey,
           base: it.base,
           name: op.nome(it),
-          ico: 'assets/icones/' + iconKey + '.png'
+          ico: 'assets/icones/' + iconKey + '.png',
+          slot: slot || (b && b.slot) || '',
+          isEquipped: isEquipped
         });
       } else if(u.indexOf('__c_') === 0){
         var cKey = u.replace('__c_', '');
@@ -286,16 +377,87 @@
           type: 'item',
           id: def.id,
           name: def.name,
-          ico: 'assets/icones/' + def.ico + '.png'
+          ico: 'assets/icones/' + def.ico + '.png',
+          isConsum: true,
+          consumKey: cKey
         });
       }
+
       if(payload){
         ev.dataTransfer.setData('text/plain', payload);
         ev.dataTransfer.setData('application/json', payload);
+        ev.dataTransfer.effectAllowed = 'copyMove';
+        window._l2DragItem = {
+          uid: u,
+          slot: slot,
+          isEquipped: isEquipped,
+          isConsum: u.indexOf('__c_') === 0
+        };
       }
     };
 
-    // Eventos (Duplo clique / clique rápido para equipar/desequipar fiel ao InventoryWnd.uc)
+    box.ondragover = function(ev){
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'move';
+    };
+
+    box.ondrop = function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      var dragInfo = window._l2DragItem;
+      if(!dragInfo && ev.dataTransfer){
+        try {
+          var raw = ev.dataTransfer.getData('application/json') || ev.dataTransfer.getData('text/plain');
+          if(raw){
+            var d = JSON.parse(raw);
+            if(d.uid) dragInfo = { uid: d.uid, slot: d.slot, isEquipped: d.isEquipped, isConsum: d.isConsum };
+          }
+        } catch(_){}
+      }
+      if(!dragInfo || !dragInfo.uid) return;
+
+      // 1. Soltar na Lixeira (Descartar)
+      var trashEl = ev.target.closest('.l2-inv-trash');
+      if(trashEl){
+        if(!dragInfo.isEquipped && !dragInfo.isConsum){
+          op.descartar(dragInfo.uid);
+        }
+        window._l2DragItem = null;
+        return;
+      }
+
+      // 2. Destino do Drop (Paperdoll ou Bolsa)
+      var targetSlotEl = ev.target.closest('.l2-item-slot');
+      var targetEq = targetSlotEl && targetSlotEl.hasAttribute('data-eq');
+      var targetBag = targetSlotEl && targetSlotEl.hasAttribute('data-bag');
+
+      var rect = box.getBoundingClientRect();
+      var relY = ev.clientY - rect.top;
+
+      var droppedOnPaperdoll = targetEq || (relY < 135);
+      var droppedOnBag = targetBag || (relY >= 135);
+
+      if(dragInfo.isEquipped){
+        // Item estava equipado no Paperdoll e foi arrastado para a bolsa -> Desequipa!
+        if(droppedOnBag){
+          var s = dragInfo.slot || eqUid[dragInfo.uid];
+          if(s) op.tirar(s);
+        }
+      } else if(!dragInfo.isConsum){
+        // Item estava na bolsa e foi arrastado para o Paperdoll -> Equipa!
+        if(droppedOnPaperdoll){
+          op.equip(dragInfo.uid);
+        }
+      }
+
+      window._l2DragItem = null;
+      sel = null; conf = '';
+    };
+
+    // =========================================================================
+    // 4. CLIQUE COM BOTÃO ESQUERDO — SELEÇÃO E BOTÕES DO TOOLTIP
+    // =========================================================================
     box.onclick = function(ev){
       var t = ev.target.closest('[data-a],[data-u]'); if(!t || !box.contains(t)) return; ev.stopPropagation();
       var a = t.getAttribute('data-a'), v = t.getAttribute('data-v');
@@ -311,44 +473,13 @@
       }
       var u = t.getAttribute('data-u');
       if(u){
-        if(sel === u){
-          if(u.indexOf('__c_') === 0){
-            var cKey = u.replace('__c_', '');
-            op.usar && op.usar(cKey);
-            sel = null; conf = ''; return;
-          }
-          // Segundo clique imediato: equipa se estiver na bolsa, desequipa se estiver equipado (como no L2)
-          var item = acha(u);
-          if(item){
-            if(eqUid[item.uid]) op.tirar(eqUid[item.uid]);
-            else op.equip(item.uid);
-            sel = null; conf = ''; return;
-          }
-        }
-        sel = u; conf = ''; U.render(box, E, op); return;
+        sel = (sel === u ? null : u);
+        conf = '';
+        U.render(box, E, op);
+        return;
       }
     };
 
-    // Duplo clique nativo: equipa da bolsa ou desequipa da Paperdoll imediatamente
-    box.ondblclick = function(ev){
-      var t = ev.target.closest('[data-u]');
-      if(!t || !box.contains(t)) return;
-      ev.stopPropagation();
-      var u = t.getAttribute('data-u');
-      if(u){
-        if(u.indexOf('__c_') === 0){
-          var cKey = u.replace('__c_', '');
-          op.usar && op.usar(cKey);
-          sel = null; conf = ''; return;
-        }
-        var item = acha(u);
-        if(item){
-          if(eqUid[item.uid]) op.tirar(eqUid[item.uid]);
-          else op.equip(item.uid);
-          sel = null; conf = ''; return;
-        }
-      }
-    };
     if (window.L2Drag && typeof window.L2Drag.restore === 'function') {
       window.L2Drag.restore('inv');
     }

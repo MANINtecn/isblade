@@ -400,8 +400,11 @@
     if(holder._grauUrl === url) return;
     holder._grauUrl = url;
     if(holder._grau){ holder.remove(holder._grau); holder._grau = null; }
-    holder._orig.forEach(function(c){ c.visible = !url; });
-    if(!url) return;
+    if(!url){
+      holder._orig.forEach(function(c){ c.visible = false; });
+      return;
+    }
+    holder._orig.forEach(function(c){ c.visible = false; });
     var g = attach(holder, null, url, { isL2: true });
     holder._grau = g;
   }
@@ -409,22 +412,33 @@
   A.aplica = function(rig, base, attach, baseEscudo){
     if(!rig || !rig.isL2 || !rig.root || !attach) return;
     var w = base && base.weapon, url = (base && base.modelo) || null;
+
     /* espada de duas maos */
-    if(rig.swd2h) filhoGrau(rig.swd2h, attach, w === 'sword' ? url : null);
+    if(rig.swd2h){
+      rig.swd2h.visible = (w === 'sword');
+      if(w === 'sword') filhoGrau(rig.swd2h, attach, url || 'assets/personagens/twohanded_sword.glb');
+    }
 
     /* escudo na mao esquerda */
-    var shdUrl = (baseEscudo && baseEscudo.modelo) || (w === 'shield' ? url : null);
-    if(rig.shd) filhoGrau(rig.shd, attach, shdUrl);
+    var shdUrl = (baseEscudo && baseEscudo.modelo) || (w === 'shield' ? (url || 'assets/personagens/round_shield.glb') : null);
+    if(rig.shd){
+      rig.shd.visible = (w === 'shield' || !!baseEscudo);
+      if(rig.shd.visible) filhoGrau(rig.shd, attach, shdUrl || 'assets/personagens/round_shield.glb');
+    }
 
     /* cajado do mago na mao direita */
-    if(w === 'staff' && url && !rig.stfL2){
-      rig.stfL2 = attach(rig.root, 'Weapon_R_Bone', url, { isL2: true });
-      rig.stfL2._grauUrl = url; rig.stfL2._orig = [];
-    } else if(rig.stfL2 && w === 'staff' && url && rig.stfL2._grauUrl !== url){
-      var bone = rig.stfL2.parent; if(bone) bone.remove(rig.stfL2);
-      rig.stfL2 = attach(rig.root, 'Weapon_R_Bone', url, { isL2: true }); rig.stfL2._grauUrl = url; rig.stfL2._orig = [];
+    var isStaff = (w === 'staff');
+    if(isStaff && url){
+      if(!rig.stfL2){
+        rig.stfL2 = attach(rig.root, 'Weapon_R_Bone', url, { isL2: true });
+        rig.stfL2._grauUrl = url; rig.stfL2._orig = [];
+      } else if(rig.stfL2 && rig.stfL2._grauUrl !== url){
+        var bone = rig.stfL2.parent; if(bone) bone.remove(rig.stfL2);
+        rig.stfL2 = attach(rig.root, 'Weapon_R_Bone', url, { isL2: true }); rig.stfL2._grauUrl = url; rig.stfL2._orig = [];
+      }
     }
-    if(rig.stfL2) rig.stfL2.visible = (w === 'staff' && !!url);
+    if(rig.stfL2) rig.stfL2.visible = (isStaff && !!url);
+    if(rig.stf) rig.stf.visible = false;
   };
 
   A.aplicaArmadura = function(rig, equip, baseOf, findItem){

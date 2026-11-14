@@ -35,24 +35,45 @@ const equipado = (inv, uid) => Object.keys(inv.equip).some(s => inv.equip[s] ===
 function garante(pers){
   if(!D || !pers) return null;
   let inv = pers.inv;
+  const classe = armaDaClasse(pers);
   if(!inv || !Array.isArray(inv.items) || !inv.equip || typeof inv.equip !== 'object'){
-    inv = { items: [], equip: {}, adena: 0 };
-    const arma = D.bases.find(b => b.slot === 'weapon' && b.weapon === armaItem(pers) && grauDe(b) === 'sem') || D.bases[0], it = mkItem(arma.id, 'normal');
+    inv = { items: [], equip: {}, adena: 1000 };
+    const armaBaseId = (classe === 'shield') ? 'gladius' : ((classe === 'staff' || classe === 'book') ? 'staff_arcane' : 'sword_long');
+    const arma = D.bases.find(b => b.id === armaBaseId) || D.bases[0];
+    const it = mkItem(arma.id, 'normal');
     inv.items.push(it); inv.equip.weapon = it.uid;
-    for(const b of D.bases){
-      if(b.slot !== 'weapon' && grauDe(b) === 'sem'){
-        const peca = mkItem(b.id, 'normal');
-        inv.items.push(peca);
-        if(!inv.equip[b.slot]) inv.equip[b.slot] = peca.uid;
+
+    if(classe === 'shield'){
+      const shdBase = D.bases.find(b => b.id === 'shield_guardian');
+      if(shdBase){
+        const shdItem = mkItem(shdBase.id, 'normal');
+        inv.items.push(shdItem);
+        inv.equip.shield = shdItem.uid;
       }
     }
+
+    const armadurasNoGrade = ['helmet_iron', 'chest_plate', 'legs_plate', 'gloves_hide', 'boots_swift'];
+    armadurasNoGrade.forEach(id => {
+      const b = D.bases.find(x => x.id === id);
+      if(b){
+        const peca = mkItem(b.id, 'normal');
+        inv.items.push(peca);
+        inv.equip[b.slot] = peca.uid;
+      }
+    });
+
+    inv.consum = {};
+    const sId = (classe === 'staff' || classe === 'book') ? 'spiritshot' : 'soulshot';
+    inv.consum[sId] = 500;
+    inv.consum.pocao_vida = 10;
+    inv.consum.pergaminho_volta = 2;
     pers.inv = inv;
   }
   inv.items = inv.items.filter(i => i && baseDe(i.base) && D.rarities[i.rar]);
   const mx = (LJ && LJ.encantar && LJ.encantar.max) || 16; for(const i of inv.items){ const e = Math.floor(+i.en || 0); if(e > 0) i.en = Math.min(mx, e); else delete i.en; }
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
   if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaItem(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaItem(pers) && grauDe(x) === 'sem'); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
-  ['chest','legs','gloves','boots'].forEach(slot => {
+  ['chest','legs','gloves','boots','helmet'].forEach(slot => {
     if(!inv.equip[slot]){
       const peca = inv.items.find(i => { const b = baseDe(i.base); return b && b.slot === slot && grauDe(b) === 'sem'; });
       if(peca) inv.equip[slot] = peca.uid;
@@ -63,7 +84,7 @@ function garante(pers){
   if(!inv.consum || typeof inv.consum !== 'object') inv.consum = {};
   for(const k of Object.keys(inv.consum)){ const n = Math.floor(+inv.consum[k] || 0); if(n > 0 && LJ && LJ.consumiveis[k]) inv.consum[k] = n; else delete inv.consum[k]; }
   if(inv.consum.soulshot === undefined && inv.consum.spiritshot === undefined){
-    const sId = (armaDaClasse(pers) === 'staff' || armaDaClasse(pers) === 'book') ? 'spiritshot' : 'soulshot';
+    const sId = (classe === 'staff' || classe === 'book') ? 'spiritshot' : 'soulshot';
     inv.consum[sId] = 500;                    /* [soulshot] carga inicial de 500 tiros (como no L2) */
   }
   return inv;

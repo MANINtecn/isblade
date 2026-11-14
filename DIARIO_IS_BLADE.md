@@ -4035,41 +4035,31 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Antigravity] 14/11/2026 - Sets de Armaduras 3D Lineage 2 (No-Grade a Grau A), Correção do "Pelados", Equipagem Livre de Armas/Staves e Atalhos Oficiais
+### [Antigravity] 14/11/2026 - Mecânica de Equipamento Fiel ao Lineage 2 (Click Direito + Arrastar e Soltar) e Kit Inicial No-Grade Autêntico
 
 - **Problemas Resolvidos**:
-  1. **Personagem Pelada / Biquíni**: O personagem aparecia em calcinha e sutiã (biquíni `elf_f.glb` / `m000`) mesmo com o set No-Grade inicial equipado no paperdoll (`chest_plate`, `boots_swift`, etc.).
-  2. **Corpo Preto ao Equipar Sets**: A função `ArmaGrau.aplicaArmadura` sobrescrevia os materiais dos novos modelos 3D com texturas PNG 2D não compatíveis, gerando partes pretas.
-  3. **Itens e Cajados (Staves) não Equipavam**: O servidor `servidor/inventario.js` possuía bloqueios impeditivos (`b.weapon !== armaItem(pers)` e restrição de nível por grau `pers.level < nv`), bloqueando magos e guerreiros de equiparem armas dropadas ou armaduras de grau superior.
-  4. **Atalhos do Teclado ('O' e 'C')**: A tecla 'O' de opções não abria o menu diretamente em alguns estados de foco e a tecla 'C' de status do personagem estava interceptada pela guarda.
-- **Implementações e Ajustes Técnicos**:
-  1. **Modelo 3D No-Grade Oficial Construído via Blender 5.1 (`elf_f_nograde.glb` - 2.14 MB)**:
-     - Extraído das malhas originais `FElf_m001_u`, `FElf_m001_l`, `FElf_m001_g`, `FElf_m001_b` com a textura nativa de armadura No-Grade do L2 (`FElf_m001_t02_*`).
-     - Agora a gama completa de sets 3D da Elfa está 100% nativa:
-       - No Grade: `elf_f_nograde.glb`
-       - Grau D: `elf_f_brigandine.glb` (Brigandine Set)
-       - Grau C: `elf_f_fullplate.glb` (Full Plate Set)
-       - Grau B: `elf_f_doom.glb` (Doom Plate Set)
-       - Grau A: `elf_f_tallum.glb` (Tallum Plate Set)
-  2. **Suporte de Renderização 3D Dedicada (`prototipo/js/arma_grau.js`)**:
-     - `ArmaGrau.SET_3D_MODELS` e `ArmaGrau.obterModelo3D(race, grau, hasChest)` agora diferenciam `naked` (sem peitoral equipado) de `sem` (No-Grade com armadura equipada). A personagem só aparece em roupas íntimas se o jogador desequipar expressamente o peitoral.
-     - `ArmaGrau.aplicaArmadura` protege os modelos 3D dedicados (`_nograde`, `_brigandine`, `_fullplate`, `_doom`, `_tallum`, `_imperial`) de terem suas texturas nativas sobrescritas.
-  3. **Kit Inicial Equipado (`prototipo/data/itens.json` e `servidor/inventario.js`)**:
-     - `start.equip` agora inclui `chest` (`chest_plate`), `legs` (`legs_plate`), `gloves` (`gloves_hide`), `boots` (`boots_swift`), `helmet` (`helmet_iron`) e `weapon` (`sword_long`).
-     - Todo novo personagem ou personagem existente já spawna completamente vestido.
-  4. **Equipagem de Armas e Itens Livre e Conforme o L2 (`servidor/inventario.js` e `inventario_ui.js`)**:
-     - No L2 qualquer classe pode empunhar qualquer arma (guerreiro com cajado, mago com espada). O servidor agora atualiza `pers.weapon = b.weapon` ao equipar uma arma e permite o uso livre de itens dropados.
-     - `inventario_ui.js` agora mantém o botão "EQUIPAR" funcional sem travar prematuramente por nível e permite troca imediata de armas com clique ou duplo clique.
-  5. **Atalhos do Teclado**:
-     - Tecla **O**: Abre e fecha o menu de opções / configurações (`#cfg`) soltando o pointer lock.
-     - Tecla **C**: Abre e fecha a janela de Status do Personagem (`Status.toggle()`).
-     - Tecla **X**: Abre e fecha o menu de Ações e Grupos (`Net.alterna()`).
-     - Tecla **I**: Abre e fecha o Inventário oficial L2.
-- **Validação Automatizada com Playwright**:
-  - Testado via script em navegador Chromium real renderizando WebGL com sucesso:
-    - `elfa_set_nograde_final.png` & `cidade_elfa_staff_equipped.png`: Personagem vestida com armadura 3D No-Grade clássica segurando cajado na mão em posição de combate.
-    - `elfa_set_d_brigandine_final.png`: Set D Brigandine 3D.
-    - `elfa_set_c_fullplate_final.png`: Set C Full Plate 3D.
-    - `elfa_set_b_doom_final.png`: Set B Doom 3D.
-    - `elfa_set_a_tallum_final.png`: Set A Tallum 3D.
-    - Menus O, C, X e I testados e respondendo aos atalhos.
+  1. **Interação de Inventário Clunk (Tooltip obrigatório)**: Antes era necessário clicar no item para abrir um tooltip popup lateral e então clicar no botão "EQUIPAR" ou "TIRAR".
+  2. **Ausência de Click Direito (Right Click)**: Clicar com o botão direito abria o menu do navegador sem equipar ou desequipar.
+  3. **Ausência de Arrastar e Soltar (Drag & Drop) entre Boneco e Bolsa**: Não era possível arrastar itens da mochila para o paperdoll para vestir, nem do paperdoll para a mochila para desequipar.
+  4. **Chars Novos Nascendo com Dragon Slayer e Escudo de Teste**: O rig base anexava `dragon_slayer.glb` e `shield_is.glb` por padrão, e `start.bag` continha 20 itens de Graus D, C, B e A que inundavam novos personagens com equipamentos de fim de jogo.
+- **Implementações Técnicas**:
+  1. **Click Direito Instantâneo (`oncontextmenu` em `inventario_ui.js`)**:
+     - Clicar com o botão direito em qualquer item na bolsa equipa instantaneamente no slot correto do boneco.
+     - Clicar com o botão direito em qualquer slot equipado no paperdoll desequipa o item de volta para a mochila instantaneamente.
+     - Clicar com o botão direito em consumíveis (poções, pergaminhos) usa o item de imediato.
+  2. **Arrastar e Soltar Completo (Drag & Drop)**:
+     - Arrastar item da bolsa e soltar no boneco / paperdoll: equipa imediatamente (`op.equip(uid)`).
+     - Arrastar item equipado do paperdoll e soltar na área da bolsa: desequipa imediatamente (`op.tirar(slot)`).
+     - Arrastar item para o ícone de lixeira no canto inferior direito: descarta o item (`op.descartar(uid)`).
+     - Arrastar consumíveis ou armas para a barra de atalhos (Shortcut bar): preservado e integrado.
+  3. **Slots Vazios do Paperdoll e Grade da Mochila**:
+     - Renderização de slots vazios com classes `.empty-slot` para drop targets precisos tanto no boneco quanto na grade 6x4 de 24 slots da bolsa.
+  4. **Kit Inicial No-Grade 100% Autêntico**:
+     - **Guerreiro (2H)**: Nasce equipado com Espada de Duas Mãos No-Grade (`twohanded_sword.glb`), sem escudo.
+     - **Guardião (Sword & Shield)**: Nasce equipado com Gladius 1H + Round Shield No-Grade oficial (`round_shield.glb`), eliminando o antigo escudo de teste `shield_is.glb`.
+     - **Mago / Conjurador**: Nasce equipado com Cajado de Cedro (`cedar_staff.glb`), sem escudo.
+     - **Conjunto de Armadura No-Grade**: Todos os novos personagens nascem vestidos com o set completo No-Grade (`Elmo de Ferro`, `Peitoral de Placas`, `Calça de Placas`, `Luvas de Couro`, `Botas Ligeiras`), renderizando perfeitamente os modelos 3D nativos do L2 (`elf_f_nograde.glb` / `human_fighter_nograde.glb`).
+     - **Mochila Limpa**: Removidos itens Grade D/C/B/A do starter kit em `itens.json` e `servidor/inventario.js`. Mochila de novos chars inicia limpa.
+  5. **Remoção de Bloqueio Artificial de Nível**:
+     - Removida a trava de nível no cliente (`cidade.html` e `arena.html`) para permitir que equipamentos sejam trocados e testados livremente sem mensagens de nível insuficiente.
+     - Ajustada a sobreposição de malhas em `ArmaGrau.aplica` para que espada e cajado nunca apareçam simultaneamente.
