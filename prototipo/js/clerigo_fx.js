@@ -337,24 +337,25 @@
   };
 
   /* ---------------- C1 - Cura Mirada (skill 1):
-     Cruz de Luz Sagrada Esmeralda e Ouro em proporções latinas nobres,
+     Cruz de Luz Sagrada Esmeralda e Ouro em proporções latinas nobres (ampliada em 3x visualmente),
      descendo dos céus e se fincando no solo (sem domo pesado, sem peças 3D duras). ---------------- */
   C.criarCristal = function(escala){
-    escala = escala || 1;
+    var multCura = 3; // 3x o tamanho visual atual (pedido do usuário)
+    var escEfetiva = (escala || 0.9) * multCura;
     var raiz = new T.Group();
 
-    // Cruz Sagrada Esmeralda de Luz Pura
-    var crz = sprite(TX.cruz_flare || TX.cruz, VERDE, 2.8 * escala, 0.95);
+    // Cruz Sagrada Esmeralda de Luz Pura (3x maior)
+    var crz = sprite(TX.cruz_flare || TX.cruz, VERDE, 2.8, 0.95);
     raiz.add(crz);
 
-    // Núcleo incandescente branco/esmeralda
-    var nu = sprite(TX.estrela, BRANCO, 1.35 * escala, 0.95);
+    // Núcleo incandescente branco/esmeralda (3x maior)
+    var nu = sprite(TX.estrela, BRANCO, 1.35, 0.95);
     raiz.add(nu);
 
-    var pf = criarParticulas({ n: 28, raio: 0.45 * escala, cor: VERDE, tam: 40, forma: 0, turb: 0.5 });
+    var pf = criarParticulas({ n: 36, raio: 0.45, cor: VERDE, tam: 46, forma: 0, turb: 0.5 });
     if(pf) raiz.add(pf.points);
 
-    raiz.scale.setScalar(escala);
+    raiz.scale.setScalar(escEfetiva);
     raiz.traverse(function(o){ o.frustumCulled = false; });
     var rel = 0, tr = 0, wp = new T.Vector3();
 
@@ -368,7 +369,7 @@
         if(tr <= 0 && rastro){
           tr = leve() ? 0.06 : 0.03;
           raiz.getWorldPosition(wp);
-          var s = sprite(TX.estrela, VERDE, 0.45 * escala, 0.85);
+          var s = sprite(TX.estrela, VERDE, 0.45 * escEfetiva, 0.85);
           s.position.copy(wp);
           rastro.add(s);
           seq(0.35, function(u){
@@ -392,29 +393,30 @@
      Estrela de energia radiante, espinhos facetados suaves, ondas de luz sagrada e explosão de partículas fluidas. */
   C.impacto = function(x, z, verde){
     if(!T) return;
+    var mult = verde ? 3 : 1; // 3x o tamanho visual no impacto de Cura Mirada
     var g = grupo(x, 0, z), cor = verde ? VERDE : OURO;
-    var est = sprite(TX.estrela, BRANCO, 0.4), lq = sprite(TX.leque, cor, 0.4, 0.95), esp = [];
-    est.position.y = 1.3;
-    lq.position.y = 1.3;
+    var est = sprite(TX.estrela, BRANCO, 0.4 * mult), lq = sprite(TX.leque, cor, 0.4 * mult, 0.95), esp = [];
+    est.position.y = 1.3 * mult;
+    lq.position.y = 1.3 * mult;
     g.add(est);
     g.add(lq);
 
     // Espinhos de luz suaves facetados
     for(var i = 0; i < (leve() ? 6 : 10); i++){
       var v = new T.Vector3(rnd(-1, 1), rnd(-.1, 1), rnd(-1, 1)).normalize();
-      var o = new T.Mesh(new T.CylinderGeometry(0.01, 0.05, rnd(0.8, 1.4), 8, 1), aditivo(i % 2 ? BRANCO : cor, null, 0.95));
-      o.position.y = 1.3;
+      var o = new T.Mesh(new T.CylinderGeometry(0.01 * mult, 0.05 * mult, rnd(0.8, 1.4) * mult, 8, 1), aditivo(i % 2 ? BRANCO : cor, null, 0.95));
+      o.position.y = 1.3 * mult;
       o.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v);
       g.add(o);
       esp.push(o);
     }
 
     // Partículas fluidas de detonação
-    var pf = criarParticulas({ n: 40, raio: 1.2, cor: cor, tam: 48, forma: 1, turb: 0.8 });
+    var pf = criarParticulas({ n: 40, raio: 1.2 * mult, cor: cor, tam: 48 * (mult > 1 ? 1.5 : 1), forma: 1, turb: 0.8 });
     if(pf) g.add(pf.points);
 
     // Glifo de luz no chão
-    var lo = plano(TX.hex_brilho, cor, 1.8, 1.8, 0.75, true);
+    var lo = plano(TX.hex_brilho, cor, 1.8 * mult, 1.8 * mult, 0.75, true);
     lo.position.y = 0.06;
     lo.rotation.z = Math.PI / 4;
     g.add(lo);
@@ -425,14 +427,14 @@
         pf.setAlfa(0.95 * (1 - u));
       }
       var k = kf([[0, .3], [.1, 1], [1, 0]], u);
-      est.scale.setScalar(2.8 * k);
-      lq.scale.setScalar(2.6 * kf([[0, .2], [.15, 1], [1, .6]], u));
+      est.scale.setScalar(2.8 * k * mult);
+      lq.scale.setScalar(2.6 * kf([[0, .2], [.15, 1], [1, .6]], u) * mult);
       lq.material.opacity = 0.95 * (1 - u);
       esp.forEach(function(o){
         o.scale.setScalar(kf([[0, .2], [.1, 1], [.5, .5], [1, 0]], u));
       });
       lo.material.opacity = 0.75 * (1 - u);
-      lo.scale.setScalar(0.7 + u * 1.1);
+      lo.scale.setScalar((0.7 + u * 1.1) * mult);
     }, function(){
       if(pf) pf.dispose();
       some(g);
@@ -441,22 +443,23 @@
 
   /* ---------------- C1 (Impacto / Efeito no Alvo) - Cura no Jogador:
      Sem domo pesado! A cruz finca-se suavemente no solo, emitindo onda de choque fluida
-     e fazendo brotar fragmentos de cura cintilantes que sobem em espiral leve. ---------------- */
+     e fazendo brotar fragmentos de cura cintilantes que sobem em espiral leve (ampliada em 3x visualmente). ---------------- */
   C.cura = function(x, z, forte){
     if(!T) return;
-    var g = grupo(x, 0, z), A = forte ? 1.2 : 0.9;
+    var multCura = 3; // 3x o tamanho visual atual (pedido do usuário)
+    var g = grupo(x, 0, z), A = (forte ? 1.2 : 0.9) * multCura;
 
-    // Cruz de luz flare no centro do impacto (fincada e ressoando)
+    // Cruz de luz flare no centro do impacto (fincada e ressoando, 3x maior)
     var crz = sprite(TX.cruz_flare || TX.estrela, VERDE, 1.6 * A, 0.95);
     crz.position.y = 1.0 * A;
     g.add(crz);
 
-    // Núcleo cintilante de impacto
+    // Núcleo cintilante de impacto (3x maior)
     var est = sprite(TX.estrela, BRANCO, 0.9 * A, 0.98);
     est.position.y = 1.0 * A;
     g.add(est);
 
-    // Onda de choque etérea suave no solo (sem domo)
+    // Onda de choque etérea suave no solo (sem domo, 3x maior)
     var on = plano(TX.onda, VERDE, 1.4 * A, 1.4 * A, 0.9, true);
     on.position.y = 0.06;
     g.add(on);
@@ -467,7 +470,7 @@
 
     // Fragmentos cintilantes de cura subindo da terra pelo ar
     var frags = [];
-    var nFrags = leve() ? 8 : (forte ? 18 : 14);
+    var nFrags = leve() ? 10 : (forte ? 22 : 16);
     for(var i = 0; i < nFrags; i++){
       var ang = rnd(0, 6.28), r0 = rnd(0.2, 1.3 * A);
       var sp = sprite(TX.estrela, i % 2 ? VERDE : OURO, rnd(0.22, 0.38) * A, 0.95);
@@ -485,7 +488,7 @@
     }
 
     // Partículas fluidas esmeralda em ascensão
-    var pf = criarParticulas({ n: 40, raio: 1.0 * A, cor: VERDE, tam: 44, forma: 0, subir: 1.4, turb: 0.55 });
+    var pf = criarParticulas({ n: 46, raio: 1.0 * A, cor: VERDE, tam: 52, forma: 0, subir: 1.4, turb: 0.55 });
     if(pf) g.add(pf.points);
 
     seq(1.2, function(u, t){
@@ -639,7 +642,7 @@
   }
 
   /* ---------------- C3 - Escudo Astral:
-     6 Cruzes de Proteção em Azul Safira Puro (0x1575ff) com flare óptico radiante,
+     Cruzes de Proteção em Azul Safira Puro (0x1575ff) com flare óptico radiante (ampliadas em 5x visualmente),
      orbitando suavemente o aliado e detonando clarão estelar ao bloquear dano. ---------------- */
   var ESC = {};
   C.escudo = function(id, pos, dur, n){
@@ -647,15 +650,16 @@
     C.escudoFim(id, true);
     n = n || 6;
     var cruzesEsc = [], E = { n: n, vivo: true, placas: cruzesEsc };
+    var multEscudo = 5; // 5x o tamanho visual atual (pedido do usuário)
 
     for(var i = 0; i < n; i++){
       var pl = new T.Group(), a = i * 6.2832 / n;
-      // Cruz de Proteção em Azul Safira Radiante
-      var crz = sprite(TX.cruz_flare || TX.cruz, AZUL, 0.85, 0.95);
+      // Cruz de Proteção em Azul Safira Radiante (5x maior: 0.85 * 5 = 4.25)
+      var crz = sprite(TX.cruz_flare || TX.cruz, AZUL, 0.85 * multEscudo, 0.95);
       pl.add(crz);
 
-      // Núcleo estelar azul celeste puro
-      var nu = sprite(TX.estrela, 0x9fd4ff, 0.42, 0.95);
+      // Núcleo estelar azul celeste puro (5x maior: 0.42 * 5 = 2.1)
+      var nu = sprite(TX.estrela, 0x9fd4ff, 0.42 * multEscudo, 0.95);
       pl.add(nu);
 
       pl.userData = { a: a, crz: crz, nu: nu };
@@ -667,8 +671,10 @@
       var ab = Math.min(1, t / 0.4), fe = t > dur - 0.5 ? Math.max(0, (dur - t) / 0.5) : 1;
       cruzesEsc.forEach(function(pl, k){
         if(!pl.visible) return;
-        var a = pl.userData.a + t * 0.65, r = 1.05 + (1 - ab) * 1.8;
-        pl.position.set(Math.cos(a) * r, 1.15 + 0.12 * Math.sin(t * 2.4 + k) + (1 - fe) * 1.5, Math.sin(a) * r);
+        var a = pl.userData.a + t * 0.65;
+        // Raio de órbita e elevação ajustados para que as cruzes de 4.25m circundem o aliado com majestade sem atravessar o corpo
+        var r = 2.8 + (1 - ab) * 2.2;
+        pl.position.set(Math.cos(a) * r, 1.35 + 0.18 * Math.sin(t * 2.4 + k) + (1 - fe) * 2.0, Math.sin(a) * r);
         pl.userData.crz.material.opacity = 0.95 * Math.min(ab, fe);
         pl.userData.nu.material.opacity = 0.9 * Math.min(ab, fe);
         pl.userData.nu.material.rotation = t * 1.5;
@@ -702,25 +708,26 @@
   };
 
   function quebra(w){
-    var s = sprite(TX.estrela, 0xdff2ff, 0.45), h = sprite(TX.onda, AZUL, 0.45, 0.85);
+    var mult = 5; // 5x escala visual de quebra
+    var s = sprite(TX.estrela, 0xdff2ff, 0.45 * mult), h = sprite(TX.onda, AZUL, 0.45 * mult, 0.85);
     s.position.copy(w);
     h.position.copy(w);
     rastro.add(s);
     rastro.add(h);
 
-    var pf = criarParticulas({ n: 20, raio: 0.6, cor: AZUL, tam: 40, forma: 1, turb: 0.75 });
+    var pf = criarParticulas({ n: 35, raio: 0.6 * mult, cor: AZUL, tam: 56, forma: 1, turb: 0.75 });
     if(pf){
       pf.points.position.copy(w);
       rastro.add(pf.points);
     }
 
-    seq(0.4, function(u){
+    seq(0.45, function(u){
       if(pf){
         pf.update(0.016);
         pf.setAlfa(0.9 * (1 - u));
       }
-      s.scale.setScalar(1.8 * Math.sin(u * Math.PI));
-      h.scale.setScalar(0.4 + 1.8 * u);
+      s.scale.setScalar(1.8 * mult * Math.sin(u * Math.PI));
+      h.scale.setScalar((0.4 + 1.8 * u) * mult);
       h.material.opacity = 0.85 * (1 - u);
     }, function(){
       rastro.remove(s);

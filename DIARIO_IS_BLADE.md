@@ -4046,3 +4046,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Regen:** `stamRegen` 0,2 -> 0,33 (combate.json): de 0 ao maximo em ~15 s (antes ~25 s); guardando ~50 s.
 - **Custos (fixos, pesam menos conforme sobe de nivel):** rolagem 32 -> 15 (cancelar skill 42 -> 25; o dono pediu baixar mais, de 24/34), pulo 8 -> 5, corrida 10/s -> 7/s, soltar guarda 10 -> 7, bloqueio x0,75 (`BLOCK_COST`; Guardiao continua -40% em cima).
 - **NAO testado no navegador.** JSON e l2_hud.js conferidos (node). Push feito em 14/11 a pedido do dono. Backups: *.antes_estamina.
+
+### [Antigravity] 14/11/2026 - Ampliação Visual das Habilidades do Healer: Cura Mirada (3x) e Escudo Astral (5x)
+- **Pedido do Usuário**:
+  - Aumentar o tamanho visual da skill **Cura Mirada** em **3x o tamanho atual**.
+  - Aumentar o tamanho visual da skill **Escudo Astral** em **5x o tamanho atual**.
+- **Ajustes Implementados (`prototipo/js/clerigo_fx.js`)**:
+  1. **Cura Mirada (Skill 1 do Healer - 3x o tamanho visual)**:
+     - `C.criarCristal`: Projétil sagrado esmeralda ampliado em 3x (`escEfetiva = (escala || 0.9) * 3`).
+     - Cruz sagrada de flare esmeralda, núcleo incandescente branco, rastro estelar e partículas ajustados para escala 3x.
+     - `C.cura`: Efeito de impacto/cura no aliado ampliado em 3x (`A = (forte ? 1.2 : 0.9) * 3`), expandindo a cruz no solo, as ondas etéreas, os fragmentos cintilantes em espiral e a coluna de partículas de ascensão.
+     - `C.impacto`: Impacto no solo/inimigo ampliado proporcionalmente em 3x quando verde (`mult = 3`).
+  2. **Escudo Astral (Skill 3 do Healer - 5x o tamanho visual)**:
+     - `C.escudo`: Cruzes de Proteção em Azul Safira Radiante ampliadas em 5x (`multEscudo = 5`, passando de 0.85 para 4.25m de envergadura, e núcleo estelar de 0.42 para 2.10m).
+     - Raio de órbita ampliado de 1.05m para 2.8m (com elevação de 1.35m), permitindo que as 6 cruzes monumentais formem um anel celestial imponente sem colidir com o corpo do jogador.
+     - `quebra`: Detonação e partículas de quebra das placas do escudo ampliadas em 5x.
+  3. **Conformidade com Diretrizes `estilo-fx-refinado`**:
+     - Mantida pureza de energia, luminosidade etérea aditiva e miolo incandescente sem sólidos maciços ou formas geométricas duras.
+  4. **Atualização de Versão de Cache e Validação Visual**:
+     - `cidade.html` e `arena.html` atualizados para `clerigo_fx.js?v=6`.
+     - Criada página de teste `prototipo/preview_clerigo_skills.html` e gerada screenshot de confirmação em `prototipo/preview_clerigo_skills.png`.
