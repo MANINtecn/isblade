@@ -94,10 +94,12 @@ const dQualquer = dist(r => r !== 0);
 function plano(k){ const i = k % nx, j = (k - i) / nx; for(let u = -2; u <= 2; u++) for(let v = -2; v <= 2; v++){ const x = i + u, z = j + v; if(x < 0 || z < 0 || x >= nx || z >= nz) return false; const kk = z * nx + x; if(!AND[kk] || RG[kk] !== 0 || Math.abs(H[kk] - H[k]) > 2) return false; } return true; }
 /* Cruma: troca os tipos (o campo ja cobre 1-20) e tira os spots que caem fora da regiao da Cruma no mundo */
 const TROCA = { sapo_curuma: 'olho_fort', aranha_curuma: 'basilisco_fort', stakato_curuma: 'stakato_anciao', stalker_curuma: 'stalker_anciao', olho_fort: 'olho_fort', basilisco_fort: 'basilisco_fort', stakato_anciao: 'stakato_anciao', stalker_anciao: 'stalker_anciao', chefe_curuma: 'chefe_curuma' };
+const ILHA = { salamandra_fogo: ['golem_lava', .3], magmagoil: ['salamandra_ancia', .3], wyrm_fogo: ['golem_anciao', .35], golem_lava: ['golem_anciao', .35] };      /* ilha do Pantano (parte alta): 67-78 */
 const AGR = { olho_fort: .15, basilisco_fort: .2, stakato_anciao: .3, stalker_anciao: .35 };
 const Xc = Mobs.xfDe('curuma'), Xp = Mobs.xfDe('pantano'); let fora = 0;
 SP.curuma.spots = SP.curuma.spots.filter(s => { const p = Mobs.praMundo(Xc, s.x, s.z), k = celDe(p[0], p[1]); if(k < 0 || RG[k] !== 1){ fora++; return false; } return true; })
   .map(s => Object.assign({}, s, { tipo: TROCA[s.tipo] || s.tipo }, AGR[TROCA[s.tipo]] !== undefined ? { agr: AGR[TROCA[s.tipo]] } : {}));
+if(SP.blazing_swamp.spots.some(s => s.tipo === 'salamandra_fogo')) SP.blazing_swamp.spots = SP.blazing_swamp.spots.map(s => ILHA[s.tipo] ? Object.assign({}, s, { tipo: ILHA[s.tipo][0], agr: ILHA[s.tipo][1] }) : s);      /* so na primeira vez (depois ja nao ha salamandra comum na ilha) */
 /* Fortaleza por dentro: vazia (castelo de cla, evento semanal). Os spots antigos ficam guardados no arquivo .antes_auditoria */
 SP.fortress.spots = [];
 /* ocupados (mundo): campo + Cruma + Pantano */
@@ -117,7 +119,19 @@ const mundo = [];
   const tipos = [['ol_mahum_fort', .25], ['basilisco_anciao', .3], ['ol_mahum_capitao', .35]];
   P.forEach((p, i) => { const t = tipos[Math.min(2, Math.floor(i / Math.ceil(P.length / 3)))]; mundo.push(Object.assign({ dif: 'fortress', tipo: t[0], n: 4, raio: 7, agr: t[1] }, p)); });
   if(chefe) mundo.push(Object.assign({ dif: 'fortress', tipo: 'chefe_fort', n: 1, raio: 1, agr: 1, chefe: true, resp: 300, local: 'arredores da Fortaleza' }, chefe)); }
-{ const P = anel(3, 8, 15, 100, 26); P.forEach((p, i) => { const t = i < 4 ? ['salamandra_ancia', .3] : ['golem_anciao', .35]; mundo.push(Object.assign({ dif: 'pantano', tipo: t[0], n: 4, raio: 7, agr: t[1] }, p)); }); }
+/* Pantano (14/11, dono): PARTE BAIXA = terreno do mundo a -35 m em volta da ilha (regiao 3), entra-se pelo campo baixo a leste; mobs 52-62, mais fracos perto da entrada.
+   PARTE ALTA = a ilha (spots do mapa, acima): 67-78. */
+{ const baixo = k => AND[k] && H[k] < -24, alto = dist(() => false); const dA = new Int16Array(N).fill(-1), q = [];
+  for(let k = 0; k < N; k++) if(RG[k] === 3 && AND[k] && H[k] >= -12){ dA[k] = 0; q.push(k); }                       /* distancia ate a ilha (para nao nascer colado na encosta) */
+  for(let qi = 0; qi < q.length; qi++){ const k = q[qi], i = k % nx, j = (k - i) / nx; if(dA[k] >= 6) continue; for(const [u, v] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){ const x = i + u, z = j + v; if(x < 0 || z < 0 || x >= nx || z >= nz) continue; const kk = z * nx + x; if(dA[kk] < 0){ dA[kk] = dA[k] + 1; q.push(kk); } } }
+  const dE = new Int32Array(N).fill(-1), e = []; for(let k = 0; k < N; k++) if(RG[k] === 0 && AND[k] && H[k] < -12){ dE[k] = 0; e.push(k); }      /* distancia a pe, por baixo, desde o campo baixo (a entrada) */
+  for(let qi = 0; qi < e.length; qi++){ const k = e[qi], i = k % nx, j = (k - i) / nx; for(const [u, v] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){ const x = i + u, z = j + v; if(x < 0 || z < 0 || x >= nx || z >= nz) continue; const kk = z * nx + x; if(dE[kk] < 0 && RG[kk] === 3 && baixo(kk) && Math.abs(H[kk] - H[k]) < 1.6){ dE[kk] = dE[k] + 1; e.push(kk); } } }
+  const planoB = k => { const i = k % nx, j = (k - i) / nx; for(let u = -2; u <= 2; u++) for(let v = -2; v <= 2; v++){ const kk = (j + v) * nx + i + u; if(!baixo(kk) || RG[kk] !== 3 || Math.abs(H[kk] - H[k]) > 2) return false; } return true; };
+  const cand = []; for(let k = 0; k < N; k++) if(RG[k] === 3 && baixo(k) && dE[k] > 3 && dA[k] < 0 && planoB(k)) cand.push(k);
+  const P = []; for(let t = 0; t < 80000 && P.length < 12 && cand.length; t++){ const k = cand[Math.floor(rnd() * cand.length)], x = wx(k), z = wz(k); if(ocup.some(o => Math.hypot(o[0] - x, o[1] - z) < 30)) continue; ocup.push([x, z]); P.push({ x: +x.toFixed(1), z: +z.toFixed(1), h: +H[k].toFixed(2), d: dE[k] }); }
+  if(P.length < 12) console.error('ATENCAO: parte baixa do Pantano so tem', P.length, 'de 12 pontos; candidatos', cand.length);
+  P.sort((a, b) => a.d - b.d); const tp = [['salamandra_fogo', .15], ['magmagoil', .25], ['wyrm_fogo', .3]];
+  P.forEach((p, i) => { const t = tp[Math.min(2, Math.floor(i / Math.ceil(P.length / 3)))], o = Object.assign({ dif: 'pantano', tipo: t[0], n: 4, raio: 7, agr: t[1] }, p); delete o.d; mundo.push(o); }); }
 SP.mundo = { _nota: 'Spots em volta dos mapas, em coordenadas do MUNDO (servidor/mobs_mundo.js -> campo). dif = tabela de XP/drop do mob. Gerado por tools/spots/rebalancear.js.', spots: mundo };
 const NLs = le('prototipo/data/spots.json').includes('\r\n') ? '\r\n' : '\n';
 const cab = k => Object.keys(SP[k]).filter(c => c !== 'spots').map(c => JSON.stringify(c) + ': ' + JSON.stringify(SP[k][c])).join(', ');

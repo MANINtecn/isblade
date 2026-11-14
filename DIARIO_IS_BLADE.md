@@ -4018,3 +4018,9 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - **Comportamento e Integração com Servidor/Storage**:
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
+
+### [Claude] 14/11/2026 - Pantano: parte baixa e parte alta (rampas conferidas no terreno do mundo)
+
+- O dono abriu o Blender (MCP) e autorizou abrir `tools/blender_mundo/mapa_mundi.blend` (so leitura, nada salvo). Conclusao: a **parte baixa** do Pantano e o terreno do mundo a cerca de -35 m em volta da ilha (regiao 3 do mundo_grade, andavel), ligado ao campo baixo a leste e a sudoeste; a **parte alta** e a ilha do mapa (nivel 0 a 5 m), com encostas de subida a oeste e ao sul. O plato de 32 m que eu tinha apontado antes e so topo de rocha do mapa do L2, nao e area de jogo (erro meu de leitura).
+- **Spots (tools/spots/rebalancear.js, regravado):** parte baixa = 12 spots novos em spots.json -> mundo (salamandra 52, magmagoil 57, serpe 62; os mais fracos perto das entradas); ilha = golem 67, Salamandra Ancia 71, Golem de Magma 75 e o Senhor dos Dracos 78. Os 8 spots que eu tinha posto em volta do Pantano sairam. Total: 88 spots, 0 sem chao valido, 0 colados.
+- teste_progressao 13 de 13. **NAO testado no navegador:** falta o dono andar na parte baixa e ver se os mobs ficam no chao certo (3 spots ficam a menos de 170 m do centro do mapa, onde o walkgrid do mapa tambem existe: 192,259 / 195,148 / 183,292).
