@@ -4130,3 +4130,6 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Dano na tela: o rotulo em cima do numero (chefe/boneco de treino) trazia o NOME DA SKILL; agora so os avisos de estado (FRAQUEZA, ATORDOADA, AEREO). arena/cidade: tag=an.skill.name -> tag=vazio.
 - CP: a barra de CP do HUD L2 (js/l2_hud.js) lia S.gauge, que e a GUARDA DO INIMIGO (cai a cada golpe ate GUARDA QUEBRADA) - por isso parecia consumir CP no ataque basico. O personagem ainda nao tem CP: barra fica cheia (100) ate existir o sistema. Cache: l2_hud v39, mu_hud v31.
 - DIARIO sobrescrito pela 3a vez por versao velha em disco; restaurado do HEAD.
+
+### [Claude] 14/11/2026 - Soulshot na mao tambem nas skills (sem efeito no alvo)
+- Pedido do dono: skill mostra o SS original do L2 na mao (e o som de carga), uma vez por skill; o estouro azul no alvo continua so no ataque basico. ssTiro em arena/cidade: tirada a trava if(!an.skill) do disparo na mao.

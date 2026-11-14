@@ -12906,7 +12906,7 @@ function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no da
   an.dmg=Math.round(an.dmg*(1+(c.bonus||0.25)));
   if(CONSUM[id]>0) CONSUM[id]--;
   /* ATIVA O BRILHO NOSTÁLGICO DO SOULSHOT NA ARMA (PC e Mobile) */
-  if(!an.skill)try{/* [dano-tela] skill nao mostra soulshot (so o bonus de dano) */
+  try{/* [ss-l2] skill tambem mostra o SS na mao; no alvo nao (estouro so no basico) */
     if(window.SSL2){var _mao=vrm&&vrm.root&&vrm.root.getObjectByName&&(vrm.root.getObjectByName('Bip01_R_Hand')||vrm.root.getObjectByName('Weapon_R_Bone'));if(_mao)SSL2.disparar(scene,_mao,{magia:wpnCaster()});}/* [ss-l2] soulshot/spiritshot ORIGINAL do L2 na mao (antes: arma pintada de ciano) */
     if(window.SFX){
       if(wpnCaster())SFX.play('spirits_shot_cast');
