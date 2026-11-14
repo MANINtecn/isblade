@@ -146,7 +146,7 @@
   C.init = function(THREE_, cena_){
     if(T) return;
     T = THREE_; cena = cena_;
-    var tl = new T.TextureLoader(), v = '?v=7';
+    var tl = new T.TextureLoader(), v = '?v=8';
     ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo', 'cruz_flare', 'veu_energia', 'pena'].forEach(function(n){
       TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v);
     });
@@ -344,16 +344,24 @@
     var escEfetiva = (escala || 0.9) * multCura;
     var raiz = new T.Group();
 
+    // Elevação para a base da cruz não ficar enterrada durante o voo
+    var yOffset = 0.45;
+
     // Cruz Sagrada Esmeralda de Luz Pura (3x maior)
     var crz = sprite(TX.cruz_flare || TX.cruz, VERDE, 2.8, 0.95);
+    crz.position.y = yOffset;
     raiz.add(crz);
 
-    // Núcleo incandescente branco/esmeralda (3x maior)
+    // Núcleo incandescente branco/esmeralda (3x maior) - Alinhado perfeitamente na junção da cruz
     var nu = sprite(TX.estrela, BRANCO, 1.35, 0.95);
+    nu.position.y = yOffset;
     raiz.add(nu);
 
     var pf = criarParticulas({ n: 36, raio: 0.45, cor: VERDE, tam: 46, forma: 0, turb: 0.5 });
-    if(pf) raiz.add(pf.points);
+    if(pf){
+      pf.points.position.y = yOffset;
+      raiz.add(pf.points);
+    }
 
     raiz.scale.setScalar(escEfetiva);
     raiz.traverse(function(o){ o.frustumCulled = false; });
@@ -371,6 +379,7 @@
           raiz.getWorldPosition(wp);
           var s = sprite(TX.estrela, VERDE, 0.45 * escEfetiva, 0.85);
           s.position.copy(wp);
+          s.position.y += yOffset * escEfetiva;
           rastro.add(s);
           seq(0.35, function(u){
             s.material.opacity = 0.85 * (1 - u);
@@ -449,14 +458,17 @@
     var multCura = 3; // 3x o tamanho visual atual (pedido do usuário)
     var g = grupo(x, 0, z), A = (forte ? 1.2 : 0.9) * multCura;
 
+    // Altura da cruz fincada elevada para a base não afundar no chão
+    var yCruz = 1.18 * A;
+
     // Cruz de luz flare no centro do impacto (fincada e ressoando, 3x maior)
     var crz = sprite(TX.cruz_flare || TX.estrela, VERDE, 1.6 * A, 0.95);
-    crz.position.y = 1.0 * A;
+    crz.position.y = yCruz;
     g.add(crz);
 
-    // Núcleo cintilante de impacto (3x maior)
+    // Núcleo cintilante de impacto (3x maior) - Exatamente na junção da cruz
     var est = sprite(TX.estrela, BRANCO, 0.9 * A, 0.98);
-    est.position.y = 1.0 * A;
+    est.position.y = yCruz;
     g.add(est);
 
     // Onda de choque etérea suave no solo (sem domo, 3x maior)
@@ -672,9 +684,10 @@
       cruzesEsc.forEach(function(pl, k){
         if(!pl.visible) return;
         var a = pl.userData.a + t * 0.65;
-        // Raio de órbita e elevação ajustados para que as cruzes de 4.25m circundem o aliado com majestade sem atravessar o corpo
-        var r = 2.8 + (1 - ab) * 2.2;
-        pl.position.set(Math.cos(a) * r, 1.35 + 0.18 * Math.sin(t * 2.4 + k) + (1 - fe) * 2.0, Math.sin(a) * r);
+        // Raio aproximado para perto do personagem (~1.85m) e altura elevada (2.35m) para a base não enterrar no chão
+        var r = 1.85 + (1 - ab) * 1.0;
+        var alturaY = 2.35 + 0.16 * Math.sin(t * 2.4 + k) + (1 - fe) * 1.5;
+        pl.position.set(Math.cos(a) * r, alturaY, Math.sin(a) * r);
         pl.userData.crz.material.opacity = 0.95 * Math.min(ab, fe);
         pl.userData.nu.material.opacity = 0.9 * Math.min(ab, fe);
         pl.userData.nu.material.rotation = t * 1.5;

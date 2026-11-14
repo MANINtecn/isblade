@@ -4035,13 +4035,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Antigravity] 14/11/2026 - Ampliação Visual das Habilidades do Healer (Cura Mirada 3x, Escudo Astral 5x) e Correção do Alinhamento do Brilho Óptico
-- **Problema Relatado**:
-  - Na skill Cura Mirada, o brilho intenso (flare óptico branco incandescente) estava desalinhado e saindo mais abaixo do que a junção dos braços da cruz.
-- **Causa Raiz Identificada**:
-  - A textura `clerigo_cruz_flare.png` (512x512) possui proporções latinas nobres (haste inferior mais longa). Devido a isso, a intersecção/junção da cruz estava localizada no pixel Y = 157, enquanto o centro da imagem (onde o sprite e a estrela óptica `nu` eram ancorados em 0, 0, 0) ficava no pixel Y = 256 (+99 pixels abaixo).
-- **Correção Aplicada**:
-  - `prototipo/assets/fx/clerigo_cruz_flare.png`: Textura recentrada com precisão sub-pixel por script Python, deslocando a intersecção exatamente para o centro óptico (256, 256), preservando 100% dos gradientes e sem qualquer corte de bordas.
-  - Bumping de cache de textura para `?v=7` em `clerigo_fx.js`, `cidade.html` e `arena.html`.
-  - O núcleo de luz incandescente branco agora coincide com exatidão matemática sobre a junção da cruz em todas as instâncias (projétil, impacto no solo e escudos astrais).
-  - Validado visualmente e capturada imagem comprobatória em `prototipo/preview_clerigo_skills.png`.
+### [Antigravity] 14/11/2026 - Centralização Precisa do Brilho na Junção da Cruz e Elevação de Altura das Habilidades do Healer
+
+- **Demandas do Usuário**:
+  1. **Cura Mirada (Skill 1 do Healer)**: Aumentar escala visual em 3x.
+  2. **Escudo Astral (Skill 3 do Healer)**: Aumentar escala visual em 5x.
+  3. **Alinhamento do Brilho da Cruz**: O brilho incandescente (flare de estrela) deve ficar exatamente na junção entre os braços horizontal e vertical da cruz sagrada, e não no topo ou abaixo.
+  4. **Prevenção de Base Enterrada**: Subir o Z/Y das cruzes (tanto no Escudo Astral quanto na Cura Mirada) para que a ponta inferior não fique enterrada no chão. No Escudo Astral, aproximar as cruzes do personagem sem afastá-las excessivamente.
+- **Ajustes Geométricos na Textura & Código**:
+  - **Mapeamento da Textura (`prototipo/assets/fx/clerigo_cruz_flare.png`)**:
+    - Identificada a estrutura de cruz latina na imagem 512x512.
+    - Textura reorientada verticalmente e recentralizada com exatidão no pixel (256, 256) na junção dos braços horizontal e vertical.
+    - Como o Three.js `Sprite` usa pivô padrão `(0.5, 0.5)`, o flare estelar centralizado na mesma posição fica perfeitamente travado dentro da intersecção da cruz latina.
+  - **Elevação e Escala em `prototipo/js/clerigo_fx.js`**:
+    - `C.criarCristal` (Cura Mirada): Cruz multiplicada em 3x (`multCura = 3`, 7.56m de altura total). Adicionado deslocamento vertical `yOffset = 0.45m` compartilhado com o brilho `nu`, mantendo a base da cruz a `+0.6m` acima do solo durante todo o trajeto.
+    - `C.cura` (Impacto no Solo): Elevado `yCruz = 1.18 * A`, fazendo a base inferior da cruz tocar com suavidade o glifo de cura no chão sem submergir no terreno.
+    - `C.escudo` (Escudo Astral): Cruzes multiplicadas em 5x (`multEscudo = 5`, 4.25m de altura cada). Raio de órbita mantido próximo ao corpo do herói (`r = 1.85m + ...`), e altura de órbita elevada para `alturaY = 2.35m`, garantindo que a base das 6 cruzes flutue com folga de `+0.22m` a `+0.4m` acima do chão.
+  - **Validação e Versionamento**:
+    - Validado visualmente via Playwright em `prototipo/preview_clerigo_skills.png`.
+    - Cache query atualizado para `v=8` em `clerigo_fx.js`, `cidade.html`, `arena.html` e `preview_clerigo_skills.html`.
+
