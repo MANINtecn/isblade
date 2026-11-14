@@ -1,9 +1,7 @@
-# Ignorar servidor (o servidor roda na VPS, nao na Vercel)
-servidor
+# Ignorar pastas de desenvolvimento local e arquivos pesados
 trabalho_l2fx
 .claude
 tools
-node_modules
 __pycache__
 
 # Scripts e ferramentas locais
