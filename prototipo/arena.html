@@ -7026,13 +7026,10 @@ function equipItem(uid){som('equipar');/* [sons-l2] */
 }
 
 function unequipSlot(slot){
-  if(INV_SRV&&slot!=='weapon'){Net.inv('tirar','',slot);return;}
-
-  if(slot==='weapon'){gestMsg('Equipe outra arma para trocar (sempre ha uma arma equipada)');return;}
-
+  if(INV_SRV){Net.inv('tirar','',slot);return;}
   delete INV.equip[slot];armaGrau();saveInv();applyStats();renderInv();
-
 }
+window.unequipSlot = unequipSlot;
 
 function discardItem(uid){som('lixo');/* [sons-l2] */
   if(INV_SRV){Net.inv('descartar',uid);return;}
@@ -7286,21 +7283,31 @@ function initInv(){
   if(WPN!=='none'&&!/[?&]wpn=/.test(location.search)){
     var _cur=baseOf(findItem(INV.equip.weapon).base).weapon;
     if(_cur!==WPN){
-      var _alvo=INV.items.filter(function(i){return baseOf(i.base).weapon===itemDaArma(WPN);})[0];
-      if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===itemDaArma(WPN);})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
-      if(_alvo){INV.equip.weapon=_alvo.uid;saveInv();}
+      if(WPN==='shield'){
+        delete INV.equip.weapon;
+        saveInv();
+      } else {
+        var _alvo=INV.items.filter(function(i){return baseOf(i.base).weapon===itemDaArma(WPN);})[0];
+        if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===itemDaArma(WPN);})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
+        if(_alvo){INV.equip.weapon=_alvo.uid;saveInv();}
+      }
     }
-    if(WPN==='shield'&&!INV.equip.shield){
-      var _shd=INV.items.filter(function(i){return i.base==='shield_guardian';})[0];
-      if(!_shd){_shd=mkItem('shield_guardian','normal');INV.items.push(_shd);}
-      if(_shd){INV.equip.shield=_shd.uid;saveInv();}
+    if(WPN==='shield'){
+      delete INV.equip.weapon;
+      if(!INV.equip.shield){
+        var _shd=INV.items.filter(function(i){return i.base==='shield_guardian';})[0];
+        if(!_shd){_shd=mkItem('shield_guardian','normal');INV.items.push(_shd);}
+        if(_shd){INV.equip.shield=_shd.uid;saveInv();}
+      }
     }
     if((WPN==='sword'||WPN==='staff')&&INV.equip.shield){
       delete INV.equip.shield;saveInv();
     }
   }
   /* <<< CLAUDE [arma] */
-  var w=baseOf(findItem(INV.equip.weapon).base).weapon;
+  var _fwIt = findItem(INV.equip && INV.equip.weapon);
+  var _fwB = _fwIt && baseOf(_fwIt.base);
+  var w = _fwB ? _fwB.weapon : (WPN === 'shield' ? 'shield' : 'none');
 
   if(!/[?&]wpn=/.test(location.search))setWeapon(w);
 
@@ -9154,9 +9161,8 @@ function loadL2Player(modelUrl, sword, cb){
 
 
     cb({
-
       isL2: true,
-
+      modelUrl: modelUrl,
       root: root,
 
       mats: mats,

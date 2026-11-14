@@ -24,9 +24,15 @@
     return texCache[path];
   }
 
-  // Tabela oficial de Texturas 1:1 do Lineage 2 Interlude por Raça e Grau (D, C, B, A)
+  // Tabela oficial de Texturas 1:1 do Lineage 2 Interlude por Raça e Grau (sem, D, C, B, A)
   var RACE_TEXTURES = {
     elf_f: {
+      sem: {
+        chest: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m001_t02_u.png',
+        legs:  'assets/personagens/raw_test_elf/felf/Texture/FElf_m001_t02_l_sp.png',
+        gloves:'assets/personagens/raw_test_elf/felf/Texture/FElf_m001_t02_g.png',
+        boots: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m001_t01_u_sp.png',
         legs:  'assets/personagens/raw_test_elf/felf/Texture/FElf_m001_t01_l_sp.png',
@@ -53,6 +59,12 @@
       }
     },
     human_fighter: {
+      sem: {
+        chest: 'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_u_sp.png',
+        legs:  'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_l_sp.png',
+        gloves:'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_g.png',
+        boots: 'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t01_u_sp.png',
         legs:  'assets/personagens/raw_fighter/textures/MFighter/Texture/MFighter_m001_t01_l_sp.png',
@@ -79,6 +91,12 @@
       }
     },
     human_fighter_female: {
+      sem: {
+        chest: 'assets/personagens/raw_roster_extra/FFighter/Texture/FFighter_m001_t02_u_sp.png',
+        legs:  'assets/personagens/raw_roster_extra/FFighter/Texture/FFighter_m001_t02_l_sp.png',
+        gloves:'assets/personagens/raw_roster_extra/FFighter/Texture/FFighter_m001_t02_g.png',
+        boots: 'assets/personagens/raw_roster_extra/FFighter/Texture/FFighter_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_roster_extra/FFighter/Texture/FFighter_m001_t01_u_sp.png',
         legs:  'assets/personagens/raw_roster_extra/FFighter/Texture/FFighter_m001_t01_l_sp.png',
@@ -105,6 +123,12 @@
       }
     },
     elf_m: {
+      sem: {
+        chest: 'assets/personagens/raw_roster_extra/melf/Texture/MElf_m001_t02_u.png',
+        legs:  'assets/personagens/raw_roster_extra/melf/Texture/MElf_m001_t02_l_sp.png',
+        gloves:'assets/personagens/raw_roster_extra/melf/Texture/MElf_m001_t02_g.png',
+        boots: 'assets/personagens/raw_roster_extra/melf/Texture/MElf_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_roster_extra/melf/Texture/MElf_m001_t01_u.png',
         legs:  'assets/personagens/raw_roster_extra/melf/Texture/MElf_m001_t01_l.png',
@@ -131,6 +155,12 @@
       }
     },
     darkelf_f: {
+      sem: {
+        chest: 'assets/personagens/raw_test_darkelf/textures/fdarkelf/Texture/FDarkElf_m001_t02_u.png',
+        legs:  'assets/personagens/raw_test_darkelf/textures/fdarkelf/Texture/FDarkElf_m001_t02_l.png',
+        gloves:'assets/personagens/raw_test_darkelf/textures/fdarkelf/Texture/FDarkElf_m001_t02_g.png',
+        boots: 'assets/personagens/raw_test_darkelf/textures/fdarkelf/Texture/FDarkElf_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_test_darkelf/textures/fdarkelf/Texture/FDarkElf_m001_t01_u.png',
         legs:  'assets/personagens/raw_test_darkelf/textures/fdarkelf/Texture/FDarkElf_m001_t01_l.png',
@@ -157,6 +187,12 @@
       }
     },
     darkelf_m: {
+      sem: {
+        chest: 'assets/personagens/raw_test_darkelf/textures/mdarkelf/Texture/MDarkElf_m001_t02_u_sp.png',
+        legs:  'assets/personagens/raw_test_darkelf/textures/mdarkelf/Texture/MDarkElf_m001_t02_l_sp.png',
+        gloves:'assets/personagens/raw_test_darkelf/textures/mdarkelf/Texture/MDarkElf_m001_t02_g.png',
+        boots: 'assets/personagens/raw_test_darkelf/textures/mdarkelf/Texture/MDarkElf_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_test_darkelf/textures/mdarkelf/Texture/MDarkElf_m001_t01_u.png',
         legs:  'assets/personagens/raw_test_darkelf/textures/mdarkelf/Texture/MDarkElf_m001_t01_l_sp.png',
@@ -183,6 +219,12 @@
       }
     },
     dwarf_f: {
+      sem: {
+        chest: 'assets/personagens/raw_tex_all/fdwarf/Texture/FDwarf_m001_t02_u.png',
+        legs:  'assets/personagens/raw_tex_all/fdwarf/Texture/FDwarf_m001_t02_l.png',
+        gloves:'assets/personagens/raw_tex_all/fdwarf/Texture/FDwarf_m001_t02_g.png',
+        boots: 'assets/personagens/raw_tex_all/fdwarf/Texture/FDwarf_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_tex_all/fdwarf/Texture/FDwarf_m001_t01_u.png',
         legs:  'assets/personagens/raw_tex_all/fdwarf/Texture/FDwarf_m001_t01_l.png',
@@ -209,6 +251,12 @@
       }
     },
     dwarf_m: {
+      sem: {
+        chest: 'assets/personagens/raw_roster_extra/mdwarf/Texture/MDwarf_m001_t02_u.png',
+        legs:  'assets/personagens/raw_roster_extra/mdwarf/Texture/MDwarf_m001_t02_l_sp.png',
+        gloves:'assets/personagens/raw_roster_extra/mdwarf/Texture/MDwarf_m001_t02_g.png',
+        boots: 'assets/personagens/raw_roster_extra/mdwarf/Texture/MDwarf_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_roster_extra/mdwarf/Texture/MDwarf_m001_t01_u.png',
         legs:  'assets/personagens/raw_roster_extra/mdwarf/Texture/MDwarf_m001_t01_l.png',
@@ -235,6 +283,12 @@
       }
     },
     orc_f: {
+      sem: {
+        chest: 'assets/personagens/raw_roster_extra/FOrc/Texture/FOrc_m001_t02_u.png',
+        legs:  'assets/personagens/raw_roster_extra/FOrc/Texture/FOrc_m001_t02_l.png',
+        gloves:'assets/personagens/raw_roster_extra/FOrc/Texture/FOrc_m001_t02_g.png',
+        boots: 'assets/personagens/raw_roster_extra/FOrc/Texture/FOrc_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_roster_extra/FOrc/Texture/FOrc_m001_t01_u.png',
         legs:  'assets/personagens/raw_roster_extra/FOrc/Texture/FOrc_m001_t01_l.png',
@@ -261,6 +315,12 @@
       }
     },
     orc_m: {
+      sem: {
+        chest: 'assets/personagens/raw_tex_all/MOrc/Texture/MOrc_m001_t02_u.png',
+        legs:  'assets/personagens/raw_tex_all/MOrc/Texture/MOrc_m001_t02_l.png',
+        gloves:'assets/personagens/raw_tex_all/MOrc/Texture/MOrc_m001_t02_g.png',
+        boots: 'assets/personagens/raw_tex_all/MOrc/Texture/MOrc_m001_t02_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_tex_all/MOrc/Texture/MOrc_m001_t01_u.png',
         legs:  'assets/personagens/raw_tex_all/MOrc/Texture/MOrc_m001_t01_l.png',
@@ -287,6 +347,12 @@
       }
     },
     magic_f: {
+      sem: {
+        chest: 'assets/personagens/raw_tex_all/FMagic/Texture/FMagic_m001_t05_u.png',
+        legs:  'assets/personagens/raw_tex_all/FMagic/Texture/FMagic_m001_t03_l_sp.png',
+        gloves:'assets/personagens/raw_tex_all/FMagic/Texture/FMagic_m001_t05_g.png',
+        boots: 'assets/personagens/raw_tex_all/FMagic/Texture/FMagic_m001_t03_b.png'
+      },
       D: {
         chest: 'assets/personagens/raw_tex_all/FMagic/Texture/FMagic_m002_t01_u.png',
         legs:  'assets/personagens/raw_tex_all/FMagic/Texture/FMagic_m002_t01_l_sp.png',
@@ -313,6 +379,12 @@
       }
     },
     magic_m: {
+      sem: {
+        chest: 'assets/personagens/raw_roster_extra/MMagic/Texture/MMagic_m001_t05_u.png',
+        legs:  'assets/personagens/raw_roster_extra/MMagic/Texture/MMagic_m001_t05_l.png',
+        gloves:'assets/personagens/raw_roster_extra/MMagic/Texture/MMagic_m001_t05_g.png',
+        boots: 'assets/personagens/raw_roster_extra/MMagic/Texture/MMagic_m001_t05_b_sp.png'
+      },
       D: {
         chest: 'assets/personagens/raw_roster_extra/MMagic/Texture/MMagic_m005_t01_u.png',
         legs:  'assets/personagens/raw_roster_extra/MMagic/Texture/MMagic_m005_t01_l.png',
@@ -341,7 +413,7 @@
   };
 
   function detectRace(rig){
-    var s = (rig && (rig.charType || rig.race || rig.modelUrl)) || '';
+    var s = (rig && (rig.charType || rig.race || rig.modelUrl || rig._currentGlbUrl)) || '';
     s = s.toLowerCase();
     if(s.indexOf('elf_f') >= 0 || s.indexOf('felf') >= 0) return 'elf_f';
     if(s.indexOf('elf_m') >= 0 || s.indexOf('melf') >= 0) return 'elf_m';
@@ -357,23 +429,31 @@
     if(s.indexOf('fighter') >= 0 || s.indexOf('mfighter') >= 0) return 'human_fighter';
 
     if(rig && rig.root){
-      var meshName = '';
+      var detected = '';
       rig.root.traverse(function(c){
-        if(c.isMesh && !meshName && c.name) meshName = c.name;
+        if(detected) return;
+        var names = [c.name || ''];
+        if(c.material){
+          var mList = Array.isArray(c.material) ? c.material : [c.material];
+          mList.forEach(function(m){ if(m && m.name) names.push(m.name); });
+        }
+        for(var i = 0; i < names.length; i++){
+          var nl = names[i].toLowerCase();
+          if(nl.indexOf('felf') >= 0 || nl.indexOf('elf_f') >= 0){ detected = 'elf_f'; break; }
+          if(nl.indexOf('melf') >= 0 || nl.indexOf('elf_m') >= 0){ detected = 'elf_m'; break; }
+          if(nl.indexOf('fdarkelf') >= 0 || nl.indexOf('darkelf_f') >= 0){ detected = 'darkelf_f'; break; }
+          if(nl.indexOf('mdarkelf') >= 0 || nl.indexOf('darkelf_m') >= 0){ detected = 'darkelf_m'; break; }
+          if(nl.indexOf('fdwarf') >= 0 || nl.indexOf('dwarf_f') >= 0){ detected = 'dwarf_f'; break; }
+          if(nl.indexOf('mdwarf') >= 0 || nl.indexOf('dwarf_m') >= 0){ detected = 'dwarf_m'; break; }
+          if(nl.indexOf('forc') >= 0 || nl.indexOf('orc_f') >= 0){ detected = 'orc_f'; break; }
+          if(nl.indexOf('morc') >= 0 || nl.indexOf('orc_m') >= 0){ detected = 'orc_m'; break; }
+          if(nl.indexOf('fmagic') >= 0 || nl.indexOf('magic_f') >= 0){ detected = 'magic_f'; break; }
+          if(nl.indexOf('mmagic') >= 0 || nl.indexOf('magic_m') >= 0){ detected = 'magic_m'; break; }
+          if(nl.indexOf('ffighter') >= 0){ detected = 'human_fighter_female'; break; }
+          if(nl.indexOf('mfighter') >= 0){ detected = 'human_fighter'; break; }
+        }
       });
-      var mn = meshName.toLowerCase();
-      if(mn.indexOf('felf') >= 0) return 'elf_f';
-      if(mn.indexOf('melf') >= 0) return 'elf_m';
-      if(mn.indexOf('fdarkelf') >= 0) return 'darkelf_f';
-      if(mn.indexOf('mdarkelf') >= 0) return 'darkelf_m';
-      if(mn.indexOf('fdwarf') >= 0) return 'dwarf_f';
-      if(mn.indexOf('mdwarf') >= 0) return 'dwarf_m';
-      if(mn.indexOf('forc') >= 0) return 'orc_f';
-      if(mn.indexOf('morc') >= 0) return 'orc_m';
-      if(mn.indexOf('fmagic') >= 0) return 'magic_f';
-      if(mn.indexOf('mmagic') >= 0) return 'magic_m';
-      if(mn.indexOf('ffighter') >= 0) return 'human_fighter_female';
-      if(mn.indexOf('mfighter') >= 0) return 'human_fighter';
+      if(detected) return detected;
     }
 
     try {
@@ -418,6 +498,10 @@
       rig.swd2h.visible = (w === 'sword');
       if(w === 'sword') filhoGrau(rig.swd2h, attach, url || 'assets/personagens/twohanded_sword.glb');
     }
+    if(rig.sword && !rig.swd2h){
+      rig.sword.visible = (w === 'sword');
+    }
+    if(rig.swd1h) rig.swd1h.visible = false;
 
     /* escudo na mao esquerda */
     var shdUrl = (baseEscudo && baseEscudo.modelo) || (w === 'shield' ? (url || 'assets/personagens/round_shield.glb') : null);
@@ -490,17 +574,21 @@
       var itUid = equip && equip[p];
       var it = itUid && findItem ? findItem(itUid) : null;
       var b = it && baseOf ? baseOf(it.base) : null;
-      var grau = (b && b.grau) || 'sem';
+      var isEquipped = !!(it && b);
+      var grau = isEquipped ? (b.grau || 'sem') : null;
 
       // Se o peitoral for inteiriço ou o slot secundário não tiver peça própria, herda o grau do peitoral
-      if(p !== 'chest' && grau === 'sem' && equip && equip.chest && findItem && baseOf){
+      if(!isEquipped && p !== 'chest' && equip && equip.chest && findItem && baseOf){
         var chestIt = findItem(equip.chest);
         var chestB = chestIt && baseOf(chestIt.base);
-        if(chestB && chestB.grau) grau = chestB.grau;
+        if(chestB && chestB.grau){
+          isEquipped = true;
+          grau = chestB.grau;
+        }
       }
 
-      if(grau === 'sem'){
-        // Desequipado: restaura a textura e material originais nativos do personagem
+      if(!isEquipped){
+        // Desequipado: restaura a textura e material originais nativos do personagem (underwear / bikini)
         matList.forEach(function(mat){
           if(mat._origMap && mat.map !== mat._origMap){
             mat.map = mat._origMap;
@@ -512,8 +600,8 @@
           }
         });
       } else {
-        // Equipado: aplica a textura oficial da armadura L2 da raça
-        var setConf = raceMap && raceMap[grau];
+        // Equipado: aplica a textura oficial da armadura L2 da raça (incluindo grau 'sem' No-Grade)
+        var setConf = raceMap && (raceMap[grau] || raceMap['sem'] || raceMap['D']);
         var texPath = setConf && setConf[p];
         if(texPath){
           var tex = getTex(texPath);

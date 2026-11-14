@@ -255,7 +255,7 @@
               '  <small style="color:#d4af37">' + esc(op.statsDe ? statTxt(op.statsDe(it)) : '') + '</small>',
               '  <small style="color:#8fa4c2;margin-top:4px;display:block;">Dica: Botão direito para ' + (slotEq ? 'desequipar' : 'equipar') + ' ou arraste para ' + (slotEq ? 'a bolsa' : 'o corpo') + '.</small>',
               '  <div class="l2-inv-tooltip-bts">',
-              (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '">EQUIPAR</button>'),
+              (slotEq ? '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>' : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '">EQUIPAR</button>'),
               (slotEq ? '' : '<button type="button" class="l2-inv-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
               '  </div>',
               '</div>'

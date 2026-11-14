@@ -4035,31 +4035,35 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Antigravity] 14/11/2026 - Mecânica de Equipamento Fiel ao Lineage 2 (Click Direito + Arrastar e Soltar) e Kit Inicial No-Grade Autêntico
+### [Antigravity] 14/11/2026 - Correção de Renderização do Set No-Grade, Guardião Escudo Único, Desequipar no Inventário e UI de Criação
 
-- **Problemas Resolvidos**:
-  1. **Interação de Inventário Clunk (Tooltip obrigatório)**: Antes era necessário clicar no item para abrir um tooltip popup lateral e então clicar no botão "EQUIPAR" ou "TIRAR".
-  2. **Ausência de Click Direito (Right Click)**: Clicar com o botão direito abria o menu do navegador sem equipar ou desequipar.
-  3. **Ausência de Arrastar e Soltar (Drag & Drop) entre Boneco e Bolsa**: Não era possível arrastar itens da mochila para o paperdoll para vestir, nem do paperdoll para a mochila para desequipar.
-  4. **Chars Novos Nascendo com Dragon Slayer e Escudo de Teste**: O rig base anexava `dragon_slayer.glb` e `shield_is.glb` por padrão, e `start.bag` continha 20 itens de Graus D, C, B e A que inundavam novos personagens com equipamentos de fim de jogo.
-- **Implementações Técnicas**:
-  1. **Click Direito Instantâneo (`oncontextmenu` em `inventario_ui.js`)**:
-     - Clicar com o botão direito em qualquer item na bolsa equipa instantaneamente no slot correto do boneco.
-     - Clicar com o botão direito em qualquer slot equipado no paperdoll desequipa o item de volta para a mochila instantaneamente.
-     - Clicar com o botão direito em consumíveis (poções, pergaminhos) usa o item de imediato.
-  2. **Arrastar e Soltar Completo (Drag & Drop)**:
-     - Arrastar item da bolsa e soltar no boneco / paperdoll: equipa imediatamente (`op.equip(uid)`).
-     - Arrastar item equipado do paperdoll e soltar na área da bolsa: desequipa imediatamente (`op.tirar(slot)`).
-     - Arrastar item para o ícone de lixeira no canto inferior direito: descarta o item (`op.descartar(uid)`).
-     - Arrastar consumíveis ou armas para a barra de atalhos (Shortcut bar): preservado e integrado.
-  3. **Slots Vazios do Paperdoll e Grade da Mochila**:
-     - Renderização de slots vazios com classes `.empty-slot` para drop targets precisos tanto no boneco quanto na grade 6x4 de 24 slots da bolsa.
-  4. **Kit Inicial No-Grade 100% Autêntico**:
-     - **Guerreiro (2H)**: Nasce equipado com Espada de Duas Mãos No-Grade (`twohanded_sword.glb`), sem escudo.
-     - **Guardião (Sword & Shield)**: Nasce equipado com Gladius 1H + Round Shield No-Grade oficial (`round_shield.glb`), eliminando o antigo escudo de teste `shield_is.glb`.
-     - **Mago / Conjurador**: Nasce equipado com Cajado de Cedro (`cedar_staff.glb`), sem escudo.
-     - **Conjunto de Armadura No-Grade**: Todos os novos personagens nascem vestidos com o set completo No-Grade (`Elmo de Ferro`, `Peitoral de Placas`, `Calça de Placas`, `Luvas de Couro`, `Botas Ligeiras`), renderizando perfeitamente os modelos 3D nativos do L2 (`elf_f_nograde.glb` / `human_fighter_nograde.glb`).
-     - **Mochila Limpa**: Removidos itens Grade D/C/B/A do starter kit em `itens.json` e `servidor/inventario.js`. Mochila de novos chars inicia limpa.
-  5. **Remoção de Bloqueio Artificial de Nível**:
-     - Removida a trava de nível no cliente (`cidade.html` e `arena.html`) para permitir que equipamentos sejam trocados e testados livremente sem mensagens de nível insuficiente.
-     - Ajustada a sobreposição de malhas em `ArmaGrau.aplica` para que espada e cajado nunca apareçam simultaneamente.
+- **Problemas Relatados**:
+  1. Personagens com set No-Grade equipado apareciam pelados/em trajes íntimos (biquíni/cueca) no 3D.
+  2. Guardião nascia com espada e escudo de teste (`composite_shield.glb`), quando deve jogar **apenas com escudo** e nascer com o escudo No-Grade básico (`round_shield.glb`).
+  3. Não era possível desequipar itens do char nem tirar a arma no inventário (o servidor forçava o reequipe imediato a cada requisição).
+  4. Na tela de criação (`criacao.html`), ao clicar para digitar o nome do char, as abas de classe, raça e opções da interface sumiam.
+  5. Lobbies de criação e seleção exibiam armas avançadas (Dragon Slayer) em vez do kit inicial No-Grade.
+
+- **Implementações e Correções Técnicas**:
+  1. **Renderização de Armaduras No-Grade (`prototipo/js/arma_grau.js`)**:
+     - Corrigida a lógica de `ArmaGrau.aplicaArmadura`: anteriormente, armaduras com `grau === 'sem'` eram tratadas como slot vazio/desequipado e restauravam o mapa de biquíni/pele base.
+     - Integrado o mapa completo de texturas oficiais No-Grade (`sem`) do Lineage 2 Interlude para todas as raças (`dwarf_f`, `dwarf_m`, `orc_f`, `orc_m`, `elf_m`, `darkelf_f`, `darkelf_m`, `magic_f`, `magic_m`, `human_fighter_female`, `human_fighter`, `elf_f`).
+     - Aprimorado `ArmaGrau.detectRace` para identificar com precisão a raça via nome de nós, materiais (`Mat_Chest_dwarf_f`, etc.) e `rig.modelUrl`.
+     - Slot desequipado agora restaura corretamente a roupa de baixo / pele original (`mat._origMap`).
+  2. **Guardião Exclusivo com Escudo (`servidor/inventario.js`, `cidade.html`, `arena.html`, `criacao.html`, `selecao.html`)**:
+     - No servidor, para `classe === 'shield'`, removidas as armas da mão direita (`gladius`/`sword_long`). O Guardião agora inicia estritamente com `inv.equip.shield = 'shield_guardian'` (`round_shield.glb`) e `inv.equip.weapon = null`.
+     - No cliente, quando `WPN === 'shield'` ou não há arma equipada, a malha da espada é totalmente ocultada, mantendo apenas o Round Shield acoplado na mão esquerda para bloqueios e ataques de escudo.
+  3. **Correção do Desequipar Itens (`servidor/inventario.js`, `prototipo/js/inventario_ui.js`)**:
+     - Removida a rotina em `garante(pers)` que auto-reequipava armaduras a cada requisição da bolsa para slots vazios.
+     - Removida a trava `if(s === 'weapon') return 'Sempre ha uma arma equipada.';` no servidor e o atributo `disabled` do botão TIRAR do tooltip no cliente, permitindo desequipar completamente qualquer slot (incluindo armas e escudos).
+     - Exportada a função `window.unequipSlot(slot)` em `cidade.html` e `arena.html`.
+  4. **Correção da Interface de Criação (`prototipo/criacao.html`)**:
+     - Removidas as regras CSS `body.kb .tabs, body.kb .pane... { display:none !important; }` e os listeners de focus/blur que ocultavam os painéis de customização e botões quando o input de nome recebia foco.
+  5. **Lobby de Criação e Seleção Inicial No-Grade**:
+     - Substituído `dragon_slayer.glb` por `twohanded_sword.glb` como arma inicial padrão para Guerreiros em `criacao.html` e `selecao.html`.
+     - Guardião renderiza apenas o `round_shield.glb` no altar de seleção e criação.
+
+- **Testes e Validação Automatizada (CDP Headless)**:
+  - Criação de personagem: testado clique no input de nome, confirmação de que `.tabs`, painéis e botões permanecem 100% visíveis.
+  - Carregamento na cidade: validada Anã Feminina (`dwarf_f`) com set No-Grade completo equipado — texturas No-Grade oficiais aplicadas com sucesso (`cidade_dwarf_nograde_verif.png`).
+  - Desequipar itens: testado `unequipSlot('chest')` e `unequipSlot('shield')`, confirmando persistência e renderização desequipada (`cidade_dwarf_desequipada_verif.png`).

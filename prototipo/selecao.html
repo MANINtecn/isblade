@@ -992,8 +992,8 @@ var L2_WPN_AXIS_FIX = Math.PI / 2;
 /* CLAUDE [lobby-arma]: previa da arma pela classe (mago e clerigo usam o cajado, como no jogo; resto = espada de 2 maos) */
 function modeloArmaLobby(c){
   var cls = c.classe || (c.weapon === 'staff' ? 'mago' : c.weapon === 'book' ? 'clerico' : '');
-  if(c.weapon === 'staff' || c.weapon === 'book' || cls === 'mago' || cls === 'clerico') return 'assets/armas/cedar_staff.glb';
-  return 'assets/personagens/dragon_slayer.glb';
+  if(c.weapon === 'staff' || c.weapon === 'book' || cls === 'mago' || cls === 'clerico') return 'assets/personagens/cedar_staff.glb';
+  return 'assets/personagens/twohanded_sword.glb';
 }
 function attachL2Item(root, boneName, glbUrl, options, cb){
   var opts = options || {};
@@ -1130,9 +1130,8 @@ function loadCharacter3D(){
     applyHair(root, c.hairStyle || 'both', c.hairColor || '#ffffff');
 
     // Equipar Armas
-    if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* CLAUDE [guardiao]: so escudo */
-      /* >>> CLAUDE [guardiao] 2026-10-27 — sem espada: o Guardiao so usa o escudo */ /* <<< CLAUDE [guardiao] */
-      shieldObj = attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/composite_shield.glb', {
+    if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
+      shieldObj = attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/round_shield.glb', {
         visible: true
       });
     } else if(c.weapon !== 'none'){
@@ -1205,9 +1204,8 @@ function loadBackgroundCharacters3D(){
       applyHair(root, c.hairStyle || 'both', c.hairColor || '#ffffff');
 
       // Equipar Armas do personagem do fundo
-      if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* CLAUDE [guardiao]: so escudo */
-        /* >>> CLAUDE [guardiao] 2026-10-27 — sem espada: o Guardiao so usa o escudo */ /* <<< CLAUDE [guardiao] */
-        attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/composite_shield.glb', {
+      if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
+        attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/round_shield.glb', {
           visible: true
         });
       } else if(c.weapon !== 'none'){

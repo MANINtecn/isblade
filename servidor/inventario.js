@@ -38,18 +38,19 @@ function garante(pers){
   const classe = armaDaClasse(pers);
   if(!inv || !Array.isArray(inv.items) || !inv.equip || typeof inv.equip !== 'object'){
     inv = { items: [], equip: {}, adena: 1000 };
-    const armaBaseId = (classe === 'shield') ? 'gladius' : ((classe === 'staff' || classe === 'book') ? 'staff_arcane' : 'sword_long');
-    const arma = D.bases.find(b => b.id === armaBaseId) || D.bases[0];
-    const it = mkItem(arma.id, 'normal');
-    inv.items.push(it); inv.equip.weapon = it.uid;
-
     if(classe === 'shield'){
+      /* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
       const shdBase = D.bases.find(b => b.id === 'shield_guardian');
       if(shdBase){
         const shdItem = mkItem(shdBase.id, 'normal');
         inv.items.push(shdItem);
         inv.equip.shield = shdItem.uid;
       }
+    } else {
+      const armaBaseId = (classe === 'staff' || classe === 'book') ? 'staff_arcane' : 'sword_long';
+      const arma = D.bases.find(b => b.id === armaBaseId) || D.bases[0];
+      const it = mkItem(arma.id, 'normal');
+      inv.items.push(it); inv.equip.weapon = it.uid;
     }
 
     const armadurasNoGrade = ['helmet_iron', 'chest_plate', 'legs_plate', 'gloves_hide', 'boots_swift'];
@@ -72,13 +73,6 @@ function garante(pers){
   inv.items = inv.items.filter(i => i && baseDe(i.base) && D.rarities[i.rar]);
   const mx = (LJ && LJ.encantar && LJ.encantar.max) || 16; for(const i of inv.items){ const e = Math.floor(+i.en || 0); if(e > 0) i.en = Math.min(mx, e); else delete i.en; }
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
-  if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaItem(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaItem(pers) && grauDe(x) === 'sem'); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
-  ['chest','legs','gloves','boots','helmet'].forEach(slot => {
-    if(!inv.equip[slot]){
-      const peca = inv.items.find(i => { const b = baseDe(i.base); return b && b.slot === slot && grauDe(b) === 'sem'; });
-      if(peca) inv.equip[slot] = peca.uid;
-    }
-  });
   inv.adena = Math.max(0, Math.floor(+inv.adena || 0));
   if(inv.adena < 1000) inv.adena = 1000;      /* adena inicial para compras/testes */
   if(!inv.consum || typeof inv.consum !== 'object') inv.consum = {};
@@ -185,7 +179,7 @@ function pedido(pers, m){
     }
     inv.equip[b.slot] = it.uid; return '';
   }
-  if(m.k === 'tirar'){ const s = String(m.slot || ''); if(s === 'weapon') return 'Sempre ha uma arma equipada.'; delete inv.equip[s]; return ''; }
+  if(m.k === 'tirar'){ const s = String(m.slot || ''); delete inv.equip[s]; return ''; }
   if(m.k === 'descartar'){ if(equipado(inv, m.uid)) return 'Tire o item antes de descartar.'; const n = inv.items.length; inv.items = inv.items.filter(i => i.uid !== m.uid); return inv.items.length < n ? '' : 'Item nao encontrado.'; }
   return 'Pedido desconhecido.';
 }
