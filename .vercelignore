@@ -1,0 +1,29 @@
+# Ignorar servidor (o servidor roda na VPS, nao na Vercel)
+servidor
+trabalho_l2fx
+.claude
+tools
+node_modules
+__pycache__
+
+# Scripts e ferramentas locais
+*.py
+*.bat
+*.ps1
+*.log
+*.blend
+*.blend1
+
+# Backups e arquivos temporarios
+*_antes_*
+*.antes_*
+*.copia_*
+*.md5anim
+*.psa
+*.unr
+
+# Pastas de extracao pesada
+prototipo/assets/talking_island/raw_export
+prototipo/assets/talking_island/extracted_l2
+prototipo/assets/talking_island/models
+prototipo/assets/baium_export
