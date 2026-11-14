@@ -123,10 +123,10 @@ export const L2Hud = {
       mnWnd.id = 'l2-menu-wnd';
       mnWnd.className = 'ui';
       mnWnd.innerHTML = `
-        <button type="button" class="l2-mn-btn status" id="l2BtnStatus" title="Status e Atributos (U)"></button>
+        <button type="button" class="l2-mn-btn status" id="l2BtnStatus" title="Status do Personagem (C)"></button>
         <button type="button" class="l2-mn-btn inv" id="l2BtnInv" title="Inventário (I)"></button>
-        <button type="button" class="l2-mn-btn map" id="l2BtnMap" title="Mapa / Locais (M)"></button>
-        <button type="button" class="l2-mn-btn sys" id="l2BtnSys" title="Menu de Sistema / Opções (Alt + X)"></button>
+        <button type="button" class="l2-mn-btn map" id="l2BtnMap" title="Menu de Ações / Party (X)"></button>
+        <button type="button" class="l2-mn-btn sys" id="l2BtnSys" title="Opções e Configurações (O)"></button>
       `;
       document.body.appendChild(mnWnd);
     }
@@ -146,11 +146,14 @@ export const L2Hud = {
     };
     var bMap = document.getElementById('l2BtnMap');
     if (bMap) bMap.onclick = function() {
-      var locBtn = document.getElementById('locaisBtn') || document.getElementById('mu-tp-toggle-btn');
-      if (locBtn) locBtn.click();
+      if (window.Net && Net.alterna) Net.alterna();
       else {
-        var tpBar = document.getElementById('teleport-bar');
-        if (tpBar) tpBar.classList.toggle('mu-tp-open');
+        var netBtn = document.getElementById('netBtn');
+        if (netBtn) netBtn.click();
+        else {
+          var locBtn = document.getElementById('locaisBtn') || document.getElementById('mu-tp-toggle-btn');
+          if (locBtn) locBtn.click();
+        }
       }
     };
     var bSys = document.getElementById('l2BtnSys');
@@ -234,6 +237,28 @@ export const L2Hud = {
 
       // NUNCA interceptar WASD de movimentação!
       if (kLow === 'w' || kLow === 'a' || kLow === 's' || kLow === 'd') return;
+
+      // 0. Teclas de Sistema Oficiais do Lineage 2:
+      // O = Opções / Configurações do Jogo
+      // C = Character Status / Atributos
+      // X = Menu de Ações (party, trade, duelo, clã, etc.)
+      if (kLow === 'o') {
+        var cfgBtn = document.getElementById('cfgBtn');
+        if (cfgBtn) cfgBtn.click();
+        return;
+      }
+      if (kLow === 'c') {
+        if (window.Status && Status.toggle) Status.toggle();
+        return;
+      }
+      if (kLow === 'x') {
+        if (window.Net && Net.alterna) Net.alterna();
+        else {
+          var nb = document.getElementById('netBtn');
+          if (nb) nb.click();
+        }
+        return;
+      }
 
       // 1. Teclas diretas atribuídas aos slots (Q, E, R, F, T, G / 1 a 6)
       var slotIdx = -1;

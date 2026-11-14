@@ -260,56 +260,45 @@
 #l2-menu-wnd .l2-mn-btn {
   position: absolute;
   top: 5px;
-  width: 36px;
-  height: 36px;
+  width: 36px !important;
+  height: 36px !important;
   border: none;
   outline: none;
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 36px 36px;
+  background-size: 36px 36px !important;
   cursor: pointer;
-  transition: transform 0.08s ease, filter 0.08s ease;
+  transition: transform 0.08s ease, filter 0.12s ease;
 }
 
 #l2-menu-wnd .l2-mn-btn:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.3) drop-shadow(0 0 5px rgba(255, 209, 102, 0.6)) !important;
 }
 
 #l2-menu-wnd .l2-mn-btn:active {
   transform: translateY(1px);
+  filter: brightness(0.95);
 }
 
 #l2-menu-wnd .l2-mn-btn.status {
   left: 20px;
-  background-image: url("../assets/ui/menubutton1.png");
-}
-#l2-menu-wnd .l2-mn-btn.status:hover {
-  background-image: url("../assets/ui/menubutton1_over.png");
+  background-image: url("../assets/ui/menubutton1.png?v=37");
 }
 
 #l2-menu-wnd .l2-mn-btn.inv {
   left: 57px;
-  background-image: url("../assets/ui/menubutton2.png");
-}
-#l2-menu-wnd .l2-mn-btn.inv:hover {
-  background-image: url("../assets/ui/menubutton2_over.png");
+  background-image: url("../assets/ui/menubutton2.png?v=37");
 }
 
 #l2-menu-wnd .l2-mn-btn.map {
   left: 94px;
-  background-image: url("../assets/ui/menubutton3.png");
-}
-#l2-menu-wnd .l2-mn-btn.map:hover {
-  background-image: url("../assets/ui/menubutton3_over.png");
+  background-image: url("../assets/ui/menubutton3.png?v=37");
 }
 
 #l2-menu-wnd .l2-mn-btn.sys {
   left: 131px;
-  background-image: url("../assets/ui/menubutton4.png");
-}
-#l2-menu-wnd .l2-mn-btn.sys:hover {
-  background-image: url("../assets/ui/menubutton4_over.png");
+  background-image: url("../assets/ui/menubutton4.png?v=37");
 }
 
 /* --------------------------------------------------------------------------

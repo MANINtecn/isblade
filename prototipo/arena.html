@@ -11,7 +11,7 @@
 
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
-<link rel="stylesheet" href="css/l2_hud.css?v=36">
+<link rel="stylesheet" href="css/l2_hud.css?v=37">
 <link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
@@ -2694,7 +2694,7 @@ function getClipConfig(pose){if(WPN==='sword'&&/^w_s[1-6]$/.test(pose)&&vrm&&vrm
 
     /* [mago] skill 1: clipe CastShort da propria raca (Guardiao.anexarCast) */ if(/^(m_s[1-5]|c_s[1-7])$/.test(pose)&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1)return vrm.mCast;
 
-    /* [mago] ataque padrao: o CastShort da propria raca nos 3 golpes (efeito: MagoFX.brisa/aviso/cristais) */ if((pose==='sweep'||pose==='thrust'||pose==='spin')&&(WPN==='book'||(window.MagoFX&&MagoFX.basico))&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1){var _mh=vrm.mCast.hit;return {c:'m_cast1',sp:1.5,hit:_mh,cut:Math.min(1,_mh+.12),lg:0};}
+    /* [mago] ataque padrao: o CastShort da propria raca nos 3 golpes (efeito: MagoFX.brisa/aviso/cristais) */ if((pose==='sweep'||pose==='thrust'||pose==='spin')&&(WPN==='book'||(window.MagoFX&&MagoFX.basico))&&vrm&&vrm.mCast&&vrm.clips&&vrm.clips.m_cast1){var _mh=vrm.mCast.hit;return {c:'m_cast1',sp:1,hit:_mh,cut:Math.max(_mh+.12,vrm.mCast.cut||.75),lg:0};}/* [balanco] conjuracao em velocidade normal e ate o fim (era 1.5x e cortada no impacto) */
 
     var staffCM={
 
@@ -2767,7 +2767,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
     if(skill&&skill.hits){
 
-      an.hitList=skill.hits.map(function(fr){return {t:base*fr,dmg:Math.round(skill.dmg*(.92+Math.random()*.16))};});
+      an.hitList=skill.hits.map(function(fr){return {t:base*fr,dmg:Math.round(skill.dmg*(an.ssMul||1)*(.92+Math.random()*.16))};}/* [balanco] soulshot tambem em cada golpe */);
 
       an.hi=0;an.hitT=an.hitList[0].t;
 
@@ -4150,6 +4150,7 @@ function perform(id,q){
   if(S.stun>0||S.rollT>=0)return 'busy';
 
   if(S.anim&&!canCancel(S.anim))return 'busy';
+  if(S.anim&&S.anim.clipMode&&!S.anim.skill&&(WPN==='staff'||WPN==='book')&&S.anim.tt<S.anim.total)return 'busy';/* [balanco] mago/clerigo: o proximo basico so sai quando a conjuracao termina (skill continua cancelando) */
 
   if(S.st<STROKE_COST){gestMsg('Sem estamina');return 'no';}
 
@@ -4183,13 +4184,13 @@ function perform(id,q){
 
   var depth=S.node===root?1:S.node.depth;
 
-  var mult=1+.2*(depth-1)*(S.node===root?0:1);
+  var mult=1+.1*(depth-1)*(S.node===root?0:1);/* [balanco] combo +10% por nivel (era +20%) */
 
   var dmg=m.dmg*mult*(perfect?1.25:1);
 
   var sk=S.node!==root?S.node.skill:null;
 
-  if(sk)dmg+=sk.bonus*(perfect?1.25:1);
+  if(sk)dmg*=1+sk.bonus/100;/* [balanco] bonus do combo em % (antes somava pontos e era multiplicado por 3: o basico batia mais que as skills) */
 
   dmg=Math.round(dmg*(.92+Math.random()*.16)*3);
 
@@ -5609,11 +5610,11 @@ function damageMob(m,dmg,an){
 
   if(!m.net)m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=GRPHIT?0:Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
 
-  var f=fwd(Math.atan2(m.x-S.px,m.z-S.pz)),kb=m.T.armor?.12:.45;if(an.skill&&an.skill.burst)kb=m.T.armor?.6:1.8;
+  var f=fwd(Math.atan2(m.x-S.px,m.z-S.pz)),kb=an.skill?(m.T.armor?.12:.45):0;/* [balanco] basico nao empurra o mob */if(an.skill&&an.skill.burst)kb=m.T.armor?.6:1.8;
 
   var q=obstPush(m.x+f[0]*kb,m.z+f[1]*kb,m.r);m.x=q[0];m.z=q[1];
 
-  if(!m.T.armor&&m.state==='windup'){m.state='chase';m.t=0;m.wait=.4;}/* golpe interrompe o ataque (brutamontes tem armadura) */
+  if(an.skill&&!m.T.armor&&m.state==='windup'){m.state='chase';m.t=0;m.wait=.4;}/* [balanco] so skill interrompe o ataque do mob (o basico nao: o mob revida); brutamontes tem armadura */
   if(an.skill&&an.skill.golpe){var ccE=CC.mob(m,an.skill,an.part,{desloca:function(mm,d){var fq=fwd(Math.atan2(mm.x-S.px,mm.z-S.pz)),qq=obstPush(mm.x+fq[0]*d,mm.z+fq[1]*d,mm.r);mm.x=qq[0];mm.z=qq[1];}});if(ccE)floatText(CC.NOMES[ccE],'#f5c451',22,{x:m.x,z:m.z,y:2.8*m.T.size});}/* controle (CC): estado de golpe pela SA, ver js/cc.js */
 
   m.fg.scale.x=Math.max(.001,m.hp/m.max);
@@ -6942,7 +6943,7 @@ function ssTiro(an){/* [soulshot] o servidor desconta; aqui aplica o bonus no da
   if(!CONSUM[id] || CONSUM[id] <= 0){
     CONSUM[id] = 5000; /* garante estoque de SS para ativar o efeito e o som nostálgico */
   }
-  an.ss=1;
+  an.ss=1;an.ssMul=1+(c.bonus||0.25);/* [balanco] guardado p/ as skills de varios golpes */
   an.dmg=Math.round(an.dmg*(1+(c.bonus||0.25)));
   if(CONSUM[id]>0) CONSUM[id]--;
   /* ATIVA O BRILHO NOSTÁLGICO DO SOULSHOT NA ARMA (PC e Mobile) */
@@ -7748,7 +7749,7 @@ window.addEventListener('keydown',function(e){
 
   if(e.code==='Space'){e.preventDefault();if(!e.repeat)req('jump');return;}/* [pulo] */
 
-  if(k==='c'){S.guardHeld=true;return;}/* [pulo] guarda: segurar C */
+  if(k==='c'){if(window.Status&&Status.toggle)Status.toggle();return;}/* [status] Character Status (C) */
 
   if(k==='shift'){if(!e.repeat){S.shiftT=performance.now();S.shiftDown=true;req('roll');}return;}/* [corrida] toque = esquiva (ao soltar), segurar = correr */
 
@@ -7765,7 +7766,9 @@ window.addEventListener('keydown',function(e){
 
   else if(k==='i')toggleInv();
 
-  else if(k==='x')cycleWeapon();
+  else if(k==='o'){var b=document.getElementById('cfgBtn');if(b)b.click();}/* [opcoes] Menu de Opcoes (O) */
+
+  else if(k==='x'){if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
 
   else if(k==='escape'&&DG.menu)closeDiff();
 
@@ -7788,8 +7791,6 @@ window.addEventListener('keydown',function(e){
 window.addEventListener('keyup',function(e){
 
   var k=e.key.toLowerCase();
-
-  if(k==='c')S.guardHeld=false;
 
   if(k==='shift'){S.shiftDown=false;S.sprint=false;}/* [corrida] */
 

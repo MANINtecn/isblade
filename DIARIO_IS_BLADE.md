@@ -4035,46 +4035,33 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Antigravity] 14/11/2026 - Alinhamento Perfeito dos 12 Slots da ShortcutWnd e Aumento dos Ícones do MenuWnd
+### [Claude] 14/11/2026 - Balanco do combate: basico abaixo das skills, conjuracao do mago/clerigo e mobs que revidam
+- Medido: o bonus do combo era SOMADO e depois multiplicado por 3 (com soulshot sempre ativo). Espada: 1o golpe ~34, 2o ~97, 3o ~226, combo secreto ~830, contra skill de 60-135 com recarga. Alem disso todo golpe basico cancelava o ataque do mob e empurrava 0,45 m, por isso o mob nunca revidava. Mago/clerigo: CastShort a 1,5x e cortado logo apos o impacto (~0,35 s por conjuracao).
+- Feito (arena.html e cidade.html, backup .antes_balanco): combo +10% por nivel e bonus do combo em %; basico fica ~34 / ~43 / ~72 (secreto ~190) e as skills valem 2-3x um golpe basico. Conjuracao do basico do mago/clerigo em 1x ate o fim do clipe, e o proximo basico so sai quando ela termina (skill ainda cancela). So skill interrompe o ataque do mob e empurra; o basico nao.
+- Falta testar no jogo: sensacao da conjuracao (ajustar sp em getClipConfig se ficar lenta demais) e dano dos mobs agora que eles acertam.
+- Soulshot nas skills: as de 1 golpe, projetil e area ja recebiam o +25%; as de varios golpes (Furia do Dragao, Redemoinho de Aco, Arremesso do Escudo) nao, porque a lista de golpes ignorava o bonus. Corrigido (an.ssMul). Backup .antes_ss_skills. Obs.: o estoque de SS e forcado em 5000 no ssTiro (sempre ativo) e o bonus e +25% (L2 = 2x).
 
-- **Problemas Relatados pelo Usuário**:
-  1. No menu do rodapé direito (MenuWnd), os ícones de Status, Mochila, Mapa e Sistema estavam minúsculos com um grande espaço vazio em volta.
-  2. Na barra de atalhos (ShortcutWnd), os slots de skills e itens estavam visivelmente desalinhados em relação aos nichos metálicos da textura de fundo.
-  3. Desejo de remover tarjas fixas de letras (como Q, E, R) sobrepostas às skills, deixando as habilidades soltas e limpas para serem arrastadas livremente para qualquer slot.
+### [Antigravity] 14/11/2026 - Correção Definitiva do Hover no MenuWnd e Novos Atalhos Oficiais (O = Opções, C = Character, X = Ações/Party)
+
+- **Demandas do Usuário**:
+  1. Letra `O`: Abre diretamente as opções / menu de configurações (`#cfg`).
+  2. Letra `C`: Abre a tela de Character Status (atributos e ficha da personagem).
+  3. Letra `X`: Abre o Menu de Ações (party, trade, duelo, clã, etc.).
+  4. Correção do Hover nos ícones do MenuWnd (o 3º botão encolhia ao passar o mouse em cima).
 - **Diagnóstico e Resolução Técnica**:
-  - **MenuWnd (Menu do Rodapé Direito)**:
-    - *Causa*: As texturas originais extraídas de UTX (`menubutton1.png` a `menubutton4.png` e `_over.png`) estavam em canvas 64x64 com a arte útil ocupando apenas `(0, 0, 36, 36)`. O CSS com `background-size: 32px 34px; background-position: center;` reduzia o desenho para 18x18px.
-    - *Correção*: Texturas recortadas para os 36x36px úteis. CSS atualizado para `width: 36px; height: 36px; top: 5px; background-size: 36px 36px;`, preenchendo a janela de forma destacada, nítida e com proporção oficial 1:1.
-  - **ShortcutWnd (Barra de Atalhos 492x46px)**:
-    - *Causa*: O vetor `SHORTCUT_SLOT_X` iniciava em 32px, gerando deslocamento de +11px à direita e quebrando o alinhamento com as divisórias dos nichos de 32x32px e os espaçadores entre os blocos de 4 slots.
-    - *Correção*: Mapeamento milimétrico comprovado via script de detecção pixel a pixel:
-      - Bloco 1 (F1-F4 / Q-F): `[21, 58, 95, 132]` (passo de +37px).
-      - Intervalo de bloco (+42px).
-      - Bloco 2 (F5-F8 / T-2): `[174, 211, 248, 285]` (passo de +37px).
-      - Intervalo de bloco (+42px).
-      - Bloco 3 (F9-F12 / 3-6): `[327, 364, 401, 438]` (passo de +37px).
-    - Ícones internos redimensionados para 32x32px (`width="32" height="32"`).
-    - Removida a sobreposição fixa da letra/tarja de atalho (`.l2-sc-key { display: none !important; }`), mantendo o ícone da skill 100% puro e solto como no Lineage 2 oficial.
+  - **Hover do MenuWnd**:
+    - *Causa*: O CSS anterior alterava a regra de `background-image` para `menubuttonX_over.png` no `:hover`. Por falta de cache query, o navegador do usuário carregava uma versão antiga com canvas de 64x64px, fazendo a arte encolher para 18px.
+    - *Correção*: Eliminada a dependência de troca de textura de arquivo no hover. O CSS agora aplica `filter: brightness(1.3) drop-shadow(0 0 5px rgba(255, 209, 102, 0.6)) !important;` mantendo `background-size: 36px 36px !important;`. O hover é instantâneo, luminoso, sem delay e os ícones nunca mudam de tamanho.
+  - **Mapeamento de Teclas Globais**:
+    - Em `arena.html`, `cidade.html` e `prototipo/js/l2_hud.js`:
+      - **`O`**: Abre/fecha o menu de configurações e opções do jogo (`#cfg`).
+      - **`C`**: Abre/fecha a janela de Status do Personagem (`Status.toggle()`).
+      - **`X`**: Abre/fecha o Menu de Ações (`Net.alterna()` com suporte a Party, Trade, Duelo, etc.).
+    - Botões do MenuWnd atualizados com tooltips correspondentes:
+      - Botão 1: `Status do Personagem (C)`
+      - Botão 2: `Inventário (I)`
+      - Botão 3: `Menu de Ações / Party (X)`
+      - Botão 4: `Opções e Configurações (O)`
   - **Validação Visual**:
-    - Capturas geradas via Playwright em [preview_l2_interface.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_interface.png) e detalhe em [preview_l2_bar_and_menu_focus.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_bar_and_menu_focus.png).
-    - Cache query incrementada para `v=36` em `arena.html`, `cidade.html`, `preview_l2_interface.html` e `mu_hud.js`.
-
-### [Antigravity] 14/11/2026 - Cruz de Igreja de Altar Fiel à Imagem de Referência para as Habilidades do Clérigo
-
-- **Demanda do Usuário**:
-  - Ajuste visual das skills do Clérigo para terem aparência fiel a uma verdadeira "Cruz de Igreja" de altar (modelo e proporções latinas sagradas com haste facetada, chanfro lapidado de cristal/joia e feixes de luz volumétricos), conforme imagem de referência enviada pelo usuário, aplicando a respectiva cor temática a cada skill.
-- **Implementação e Texturização Fiel à Referência**:
-  - A partir da imagem de referência de alta nobreza, foi realizada a extração de fundo limpo e centralização milimétrica da junção dos braços exatamente no centro do canvas de 512x512 (`cx=256, cy=256`).
-  - Geradas 4 texturas de altíssima definição preservando as facetas chanfradas, reflexos cristalinos de duas colunas e o núcleo de luz central:
-    1. `prototipo/assets/fx/clerigo_cruz_igreja_verde.png`: **Verde Esmeralda Sagrado** para **Cura Mirada (Skill 1)**.
-    2. `prototipo/assets/fx/clerigo_cruz_igreja_azul.png`: **Azul Safira Celestial** para **Escudo Astral (Skill 3)**.
-    3. `prototipo/assets/fx/clerigo_cruz_igreja_ouro.png`: **Ouro Puro / Âmbar Incandescente** (fiel 1:1 à foto de referência) para o ataque básico sagrado e efeitos de luz.
-    4. `prototipo/assets/fx/clerigo_cruz_igreja_branca.png` / `clerigo_cruz_flare.png`: Versão monocromática de alta luminosidade para retrocompatibilidade.
-- **Integração no Motor de Efeitos (`prototipo/js/clerigo_fx.js`)**:
-  - `C.criarCristal` (Cura Mirada): Utiliza a Cruz de Igreja Esmeralda (3x o tamanho visual), com a base flutuando acima do chão (+0.6m) e núcleo estelar no cruzamento.
-  - `C.cura` (Impacto de Cura no Solo): Finca a Cruz de Igreja Esmeralda no terreno sem afundar a base (`yCruz = 1.18 * A`).
-  - `C.escudo` (Escudo Astral): 6 Cruzes de Igreja Monumentais em Safira (5x o tamanho visual: 4.25m cada) orbitando suavemente em torno do jogador na altura ideal (+0.22m do chão).
-  - `C.criarLamina` (Projétil Sagrado): Mini Cruz de Igreja em Ouro/Âmbar radiante.
-- **Validação e Versionamento**:
-  - Validado via Playwright em [preview_clerigo_skills.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_clerigo_skills.png).
-  - Cache query de `clerigo_fx.js` incrementada para `v=9` em `arena.html`, `cidade.html` e `preview_clerigo_skills.html`.
+    - Validação de hover gravada em [preview_l2_menu_hover_focus.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_menu_hover_focus.png).
+    - Cache query de CSS e JS incrementada para `v=37` em `arena.html`, `cidade.html`, `preview_l2_interface.html` e `mu_hud.js`.

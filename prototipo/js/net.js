@@ -466,7 +466,7 @@ export const Net = (function(){
     window.addEventListener('keydown', function(ev){
       if(ev.repeat) return; var t = ev.target && ev.target.tagName; if(t === 'INPUT' || t === 'TEXTAREA') return; var k = ev.key.toLowerCase();
       if(k === 'tab'){ ev.preventDefault(); if(N.on) selecionaMaisPerto(); return; }      /* Tab: o T e skill (slot 4) */
-      if(k === 'p'){ alterna(); return; } if(k === 'escape' && menuAberto){ alterna(false); return; } if(k === 'escape' && N.alvo){ selecionar(0); return; }
+      if(k === 'p' || k === 'x'){ alterna(); return; } if(k === 'escape' && menuAberto){ alterna(false); return; } if(k === 'escape' && N.alvo){ selecionar(0); return; }
       if(!N.on) return;
       if(k === 'j' && N.mapa === 'cidade' && !N.duelo){ var al = maisProximo(20); if(al) send({ t: 'duel', to: al.id }); else ctx.sysMsg('Ninguem por perto para desafiar (ate 20 m)'); }
       else if(k === 'u'){ var tp = (pedGrupo && Date.now() < pedGrupo.ate && (!pedDuelo || pedGrupo.ate >= pedDuelo.ate)) ? 'grupo' : ((pedDuelo && Date.now() < pedDuelo.ate) ? 'duelo' : ''); if(tp) aceitar(tp); }
@@ -523,6 +523,7 @@ export const Net = (function(){
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };
+  N.alterna = function(forca){ alterna(forca); };
   return N;
 })();
 /* <<< CLAUDE [net] */
