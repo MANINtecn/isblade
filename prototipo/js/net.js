@@ -182,7 +182,7 @@ export const Net = (function(){
       if(m.p && ctx.projFim) ctx.projFim(m.p);
       var ratio = 0;
       if(m.v === N.id){ ctx.meHit(m.d, m.hp / (N.eu.pmax || 100), !!m.b); }
-      else { e = remotos.get(m.v); if(e){ if(ctx.hitFx) ctx.hitFx(e.x, e.z); e.hp = m.hp; ctx.floatText((m.b ? 'BLOQ ' : '') + '-' + m.d, m.b ? '#8bc1ff' : '#ffd166', m.b ? 16 : 22, { x: e.x, z: e.z, y: 2.6 }); } if(m.a === N.id) ctx.iHit(m.d); }
+      else { e = remotos.get(m.v); if(e){ if(ctx.hitFx) ctx.hitFx(e.x, e.z); e.hp = m.hp; if(window.DanoTela && ctx.camera) DanoTela.num(m.d, { x: e.x, y: 2.8, z: e.z }, 'n', 'j' + m.v, m.b ? 'BLOQUEOU' : '', ctx.camera()); else ctx.floatText((m.b ? 'BLOQ ' : '') + '-' + m.d, m.b ? '#8bc1ff' : '#ffd166', m.b ? 16 : 22, { x: e.x, z: e.z, y: 2.6 });      /* [dano-tela] dano em outro jogador no modelo Cabal */ } if(m.a === N.id) ctx.iHit(m.d); }
     } else if(m.t === 'die'){
       if(m.v === N.id) ctx.sysMsg(m.na + ' derrotou voce'); else { e = remotos.get(m.v); if(e){ e.morto = true; e.curA = ''; if(e.tag) desenhaTag(e); } ctx.sysMsg(m.na + ' derrotou ' + m.nv); }
     } else if(m.t === 'resp'){

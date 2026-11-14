@@ -503,7 +503,7 @@ wss.on('connection', ws => {
         if(!c.baium || c.baium.chave !== chave || (m.novo && c.baium.dead)){            /* luta nova: primeira vez, outra dificuldade, ou recomeco depois de morrer/ganhar */
           const B = c.baium = new Baium(chave, +m.x, +m.z, J);
           B.dano = (P, ev) => { if(c.jog.get(P.id) === P && !P.morto) envia(P, ev); };
-          B.raio = (x, z, t) => difunde(c, { t: 'dg', k: 'bolt', x, z, t });
+          B.raio = (x, z, ms) => difunde(c, { t: 'dg', k: 'bolt', x, z, ms });      /* [baium-fx] 'ms' = atraso (o campo t e o tipo: com t o raio nunca chegava ao cliente) */
           B.snapFn = o => difunde(c, o);
         }
         envia(J, { t: 'dgs', k: 'bok', hp: Math.round(c.baium.hp), mx: c.baium.max, dead: c.baium.dead ? 1 : 0 });

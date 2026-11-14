@@ -39,13 +39,25 @@ function garante(pers){
     inv = { items: [], equip: {}, adena: 0 };
     const arma = D.bases.find(b => b.slot === 'weapon' && b.weapon === armaItem(pers) && grauDe(b) === 'sem') || D.bases[0], it = mkItem(arma.id, 'normal');
     inv.items.push(it); inv.equip.weapon = it.uid;
-    for(const b of D.bases) if(b.slot !== 'weapon' && grauDe(b) === 'sem') inv.items.push(mkItem(b.id, 'normal'));
+    for(const b of D.bases){
+      if(b.slot !== 'weapon' && grauDe(b) === 'sem'){
+        const peca = mkItem(b.id, 'normal');
+        inv.items.push(peca);
+        if(!inv.equip[b.slot]) inv.equip[b.slot] = peca.uid;
+      }
+    }
     pers.inv = inv;
   }
   inv.items = inv.items.filter(i => i && baseDe(i.base) && D.rarities[i.rar]);
   const mx = (LJ && LJ.encantar && LJ.encantar.max) || 16; for(const i of inv.items){ const e = Math.floor(+i.en || 0); if(e > 0) i.en = Math.min(mx, e); else delete i.en; }
   for(const s of Object.keys(inv.equip)) if(!inv.items.some(i => i.uid === inv.equip[s])) delete inv.equip[s];
   if(!inv.equip.weapon){ const w = inv.items.find(i => { const b = baseDe(i.base); return b.slot === 'weapon' && b.weapon === armaItem(pers); }); if(w) inv.equip.weapon = w.uid; else { const b = D.bases.find(x => x.slot === 'weapon' && x.weapon === armaItem(pers) && grauDe(x) === 'sem'); if(b){ const it = mkItem(b.id, 'normal'); inv.items.push(it); inv.equip.weapon = it.uid; } } }
+  ['chest','legs','gloves','boots'].forEach(slot => {
+    if(!inv.equip[slot]){
+      const peca = inv.items.find(i => { const b = baseDe(i.base); return b && b.slot === slot && grauDe(b) === 'sem'; });
+      if(peca) inv.equip[slot] = peca.uid;
+    }
+  });
   inv.adena = Math.max(0, Math.floor(+inv.adena || 0));
   if(inv.adena < 1000) inv.adena = 1000;      /* adena inicial para compras/testes */
   if(!inv.consum || typeof inv.consum !== 'object') inv.consum = {};
@@ -146,8 +158,10 @@ function pedido(pers, m){
   const inv = garante(pers); if(!inv) return 'Inventario indisponivel.';
   if(m.k === 'equip'){
     const it = inv.items.find(i => i.uid === m.uid); if(!it) return 'Item nao encontrado.';
-    const b = baseDe(it.base); if(b.slot === 'weapon' && b.weapon !== armaItem(pers)) return 'Sua classe nao usa essa arma.';
-    const nv = nivelGrau(b); if((pers.level | 0 || 1) < nv) return (D.graus[grauDe(b)].name) + ': precisa do nivel ' + nv + '.';
+    const b = baseDe(it.base);
+    if(b.slot === 'weapon' && b.weapon){
+      pers.weapon = b.weapon;
+    }
     inv.equip[b.slot] = it.uid; return '';
   }
   if(m.k === 'tirar'){ const s = String(m.slot || ''); if(s === 'weapon') return 'Sempre ha uma arma equipada.'; delete inv.equip[s]; return ''; }

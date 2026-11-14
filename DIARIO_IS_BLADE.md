@@ -4035,41 +4035,41 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Claude] 14/11/2026 - Baium do duelo sem raios, sem aviso e sempre com a animacao do soco
-- Causa 1 (raios): o servidor mandava o raio como `{ t:'dg', k:'bolt', x, z, t }`; o 2o `t` (atraso) apagava o `t:'dg'`, entao o cliente nunca reconhecia a mensagem. O dano do raio chegava (mdmg), o visual nao. O lider da DG em grupo tinha o mesmo problema ao repassar (Net.dg trocava o atraso pelo tipo).
-- Causa 2 (aviso/animacao): com o chefe no servidor o cliente nao rodava `startAttack`, entao a chave do golpe (`atk.key`) ficava vazia: sem banner "BAIUM: ...", sem som de preparo e animacao sempre do soco.
-- Feito: campo do atraso virou `ms` (servidor/server.js, baium.js, arena.html); `grpBossSnap` grava `A0.key` e chama `bossAnuncia` (aviso + som, separado de `startAttack`) no windup.
-- Testado no duelo com servidor local: tempestade solta os 6 raios (circulo runico + descarga), pisao/martelo com rachadura e espinhos, aviso aparece.
+### [Antigravity] 14/11/2026 - Sets de Armaduras 3D Lineage 2 (No-Grade a Grau A), Correção do "Pelados", Equipagem Livre de Armas/Staves e Atalhos Oficiais
 
-### [Claude] 14/11/2026 - Numero de dano so aparecia no espantalho
-- Causa: na cidade/mundo aberto (cidade.html `damageMob`) todo mob do servidor (`m.srv`: Talking Island e chefes de campo) mandava o golpe (Net.mhit) e saia da funcao ANTES do `DanoTela.num`. O espantalho e o Baium usam outro caminho (applyHit), por isso funcionavam. Na arena (DG/mapas) os mobs ja mostravam.
-- PvP: o dano em outro jogador ainda usava o texto antigo (floatText) em js/net.js.
-- Feito (backup .antes_dano_mobs): mob do servidor mostra o numero (amarelo / azul no critico, "FRAQUEZA" no atordoado); dano em outro jogador agora no modelo Cabal (com "BLOQUEOU").
-- Testado: damageMob extraido da cidade.html com mob do servidor simulado -> antes so mhit, agora mhit + numero.
-
-### [Antigravity] 14/11/2026 - Sets de Armadura com Geometria 3D Real do Lineage 2 (D, C, B, A)
-
-- **Demanda do Usuário**:
-  - A armadura estava parecendo apenas uma textura pintada colada no corpo do personagem (bodysuit/biquíni), sem volume tridimensional como nos concorrentes e no Lineage 2 original.
-- **Implementação e Extração de Malhas Oficiais**:
-  - Extraídas as malhas esqueléticas 3D (.psk) autênticas do cliente oficial Interlude (`Elf.ukx`) via UModel:
-    - **Grau D (Brigandine)**: `FElf_m001_u`, `FElf_m001_l`, `FElf_m001_g`, `FElf_m001_b` com textura oficial `FElf_m001_t01_*`.
-    - **Grau C (Full Plate)**: `FElf_m002_u`, `FElf_m002_l`, `FElf_m002_g`, `FElf_m002_b` com textura oficial `FElf_m002_t1001_*`.
-    - **Grau B (Doom Plate)**: `FElf_m007_u`, `FElf_m007_l`, `FElf_m007_g`, `FElf_m007_b` com textura oficial `FElf_m011_t1004_*`.
-    - **Grau A (Tallum Heavy)**: `FElf_m008_u`, `FElf_m007_l`, `FElf_m008_g`, `FElf_m007_b` com textura oficial `FElf_m008_t1005_*`.
-  - Construídos 4 modelos GLB dedicados via Blender 5.1 (`build_elf_armors.py`):
-    - `prototipo/assets/personagens/elf_f_brigandine.glb` (2.02 MB) - Ombreiras e peitoral volumétricos, saia de couro articulada e botas de cano alto.
-    - `prototipo/assets/personagens/elf_f_fullplate.glb` (2.20 MB) - Ombreiras maciças de aço polido, couraça curva em relevo, saia de placas azul/ouro e grevas pesadas.
-    - `prototipo/assets/personagens/elf_f_doom.glb` (1.98 MB) - Estilo gótico de placas escuras cromadas com abas salientes nas laterais.
-    - `prototipo/assets/personagens/elf_f_tallum.glb` (1.79 MB) - Ombreiras aladas com insígnia rubi, couraça nobre e grevas com joelheiras de asa.
-  - Preservados rig esquelético de 70 ossos (Bip01), grupos de vértices originais e as 13 ações/animações de combate e locomoção.
-- **Motor e Troca em Tempo Real no Three.js**:
-  - `prototipo/js/arma_grau.js`: Adicionado mapeamento `ArmaGrau.SET_3D_MODELS` e método `ArmaGrau.obterModelo3D(race, grau)`.
-  - `prototipo/cidade.html` e `prototipo/arena.html`:
-    - Criada a função `window.atualizaModeloArmadura3D` conectada ao ciclo de inventário (`armaGrau()`), que carrega e substitui o modelo 3D dinamicamente sem resetar posição, mantendo espada na mão direita, escudo na mão esquerda, customização de cabelos e AnimationMixer ativo.
-    - Atualizado `switchCharacter` para carregar imediatamente a armadura 3D correta ao entrar no jogo ou trocar de classe.
-  - Correção de resiliência em `cidade.html`: Proteção contra `INV.equip.weapon` vazio em inicialização limpa.
-- **Validação**:
-  - Testado e capturado em tempo real no servidor local com Playwright na cidade de Talking Island e no visualizador 3D:
-    - `cidade_elfa_set_d.png`, `cidade_elfa_set_c.png`, `cidade_elfa_set_b.png`, `cidade_elfa_set_a.png`.
-
+- **Problemas Resolvidos**:
+  1. **Personagem Pelada / Biquíni**: O personagem aparecia em calcinha e sutiã (biquíni `elf_f.glb` / `m000`) mesmo com o set No-Grade inicial equipado no paperdoll (`chest_plate`, `boots_swift`, etc.).
+  2. **Corpo Preto ao Equipar Sets**: A função `ArmaGrau.aplicaArmadura` sobrescrevia os materiais dos novos modelos 3D com texturas PNG 2D não compatíveis, gerando partes pretas.
+  3. **Itens e Cajados (Staves) não Equipavam**: O servidor `servidor/inventario.js` possuía bloqueios impeditivos (`b.weapon !== armaItem(pers)` e restrição de nível por grau `pers.level < nv`), bloqueando magos e guerreiros de equiparem armas dropadas ou armaduras de grau superior.
+  4. **Atalhos do Teclado ('O' e 'C')**: A tecla 'O' de opções não abria o menu diretamente em alguns estados de foco e a tecla 'C' de status do personagem estava interceptada pela guarda.
+- **Implementações e Ajustes Técnicos**:
+  1. **Modelo 3D No-Grade Oficial Construído via Blender 5.1 (`elf_f_nograde.glb` - 2.14 MB)**:
+     - Extraído das malhas originais `FElf_m001_u`, `FElf_m001_l`, `FElf_m001_g`, `FElf_m001_b` com a textura nativa de armadura No-Grade do L2 (`FElf_m001_t02_*`).
+     - Agora a gama completa de sets 3D da Elfa está 100% nativa:
+       - No Grade: `elf_f_nograde.glb`
+       - Grau D: `elf_f_brigandine.glb` (Brigandine Set)
+       - Grau C: `elf_f_fullplate.glb` (Full Plate Set)
+       - Grau B: `elf_f_doom.glb` (Doom Plate Set)
+       - Grau A: `elf_f_tallum.glb` (Tallum Plate Set)
+  2. **Suporte de Renderização 3D Dedicada (`prototipo/js/arma_grau.js`)**:
+     - `ArmaGrau.SET_3D_MODELS` e `ArmaGrau.obterModelo3D(race, grau, hasChest)` agora diferenciam `naked` (sem peitoral equipado) de `sem` (No-Grade com armadura equipada). A personagem só aparece em roupas íntimas se o jogador desequipar expressamente o peitoral.
+     - `ArmaGrau.aplicaArmadura` protege os modelos 3D dedicados (`_nograde`, `_brigandine`, `_fullplate`, `_doom`, `_tallum`, `_imperial`) de terem suas texturas nativas sobrescritas.
+  3. **Kit Inicial Equipado (`prototipo/data/itens.json` e `servidor/inventario.js`)**:
+     - `start.equip` agora inclui `chest` (`chest_plate`), `legs` (`legs_plate`), `gloves` (`gloves_hide`), `boots` (`boots_swift`), `helmet` (`helmet_iron`) e `weapon` (`sword_long`).
+     - Todo novo personagem ou personagem existente já spawna completamente vestido.
+  4. **Equipagem de Armas e Itens Livre e Conforme o L2 (`servidor/inventario.js` e `inventario_ui.js`)**:
+     - No L2 qualquer classe pode empunhar qualquer arma (guerreiro com cajado, mago com espada). O servidor agora atualiza `pers.weapon = b.weapon` ao equipar uma arma e permite o uso livre de itens dropados.
+     - `inventario_ui.js` agora mantém o botão "EQUIPAR" funcional sem travar prematuramente por nível e permite troca imediata de armas com clique ou duplo clique.
+  5. **Atalhos do Teclado**:
+     - Tecla **O**: Abre e fecha o menu de opções / configurações (`#cfg`) soltando o pointer lock.
+     - Tecla **C**: Abre e fecha a janela de Status do Personagem (`Status.toggle()`).
+     - Tecla **X**: Abre e fecha o menu de Ações e Grupos (`Net.alterna()`).
+     - Tecla **I**: Abre e fecha o Inventário oficial L2.
+- **Validação Automatizada com Playwright**:
+  - Testado via script em navegador Chromium real renderizando WebGL com sucesso:
+    - `elfa_set_nograde_final.png` & `cidade_elfa_staff_equipped.png`: Personagem vestida com armadura 3D No-Grade clássica segurando cajado na mão em posição de combate.
+    - `elfa_set_d_brigandine_final.png`: Set D Brigandine 3D.
+    - `elfa_set_c_fullplate_final.png`: Set C Full Plate 3D.
+    - `elfa_set_b_doom_final.png`: Set B Doom 3D.
+    - `elfa_set_a_tallum_final.png`: Set A Tallum 3D.
+    - Menus O, C, X e I testados e respondendo aos atalhos.

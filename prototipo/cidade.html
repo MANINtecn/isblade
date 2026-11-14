@@ -12865,10 +12865,9 @@ function mkItem(baseId,rar){
 
 
   return {uid:'i'+(uidN++),base:baseId,rar:rar,stats:stats};
-
-
-
 }
+window.mkItem = mkItem;
+window.equipItem = equipItem;
 
 
 
@@ -13450,62 +13449,24 @@ function renderSk(){
 
 
 function initInv(){
-
-
-
   var saved=null;try{saved=JSON.parse(ckGet('isblade.inv'));}catch(_){}
-
-
-
   if(saved&&Array.isArray(saved.items)&&saved.equip){
-
-
-
     INV=saved;
-
+    window.INV=INV;
     /* CLAUDE [guardiao] */ INV.items.forEach(function(i){if(i.base==='sword_shield')i.base='shield_guardian';});
-
-
-
-
-
     INV.items=INV.items.filter(function(i){return baseOf(i.base)&&ITM.rarities[i.rar];});/* ignora itens de bases que sairam do JSON */
-
-
-
     Object.keys(INV.equip).forEach(function(s){if(!findItem(INV.equip[s]))delete INV.equip[s];});
-
-
-
   }
 
-
-
-  if(!INV.equip.weapon){
-
-
-
+  if(!INV.equip.weapon || !INV.equip.chest){
     var st=ITM.start;
-
-
-
     INV={items:[],equip:{}};
-
-
-
     Object.keys(st.equip).forEach(function(s){var it=mkItem(st.equip[s][0],st.equip[s][1]);INV.items.push(it);INV.equip[s]=it.uid;});
-
-
-
     st.bag.forEach(function(b){INV.items.push(mkItem(b[0],b[1]));});
-
-
-
+    window.INV=INV;
     saveInv();
-
-
-
   }
+  window.INV=INV;
 
 
 
@@ -13915,14 +13876,17 @@ function buildPad(){
   var cb=$('#cfgCombo'),btn=$('#cfgBtn'),box=$('#cfg');
 
   window.toggleCfg = function(force){
-    if(!box) box = document.getElementById('cfg');
-    if(!box) return;
-    var willOpen = (typeof force === 'boolean') ? force : !box.classList.contains('open');
+    var b = document.getElementById('cfg');
+    if(!b) return;
+    var willOpen = (typeof force === 'boolean') ? force : !b.classList.contains('open');
     if(willOpen){
-      box.classList.add('open');
-      if(window.L2Drag && L2Drag.bringToFront) L2Drag.bringToFront(box);
+      try{ document.exitPointerLock(); }catch(_){}
+      b.classList.add('open');
+      b.style.display = 'block';
+      if(window.L2Drag && L2Drag.bringToFront) L2Drag.bringToFront(b);
     } else {
-      box.classList.remove('open');
+      b.classList.remove('open');
+      b.style.display = 'none';
     }
   };
 
@@ -14781,10 +14745,6 @@ window.addEventListener('keydown',function(e){
 
   if(e.code==='Space'){e.preventDefault();if(!e.repeat)req('jump');return;}/* [pulo] */
 
-  if(k==='c'){S.guardHeld=true;return;}/* [pulo] guarda: segurar C */
-
-
-
   if(k==='shift'){if(!e.repeat){S.shiftT=performance.now();S.shiftDown=true;req('roll');}return;}/* [corrida] toque = esquiva (ao soltar), segurar = correr */
 
 
@@ -14812,15 +14772,15 @@ window.addEventListener('keydown',function(e){
 
   else if(k==='i')toggleInv();
 
-  else if(k==='o'){if(window.toggleCfg)window.toggleCfg();else{var b=document.getElementById('cfgBtn');if(b)b.click();}}/* [opcoes] Menu de Opcoes (O) */
+  else if(k==='o'){try{document.exitPointerLock();}catch(_){}if(window.toggleCfg)window.toggleCfg();else{var b=document.getElementById('cfgBtn');if(b)b.click();}}/* [opcoes] Menu de Opcoes (O) */
 
-  else if(k==='x'){if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
+  else if(k==='x'){try{document.exitPointerLock();}catch(_){}if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
 
   else if(k==='escape'){var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
 
   else if(k==='k')toggleSk();
 
-  else if(k==='c'||k==='u'){if(window.Status)Status.toggle();}/* [status] Character Status (C) */
+  else if(k==='c'||k==='u'){try{document.exitPointerLock();}catch(_){}if(window.Status)Status.toggle();}/* [status] Character Status (C) */
 
 
 
@@ -17809,6 +17769,7 @@ function switchCharacter(type){
     });
 
   }
+  window.applyHair = applyHair;
 
 
 
@@ -17864,15 +17825,15 @@ function switchCharacter(type){
 
 
   var heroGlbMap = {
-    'human_fighter': 'assets/personagens/human_fighter.glb?v=8',
-    'fighter': 'assets/personagens/human_fighter.glb?v=8',
-    'starter': 'assets/personagens/human_fighter.glb?v=8',
-    'imperial': 'assets/personagens/human_fighter_imperial.glb?v=8',
+    'human_fighter': 'assets/personagens/human_fighter_nograde.glb?v=2',
+    'fighter': 'assets/personagens/human_fighter_nograde.glb?v=2',
+    'starter': 'assets/personagens/human_fighter_nograde.glb?v=2',
+    'imperial': 'assets/personagens/human_fighter_imperial.glb?v=2',
     'human_fighter_female': 'assets/personagens/human_fighter_female.glb?v=8',
     'magic_m': 'assets/personagens/magic_m.glb?v=8',
     'magic_f': 'assets/personagens/magic_f.glb?v=8',
     'elf_m': 'assets/personagens/elf_m.glb?v=8',
-    'elf_f': 'assets/personagens/elf_f.glb?v=8',
+    'elf_f': 'assets/personagens/elf_f_nograde.glb?v=2',
     'orc_m': 'assets/personagens/orc_m.glb?v=8',
     'orc_f': 'assets/personagens/orc_f.glb?v=8',
     'dwarf_m': 'assets/personagens/dwarf_m.glb?v=8',
@@ -17882,12 +17843,14 @@ function switchCharacter(type){
   };
 
   var curGrau = 'sem';
+  var hasChest = false;
   if(window.INV && INV.equip){
     var chestIt = INV.equip.chest && findItem(INV.equip.chest);
     var chestB = chestIt && baseOf(chestIt.base);
+    hasChest = !!chestIt;
     if(chestB && chestB.grau) curGrau = chestB.grau;
   }
-  var resolvedGlb = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(type, curGrau)) || heroGlbMap[type];
+  var resolvedGlb = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(type, curGrau, hasChest)) || heroGlbMap[type];
 
   if(resolvedGlb){
     loadL2Player(resolvedGlb, swdColor, onReady);
@@ -17904,7 +17867,8 @@ window.atualizaModeloArmadura3D = function(onFinish){
   if(charType === 'fighter' || charType === 'starter') charType = 'human_fighter';
 
   var inv = window.INV || INV;
-  var chestIt = inv && inv.equip && inv.equip.chest && findItem(inv.equip.chest);
+  var hasChest = !!(inv && inv.equip && inv.equip.chest);
+  var chestIt = hasChest && findItem(inv.equip.chest);
   var chestB = chestIt && baseOf(chestIt.base);
   var grau = (chestB && chestB.grau) || 'sem';
   if(grau === 'sem' && inv && inv.equip){
@@ -17916,7 +17880,7 @@ window.atualizaModeloArmadura3D = function(onFinish){
     });
   }
 
-  var targetUrl = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(charType, grau)) || null;
+  var targetUrl = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(charType, grau, hasChest)) || null;
   if(!targetUrl) return;
   if(vrm._currentGlbUrl === targetUrl) return;
   if(window._loadingArmorModel) return;
@@ -17943,7 +17907,7 @@ window.atualizaModeloArmadura3D = function(onFinish){
 
     var savedHairStyle = localStorage.getItem('isblade.hair_style') || 'both';
     var savedHairColor = localStorage.getItem('isblade.hair_color') || '#ffffff';
-    applyHair(vrm.root, savedHairStyle, savedHairColor);
+    if(window.applyHair) window.applyHair(vrm.root, savedHairStyle, savedHairColor);
 
     applyWeaponVis(vrm);
     var w = findItem(INV.equip.weapon);

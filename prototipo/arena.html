@@ -9258,15 +9258,15 @@ function switchCharacter(type){
 
 
   var heroGlbMap = {
-    'human_fighter': 'assets/personagens/human_fighter.glb?v=8',
-    'fighter': 'assets/personagens/human_fighter.glb?v=8',
-    'starter': 'assets/personagens/human_fighter.glb?v=8',
-    'imperial': 'assets/personagens/human_fighter_imperial.glb?v=8',
+    'human_fighter': 'assets/personagens/human_fighter_nograde.glb?v=2',
+    'fighter': 'assets/personagens/human_fighter_nograde.glb?v=2',
+    'starter': 'assets/personagens/human_fighter_nograde.glb?v=2',
+    'imperial': 'assets/personagens/human_fighter_imperial.glb?v=2',
     'human_fighter_female': 'assets/personagens/human_fighter_female.glb?v=8',
     'magic_m': 'assets/personagens/magic_m.glb?v=8',
     'magic_f': 'assets/personagens/magic_f.glb?v=8',
     'elf_m': 'assets/personagens/elf_m.glb?v=8',
-    'elf_f': 'assets/personagens/elf_f.glb?v=8',
+    'elf_f': 'assets/personagens/elf_f_nograde.glb?v=2',
     'orc_m': 'assets/personagens/orc_m.glb?v=8',
     'orc_f': 'assets/personagens/orc_f.glb?v=8',
     'dwarf_m': 'assets/personagens/dwarf_m.glb?v=8',
@@ -9276,12 +9276,14 @@ function switchCharacter(type){
   };
 
   var curGrau = 'sem';
+  var hasChest = false;
   if(window.INV && INV.equip){
     var chestIt = INV.equip.chest && findItem(INV.equip.chest);
     var chestB = chestIt && baseOf(chestIt.base);
+    hasChest = !!chestIt;
     if(chestB && chestB.grau) curGrau = chestB.grau;
   }
-  var resolvedGlb = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(type, curGrau)) || heroGlbMap[type];
+  var resolvedGlb = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(type, curGrau, hasChest)) || heroGlbMap[type];
 
   if(resolvedGlb){
     loadL2Player(resolvedGlb, swdColor, onReady);
@@ -9297,19 +9299,21 @@ window.atualizaModeloArmadura3D = function(onFinish){
   var charType = (localStorage.getItem('isblade.char_type') || 'fighter').toLowerCase();
   if(charType === 'fighter' || charType === 'starter') charType = 'human_fighter';
 
-  var chestIt = window.INV && INV.equip && INV.equip.chest && findItem(INV.equip.chest);
+  var inv = window.INV || INV;
+  var hasChest = !!(inv && inv.equip && inv.equip.chest);
+  var chestIt = hasChest && findItem(inv.equip.chest);
   var chestB = chestIt && baseOf(chestIt.base);
   var grau = (chestB && chestB.grau) || 'sem';
-  if(grau === 'sem' && window.INV && INV.equip){
+  if(grau === 'sem' && inv && inv.equip){
     ['legs','gloves','boots'].forEach(function(slot){
       if(grau !== 'sem') return;
-      var it = INV.equip[slot] && findItem(INV.equip[slot]);
+      var it = inv.equip[slot] && findItem(inv.equip[slot]);
       var b = it && baseOf(it.base);
       if(b && b.grau) grau = b.grau;
     });
   }
 
-  var targetUrl = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(charType, grau)) || null;
+  var targetUrl = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(charType, grau, hasChest)) || null;
   if(!targetUrl) return;
   if(vrm._currentGlbUrl === targetUrl) return;
   if(window._loadingArmorModel) return;

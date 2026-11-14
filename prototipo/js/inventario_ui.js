@@ -226,14 +226,13 @@
           if(it){
             var b = base(it.base), r = R[it.rar] || {}, g = G[(b && b.grau) || 'sem'] || {};
             var slotEq = eqUid[it.uid];
-            var falta = (b && b.grau && b.grau !== 'sem' && (E.lvl || 1) < (g.lvlMin || 0));
             h.push(
               '<div class="l2-inv-tooltip">',
               '  <b style="color:' + (r.css || '#ffd166') + '">' + esc(op.nome(it)) + ((it.en | 0) ? ' +' + (it.en | 0) : '') + '</b>',
               '  <small>' + esc(r.name || 'Comum') + ' · ' + esc(g.name || 'Sem Grau') + '</small>',
               '  <small style="color:#d4af37">' + esc(op.statsDe ? statTxt(op.statsDe(it)) : '') + '</small>',
               '  <div class="l2-inv-tooltip-bts">',
-              (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '"' + (falta ? ' disabled' : '') + '>EQUIPAR</button>'),
+              (slotEq ? (slotEq === 'weapon' ? '<button type="button" class="l2-inv-btn" disabled>EQUIPADO</button>' : '<button type="button" class="l2-inv-btn" data-a="tirar" data-v="' + slotEq + '">TIRAR</button>') : '<button type="button" class="l2-inv-btn" data-a="equip" data-v="' + esc(it.uid) + '">EQUIPAR</button>'),
               (slotEq ? '' : '<button type="button" class="l2-inv-btn pe" data-a="desc" data-v="' + esc(it.uid) + '">' + (conf === it.uid ? 'CONFIRMAR' : 'DESCARTAR') + '</button>'),
               '  </div>',
               '</div>'

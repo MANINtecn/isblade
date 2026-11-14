@@ -3,7 +3,7 @@
    enemyThink, startAttack, resolveEnemyHit, triggerBaiumThunderStorm / spawnBaiumBolt (dano), hitGauge, tryLaunch. Nenhum numero e padrao foi mudado: os 6 ataques vem de
    data/combate.json -> boss.attacks e a arena de assets/maps/baium_house/mini_toi_regioes.json. Dificuldade: vida = 1800 x bossHp (dungeon.json); o dano escala no cliente (hurtPlayer).
    O cliente so desenha (bsnap) e manda o golpe (bhit), o parry e a provocacao. Mensagens para o jogador: dano = { t:'dg', k:'mdmg', ... } (o mesmo que o lider mandava aos convidados),
-   raios = { t:'dg', k:'bolt', x, z, t }, estado do chefe = { t:'dgs', k:'bsnap', ex, ez, eh, ey, hp, mx, st, ak, dead }. */
+   raios = { t:'dg', k:'bolt', x, z, ms }, estado do chefe = { t:'dgs', k:'bsnap', ex, ez, eh, ey, hp, mx, st, ak, dead }. */
 const fs = require('fs'), path = require('path');
 const RAIZ = path.join(__dirname, '..', 'prototipo');
 let ATK = {}, ARENA = { centro: [-28.4, -53.85], raio: 62, spawn: [-53.75, -100.46] }, DG = null;

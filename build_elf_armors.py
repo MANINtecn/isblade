@@ -10,6 +10,17 @@ bpy.ops.preferences.addon_enable(module='bl_ext.user_default.io_scene_psk_psa')
 
 SETS = [
     {
+        "name": "elf_f_nograde",
+        "label": "No-Grade Starter Armor",
+        "metal": 0.40, "rough": 0.50,
+        "parts": [
+            ("FElf_m001_u", "Chest", "FElf_m001_t02_u.png"),
+            ("FElf_m001_l", "Legs",  "FElf_m001_t02_l_sp.png"),
+            ("FElf_m001_g", "Gloves","FElf_m001_t02_g.png"),
+            ("FElf_m001_b", "Boots", "FElf_m001_t02_b.png"),
+        ]
+    },
+    {
         "name": "elf_f_brigandine",
         "label": "D-Grade Brigandine",
         "metal": 0.55, "rough": 0.40,

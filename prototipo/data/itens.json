@@ -121,7 +121,12 @@
 
   "start": {
     "equip": {
-      "weapon": ["sword_long", "normal"]
+      "weapon": ["sword_long", "normal"],
+      "chest": ["chest_plate", "normal"],
+      "legs": ["legs_plate", "normal"],
+      "gloves": ["gloves_hide", "normal"],
+      "boots": ["boots_swift", "normal"],
+      "helmet": ["helmet_iron", "normal"]
     },
     "bag": [
       ["brigandine_tunic", "raro"],

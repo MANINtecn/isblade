@@ -430,6 +430,18 @@
   A.aplicaArmadura = function(rig, equip, baseOf, findItem){
     if(!rig || !rig.root) return;
 
+    // Se o modelo 3D carregado já for uma armadura 3D completa nativa (GLB dedicado com armadura embutida),
+    // NÃO sobrescrever com texturas 2D planas, pois as malhas e materiais originais do L2 já estão aplicados perfeitamente.
+    var glbUrl = (rig._currentGlbUrl || '').toLowerCase();
+    if(glbUrl.indexOf('_nograde.glb') >= 0 ||
+       glbUrl.indexOf('_brigandine.glb') >= 0 ||
+       glbUrl.indexOf('_fullplate.glb') >= 0 ||
+       glbUrl.indexOf('_doom.glb') >= 0 ||
+       glbUrl.indexOf('_tallum.glb') >= 0 ||
+       glbUrl.indexOf('_imperial.glb') >= 0){
+      return;
+    }
+
     if(!rig._meshParts){
       rig._meshParts = {};
       rig.root.traverse(function(c){
@@ -565,25 +577,33 @@
 
   A.SET_3D_MODELS = {
     elf_f: {
-      sem: 'assets/personagens/elf_f.glb?v=8',
-      D:   'assets/personagens/elf_f_brigandine.glb?v=1',
-      C:   'assets/personagens/elf_f_fullplate.glb?v=1',
-      B:   'assets/personagens/elf_f_doom.glb?v=1',
-      A:   'assets/personagens/elf_f_tallum.glb?v=1'
+      naked: 'assets/personagens/elf_f.glb?v=9',
+      sem:   'assets/personagens/elf_f_nograde.glb?v=2',
+      D:     'assets/personagens/elf_f_brigandine.glb?v=2',
+      C:     'assets/personagens/elf_f_fullplate.glb?v=2',
+      B:     'assets/personagens/elf_f_doom.glb?v=2',
+      A:     'assets/personagens/elf_f_tallum.glb?v=2'
     },
     human_fighter: {
-      sem: 'assets/personagens/human_fighter.glb?v=8',
-      D:   'assets/personagens/human_fighter_brigandine.glb?v=1',
-      C:   'assets/personagens/human_fighter_fullplate.glb?v=1',
-      A:   'assets/personagens/human_fighter_imperial.glb?v=1'
+      naked: 'assets/personagens/human_fighter.glb?v=9',
+      sem:   'assets/personagens/human_fighter_nograde.glb?v=2',
+      D:     'assets/personagens/human_fighter_brigandine.glb?v=2',
+      C:     'assets/personagens/human_fighter_fullplate.glb?v=2',
+      A:     'assets/personagens/human_fighter_imperial.glb?v=2'
     }
   };
 
-  A.obterModelo3D = function(race, grau){
+  A.obterModelo3D = function(race, grau, hasChest){
     var r = (race || 'elf_f').toLowerCase();
     if(r === 'fighter' || r === 'starter') r = 'human_fighter';
     var table = A.SET_3D_MODELS[r];
     if(!table) return null;
+    if(hasChest === false){
+      return table['naked'] || table['sem'] || null;
+    }
+    if(!grau || grau === 'sem'){
+      return table['sem'] || table['naked'] || null;
+    }
     return table[grau] || table['sem'] || null;
   };
 })();
