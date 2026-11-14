@@ -1155,7 +1155,10 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 <div id="cfg" class="ui">
 
-  <h3>CONFIGURACOES</h3>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(255,209,102,0.25);cursor:grab;" id="cfgHeader">
+    <h3 style="margin:0;font-size:12px;letter-spacing:.2em;color:var(--sys,#ffd166);font-weight:700;">⚙️ CONFIGURAÇÕES (O)</h3>
+    <button type="button" id="cfgCloseBtn" style="background:transparent;border:0;color:#94a3b8;font-size:16px;cursor:pointer;padding:2px 6px;line-height:1;" title="Fechar (Esc)">✕</button>
+  </div>
 
   <div class="l2-cfg-actions">
     <button id="cfgSelectChar" type="button" class="l2-cfg-btn select-char" title="Trocar de personagem (volta para a tela de seleção)">👥 TROCAR PERSONAGEM</button>
@@ -9557,7 +9560,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  if(ST.dano)dmg=Math.round(dmg*(1+ST.dano/100));/* status dos itens equipados */
+  if(ST.dano)dmg=Math.round(dmg*(1+ST.dano/100));/* status dos itens equipados */var crit=!an.dome&&Math.random()<(P.critChance!=null?P.critChance:.1);if(crit)dmg=Math.round(dmg*(P.critMult||1.5));/* [critico] sorteado a cada golpe; numero azul */
 
 
 
@@ -9585,7 +9588,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  DanoTela.num(dmg,{x:S.ex,y:3.0,z:S.ez},an.perfect?'c':'n','boss',tag.trim(),camera);/* [dano-tela] modelo Cabal */
+  DanoTela.num(dmg,{x:S.ex,y:3.0,z:S.ez},(crit||an.perfect)?'c':'n','boss',tag.trim(),camera);/* [dano-tela] modelo Cabal */
 
 
 
@@ -11598,6 +11601,7 @@ function mobDmg(an){var d=an.dmg;if(SUP.preceAte>performance.now()/1000)d*=1+SUP
 
 
 function damageMob(m,dmg,an){
+  if(m&&!m.dead){var crit=an.crit=!an.dome&&Math.random()<(P.critChance!=null?P.critChance:.1);if(crit)dmg=Math.round(dmg*(P.critMult||1.5));/* [critico] sorteado a cada golpe; numero azul */}
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
   if(m&&m.srv){if(!m.dead&&window.Net){Net.mhit(m.nid,dmg);m._euT=performance.now()/1000;m.flash=1;}return;}/* [mob3d-cidade] a vida e do servidor */
 
@@ -11636,7 +11640,7 @@ function damageMob(m,dmg,an){
 
 
 
-  DanoTela.num(dmg,{x:m.x,y:2.2*m.T.size,z:m.z},an.perfect?'c':'n','m'+(m.nid!=null?m.nid:MOBS.indexOf(m)),m.stun>0?'FRAQUEZA':'',camera);/* [dano-tela] modelo Cabal */
+  DanoTela.num(dmg,{x:m.x,y:2.2*m.T.size,z:m.z},(crit||an.perfect)?'c':'n','m'+(m.nid!=null?m.nid:MOBS.indexOf(m)),m.stun>0?'FRAQUEZA':'',camera);/* [dano-tela] modelo Cabal */
 
 
 

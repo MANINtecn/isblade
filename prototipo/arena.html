@@ -4401,7 +4401,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
 
   if(S.air){dmg=Math.round(dmg*1.4);tag+='AEREO ';}
 
-  if(ST.dano)dmg=Math.round(dmg*(1+ST.dano/100));/* status dos itens equipados */
+  if(ST.dano)dmg=Math.round(dmg*(1+ST.dano/100));/* status dos itens equipados */var crit=!an.dome&&Math.random()<(P.critChance!=null?P.critChance:.1);if(crit)dmg=Math.round(dmg*(P.critMult||1.5));/* [critico] sorteado a cada golpe; numero azul */
 
   if(!S.fightOn){S.fightOn=true;S.fightT=0;}
 
@@ -4416,7 +4416,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
   if(DG.srvBoss)Net.dgs({k:'bhit',d:dmg,gd:gd,l:(an.skill&&an.skill.launch)?1:0});else if(DG.grp==='guest')Net.dg({k:'bhit',d:dmg});else S.hp=Math.max(0,S.hp-dmg);/* [dg-grupo] [baium-servidor] a vida e a guarda do chefe sao do servidor */
   /* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=(an.grp)?0:Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
 
-  DanoTela.num(dmg,{x:S.ex,y:3.0,z:S.ez},an.perfect?'c':'n','boss',tag.trim(),camera);/* [dano-tela] modelo Cabal */
+  DanoTela.num(dmg,{x:S.ex,y:3.0,z:S.ez},(crit||an.perfect)?'c':'n','boss',tag.trim(),camera);/* [dano-tela] modelo Cabal */
 
   var tc=an.sk&&an.sk.secret?0xb79cff:0x8bc1ff,hx=S.ex-dx/(reach||1)*.6,hz=S.ez-dz/(reach||1)*.6;
 
@@ -5599,6 +5599,7 @@ function mobDmg(an){var d=an.dmg;if(SUP.preceAte>performance.now()/1000)d*=1+SUP
 
 var GRPHIT=false;
 function damageMob(m,dmg,an){
+  if(m&&!m.dead){var crit=an.crit=!an.dome&&Math.random()<(P.critChance!=null?P.critChance:.1);if(crit)dmg=Math.round(dmg*(P.critMult||1.5));/* [critico] sorteado a cada golpe; numero azul */}
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
   if(m.dead)return;
   if(m.net&&window.Net){if(m.srv){Net.mhit(m.nid,dmg);m._euT=performance.now()/1000;}else Net.dg({k:'hit',id:m.nid,d:dmg});}/* [dg-grupo] a vida do mob e do lider; [mobs-servidor] ou do servidor */
@@ -5619,7 +5620,7 @@ function damageMob(m,dmg,an){
 
   m.fg.scale.x=Math.max(.001,m.hp/m.max);
 
-  DanoTela.num(dmg,{x:m.x,y:2.2*m.T.size,z:m.z},an.perfect?'c':'n','m'+(m.nid!=null?m.nid:MOBS.indexOf(m)),m.stun>0?'FRAQUEZA':'',camera);/* [dano-tela] modelo Cabal */
+  DanoTela.num(dmg,{x:m.x,y:2.2*m.T.size,z:m.z},(crit||an.perfect)?'c':'n','m'+(m.nid!=null?m.nid:MOBS.indexOf(m)),m.stun>0?'FRAQUEZA':'',camera);/* [dano-tela] modelo Cabal */
 
   if(!an.dome){S.hitStop=Math.max(S.hitStop,an.skill&&an.skill.intr>=1?HS_BIG:HS_SMALL);S.shake=Math.max(S.shake,an.skill?.22:.1);}
 

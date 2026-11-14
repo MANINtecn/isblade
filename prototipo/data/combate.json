@@ -23,7 +23,10 @@
     "moveCast": 0.55,
     "rollMemory": 0.2,
     "hitStopSmall": 0.045,
-    "hitStopBig": 0.09
+    "hitStopBig": 0.09,
+    "critChance": 0.1,
+    "critMult": 1.5,
+    "_critico": "CLAUDE 14/11: chance (0-1) e multiplicador do critico, sorteado a cada golpe (basico e skills); numero sai azul (modelo Cabal)"
   },
 
   "boss": {
