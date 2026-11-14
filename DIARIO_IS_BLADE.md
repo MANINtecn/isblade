@@ -4058,3 +4058,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - **Validação Visual**:
     - Capturas geradas via Playwright em [preview_l2_interface.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_interface.png) e detalhe em [preview_l2_bar_and_menu_focus.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_bar_and_menu_focus.png).
     - Cache query incrementada para `v=36` em `arena.html`, `cidade.html`, `preview_l2_interface.html` e `mu_hud.js`.
+
+### [Antigravity] 14/11/2026 - Cruz de Igreja de Altar Fiel à Imagem de Referência para as Habilidades do Clérigo
+
+- **Demanda do Usuário**:
+  - Ajuste visual das skills do Clérigo para terem aparência fiel a uma verdadeira "Cruz de Igreja" de altar (modelo e proporções latinas sagradas com haste facetada, chanfro lapidado de cristal/joia e feixes de luz volumétricos), conforme imagem de referência enviada pelo usuário, aplicando a respectiva cor temática a cada skill.
+- **Implementação e Texturização Fiel à Referência**:
+  - A partir da imagem de referência de alta nobreza, foi realizada a extração de fundo limpo e centralização milimétrica da junção dos braços exatamente no centro do canvas de 512x512 (`cx=256, cy=256`).
+  - Geradas 4 texturas de altíssima definição preservando as facetas chanfradas, reflexos cristalinos de duas colunas e o núcleo de luz central:
+    1. `prototipo/assets/fx/clerigo_cruz_igreja_verde.png`: **Verde Esmeralda Sagrado** para **Cura Mirada (Skill 1)**.
+    2. `prototipo/assets/fx/clerigo_cruz_igreja_azul.png`: **Azul Safira Celestial** para **Escudo Astral (Skill 3)**.
+    3. `prototipo/assets/fx/clerigo_cruz_igreja_ouro.png`: **Ouro Puro / Âmbar Incandescente** (fiel 1:1 à foto de referência) para o ataque básico sagrado e efeitos de luz.
+    4. `prototipo/assets/fx/clerigo_cruz_igreja_branca.png` / `clerigo_cruz_flare.png`: Versão monocromática de alta luminosidade para retrocompatibilidade.
+- **Integração no Motor de Efeitos (`prototipo/js/clerigo_fx.js`)**:
+  - `C.criarCristal` (Cura Mirada): Utiliza a Cruz de Igreja Esmeralda (3x o tamanho visual), com a base flutuando acima do chão (+0.6m) e núcleo estelar no cruzamento.
+  - `C.cura` (Impacto de Cura no Solo): Finca a Cruz de Igreja Esmeralda no terreno sem afundar a base (`yCruz = 1.18 * A`).
+  - `C.escudo` (Escudo Astral): 6 Cruzes de Igreja Monumentais em Safira (5x o tamanho visual: 4.25m cada) orbitando suavemente em torno do jogador na altura ideal (+0.22m do chão).
+  - `C.criarLamina` (Projétil Sagrado): Mini Cruz de Igreja em Ouro/Âmbar radiante.
+- **Validação e Versionamento**:
+  - Validado via Playwright em [preview_clerigo_skills.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_clerigo_skills.png).
+  - Cache query de `clerigo_fx.js` incrementada para `v=9` em `arena.html`, `cidade.html` e `preview_clerigo_skills.html`.

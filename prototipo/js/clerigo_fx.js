@@ -146,8 +146,8 @@
   C.init = function(THREE_, cena_){
     if(T) return;
     T = THREE_; cena = cena_;
-    var tl = new T.TextureLoader(), v = '?v=8';
-    ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo', 'cruz_flare', 'veu_energia', 'pena'].forEach(function(n){
+    var tl = new T.TextureLoader(), v = '?v=9';
+    ['cruz', 'estrela', 'glifo_hex', 'glifo_octa', 'raios', 'onda', 'hex_brilho', 'leque', 'facetas', 'favo', 'cruz_flare', 'veu_energia', 'pena', 'cruz_igreja_ouro', 'cruz_igreja_verde', 'cruz_igreja_azul'].forEach(function(n){
       TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v);
     });
     rastro = new T.Group();
@@ -290,8 +290,8 @@
     escala = escala || 1;
     var raiz = new T.Group();
 
-    // Cruz de Luz Pura em Lens Flare Radiante (idêntico ao refinamento do Blender)
-    var crz = sprite(TX.cruz_flare || TX.estrela, OURO, 1.85 * escala, 0.95);
+    // Cruz de Igreja Lapidada em Cristal de Ouro Radiante (fiel a foto de referencia)
+    var crz = sprite(TX.cruz_igreja_ouro || TX.cruz_flare || TX.estrela, BRANCO, 1.85 * escala, 0.98);
     raiz.add(crz);
 
     // Núcleo incandescente central
@@ -347,8 +347,8 @@
     // Elevação para a base da cruz não ficar enterrada durante o voo
     var yOffset = 0.45;
 
-    // Cruz Sagrada Esmeralda de Luz Pura (3x maior)
-    var crz = sprite(TX.cruz_flare || TX.cruz, VERDE, 2.8, 0.95);
+    // Cruz de Igreja Monumental em Cristal Esmeralda Sagrado (fiel a foto de referencia, 3x maior)
+    var crz = sprite(TX.cruz_igreja_verde || TX.cruz_flare || TX.cruz, BRANCO, 2.8, 0.98);
     crz.position.y = yOffset;
     raiz.add(crz);
 
@@ -461,8 +461,8 @@
     // Altura da cruz fincada elevada para a base não afundar no chão
     var yCruz = 1.18 * A;
 
-    // Cruz de luz flare no centro do impacto (fincada e ressoando, 3x maior)
-    var crz = sprite(TX.cruz_flare || TX.estrela, VERDE, 1.6 * A, 0.95);
+    // Cruz de Igreja Esmeralda no centro do impacto (fincada e ressoando, 3x maior)
+    var crz = sprite(TX.cruz_igreja_verde || TX.cruz_flare || TX.estrela, BRANCO, 1.6 * A, 0.98);
     crz.position.y = yCruz;
     g.add(crz);
 
@@ -666,8 +666,8 @@
 
     for(var i = 0; i < n; i++){
       var pl = new T.Group(), a = i * 6.2832 / n;
-      // Cruz de Proteção em Azul Safira Radiante (5x maior: 0.85 * 5 = 4.25)
-      var crz = sprite(TX.cruz_flare || TX.cruz, AZUL, 0.85 * multEscudo, 0.95);
+      // Cruz de Igreja Monumental em Cristal de Safira Radiante (fiel a foto de referencia, 5x maior: 0.85 * 5 = 4.25)
+      var crz = sprite(TX.cruz_igreja_azul || TX.cruz_flare || TX.cruz, BRANCO, 0.85 * multEscudo, 0.98);
       pl.add(crz);
 
       // Núcleo estelar azul celeste puro (5x maior: 0.42 * 5 = 2.1)
