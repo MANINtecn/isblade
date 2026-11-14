@@ -46,10 +46,10 @@
         boots: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m011_t1004_b_sp.png'
       },
       A: {
-        chest: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m012_t2000_u_sp.png',
-        legs:  'assets/personagens/raw_test_elf/felf/Texture/FElf_m012_t2000_l_ad00_sp.png',
-        gloves:'assets/personagens/raw_test_elf/felf/Texture/FElf_m012_t2000_g_sp.png',
-        boots: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m012_t2000_b_sp.png'
+        chest: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m008_t1005_u_sp.png',
+        legs:  'assets/personagens/raw_test_elf/felf/Texture/FElf_m007_t1005_l_sp.png',
+        gloves:'assets/personagens/raw_test_elf/felf/Texture/FElf_m008_t1005_g_sp.png',
+        boots: 'assets/personagens/raw_test_elf/felf/Texture/FElf_m007_t1005_b_sp.png'
       }
     },
     human_fighter: {
@@ -560,5 +560,30 @@
   A.tag = function(ITM, b, nivel){
     var G = A.info(ITM, b), falta = (G.nivel | 0) > (nivel | 0);
     return '<span style="color:' + G.css + '">' + G.name + '</span>' + ((G.nivel | 0) > 1 ? ' <span style="color:' + (falta ? '#ff6a5a' : '#9fb0cc') + '">Nv ' + G.nivel + '</span>' : '');
+  };
+  A.detectRace = detectRace;
+
+  A.SET_3D_MODELS = {
+    elf_f: {
+      sem: 'assets/personagens/elf_f.glb?v=8',
+      D:   'assets/personagens/elf_f_brigandine.glb?v=1',
+      C:   'assets/personagens/elf_f_fullplate.glb?v=1',
+      B:   'assets/personagens/elf_f_doom.glb?v=1',
+      A:   'assets/personagens/elf_f_tallum.glb?v=1'
+    },
+    human_fighter: {
+      sem: 'assets/personagens/human_fighter.glb?v=8',
+      D:   'assets/personagens/human_fighter_brigandine.glb?v=1',
+      C:   'assets/personagens/human_fighter_fullplate.glb?v=1',
+      A:   'assets/personagens/human_fighter_imperial.glb?v=1'
+    }
+  };
+
+  A.obterModelo3D = function(race, grau){
+    var r = (race || 'elf_f').toLowerCase();
+    if(r === 'fighter' || r === 'starter') r = 'human_fighter';
+    var table = A.SET_3D_MODELS[r];
+    if(!table) return null;
+    return table[grau] || table['sem'] || null;
   };
 })();

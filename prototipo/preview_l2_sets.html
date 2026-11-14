@@ -87,45 +87,84 @@
       return { uid: uid, base: uid };
     }
 
-    gltfLoader.load('assets/personagens/elf_f.glb', function(gltf){
-      var root = gltf.scene;
-      var targetH = 2.25;
-      root.scale.setScalar(targetH / 42.78);
-      root.position.set(0, 0, 0);
-      scene.add(root);
-
-      currentRig = {
-        isL2: true,
-        root: root,
-        charType: 'elf_f',
-        modelUrl: 'assets/personagens/elf_f.glb'
-      };
-
-      // Inicializa sem armadura (nativo)
-      setGrau('sem');
-      window.isReady = true;
-    });
-
-    window.setGrau = function(grau){
-      if(!currentRig) return;
-      var equip = {};
-      if(grau !== 'sem'){
-        var pfx = grau.toLowerCase() + '_';
-        equip = {
-          chest: pfx + 'chest',
-          legs:  pfx + 'legs',
-          gloves:pfx + 'gloves',
-          boots: pfx + 'boots'
-        };
-      }
-      ArmaGrau.aplicaArmadura(currentRig, equip, baseOf, findItem);
-      document.getElementById('title').textContent = 'Preview Sets Lineage 2: ' + (grau === 'sem' ? 'Nativo (Sem Armadura)' : ('Set Grau ' + grau));
+    var SET_MODELS = {
+      sem: 'assets/personagens/elf_f.glb',
+      D:   'assets/personagens/elf_f_brigandine.glb',
+      C:   'assets/personagens/elf_f_fullplate.glb',
+      B:   'assets/personagens/elf_f_doom.glb',
+      A:   'assets/personagens/elf_f_tallum.glb'
     };
 
+    var currentModel = null;
+    var currentGrau = 'sem';
+    var mixer = null;
+    var actions = {};
+
+    function loadSet(grau){
+      currentGrau = grau;
+      var url = SET_MODELS[grau] || SET_MODELS.sem;
+      document.getElementById('title').textContent = 'Carregando Set ' + grau + ' (' + url + ')...';
+      window.isReady = false;
+
+      gltfLoader.load(url + '?v=' + Date.now(), function(gltf){
+        if(currentModel) scene.remove(currentModel);
+
+        var root = gltf.scene;
+        var targetH = 2.25;
+        root.scale.setScalar(targetH / 42.78);
+        root.position.set(0, 0, 0);
+
+        root.traverse(function(c){
+          if(c.isMesh){
+            c.castShadow = true;
+            c.receiveShadow = true;
+            if(c.material){
+              var mats = Array.isArray(c.material) ? c.material : [c.material];
+              mats.forEach(function(m){
+                m.roughness = (grau === 'sem') ? 0.8 : (grau === 'C' ? 0.28 : 0.4);
+                m.metalness = (grau === 'sem') ? 0.0 : (grau === 'C' ? 0.85 : 0.6);
+                if(m.map){
+                  m.map.flipY = false;
+                  m.map.encoding = THREE.sRGBEncoding;
+                }
+              });
+            }
+          }
+        });
+
+        scene.add(root);
+        currentModel = root;
+
+        // Inicia mixer com animação idle
+        mixer = new THREE.AnimationMixer(root);
+        actions = {};
+        if(gltf.animations && gltf.animations.length > 0){
+          gltf.animations.forEach(function(clip){
+            actions[clip.name] = mixer.clipAction(clip);
+          });
+          var idleClip = actions['idle'] || actions['Wait_2HS_MFighter'] || mixer.clipAction(gltf.animations[0]);
+          if(idleClip) idleClip.play();
+        }
+
+        document.getElementById('title').textContent = 'Set ' + grau.toUpperCase() + ' (3D Mesh L2 Real) - ' + (grau==='sem'?'Nativo':grau==='D'?'Brigandine':grau==='C'?'Full Plate':grau==='B'?'Doom':'Tallum');
+        window.isReady = true;
+      });
+    }
+
+    window.setGrau = function(grau){
+      loadSet(grau);
+    };
+
+    // Inicia carregando o Set D
+    loadSet('D');
+
+    var clock = new THREE.Clock();
     function animate(){
       requestAnimationFrame(animate);
-      if(currentRig && currentRig.root){
-        currentRig.root.rotation.y += 0.005;
+      var dt = clock.getDelta();
+      if(mixer) mixer.update(dt);
+      if(currentModel){
+        currentModel.rotation.y += 0.005;
       }
       renderer.render(scene, camera);
     }

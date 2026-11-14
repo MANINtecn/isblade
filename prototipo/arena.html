@@ -4774,7 +4774,9 @@ function startAttack(d){
   else k=r<.25?'slash':(r<.45?'sweep':(r<.65?'slam':(r<.82?'smash':(r<.93?'storm':'charge'))));
 
   E.atk=ATK[k]||ATK.slash;E.atk.key=k;setEnemy('windup',E.atk.wind);
-
+  bossAnuncia(k);
+}
+function bossAnuncia(k){/* >>> CLAUDE [baium-fx] 14/11/2026: aviso + som do golpe; tambem quando o golpe vem do servidor (grpBossSnap) */
   var bSkillNames = {
     slash: 'Soco Devastador',
     slam: 'Pisao Sismico',
@@ -5060,7 +5062,7 @@ function triggerBaiumThunderStorm(){
     [alvoP(3).x+(Math.random()-.5)*3,alvoP(3).z+(Math.random()-.5)*3,1150]
   ];
   strikes.forEach(function(s){
-    if(DG.grp==='host'&&window.Net)Net.dg({k:'bolt',x:r1(s[0]),z:r1(s[1]),t:s[2]});
+    if(DG.grp==='host'&&window.Net)Net.dg({k:'bolt',x:r1(s[0]),z:r1(s[1]),ms:s[2]});
     setTimeout(function(){spawnBaiumBolt(s[0],s[1]);},s[2]);
   });
 }
@@ -5574,7 +5576,8 @@ function grpBossSnap(b){/* convidado: espelha o chefe */
   S.ex=b.ex;S.ez=b.ez;S.eh=b.eh;S.maxhp=b.mx;S.hp=b.hp;if(b.ey!==undefined)S.ey=b.ey;/* [baium-servidor] o chefe lancado sobe */
   var A0=ATK[b.ak]||null;
   if(S.en.state!==b.st){
-    if(A0)S.en.atk=A0;
+    if(A0){A0.key=b.ak;S.en.atk=A0;}/* [baium-fx] a chave escolhe a animacao certa (bossOnState) */
+    if(b.st==='windup'&&A0)try{bossAnuncia(b.ak);}catch(_){}/* [baium-fx] aviso do golpe tambem com o chefe do servidor */
     setEnemy(b.st,b.st==='stagger'?2.6:(b.st==='windup'&&A0?A0.wind:(b.st==='strike'&&A0?(A0.dash?.32:.2):(b.st==='recover'&&A0?A0.rec:0))));
     if(b.st==='strike'&&A0){try{resolveEnemyHit(A0);}catch(_){}}/* efeito do golpe (o dano chega como mdmg) */
   }
@@ -5593,7 +5596,7 @@ function grpRecebe(m){
   else if(k==='end'&&DG.grp==='guest'){banner('DUNGEON ENCERRADA','O lider saiu da dungeon','#ff6b6b');setTimeout(function(){sairDg();},900);}
   else if(k==='hit'&&DG.grp==='host'){var mm=mobPorId(m.id);if(mm&&!mm.dead){GRPHIT=true;try{damageMob(mm,m.d,{dome:true,part:1,parts:1,noRange:true});}finally{GRPHIT=false;}}}
   else if(k==='bhit'&&DG.grp==='host'&&BOSS_ON&&!S.dead){GRPHIT=true;try{applyHit({id:'dome',dmg:m.d,sk:null,perfect:false,skill:null,noRange:true,dome:true,part:1,parts:1,grp:true});}finally{GRPHIT=false;}}
-  else if(k==='bolt'&&(DG.grp==='guest'||DG.srvBoss)){setTimeout(function(){spawnBaiumBolt(m.x,m.z,true);},m.t||0);}
+  else if(k==='bolt'&&(DG.grp==='guest'||DG.srvBoss)){setTimeout(function(){spawnBaiumBolt(m.x,m.z,true);},m.ms||0);}/* [baium-fx] atraso em ms (o campo t e o tipo da mensagem) */
   else if(k==='mdmg'){playerTakeHit({dmg:m.dmg,cost:m.cost||24,parry:!!m.parry,aoe:!!m.aoe,interrupt:!!m.interrupt,stun:m.stun||0,onParry:function(){if(DG.srvBoss&&window.Net)Net.dgs({k:'parry'});}});}/* [baium-servidor] parry atordoa o chefe do servidor */
   else if(k==='proj'&&DG.grp==='guest'){var pm=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),new THREE.MeshBasicMaterial({color:parseInt(m.css.slice(1),16)}));pm.position.set(m.x,1.3,m.z);scene.add(pm);EPROJ.push({m:pm,x:m.x,z:m.z,dx:m.dx,dz:m.dz,v:m.v,dmg:0,life:m.life,vis:true});}
 }
@@ -7084,6 +7087,9 @@ function armaGrau(rig){
     if(window.ArmaGrau){
       ArmaGrau.aplica(targetRig, w && baseOf(w.base), attachL2Item, sh && baseOf(sh.base));
       ArmaGrau.aplicaArmadura(targetRig, INV.equip, baseOf, findItem);
+    }
+    if(window.atualizaModeloArmadura3D){
+      window.atualizaModeloArmadura3D();
     }
   }catch(_){}
 }
@@ -9235,6 +9241,7 @@ function switchCharacter(type){
     if(r.shd && !r.isL2) player.add(r.shd);
 
         vrm = r;
+        window.vrm = r;
     /* >>> CLAUDE [guardiao] 2026-10-27 — junta os clipes g_* do Guardiao ao personagem */ Guardiao.anexarClipes(r, THREE); /* <<< CLAUDE [guardiao] */
     // Aplica customizacao de cabelo salva
     var savedHairStyle = localStorage.getItem('isblade.hair_style') || 'both';
@@ -9251,31 +9258,99 @@ function switchCharacter(type){
 
 
   var heroGlbMap = {
-    'human_fighter': 'assets/personagens/human_fighter.glb?v=7',
-    'fighter': 'assets/personagens/human_fighter.glb?v=7',
-    'starter': 'assets/personagens/human_fighter.glb?v=7',
-    'imperial': 'assets/personagens/human_fighter_imperial.glb?v=7',
-    'human_fighter_female': 'assets/personagens/human_fighter_female.glb?v=7',
-    'magic_m': 'assets/personagens/magic_m.glb?v=7',
-    'magic_f': 'assets/personagens/magic_f.glb?v=7',
-    'elf_m': 'assets/personagens/elf_m.glb?v=7',
-    'elf_f': 'assets/personagens/elf_f.glb?v=7',
-    'orc_m': 'assets/personagens/orc_m.glb?v=7',
-    'orc_f': 'assets/personagens/orc_f.glb?v=7',
-    'dwarf_m': 'assets/personagens/dwarf_m.glb?v=7',
-    'dwarf_f': 'assets/personagens/dwarf_f.glb?v=7',
-    'darkelf_m': 'assets/personagens/darkelf_m.glb?v=5',
-    'darkelf_f': 'assets/personagens/darkelf_f.glb?v=5'
+    'human_fighter': 'assets/personagens/human_fighter.glb?v=8',
+    'fighter': 'assets/personagens/human_fighter.glb?v=8',
+    'starter': 'assets/personagens/human_fighter.glb?v=8',
+    'imperial': 'assets/personagens/human_fighter_imperial.glb?v=8',
+    'human_fighter_female': 'assets/personagens/human_fighter_female.glb?v=8',
+    'magic_m': 'assets/personagens/magic_m.glb?v=8',
+    'magic_f': 'assets/personagens/magic_f.glb?v=8',
+    'elf_m': 'assets/personagens/elf_m.glb?v=8',
+    'elf_f': 'assets/personagens/elf_f.glb?v=8',
+    'orc_m': 'assets/personagens/orc_m.glb?v=8',
+    'orc_f': 'assets/personagens/orc_f.glb?v=8',
+    'dwarf_m': 'assets/personagens/dwarf_m.glb?v=8',
+    'dwarf_f': 'assets/personagens/dwarf_f.glb?v=8',
+    'darkelf_m': 'assets/personagens/darkelf_m.glb?v=6',
+    'darkelf_f': 'assets/personagens/darkelf_f.glb?v=6'
   };
 
-  if(heroGlbMap[type]){
-    loadL2Player(heroGlbMap[type], swdColor, onReady);
+  var curGrau = 'sem';
+  if(window.INV && INV.equip){
+    var chestIt = INV.equip.chest && findItem(INV.equip.chest);
+    var chestB = chestIt && baseOf(chestIt.base);
+    if(chestB && chestB.grau) curGrau = chestB.grau;
+  }
+  var resolvedGlb = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(type, curGrau)) || heroGlbMap[type];
+
+  if(resolvedGlb){
+    loadL2Player(resolvedGlb, swdColor, onReady);
   } else if(type === 'talibrac'){
     loadRig('assets/Talibrac.vrm', 2.45, swdColor, onReady);
   } else {
-    loadL2Player('assets/personagens/human_fighter.glb?v=7', swdColor, onReady);
+    loadL2Player('assets/personagens/human_fighter.glb?v=8', swdColor, onReady);
   }
 }
+
+window.atualizaModeloArmadura3D = function(onFinish){
+  if(!vrm || !vrm.root) return;
+  var charType = (localStorage.getItem('isblade.char_type') || 'fighter').toLowerCase();
+  if(charType === 'fighter' || charType === 'starter') charType = 'human_fighter';
+
+  var chestIt = window.INV && INV.equip && INV.equip.chest && findItem(INV.equip.chest);
+  var chestB = chestIt && baseOf(chestIt.base);
+  var grau = (chestB && chestB.grau) || 'sem';
+  if(grau === 'sem' && window.INV && INV.equip){
+    ['legs','gloves','boots'].forEach(function(slot){
+      if(grau !== 'sem') return;
+      var it = INV.equip[slot] && findItem(INV.equip[slot]);
+      var b = it && baseOf(it.base);
+      if(b && b.grau) grau = b.grau;
+    });
+  }
+
+  var targetUrl = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(charType, grau)) || null;
+  if(!targetUrl) return;
+  if(vrm._currentGlbUrl === targetUrl) return;
+  if(window._loadingArmorModel) return;
+  window._loadingArmorModel = true;
+
+  var swdColor = {blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff};
+  var oldRoot = vrm.root;
+  var oldDrvName = (vrm.drv && vrm.drv.curName) || 'idle';
+
+  loadL2Player(targetUrl, swdColor, function(newRig){
+    window._loadingArmorModel = false;
+    newRig._currentGlbUrl = targetUrl;
+    newRig._currentArmorGrau = grau;
+    newRig.charType = charType;
+
+    if(oldRoot && oldRoot.parent){
+      oldRoot.parent.remove(oldRoot);
+    }
+    player.add(newRig.root);
+    vrm = newRig;
+    window.vrm = newRig;
+
+    if(window.Guardiao && Guardiao.anexarClipes) Guardiao.anexarClipes(vrm, THREE);
+
+    var savedHairStyle = localStorage.getItem('isblade.hair_style') || 'both';
+    var savedHairColor = localStorage.getItem('isblade.hair_color') || '#ffffff';
+    applyHair(vrm.root, savedHairStyle, savedHairColor);
+
+    applyWeaponVis(vrm);
+    var w = findItem(INV.equip.weapon);
+    var sh = findItem(INV.equip.shield);
+    if(window.ArmaGrau){
+      ArmaGrau.aplica(vrm, w && baseOf(w.base), attachL2Item, sh && baseOf(sh.base));
+      ArmaGrau.aplicaArmadura(vrm, INV.equip, baseOf, findItem);
+    }
+
+    vrm.drv = { mixer: new THREE.AnimationMixer(vrm.root), actions: {}, cur: null, curName: '', hold: 0 };
+    playClip(vrm, oldDrvName || 'idle', { fade: 0.1 });
+    if(onFinish) onFinish();
+  });
+};
 
 window._doSwitchCharacter = switchCharacter;
 

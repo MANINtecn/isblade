@@ -4035,193 +4035,41 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Claude] 14/11/2026 - Balanco do combate: basico abaixo das skills, conjuracao do mago/clerigo e mobs que revidam
-- Medido: o bonus do combo era SOMADO e depois multiplicado por 3 (com soulshot sempre ativo). Espada: 1o golpe ~34, 2o ~97, 3o ~226, combo secreto ~830, contra skill de 60-135 com recarga. Alem disso todo golpe basico cancelava o ataque do mob e empurrava 0,45 m, por isso o mob nunca revidava. Mago/clerigo: CastShort a 1,5x e cortado logo apos o impacto (~0,35 s por conjuracao).
-- Feito (arena.html e cidade.html, backup .antes_balanco): combo +10% por nivel e bonus do combo em %; basico fica ~34 / ~43 / ~72 (secreto ~190) e as skills valem 2-3x um golpe basico. Conjuracao do basico do mago/clerigo em 1x ate o fim do clipe, e o proximo basico so sai quando ela termina (skill ainda cancela). So skill interrompe o ataque do mob e empurra; o basico nao.
-- Falta testar no jogo: sensacao da conjuracao (ajustar sp em getClipConfig se ficar lenta demais) e dano dos mobs agora que eles acertam.
-- Soulshot nas skills: as de 1 golpe, projetil e area ja recebiam o +25%; as de varios golpes (Furia do Dragao, Redemoinho de Aco, Arremesso do Escudo) nao, porque a lista de golpes ignorava o bonus. Corrigido (an.ssMul). Backup .antes_ss_skills. Obs.: o estoque de SS e forcado em 5000 no ssTiro (sempre ativo) e o bonus e +25% (L2 = 2x).
+### [Claude] 14/11/2026 - Baium do duelo sem raios, sem aviso e sempre com a animacao do soco
+- Causa 1 (raios): o servidor mandava o raio como `{ t:'dg', k:'bolt', x, z, t }`; o 2o `t` (atraso) apagava o `t:'dg'`, entao o cliente nunca reconhecia a mensagem. O dano do raio chegava (mdmg), o visual nao. O lider da DG em grupo tinha o mesmo problema ao repassar (Net.dg trocava o atraso pelo tipo).
+- Causa 2 (aviso/animacao): com o chefe no servidor o cliente nao rodava `startAttack`, entao a chave do golpe (`atk.key`) ficava vazia: sem banner "BAIUM: ...", sem som de preparo e animacao sempre do soco.
+- Feito: campo do atraso virou `ms` (servidor/server.js, baium.js, arena.html); `grpBossSnap` grava `A0.key` e chama `bossAnuncia` (aviso + som, separado de `startAttack`) no windup.
+- Testado no duelo com servidor local: tempestade solta os 6 raios (circulo runico + descarga), pisao/martelo com rachadura e espinhos, aviso aparece.
 
-### [Antigravity] 14/11/2026 - Correção Definitiva do Hover no MenuWnd e Novos Atalhos Oficiais (O = Opções, C = Character, X = Ações/Party)
+### [Claude] 14/11/2026 - Numero de dano so aparecia no espantalho
+- Causa: na cidade/mundo aberto (cidade.html `damageMob`) todo mob do servidor (`m.srv`: Talking Island e chefes de campo) mandava o golpe (Net.mhit) e saia da funcao ANTES do `DanoTela.num`. O espantalho e o Baium usam outro caminho (applyHit), por isso funcionavam. Na arena (DG/mapas) os mobs ja mostravam.
+- PvP: o dano em outro jogador ainda usava o texto antigo (floatText) em js/net.js.
+- Feito (backup .antes_dano_mobs): mob do servidor mostra o numero (amarelo / azul no critico, "FRAQUEZA" no atordoado); dano em outro jogador agora no modelo Cabal (com "BLOQUEOU").
+- Testado: damageMob extraido da cidade.html com mob do servidor simulado -> antes so mhit, agora mhit + numero.
 
-- **Demandas do Usuário**:
-  1. Letra `O`: Abre diretamente as opções / menu de configurações (`#cfg`).
-  2. Letra `C`: Abre a tela de Character Status (atributos e ficha da personagem).
-  3. Letra `X`: Abre o Menu de Ações (party, trade, duelo, clã, etc.).
-  4. Correção do Hover nos ícones do MenuWnd (o 3º botão encolhia ao passar o mouse em cima).
-- **Diagnóstico e Resolução Técnica**:
-  - **Hover do MenuWnd**:
-    - *Causa*: O CSS anterior alterava a regra de `background-image` para `menubuttonX_over.png` no `:hover`. Por falta de cache query, o navegador do usuário carregava uma versão antiga com canvas de 64x64px, fazendo a arte encolher para 18px.
-    - *Correção*: Eliminada a dependência de troca de textura de arquivo no hover. O CSS agora aplica `filter: brightness(1.3) drop-shadow(0 0 5px rgba(255, 209, 102, 0.6)) !important;` mantendo `background-size: 36px 36px !important;`. O hover é instantâneo, luminoso, sem delay e os ícones nunca mudam de tamanho.
-  - **Mapeamento de Teclas Globais**:
-    - Em `arena.html`, `cidade.html` e `prototipo/js/l2_hud.js`:
-      - **`O`**: Abre/fecha o menu de configurações e opções do jogo (`#cfg`).
-      - **`C`**: Abre/fecha a janela de Status do Personagem (`Status.toggle()`).
-      - **`X`**: Abre/fecha o Menu de Ações (`Net.alterna()` com suporte a Party, Trade, Duelo, etc.).
-    - Botões do MenuWnd atualizados com tooltips correspondentes:
-      - Botão 1: `Status do Personagem (C)`
-      - Botão 2: `Inventário (I)`
-      - Botão 3: `Menu de Ações / Party (X)`
-      - Botão 4: `Opções e Configurações (O)`
-  - **Validação Visual**:
-    - Validação de hover gravada em [preview_l2_menu_hover_focus.png](file:///c:/TECX%20SOFTHOUSE/IS%20ONLINE/prototipo/preview_l2_menu_hover_focus.png).
-    - Cache query de CSS e JS incrementada para `v=37` em `arena.html`, `cidade.html`, `preview_l2_interface.html` e `mu_hud.js`.
-
-### [Claude] 14/11/2026 - Dano na tela modelo Cabal + soulshot fora das skills + extracao do SS original do L2
-- Novo js/dano_tela.js (DanoTela.num), usado em arena.html e cidade.html (backup .antes_dano_tela): normal amarelo, critico azul (hoje = golpe PERFEITO; nao existe sistema de critico), dano recebido vermelho, pilha por alvo, sem total. Fonte provisoria Teko 600 (OFL) em assets/fonts/teko600.woff2. Previa: preview_dano_tela.html. Sai no instante do golpe (applyHit/hitList).
-- Skills nao mostram mais o soulshot (brilho, faisca e estouro); o bonus de dano continua.
-- SS original extraido: lineageeffect.u (Ver111 = XOR 0xAC) -> classes it_soul_shot_d_ca (4 emissores: Glow fx_m_t0000 quadros 7-8 x6 em anel r=5 girando 1 s; Spirits malha spirit_gun00/fx_m_t0084 x3; estouro skill_power01/fx_m_t0050 x5 0,4 s; flash fx_m_t0056 0,5 s) e it_spirit_shot_d_ca (+ circulos fx_m_t0060/fx_m_t0116). Texturas em trabalho_l2fx/export_ss. Parsers em trabalho_l2fx/ferramentas (dec.py descriptografa; ue.py lista; props2.py le os emissores: python props2.py ue.py pacote.dec <indice>). PENDENTE: o Glow e o flash sao ANEIS (conflito com a regra de evitar redondo) - aguardando o dono decidir antes de montar na mao.
-
-### [Antigravity] 14/11/2026 - Janelas Móveis e Arrastáveis do Lineage 2 Interlude (Barra de HP, Inventário e Janela de Skills)
+### [Antigravity] 14/11/2026 - Sets de Armadura com Geometria 3D Real do Lineage 2 (D, C, B, A)
 
 - **Demanda do Usuário**:
-  - Tornar o Inventário (`#inv`), a Janela de Skills (`#skp`) e a Barra de HP / Status do Jogador (`#l2-status-wnd`) completamente móveis e arrastáveis pela tela.
-- **Implementação do Módulo `L2Drag` (`prototipo/js/l2_hud.js`)**:
-  - Sistema universal de arraste baseado em Pointer Events (`pointerdown`, `pointermove`, `pointerup` / `pointercancel`), funcionando tanto com mouse de PC quanto com toque em celular/tablet (`setPointerCapture`).
-  - **Handles de Arraste Inteligentes**:
-    - **Barra de HP / Status (`#l2-status-wnd`)**: Toda a área da janela atua como handle (`cursor: grab / grabbing`), sem conflito com textos de nome ou nível.
-    - **Inventário (`#inv`)**: Arrastável pela barra de título superior (`.l2-inv-title` e área de topo). Cliques nos botões de fechar, abas, slots de itens e botões internos NÃO disparam o arraste. Não interfere no Drag & Drop de itens para a barra de atalhos.
-    - **Janela de Skills (`#skp`)**: Arrastável pela barra de título superior (`.l2-sk-title` e área de topo). Cliques em abas, botão fechar e na lista de skills NÃO disparam o arraste. Não interfere no Drag & Drop de habilidades para a barra de atalhos.
-  - **Z-Index Dinâmico**: Ao clicar ou tocar em qualquer uma das três janelas, ela sobe para o topo (`bringWindowToFront`).
-  - **Limites da Viewport (Clamping)**: As janelas não se perdem fora da tela (respeitam margens da tela e se adaptam dinamicamente a `resize`).
-  - **Abertura Concorrente**: Removido o fechamento mútuo entre Inventário e Janela de Skills em `arena.html` e `cidade.html`, permitindo ao jogador manter ambas abertas ao mesmo tempo em lados opostos da tela, igual ao Lineage 2 original.
-  - **Persistência Completa**: As coordenadas `(x, y)` de cada janela são salvas no `localStorage` (`isblade.pos_l2_status`, `isblade.pos_l2_skp`, `isblade.pos_l2_inv`) e restauradas automaticamente ao recarregar a página.
-- **Testes Automatizados e Validação Visual**:
-  - Validado via Playwright Headless Chrome com teste de arraste simultâneo das 3 janelas, persistência em `localStorage` e recarregamento da página.
-  - Screenshot oficial salva em `preview_l2_janelas_moveis.png`.
-  - Cache query incrementada para `v=38` em `css/l2_hud.css`, `js/l2_hud.js`, `js/inventario_ui.js` e `js/skills_ui.js`.
-
-### [Claude] 14/11/2026 - Soulshot/Spiritshot ORIGINAL do L2 na mao (com os aneis, decisao do dono)
-- Dono decidiu: fiel ao L2, com os aneis ("dar o braco a torcer" quando a fidelidade pede). Excecao a regra de evitar redondo SO para o SS original.
-- js/ss_l2.js: recria it_soul_shot_d_ca (Glow x6 em anel, Spirits spirit_gun00, Ignicao skill_power01, Flash fx_m_t0056) e it_spirit_shot_d_ca (+ MC/MC2) com os numeros do cliente; SSL2.disparar segue o osso Bip01_R_Hand; escala = escala de mundo do osso (unidade L2 -> metro), reserva 0,04; no maximo 3 ao mesmo tempo. Assets em prototipo/assets/fx/ss_l2 (texturas reduzidas + malhas em JSON; conversor trabalho_l2fx/ferramentas/pskx2json.py). Previa: preview_ss_l2.html.
-
-### [Antigravity] 14/11/2026 - Itens Equipáveis Fiéis ao Lineage 2 Interlude, Sets D/C/B/A e Renderização 3D no Corpo
-
-- **Demanda do Usuário**:
-  - Os itens não equipavam e ficavam travados na mochila do inventário.
-  - Devem ser fiéis ao L2: vão para os slots corretos da Paperdoll e saem da grade da mochila.
-  - Renderizar no corpo 3D dos jogadores.
-  - Implementar Sets D-Grade, C-Grade, B-Grade e A-Grade funcionando exatamente como no L2.
-- **Diagnóstico e Correções Técnicas**:
-  - **Correção da Paperdoll e Mochila (`prototipo/js/inventario_ui.js`)**:
-    - *Causa*: `eqUid` tentava ler `.uid` em strings diretas do mapa de equipamentos, gerando `undefined`.
-    - *Solução*: Normalização universal de `eqUid` para ler tanto strings de UID quanto objetos `{uid}`.
-    - *Mecânica L2*: Quando um item é equipado, ele é imediatamente removido da lista `bagItens` da mochila e desenhado na Paperdoll. Ao ser desequipado, volta para a mochila.
-    - *Duplo clique nativo (`ondblclick`)*: Dois cliques equipam da bolsa ou desequipam da Paperdoll instantaneamente.
-  - **Sets Oficiais L2 (`prototipo/data/itens.json` e `servidor/inventario.js`)**:
-    - Adicionados os graus **B** (Nv 52) e **A** (Nv 61).
-    - Cadastrados Sets completos:
-      - **D-Grade**: Brigandine Heavy Set (Elmo, Túnica, Calça, Luvas, Botas, Escudo; +15% HP, +8% Defesa).
-      - **C-Grade**: Full Plate Heavy Set (Elmo, Peitoral, Luvas, Botas, Escudo; +20% HP, +10% Defesa).
-      - **B-Grade**: Doom Plate Heavy Set (Elmo, Armadura, Luvas, Botas, Escudo; +25% HP, +12% Defesa).
-      - **A-Grade**: Tallum Heavy Set (Elmo, Armadura, Luvas, Botas, Escudo; +28% HP, +15% Dano, +14% Defesa).
-  - **Renderização Visual 3D no Corpo (`prototipo/js/arma_grau.js`)**:
-    - Criada `ArmaGrau.aplicaArmadura(rig, equip, baseOf, findItem)`.
-    - Mapeamento dinâmico nos nós de malha do corpo: `Chest`, `Legs`, `Gloves` e `Boots`.
-    - Troca em tempo real das texturas oficiais do L2 para cada grau (`m001` para D, `m002` para C, `m012` para B, `m013` para A) com retorno à No-Grade ao desequipar.
-    - Suporte a encaixe de armas e escudos nas mãos (`Weapon_R_Bone` e `Shield_L_Bone`).
-  - **Testes Automatizados (Playwright)**:
-    - Teste de equipar/desequipar validado em navegador real (screenshot: `preview_l2_itens_equipados.png`).
-    - Cache query incrementada para `v=39` em `arena.html`, `cidade.html` e `preview_l2_movel.html`.
-- ssTiro (arena/cidade): o brilho generico (arma pintada de ciano via Brilho.soulshot) saiu; agora dispara o SS L2 na mao. So no ataque basico (skills sem SS visual).
-- Correcao em producao: o commit fff5feb levou arena/cidade chamando DanoTela sem o js/dano_tela.js (dano em mob quebrava). Este commit sobe dano_tela.js + fonte.
-- Atencao: o DIARIO em disco foi sobrescrito 2x por versao antiga (editor com buffer velho); restaurado do HEAD.
-
-### [Claude] 14/11/2026 - Sem nome da skill no dano; barra de CP nao cai mais no ataque
-- Dano na tela: o rotulo em cima do numero (chefe/boneco de treino) trazia o NOME DA SKILL; agora so os avisos de estado (FRAQUEZA, ATORDOADA, AEREO). arena/cidade: tag=an.skill.name -> tag=vazio.
-- CP: a barra de CP do HUD L2 (js/l2_hud.js) lia S.gauge, que e a GUARDA DO INIMIGO (cai a cada golpe ate GUARDA QUEBRADA) - por isso parecia consumir CP no ataque basico. O personagem ainda nao tem CP: barra fica cheia (100) ate existir o sistema. Cache: l2_hud v39, mu_hud v31.
-- DIARIO sobrescrito pela 3a vez por versao velha em disco; restaurado do HEAD.
-
-### [Claude] 14/11/2026 - Soulshot na mao tambem nas skills (sem efeito no alvo)
-- Pedido do dono: skill mostra o SS original do L2 na mao (e o som de carga), uma vez por skill; o estouro azul no alvo continua so no ataque basico. ssTiro em arena/cidade: tirada a trava if(!an.skill) do disparo na mao.
-
-### [Antigravity] 14/11/2026 - Calibração Métrica da Escala de Todos os NPCs da Cidade (Clarissa, Altran, Galladucci, Wilford e Mammon)
-- **Problema Relatado**:
-  - A Gatekeeper Clarissa (e os NPCs nativos adicionados à Talking Island) estavam com tamanho visual reduzido em relação aos personagens dos jogadores (Clarissa com 1.77m batendo no peito da Elfa jogadora de 2.29m).
-- **Causa Raiz Identificada**:
-  - Os modelos exportados do L2 tinham alturas calibradas para 1.75m / 1.35m em unidade física humana real pelo Blender, enquanto o mundo do jogo e os personagens jogáveis usam a proporção métrica clássica do Lineage 2 onde humanos/elfos adultos medem `~2.25m` a `2.30m` (`targetH = 2.25 / 42.78`).
-  - No `l2_npcs.js`, `loadNpc` usava escala fixa `1.0` sem calcular a razão com `targetH`.
-- **Implementação e Correções**:
-  - `prototipo/js/l2_npcs.js`:
-    - Adicionado cálculo dinâmico de escala métrica via `Box3`: `var s = config.targetH / modelH; model.scale.set(s, s, s)`.
-    - Alinhamento milimétrico da base dos pés ao solo e compensação de pedestal: `model.position.y = (-box.min.y * s) + (config.pedestalY || 0)`.
-    - Alturas calibradas em proporção exata 1:1 com os personagens do Lineage 2:
-      - **Gatekeeper Clarissa**: `targetH = 2.22m` + pedestal rúnico de `0.08m` (topo em 2.30m, alinhada face a face com a elfa), `nameY = 2.58m`. Pedestal e círculo rúnico expandidos para acomodar a saia larga.
-      - **Ferreiro Altran**: `targetH = 1.68m` (anão musculoso robusto com bigorna proporcional), `nameY = 2.05m`.
-      - **Mercador Galladucci**: `targetH = 2.28m` (humano adulto nobre), balcão comercial elevado para altura de cintura de 2.28m, `nameY = 2.65m`.
-      - **Armazém Wilford**: `targetH = 1.68m` (anão veterano com balcão proporcional), `nameY = 2.05m`.
-      - **Mercador dos Selos Mammon**: `targetH = 1.85m` (místico dos Sete Selos com tapete expandido), `nameY = 2.25m`.
-  - `prototipo/cidade.html`: Cache do script atualizado para `l2_npcs.js?v=5`.
-  - `prototipo/preview_npcs_l2.html`: Atualizado para renderizar todos os NPCs com a escala oficial L2.
+  - A armadura estava parecendo apenas uma textura pintada colada no corpo do personagem (bodysuit/biquíni), sem volume tridimensional como nos concorrentes e no Lineage 2 original.
+- **Implementação e Extração de Malhas Oficiais**:
+  - Extraídas as malhas esqueléticas 3D (.psk) autênticas do cliente oficial Interlude (`Elf.ukx`) via UModel:
+    - **Grau D (Brigandine)**: `FElf_m001_u`, `FElf_m001_l`, `FElf_m001_g`, `FElf_m001_b` com textura oficial `FElf_m001_t01_*`.
+    - **Grau C (Full Plate)**: `FElf_m002_u`, `FElf_m002_l`, `FElf_m002_g`, `FElf_m002_b` com textura oficial `FElf_m002_t1001_*`.
+    - **Grau B (Doom Plate)**: `FElf_m007_u`, `FElf_m007_l`, `FElf_m007_g`, `FElf_m007_b` com textura oficial `FElf_m011_t1004_*`.
+    - **Grau A (Tallum Heavy)**: `FElf_m008_u`, `FElf_m007_l`, `FElf_m008_g`, `FElf_m007_b` com textura oficial `FElf_m008_t1005_*`.
+  - Construídos 4 modelos GLB dedicados via Blender 5.1 (`build_elf_armors.py`):
+    - `prototipo/assets/personagens/elf_f_brigandine.glb` (2.02 MB) - Ombreiras e peitoral volumétricos, saia de couro articulada e botas de cano alto.
+    - `prototipo/assets/personagens/elf_f_fullplate.glb` (2.20 MB) - Ombreiras maciças de aço polido, couraça curva em relevo, saia de placas azul/ouro e grevas pesadas.
+    - `prototipo/assets/personagens/elf_f_doom.glb` (1.98 MB) - Estilo gótico de placas escuras cromadas com abas salientes nas laterais.
+    - `prototipo/assets/personagens/elf_f_tallum.glb` (1.79 MB) - Ombreiras aladas com insígnia rubi, couraça nobre e grevas com joelheiras de asa.
+  - Preservados rig esquelético de 70 ossos (Bip01), grupos de vértices originais e as 13 ações/animações de combate e locomoção.
+- **Motor e Troca em Tempo Real no Three.js**:
+  - `prototipo/js/arma_grau.js`: Adicionado mapeamento `ArmaGrau.SET_3D_MODELS` e método `ArmaGrau.obterModelo3D(race, grau)`.
+  - `prototipo/cidade.html` e `prototipo/arena.html`:
+    - Criada a função `window.atualizaModeloArmadura3D` conectada ao ciclo de inventário (`armaGrau()`), que carrega e substitui o modelo 3D dinamicamente sem resetar posição, mantendo espada na mão direita, escudo na mão esquerda, customização de cabelos e AnimationMixer ativo.
+    - Atualizado `switchCharacter` para carregar imediatamente a armadura 3D correta ao entrar no jogo ou trocar de classe.
+  - Correção de resiliência em `cidade.html`: Proteção contra `INV.equip.weapon` vazio em inicialização limpa.
 - **Validação**:
-  - Capturas e testes comparativos validados (`preview_render_comparativo.png` e `preview_todos_npcs.png`).
+  - Testado e capturado em tempo real no servidor local com Playwright na cidade de Talking Island e no visualizador 3D:
+    - `cidade_elfa_set_d.png`, `cidade_elfa_set_c.png`, `cidade_elfa_set_b.png`, `cidade_elfa_set_a.png`.
 
-### [Claude] 14/11/2026 - Critico de verdade (numero azul modelo Cabal)
-- Antes o azul so saia no golpe PERFEITO, que exige desenhar o golpe (gesto q>=0,72); clique/tecla entram com q=0,5, entao nunca saia azul e skill nunca critava.
-- Agora (decisao do dono): 10% de chance, x1,5, sorteado A CADA GOLPE (basico, skills, projeteis, areas; mobs e chefe), numero azul. Valores em data/combate.json -> player.critChance / critMult (tambem no painel F2). Golpes de outros jogadores do grupo (dome) ja chegam calculados. Backup .antes_critico. Depois: itens com chance de critico extra.
-
-### [Antigravity] 14/11/2026 - Correção da Tecla 'O' (Opções/Configurações), Escape e Janela Móvel de Configurações
-- **Problema Relatado**:
-  - Pressionar a letra 'O' (Opções) no teclado não abria a janela de configurações do jogo.
-- **Causa Raiz Identificada**:
-  - Conflito de múltiplos listeners globais de `keydown` no `window`: tanto o `js/l2_hud.js` quanto o script interno de `cidade.html`/`arena.html` tratavam a tecla 'O' chamando `cfgBtn.click()`.
-  - Como o primeiro listener não executava `e.stopImmediatePropagation()`, o evento continuava e o segundo listener disparava outro `cfgBtn.click()` na mesma fração de milissegundo.
-  - O método `box.classList.toggle('open')` era chamado duas vezes consecutivas: adicionava a classe `open` e imediatamente a removia, fazendo com que a janela nunca permanecesse aberta.
-- **Implementação e Correções**:
-  - Criada função canônica e unificada `window.toggleCfg(force)` em `cidade.html` e `arena.html`.
-  - Em `js/l2_hud.js`:
-    - Tratamento de `kLow === 'o'` com `e.preventDefault()`, `e.stopImmediatePropagation()` e chamada direta a `window.toggleCfg()`.
-    - Adicionado suporte a fechar a janela ao pressionar `Escape`.
-    - Adicionado botão de fechar clássico `✕` (`#cfgCloseBtn`) no cabeçalho de `#cfg`.
-    - Adicionado suporte a movimentação/arrasto da janela `#cfg` via `L2Drag` (`bindTarget('cfg')`).
-  - Cache atualizado para `l2_hud.js?v=40` e `mu_hud.js?v=32`.
-- **Validação Automatizada**:
-  - Teste automatizado com Playwright (`teste_tecla_o.py`) validou:
-    1. Abertura ao pressionar 'o'.
-    2. Fechamento ao pressionar 'Escape'.
-    3. Reabertura ao pressionar 'o' novamente.
-    4. Fechamento ao clicar no botão 'X'.
-    5. Abertura ao clicar no ícone de engrenagem do rodapé (`#l2BtnSys`).
-
-### [Antigravity] 14/11/2026 - Desativação dos NPCs Andarilhos da Cidade (Moradores) e Preservação da IA Autônoma SextaFeira
-- **Pedido do Usuário**:
-  - Desativar completamente os NPCs andarilhos na cidade e manter apenas a **SextaFeira**, que é uma IA independente e autônoma.
-- **Análise Arquitetural**:
-  - *NPCs Andarilhos*: eram os 6 "Moradores de Talking Island" simulados por `servidor/moradores.js` e renderizados por `prototipo/js/moradores.js` (Guarda Tomas, aprendiz, etc.), que geravam rotas A* pela praça com balões de conversa.
-  - *NPCs Oficiais do L2*: são os 5 NPCs fixos com display e diálogo nativo do Lineage 2 (`prototipo/js/l2_npcs.js`): Clarissa, Altran, Galladucci, Wilford e Mammon (mantidos 100% ativos e com escalas oficiais).
-  - *SextaFeira*: é um processo de IA de jogador real (`servidor/ia_jogador.js`, conta `ia_sextafeira`, personagem `SextaFeira`) configurado em `servidor/ia_config.json` (`ligada: true, qtd: 1`). Ela conecta via WebSocket ao servidor como jogadora comum, caça em Cruma, conversa no chat e evolui autonomamente.
-- **Implementação**:
-  - `servidor/moradores.js`:
-    - Adicionada flag `ATIVO = false` para desativar a simulação e instanciamento dos moradores andarilhos.
-    - `cria()` retorna stubs seguros com `snap: () => []`, `info: () => []`, `tick: () => {}`, `conversa: async () => null`.
-    - Elimina completamente o tráfego de rede e CPU de simulação de rotas sem quebrar o `server.js`.
-  - `prototipo/js/moradores.js`:
-    - Adicionada flag `ATIVO = false` com stubs seguros para todos os métodos de `window.Moradores` (`init`, `info`, `snap`, `fala`, `tick`, `perto`, `lista`, `interage`, `fecha`, `aberta`).
-    - Nenhuma malha 3D ou sprite de morador andarilho é carregado no cliente.
-  - `servidor/ia_config.json`:
-    - Mantida `"ligada": true, "qtd": 1`, garantindo que a **SextaFeira** permaneça ativa e independente.
-- **Validação**:
-  - Módulos validados via Node.js: `moradores.js` retornando `snap: []`, `info: []` e sintaxe 100% funcional.
-
-### [Antigravity] 14/11/2026 - Correção da Renderização de Sets de Armadura (D, C, B, A) e Suporte Multiraça
-- **Problema Relatado**:
-  - Personagem feminina (Elfa Branca `elf_f`) aparecia com um "bodysuit preto" colado no corpo e as armaduras dos sets não renderizavam.
-- **Causa Raiz Identificada**:
-  - O arquivo `prototipo/js/arma_grau.js` utilizava uma tabela fixa com caminhos exclusivos de `MFighter` (Humano Guerreiro Masculino).
-  - Ao carregar uma personagem como a Elfa, o código sobrescrevia os materiais com as texturas masculinas. Devido à incompatibilidade de UV e áreas com alfa transparente/nulo, a malha resultava em um corpo inteiramente preto.
-  - Além disso, quando desequipado (`grau: 'sem'`), em vez de restaurar a textura nativa do modelo GLB (roupa íntima/biquíni original), ele forçava a textura do MFighter.
-  - O Three.js interpretava o canal alfa especular (`_sp.png`) como transparência/opacidade se `mat.transparent` não estivesse explicitamente como `false`.
-- **Implementação e Correções**:
-  - `prototipo/js/arma_grau.js`:
-    - Implementada função de detecção dinâmica e precisa de raça `detectRace(rig)` cobrindo as 12 raças do L2 (`elf_f`, `human_fighter`, `human_fighter_female`, `elf_m`, `darkelf_f`, `darkelf_m`, `dwarf_f`, `dwarf_m`, `orc_f`, `orc_m`, `magic_f`, `magic_m`).
-    - Criada tabela completa `RACE_TEXTURES` com caminhos reais de texturas extraídas do Lineage 2 Interlude para todos os graus (D: Brigandine, C: Full Plate, B: Doom, A: Tallum).
-    - Preservação do mapa original (`mat._origMap = mat.map`): restaura a roupa íntima nativa perfeitamente ao desequipar qualquer peça ou conjunto.
-    - Calibração de materiais no Three.js: `mat.transparent = false`, `mat.alphaTest = 0`, `mat.opacity = 1.0`, `mat.depthWrite = true` e codificação sRGB.
-  - Cache de versão atualizado para `arma_grau.js?v=40` em `cidade.html` e `arena.html`.
-- **Validação**:
-  - Criado ambiente de teste `prototipo/preview_l2_sets.html` e executada validação automatizada via Playwright.
-  - Comprovada restauração do visual nativo e renderização perfeita dos Sets D, C, B e A na Elfa Branca:
-    - Nativo: Roupa íntima de renda branca original restaurada (`preview_l2_elfa_nativo.png`).
-    - Grau D: Brigandine com peitoral e manoplas (`preview_l2_elfa_set_d.png`).
-    - Grau C: Full Plate azul metálico com detalhes dourados (`preview_l2_elfa_set_c.png`).
-    - Grau B: Doom Plate cromado escuro (`preview_l2_elfa_set_b.png`).
-    - Grau A: Tallum nobre com detalhes de seda e ouro (`preview_l2_elfa_set_a.png`).
