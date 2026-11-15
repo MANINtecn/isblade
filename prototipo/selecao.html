@@ -54,6 +54,47 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
 
 .top-actions { display:flex; gap:12px; pointer-events:auto; }
 
+/* Account Pill */
+.account-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(11, 14, 22, 0.88);
+  border: 1px solid rgba(229, 193, 88, 0.35);
+  border-radius: 20px;
+  padding: 4px 6px 4px 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+}
+.account-user {
+  font-size: 11px;
+  font-weight: 600;
+  color: #dfd8c8;
+}
+.account-user span {
+  color: var(--l2-gold);
+  font-weight: bold;
+}
+.l2-logout-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: bold;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.l2-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+/* Esconder chips e botões flutuantes que sobrepõem o lobby */
+#cntchip, #isPwaBtn { display: none !important; }
+
 /* L2 Buttons */
 .l2-btn, .btn-secondary {
   background: url('assets/ui/exported/L2UI_CH3/Texture/btn_normal.png') no-repeat center / 100% 100%;
@@ -92,44 +133,40 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
 .l2-btn-danger:hover, .btn-danger:hover { color: #ffcccc; filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5)); }
 
 /* Main Content */
-.main-content { display:flex; justify-content:space-between; align-items:stretch; flex:1; pointer-events:none; margin:10px 0; min-height:0; }
+.main-content { display:flex; justify-content:space-between; align-items:center; flex:1; pointer-events:none; margin:10px 0; min-height:0; }
 
 /* Left Panel - Hero Status */
 .left-panel {
-  width: 310px;
-  background: var(--l2-panel-bg);
-  border-style: solid;
-  border-width: 10px 7px 7px 7px;
-  border-image: url('assets/ui/exported/L2UI_CH3/Texture/l2_npc_window.png') 10 7 7 7 fill stretch;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.8);
+  width: 285px;
+  background: rgba(11, 14, 22, 0.9);
+  border: 1px solid rgba(229, 193, 88, 0.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.85), inset 0 0 16px rgba(0,0,0,0.6);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
   pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 8px 10px;
-  max-height: calc(100vh - 150px);
-  overflow-y: auto;
-  border-radius: 0;
+  padding: 12px 14px;
+  align-self: center;
 }
-.left-panel::-webkit-scrollbar { width: 5px; }
-.left-panel::-webkit-scrollbar-thumb { background: #3b3528; border-radius: 2px; }
 
 /* Right Panel - Character Slots */
 .right-panel {
-  width: 300px;
-  background: var(--l2-panel-bg);
-  border-style: solid;
-  border-width: 10px 7px 7px 7px;
-  border-image: url('assets/ui/exported/L2UI_CH3/Texture/l2_npc_window.png') 10 7 7 7 fill stretch;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.8);
+  width: 310px;
+  background: rgba(11, 14, 22, 0.9);
+  border: 1px solid rgba(229, 193, 88, 0.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.85), inset 0 0 16px rgba(0,0,0,0.6);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
   pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 8px 10px;
-  max-height: calc(100vh - 150px);
+  padding: 12px 14px;
+  align-self: center;
+  max-height: calc(100vh - 140px);
   overflow-y: auto;
-  border-radius: 0;
 }
 .right-panel::-webkit-scrollbar { width: 5px; }
 .right-panel::-webkit-scrollbar-thumb { background: #3b3528; border-radius: 2px; }
@@ -137,7 +174,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
 /* Header titles inside panels */
 .l2-panel-header, .section-title {
   font-family: 'Tahoma', Arial, sans-serif;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: bold;
   color: var(--l2-gold);
   letter-spacing: 0.05em;
@@ -156,23 +193,30 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   flex-direction: column;
   gap: 2px;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(229, 193, 88, 0.2);
 }
 .hero-name {
   font-family: 'Cinzel', 'Tahoma', serif;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 900;
   color: var(--l2-gold-bright);
   letter-spacing: 0.05em;
   text-shadow: 0 0 12px var(--l2-gold-glow), 0 2px 4px #000;
 }
-.hero-title {
+.hero-subline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
+}
+.hero-title {
   font-weight: bold;
   color: #72a4d9;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.hero-bullet { color: #555; font-size: 8px; }
+.hero-race { color: #c2baa8; font-weight: 500; }
 .hero-meta {
   display: flex;
   gap: 8px;
@@ -190,6 +234,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   font-weight: bold;
   font-size: 10px;
 }
+.hero-loc { color: #8e8779; }
 
 /* L2 Status Bars (CP, HP, MP, EXP) */
 .l2-gauges {
@@ -298,10 +343,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
 }
 
 /* Slots List */
-.slot-list { display: flex; flex-direction: column; gap: 6px; }
+.slot-list { display: flex; flex-direction: column; gap: 8px; }
 .slot-card {
-  background: url('assets/ui/exported/L2UI_CH3/Texture/l2_lobby_slot_back.png') no-repeat center / 100% 100%;
-  border: 1px solid rgba(110, 100, 80, 0.45);
+  background: rgba(14, 18, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
   padding: 8px 10px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -309,18 +355,29 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 56px;
-  border-radius: 0;
+  min-height: 52px;
+  backdrop-filter: blur(8px);
 }
 .slot-card:hover {
-  border-color: rgba(229, 193, 88, 0.7);
-  filter: brightness(1.1);
-  transform: none;
+  background: rgba(24, 30, 44, 0.9);
+  border-color: rgba(229, 193, 88, 0.5);
+  transform: translateX(-2px);
 }
 .slot-card.active {
+  background: linear-gradient(90deg, rgba(46, 36, 18, 0.92) 0%, rgba(20, 25, 36, 0.92) 100%);
   border: 1.5px solid var(--l2-gold);
-  box-shadow: inset 0 0 10px rgba(229, 193, 88, 0.45), 0 0 14px rgba(229, 193, 88, 0.55);
-  transform: none;
+  box-shadow: inset 0 0 10px rgba(229, 193, 88, 0.25), 0 0 14px rgba(229, 193, 88, 0.35);
+}
+.slot-card.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--l2-gold);
+  border-radius: 6px 0 0 6px;
+  box-shadow: 0 0 8px var(--l2-gold);
 }
 .slot-icon {
   width: 34px;
@@ -332,43 +389,57 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   justify-content: center;
   font-size: 16px;
   flex-shrink: 0;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 .slot-card.active .slot-icon {
   border-color: var(--l2-gold);
-  box-shadow: 0 0 6px var(--l2-gold-glow);
+  box-shadow: 0 0 8px var(--l2-gold-glow);
 }
-.slot-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.slot-info { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+.slot-row-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .slot-name {
   font-family: 'Cinzel', 'Tahoma', serif;
-  font-size: 13px;
-  font-weight: bold;
+  font-size: 13.5px;
+  font-weight: 700;
   color: #dfd8c8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.02em;
 }
 .slot-card.active .slot-name {
   color: var(--l2-gold-bright);
   text-shadow: 0 0 8px var(--l2-gold-glow);
 }
-.slot-class { font-size: 10px; color: #8e8779; margin-top: 1px; }
-.slot-tag { font-size: 9px; color: #5aa9ff; }
-
-.slot-actions { display: flex; gap: 4px; align-items: center; margin-left: auto; }
+.slot-badge {
+  background: rgba(229, 193, 88, 0.15);
+  border: 1px solid rgba(229, 193, 88, 0.35);
+  color: #ffe58f;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+.slot-row-bot { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #8e8779; }
+.slot-class { font-weight: 500; }
+.slot-sep { color: #555; font-size: 8px; }
+.slot-loc { color: #72a4d9; font-weight: 500; }
+.slot-actions { display: flex; gap: 4px; align-items: center; margin-left: auto; flex-shrink: 0; }
 .slot-action-btn {
   background: #11141c;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 3px;
   color: #c2baa8;
   cursor: pointer;
-  padding: 3px 5px;
+  padding: 3px 6px;
   font-size: 11px;
   transition: all .15s ease;
   pointer-events: auto;
 }
-.slot-action-btn:hover { background: #222938; border-color: var(--l2-gold); transform: scale(1.1); color: #ffffff; }
-.slot-action-btn.del:hover { background: #381515; border-color: #ef4444; }
+.slot-action-btn:hover { background: #222938; border-color: var(--l2-gold); transform: scale(1.08); color: #ffffff; }
+.slot-action-btn.del:hover { background: #381515; border-color: #ef4444; color: #fca5a5; }
 
 .slot-empty {
   background: rgba(14, 18, 26, 0.45);
@@ -384,13 +455,12 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 0;
+  border-radius: 6px;
 }
 .slot-empty:hover {
   border-color: var(--l2-gold);
   color: var(--l2-gold);
   background: rgba(229, 193, 88, 0.08);
-  transform: none;
 }
 
 /* Footer / Action Bar */
@@ -563,8 +633,8 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   .left-actions { gap:8px; }
   .btn-secondary { padding:8px 12px; font-size:10.5px; letter-spacing:0; min-height:42px; line-height:1.15; white-space:nowrap; }
   .enter-btn { padding:12px 28px; font-size:13px; letter-spacing:.1em; min-height:46px; white-space:nowrap; }
-  /* itens que o jogo coloca por cima (conta e tela cheia) saem de cima dos paineis e botoes */
-  #cntchip { bottom:auto !important; top:calc(8px + env(safe-area-inset-top)) !important; left:auto !important; right:calc(190px + env(safe-area-inset-right)) !important; }
+  /* itens que o jogo coloca por cima saem do lobby */
+  #cntchip, #isPwaBtn { display: none !important; }
   #mbfs { left:auto !important; top:calc(8px + env(safe-area-inset-top)) !important; right:calc(96px + env(safe-area-inset-right)) !important; }
 }
 @media (max-height:520px) and (orientation:landscape) and (max-width:700px) {
@@ -580,7 +650,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
 /* <<< CLAUDE [lobby-mobile] */
 /* >>> CLAUDE [lobby-limpo] 02/11/2026 - tela de toque no modelo, chip da conta no topo, lixeira so na lista, nomes sem corte */
 #canvas-wrap, #webgl { touch-action:none; }
-#cntchip { bottom:auto !important; top:12px !important; left:auto !important; right:14px !important; }
+#cntchip, #isPwaBtn { display: none !important; }
 .slot-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 @media (max-height:520px) and (orientation:landscape) {
   .right-panel { width:252px; }
@@ -655,7 +725,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
       </div>
     </div>
     <div class="top-actions">
-      <button class="l2-btn" onclick="Conta.sair()" title="Trocar de Conta"><span class="txt-d">🚪 Desconectar</span><span class="txt-m">Sair</span></button>
+      <div class="account-pill">
+        <span class="account-user">👤 <span id="accountUser">Jogador</span></span>
+        <button class="l2-logout-btn" onclick="Conta.sair()" title="Trocar de Conta">Sair</button>
+      </div>
     </div>
   </header>
 
@@ -665,11 +738,14 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
     <aside class="left-panel">
       <div class="hero-header">
         <div class="hero-name" id="heroName">Ícaro</div>
-        <div class="hero-title" id="heroTitle">Guerreiro de Aden</div>
+        <div class="hero-subline">
+          <span class="hero-title" id="heroTitle">Guardião</span>
+          <span class="hero-bullet">&bull;</span>
+          <span class="hero-race" id="heroRace">Humano Guerreiro</span>
+        </div>
         <div class="hero-meta">
           <span class="hero-level" id="heroLevel">Lv. 1</span>
-          <span id="heroRace">Humano Guerreiro</span>
-          <span id="heroLoc">&bull; Talking Island</span>
+          <span class="hero-loc" id="heroLoc">Talking Island</span>
         </div>
       </div>
 
@@ -709,30 +785,11 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
         <div class="attr-item"><span class="attr-label">MEN (Mentalidade)</span><span class="attr-num" id="l2-stat-men">25</span></div>
       </div>
 
-      <!-- Atributos Dinâmicos IS BLADE -->
-      <div class="l2-panel-header"><span class="l2-title-icon">◆</span> PROGRESSÃO <small id="heroPts" style="color:var(--l2-gold)">IS BLADE</small></div>
-      <div class="isblade-attr-box">
-        <div class="stat-row"><span class="stat-label">FORÇA</span><span class="stat-val" id="val-for">-</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-for" style="width:0"></div></div>
-
-        <div class="stat-row"><span class="stat-label">INTELIGÊNCIA</span><span class="stat-val" id="val-int">-</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-int" style="width:0"></div></div>
-
-        <div class="stat-row"><span class="stat-label">AGILIDADE</span><span class="stat-val" id="val-agi">-</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-agi" style="width:0"></div></div>
-
-        <div class="stat-row"><span class="stat-label">VITALIDADE</span><span class="stat-val" id="val-vit">-</span></div>
-        <div class="stat-bar"><div class="stat-fill" id="bar-vit" style="width:0"></div></div>
-      </div>
-
-      <div class="l2-panel-header"><span class="l2-title-icon">◆</span> EQUIPAMENTO</div>
+      <div class="l2-panel-header"><span class="l2-title-icon">◆</span> EQUIPAMENTO INICIAL</div>
       <div style="display:flex; flex-direction:column; gap:4px;">
         <div class="gear-badge" id="gearWeapon">⚔️ Dragon Slayer (Espada 2M)</div>
         <div class="gear-badge" id="gearSet">🛡️ Traje Trainee de Iniciante</div>
       </div>
-
-      <div class="l2-panel-header"><span class="l2-title-icon">◆</span> LORE DA LINHAGEM</div>
-      <p class="lore-text" id="heroLore">"Guerreiros Humanos possuem vigor equilibrado e perícia marcial lendária nas frentes de batalha de Aden."</p>
     </aside>
 
     <!-- Right Slots List -->
@@ -1081,11 +1138,17 @@ function renderSlots(){
     card.innerHTML =
       '<div class="slot-icon">' + cfg.icon + '</div>' +
       '<div class="slot-info">' +
-        '<div class="slot-name">' + escapeHtml(c.name) + '</div>' +
-        '<div class="slot-class">Nv. ' + (c.level || 1) + ' &bull; ' + cfg.name + '</div>' +
-        '<div class="slot-tag">' + (c.location || 'Talking Island') + '</div>' +
+        '<div class="slot-row-top">' +
+          '<span class="slot-name">' + escapeHtml(c.name) + '</span>' +
+          '<span class="slot-badge">Nv. ' + (c.level || 1) + '</span>' +
+        '</div>' +
+        '<div class="slot-row-bot">' +
+          '<span class="slot-class">' + cfg.name + '</span>' +
+          '<span class="slot-sep">&bull;</span>' +
+          '<span class="slot-loc">' + (c.location || 'Talking Island') + '</span>' +
+        '</div>' +
       '</div>' +
-      '<div class="slot-actions" style="margin-left:auto; display:flex; gap:4px; align-items:center;">' +
+      '<div class="slot-actions">' +
         '<button class="slot-action-btn" title="Renomear Personagem" onclick="openRenameModal(event, \'' + c.id + '\')">✏️</button>' +
         (characters.length > 1 ? '<button class="slot-action-btn del" title="Excluir Personagem" onclick="openDeleteModalForId(event, \'' + c.id + '\')">🗑️</button>' : '') +
       '</div>';
@@ -1137,12 +1200,12 @@ function updateHeroCard(){
 
   var cfg = RACE_CONFIG[c.charType] || RACE_CONFIG[c.race] || RACE_CONFIG.human_fighter;
 
-  document.getElementById('heroName').textContent = c.name;
-  document.getElementById('heroTitle').textContent = cfg.title;
-  document.getElementById('heroLevel').textContent = 'Lv. ' + (c.level || 1);
-  document.getElementById('heroRace').textContent = cfg.name;
-  document.getElementById('heroLoc').textContent = '• ' + (c.location || 'Talking Island');
-  document.getElementById('heroLore').textContent = '"' + cfg.lore + '"';
+  var elName = document.getElementById('heroName'); if(elName) elName.textContent = c.name;
+  var elTitle = document.getElementById('heroTitle'); if(elTitle) elTitle.textContent = cfg.title;
+  var elLevel = document.getElementById('heroLevel'); if(elLevel) elLevel.textContent = 'Lv. ' + (c.level || 1);
+  var elRace = document.getElementById('heroRace'); if(elRace) elRace.textContent = cfg.name;
+  var elLoc = document.getElementById('heroLoc'); if(elLoc) elLoc.textContent = (c.location || 'Talking Island');
+  var elLore = document.getElementById('heroLore'); if(elLore) elLore.textContent = '"' + cfg.lore + '"';
 
   // Gauges de Status L2 (CP, HP, MP, EXP)
   var L = Math.max(1, c.level | 0 || 1);
@@ -1167,15 +1230,18 @@ function updateHeroCard(){
     if(el) el.textContent = st[k];
   });
 
-  // Classe e atributos (data/progressao.json: inicial da classe + crescimento por nivel + pontos distribuidos; o servidor e o dono)
+  // Classe e atributos
   var cl = (PROG && PROG.classes) ? PROG.classes[c.classe || (c.weapon === 'staff' ? 'mago' : c.weapon === 'book' ? 'clerico' : (c.weapon === 'shield' || c.weapon === 'swordshield') ? 'guardiao' : 'guerreiro')] : null;
   if(cl){
     var at = c.attr || {}, tot = {}, mx = 1, gasto = 0;
     ['for', 'int', 'agi', 'vit'].forEach(function(k){ tot[k] = (cl.inicial[k] | 0) + (cl.porNivel[k] | 0) * (L - 1) + (at[k] | 0); gasto += (at[k] | 0); mx = Math.max(mx, tot[k]); });
-    ['for', 'int', 'agi', 'vit'].forEach(function(k){ document.getElementById('val-' + k).textContent = tot[k]; document.getElementById('bar-' + k).style.width = Math.min(100, tot[k] / mx * 100) + '%'; });
+    ['for', 'int', 'agi', 'vit'].forEach(function(k){
+      var elV = document.getElementById('val-' + k); if(elV) elV.textContent = tot[k];
+      var elB = document.getElementById('bar-' + k); if(elB) elB.style.width = Math.min(100, tot[k] / mx * 100) + '%';
+    });
     var livres = Math.max(0, 2 * (L - 1) - gasto);
-    document.getElementById('heroPts').textContent = livres ? livres + ' pts livres' : 'IS BLADE';
-    document.getElementById('heroTitle').textContent = cl.nome;
+    var elPts = document.getElementById('heroPts'); if(elPts) elPts.textContent = livres ? livres + ' pts livres' : 'IS BLADE';
+    if(elTitle) elTitle.textContent = cl.nome;
   }
 
   // Weapon label
@@ -1183,10 +1249,18 @@ function updateHeroCard(){
   if(c.weapon === 'swordshield' || c.weapon === 'shield') wLabel = '🛡️ Guardião · Escudo';
   else if(c.weapon === 'staff') wLabel = '🔮 Mago · Cajado';
   else if(c.weapon === 'book') wLabel = '✚ Clérigo · Livro Astral';
-  document.getElementById('gearWeapon').textContent = wLabel;
+  var elW = document.getElementById('gearWeapon'); if(elW) elW.textContent = wLabel;
 
   var sLabel = (c.charType === 'imperial' || c.set === 'imperial') ? '👑 Imperial Crusader S-Grade' : '🛡️ Traje Trainee de Iniciante';
-  document.getElementById('gearSet').textContent = sLabel;
+  var elS = document.getElementById('gearSet'); if(elS) elS.textContent = sLabel;
+}
+
+function updateAccountInfo(){
+  try {
+    var u = (window.Conta && Conta.usuario && Conta.usuario()) || localStorage.getItem('isblade.conta.usr') || 'Jogador';
+    var el = document.getElementById('accountUser');
+    if(el) el.textContent = u;
+  } catch(e){}
 }
 
 // Destino
@@ -1858,6 +1932,7 @@ function animate(){
 
 window.addEventListener('DOMContentLoaded', function(){
   loadCharactersFromStorage();
+  updateAccountInfo();
   renderSlots();
   updateHeroCard();
   init3D();

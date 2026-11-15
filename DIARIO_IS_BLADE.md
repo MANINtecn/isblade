@@ -4035,49 +4035,30 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
+### [Antigravity] 15/11/2026 - Restilização e Despoluição da Tela de Seleção de Personagens (Lobby Clean L2 Web)
 
-### [Antigravity] 14/11/2026 - Diálogos Nativos Oficiais do Lineage 2 e Restilização Completa do Lobby (Seleção de Personagens)
+- **Contexto e Queixas do Usuário**:
+  - A tela de seleção de personagens (`prototipo/selecao.html`) estava poluída visualmente, com botões sobrepostos ("botão em cima de botão"):
+    1. O chip de usuário da conta (`#cntchip`) ficava flutuando e colidindo com o botão de desconectar no cabeçalho.
+    2. O botão de instalação PWA (`#isPwaBtn`) ficava fixado no canto inferior direito, cobrindo o botão dourado de `START`.
+    3. Os cards da lista de personagens utilizavam a textura `l2_lobby_slot_back.png`, que continha texto "Exp" e ranhuras impressas na própria imagem, causando sobreposição e texto ilegível sobre as informações do herói.
+    4. O painel esquerdo continha 5 seções empilhadas verticalmente (incluindo barras de progressão redundantes), formando uma torre pesada que tapava a visualização do personagem 3D e da catedral.
+  - Solicitação de adotar o padrão limpo, elegante e não-poluído das referências visuais do concorrente encontradas na Área de Trabalho (`L2 web comcorrente`).
 
-- **1. Diálogos Nativos dos NPCs no Padrão Oficial do Lineage 2 Interlude (`prototipo/js/l2_npcs.js` e `prototipo/js/moradores.js`)**:
-  - **Interface & Texturas Oficiais (`L2UI_CH3`)**:
-    - Substituição do antigo protótipo de diálogo por janelas fiéis à interface original do Lineage 2 Interlude.
-    - Janela com moldura metálica 9-slice `l2_npc_window.png` (310x380 px), cantos chanfrados escuros e botão oficial de fechar `FrameCloseBtn.png` (16x16 px) com hover `frameclosebtn_over.png`.
-    - Janela totalmente arrastável com o mouse pelo cabeçalho (draggable header com clamp aos limites da tela).
-    - Tipografia clássica: `Tahoma 11px`, espaçamento de 1.45, títulos em dourado clássico `<font color="LEVEL">` (`#e5c158`), links de diálogo com o icônico diamante `◆` do L2 e realce de texto.
-  - **Áudio Nativo do L2**:
-    - Abertura e fechamento de diálogos com sons autênticos do cliente L2 (`assets/audio/bookOpen.ogg`, `assets/audio/bookClose.ogg`, `assets/audio/metalClick.ogg`).
-  - **Sub-páginas & Funcionalidades Completas**:
-    - **Gatekeeper Clarissa**: Tabela de teleporte nativa com taxas de Adena, destinos (Talking Island Village, Obelisk of Victory, Elven Ruins, Whispering Woods, Gludio Castle Town) e botão de retorno `[Voltar]` com estilo de botão L2 (`btn_normal.png`).
-    - **Ferreiro Altran**: Menu de forja e encantamento de equipamentos.
-    - **Comerciante Galladucci**: Catálogo de itens e suprimentos para aventureiros.
-    - **Guarda-Volumes Wilford**: Interface de Armazém pessoal e de clã.
-    - **Mammon / Mercador dos Selos**: Troca de Ancient Adena e itens sagrados.
-  - **Cache & Deploy**: Cache-buster atualizado em `cidade.html` (`l2_npcs.js?v=6`).
-
-- **2. Restilização Completa da Tela de Seleção de Personagens / Lobby (`prototipo/selecao.html`)**:
-  - **Visual & Atmosfera Clássica do Templo de Einhasad**:
-    - Cenário 3D Three.js integrado com a iluminação mística de catedral: luz ambiente noturna azulada (`AmbientLight`), facho direcional quente vindo de cima (`DirectionalLight`), pedestal central com anéis dourados e glifo rúnico luminoso giratório, 4 colunas góticas com braseiros de bronze e chamas cintilantes (`PointLight` com efeito flicker senoidal dinâmico).
-  - **Molduras & Texturas Oficiais Lineage 2**:
-    - **Painel Esquerdo (Ficha de Status do Herói)**:
-      - Moldura 9-slice `l2_npc_window.png` sobre ardósia escura (`rgba(14, 14, 14, 0.94)`).
-      - Nome do guerreiro com tipografia Cinzel/Tahoma dourada (`#ffe68a`), nível com insígnia dourada e localização.
-      - Gauges de Status Oficiais do L2: barra de **CP** (Combat Points, âmbar `#d4a342`), **HP** (Hit Points, vermelho rubi `#c53030`), **MP** (Mana Points, azul celestial `#2b7cc4`) e **EXP** (verde esmeralda `#34a853`).
-      - Grade com os **6 Atributos Clássicos de Raça do Lineage 2**: **STR** (Força), **INT** (Inteligência), **DEX** (Destreza), **WIT** (Espírito), **CON** (Constituição) e **MEN** (Mentalidade), alimentados diretamente da configuração de raças do L2 (`RACE_CONFIG`).
-      - Painel de progressão dinâmica IS BLADE (FOR, INT, AGI, VIT) mantido e harmonizado.
-      - Descrição e lore canônico da linhagem com aspas e borda dourada.
-    - **Painel Direito (Lista de Slots de Personagens)**:
-      - Moldura oficial L2 com cabeçalho de seção `<font color="LEVEL">PERSONAGENS CRIADOS</font> (X / 7)`.
-      - Cards de slot estilizados com a textura oficial `l2_lobby_slot_back.png` (256x108 px).
-      - Slot ativo com moldura dourada resplandecente (`border: 1.5px solid #e5c158; box-shadow: inset 0 0 10px rgba(229,193,88,0.45), 0 0 14px rgba(229,193,88,0.55)`), nome brilhante e destaque do ícone.
-      - Slots vazios com moldura sutil para criação de novos heróis.
-    - **Rodapé & Botão START Oficial**:
-      - Botão icônico **START** com a textura chanfrada clássica `l2_lobby_start_btn.png` (141x50 px), tipografia "START" em alto-relevo dourado com sombra e glow luminoso, efeito de pulso ao passar o mouse e som de ativação clássico (`soul_shot_shot.wav`).
-      - Botões de ação secundária ("Criar Novo Personagem", "Excluir Personagem", "Desconectar") implementados com a textura oficial `btn_normal.png` (76x23 px), com estados `:hover` (`btn_over.png`) e `:active` (`btn_down.png`).
-    - **Modais de Confirmação (Excluir e Renomear)**:
-      - Molduras 9-slice `l2_npc_window.png`, botão de fechar `FrameCloseBtn.png`, mensagens em tipografia L2 e botões de confirmação/cancelamento estilizados.
-    - **Áudio & Vozes Nativas**:
-      - Seleção de personagens e hover com som metálico clássico `assets/audio/metalClick.ogg`.
-      - Integração com o banco de vozes nativas de todas as raças (`assets/vozes/`): ao selecionar um herói, ele reproduz sua frase de apresentação clássica (`greeting_1.ogg` das pastas `MHFighter`, `FHFighter`, `MHMagician`, `FHMagician`, `MElf`, `FElf`, `MOFighter`, `FOFighter`, `MDwarf`, `FDwarf`, `MDElf`, `FDElf`).
-      - Trilha sonora oficial `assets/musica/intro.ogg` tocando no fundo.
-  - **Limpeza de Memória e Disco**:
-    - Removidos 20 arquivos temporários de preview/prints antigos (`preview_*.png`, `test_render*.png`), liberando mais de 10 MB de disco e memória.
+- **Melhorias e Correções Implementadas**:
+  - **Eliminação de Sobreposições de Botões**:
+    - Suprimidos os elementos flutuantes sobrepostos via `#cntchip, #isPwaBtn { display: none !important; }` no escopo do lobby.
+    - Integrado no cabeçalho um elemento unificado e elegante (`.account-pill`): exibe o usuário logado (`👤 <user>`) e o botão `[Sair]`, alinhado perfeitamente com o design do jogo.
+    - O botão `START` no rodapé direito agora fica 100% desobstruído e limpo.
+  - **Cards de Personagens em Dark Glass Clean**:
+    - Removida a textura legada com elementos pré-renderizados conflitantes.
+    - Implementados cards em dark glass (`rgba(14, 18, 27, 0.85)` com bordas sutis e acabamento dourado no card ativo).
+    - Tipografia organizada em duas linhas flexbox sem colisões:
+      - Linha superior: Nome do personagem em Cinzel + badge compacto de nível (`Nv. X`).
+      - Linha inferior: Nome da classe + ponto separador + localização (`Talking Island`).
+      - Lado direito: Botões de ação rápidos (`✏️` renomear, `🗑️` excluir).
+  - **Card de Resumo do Herói (Painel Esquerdo)**:
+    - Removida a duplicata das barras de progressão de atributos (que pertencem à janela de status in-game).
+    - O painel agora funciona como um card executivo compacto (~330px de altura), contendo: cabeçalho com nome/título/raça/localização, barras de vitais clássicas (CP, HP, MP, EXP), grade 3x2 de atributos de raça L2 (STR, INT, DEX, WIT, CON, MEN) e badges de equipamento inicial.
+  - **Equilíbrio e Visibilidade 3D**:
+    - Ambos os painéis (esquerdo e direito) agora são centralizados verticalmente na viewport (`align-self: center`), deixando a visão central ampla, límpida e com foco total no modelo 3D do personagem e no cenário da catedral.
