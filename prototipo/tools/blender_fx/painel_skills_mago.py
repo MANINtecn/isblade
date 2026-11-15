@@ -18,6 +18,14 @@ SKILLS = [                                   # (cena, rotulo)
     ("ARQUEIRO_S4_CHUVA", "A4  Chuva de Flechas (nv 20)"),
     ("ARQUEIRO_S5_FALCAO", "A5  Olho de Falcao (nv 25)"),
     ("ARQUEIRO_S6_ELITE", "A6  Tiro de Elite (nv 30)"),
+    ("GUERREIRO_N0_DASH", "N0  Investida Relampago (dash)"),
+    ("GUERREIRO_N1_CONTRA", "N1  Contra-Golpe (aparar e revidar)"),
+    ("GUERREIRO_N2_MASSACRE", "N2  Postura de Massacre (6 cortes)"),
+    ("GUERREIRO_N3_MODO_BATALHA", "N3  Modo de Batalha (aura Cabal)"),
+    ("GUERREIRO_N4_EXECUCAO", "N4  Execucao (alvo com pouca vida)"),
+    ("GUERREIRO_N5_LANCADOR", "N5  Corte Lancador + combo no ar"),
+    ("GUERREIRO_N6_FENDA", "N6  Fenda Sismica (7,5 m em linha)"),
+    ("GUERREIRO_N7_SEDE", "N7  Sede de Sangue (roubo de vida)"),
     ("GUERREIRO_BASICO", "G0  Combo de 3 golpes (basico)"),
     ("GUERREIRO_S1_PODEROSO", "G1  Golpe Poderoso (nv 1)"),
     ("GUERREIRO_S3_ATORDOANTE", "G3  Golpe Atordoante (nv 10)"),
@@ -53,6 +61,8 @@ class SKILLS_OT_ir(bpy.types.Operator):
         sp = context.space_data
         if sp and sp.type == "VIEW_3D":
             sp.region_3d.view_perspective = "CAMERA"; sp.shading.type = "MATERIAL"; sp.overlay.show_overlays = False
+            try: sp.shading.use_compositor = "ALWAYS"                       # glow de pos-processo (bloom + raios) no viewport
+            except Exception: pass
         bpy.ops.screen.animation_play()
         return {"FINISHED"}
 

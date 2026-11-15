@@ -3,6 +3,12 @@ trabalho_l2fx
 .claude
 tools
 __pycache__
+node_modules
+**/node_modules
+
+# Servidor de jogo (roda EXCLUSIVAMENTE na VPS, NUNCA na Vercel)
+servidor
+servidor/**
 
 # Scripts e ferramentas locais
 *.py

@@ -4124,3 +4124,25 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   3. **Módulo de Graus (`prototipo/js/arma_grau.js`)**:
      - `ArmaGrau.aplica` estava forçando `rig.swd1h.visible = false;` a cada frame/troca de equipamento.
      - Atualizado para ativar `rig.swd1h.visible = is1H;` e carregar o modelo de espada correspondente (`filhoGrau`), permitindo visualização imediata in-game em tempo real.
+
+### [Antigravity] 15/11/2026 - Blindagem do Repositório para Vercel (Eliminação Total de Serverless Functions e Consumo de CPU)
+
+- **Diagnóstico Cabal do Consumo de 4h 11m de Active CPU**:
+  - Os logs em tempo real da Vercel (`Project Logs` do `isblade`) evidenciaram que requisições estáticas para `/js/pwa.js`, `/css/portal.css`, `/js/giro.js` e `/` estavam marcadas com o ícone `[f]` (Vercel Serverless Function).
+  - O log disparava repetidamente:
+    `contas: reset cancelado (sem backup) ENOENT: arquivo ou diretório inexistente, abra '/var/task/servidor/dados...'`
+  - **Causa Raiz**: Como a pasta `servidor/` continha `server.js` e `package.json` sem estar no `.vercelignore` da raiz, a Vercel configurou o repositório como um projeto Node.js e empacotou o `server.js` como uma Lambda Function (`/var/task`). Cada download de arquivo estático (.css, .js, .png, .glb) executava o Node.js como Serverless Function em vez de ser servido pela CDN Edge. Isso transformou mais de 150 mil requisições em 4h 11m de consumo indevido de CPU ativa.
+- **Medidas de Blindagem Implementadas no Repositório**:
+  1. **`.vercelignore` (Raiz)**:
+     - Adicionadas as regras de exclusão estrita para `servidor`, `servidor/**`, `node_modules` e `**/node_modules`.
+     - A Vercel agora ignora completamente o backend, impedindo qualquer detecção ou empacotamento de funções Node.js.
+  2. **`vercel.json` (Raiz)**:
+     - Criado arquivo de configuração global na raiz do repositório definindo:
+       - `"outputDirectory": "prototipo"` (força a Vercel a servir exclusivamente os arquivos estáticos de `prototipo/`).
+       - `"cleanUrls": true`.
+       - Cabeçalhos de cache imutável de 1 ano para assets (`public, max-age=31536000, immutable`), desonerando requisições repetidas.
+  3. **`prototipo/vercel.json`**:
+     - Sincronizado com cabeçalhos de cache de 1 ano para `/assets/(.*)`.
+- **Separação Arquitetural Canônica**:
+  - **Frontend (Vercel)**: 100% estático, servido via Edge CDN global, **0 funções serverless e 0 segundos de CPU consumidos**.
+  - **Backend MMO (VPS)**: Conexões WebSocket e regras de combate rodando de forma dedicada e isolada na VPS Linux (`51.79.41.62` / `play.isblade.tecx.pro`).
