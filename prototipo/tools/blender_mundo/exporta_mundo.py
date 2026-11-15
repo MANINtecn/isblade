@@ -10,7 +10,7 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 R = r"C:\TECX SOFTHOUSE\IS ONLINE\prototipo"; OUT = os.path.join(R, "assets", "mundo"); os.makedirs(OUT, exist_ok=True)
 PASSO = 3.0
-CHAOS = [("CHAO", 0), ("CAMPO_TI", 0), ("TERRA_FUNDO", -1), ("Terreno", 1), ("Terreno.001", 2), ("Terreno.002", 3), ("Terreno.003", 4), ("BASE_TORRE", 4)]
+CHAOS = [("CHAO", 0), ("CAMPO_TI", 0), ("EMENDA_FORTRESS", 0), ("EMENDA_CRUMA", 0), ("EMENDA_PANTANO", 0), ("TERRA_FUNDO", -1), ("Terreno", 1), ("Terreno.001", 2), ("Terreno.002", 3), ("TERRA_PANTANO", 3), ("Terreno.003", 4), ("BASE_TORRE", 4)]
 BIOMAS = [("campo", "Terreno.001", 290.0), ("cruma", "Terreno", 70.0), ("fortaleza", "Terreno.001", 290.0), ("pantano", "Terreno.002", 352.0), ("torre", "Terreno.003", 363.0)]
 dg = bpy.context.evaluated_depsgraph_get(); arv = []
 for n, reg in CHAOS:
@@ -23,6 +23,11 @@ bx0, bx1 = min(v.x for v in bb), max(v.x for v in bb); by0, by1 = min(v.y for v 
 # grade em coordenadas do jogo: x = bx, z = -by
 x0, z0 = bx0, -by1; nx, nz = int((bx1 - bx0) / PASSO) + 1, int((by1 - by0) / PASSO) + 1
 H = np.full((nz, nx), -50.0); REG = np.full((nz, nx), -1, np.int16)
+MAPAS_LIM = {
+    1: (bpy.data.objects["MUNDO_curuma"].location.x, -bpy.data.objects["MUNDO_curuma"].location.y, 300.0),
+    2: (bpy.data.objects["MUNDO_fortress"].location.x, -bpy.data.objects["MUNDO_fortress"].location.y, 100.0),
+    3: (bpy.data.objects["MUNDO_pantano"].location.x, -bpy.data.objects["MUNDO_pantano"].location.y, 170.0)
+}
 for j in range(nz):
     gz = z0 + j * PASSO; by = -gz
     for i in range(nx):
@@ -30,7 +35,12 @@ for j in range(nz):
         for reg, t in arv:
             h = t.ray_cast(Vector((gx, by, 2000.0)), Vector((0, 0, -1)), 4000.0)
             if h[0] is not None and (best is None or h[0].z > best[0] + 0.05): best = (h[0].z, reg)
-        if best: H[j, i] = best[0]; REG[j, i] = best[1]
+        if best:
+            r = best[1]
+            if r in MAPAS_LIM:
+                cx, cz, rmax = MAPAS_LIM[r]
+                if math.hypot(gx - cx, gz - cz) > rmax: r = 0
+            H[j, i] = best[0]; REG[j, i] = r
 # biomas: celula do fundo herda o bioma vizinho mais proximo; divisas borradas
 L = REG.copy()
 for it in range(400):

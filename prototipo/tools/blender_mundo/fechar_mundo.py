@@ -7,7 +7,7 @@
 import bpy, bmesh, numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-CHAOS = ['CHAO', 'CAMPO_TI', 'BASE_TORRE', 'Terreno', 'Terreno.001', 'Terreno.002', 'Terreno.003']
+CHAOS = ['CHAO', 'CAMPO_TI', 'BASE_TORRE', 'TERRA_PANTANO', 'EMENDA_FORTRESS', 'EMENDA_CRUMA', 'EMENDA_PANTANO', 'Terreno', 'Terreno.001', 'Terreno.002', 'Terreno.003']
 X0, X1, Y0, Y1, P = -810.0, 690.0, -670.0, 900.0, 6.0
 o = bpy.data.objects.get('TERRA_FUNDO')
 if o: bpy.data.objects.remove(o, do_unlink=True)

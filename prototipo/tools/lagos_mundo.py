@@ -53,7 +53,7 @@ def main():
     H = raw[:, :, 0:2].copy().view('<i2').reshape(nz, nx).astype(np.float64) / 100.0
     reg = raw[:, :, 7]; anda = raw[:, :, 8] > 0
     xs = J['x0'] + np.arange(nx) * ps; zs = J['z0'] + np.arange(nz) * ps; XX, ZZ = np.meshgrid(xs, zs); dist = np.hypot(XX, ZZ)
-    saida = (dist < 100) | np.isin(reg, [1, 2, 3])
+    saida = (dist < 100) | np.isin(reg, [1, 2, 3, 4])
     mortos = hierarquia(H, saida)
     print('bacias que transbordam: %d' % len(mortos))
     cand = []
