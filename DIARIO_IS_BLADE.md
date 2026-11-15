@@ -4212,3 +4212,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - `prototipo/selecao.html` & `prototipo/criacao.html`:
        - Tabelas `RACE_CONFIG` e `RACE_DATA` atualizadas para apontar 100% dos personagens para seus modelos 3D No-Grade (`_nograde.glb?v=2` / `darkelf_m.glb?v=6` / `darkelf_f.glb?v=6`).
 
+
+
+### [Antigravity] 15/11/2026 - Correção Definitiva do Deploy na Vercel (Eliminação do package.json em prototipo e Deploy Estático Puro)
+
+- **Contexto & Diagnóstico do Erro na Vercel**:
+  - Nas tentativas de deploy dos commits recentes, a Vercel falhava repetidamente com o seguinte log de erro:
+    `Error: [BUILD_FAILED] No entrypoint found in "/vercel/path0/prototipo". Set package.json "main" to a server file, or add one of: app.js, server.js...`
+  - **Causa Raiz**:
+    - Existia dentro de `prototipo/` um `package.json` antigo contendo uma dependência de testes (`ws: ^8.22.0`).
+    - Ao clonar o repositório e entrar na pasta `prototipo/`, a CLI da Vercel detectava o `package.json` sem script de build nem framework definido (Next/Vite). Com isso, a Vercel assumia erroneamente que `prototipo/` era um backend Serverless Node.js e tentava compilar um entrypoint de servidor (`index.js`, `server.js`, `app.js`).
+    - Como o frontend do jogo é puramente estático (HTML5, Three.js, GLB, CSS, JS), a compilação falhava aos 10 segundos.
+- **Medidas Implementadas**:
+  1. **Remoção de Arquivos de Pacote do Frontend**:
+     - Removidos do controle de versão `prototipo/package.json` e `prototipo/package-lock.json` via `git rm`.
+     - Sem arquivos de pacote no frontend, a Vercel reconhece a pasta instantaneamente como **Site Estático Puro (Zero Config)**, publicando todos os arquivos estáticos diretamente na Edge CDN global em segundos, sem rodar compilação ou funções serverless.
+  2. **Refinamento do `.vercelignore` em `prototipo/`**:
+     - Atualizadas as regras de exclusão para suprimir ferramentas de extração, scripts python, bat e arquivos de backup, garantindo upload enxuto e ágil.
+  3. **Alinhamento Arquitetural**:
+     - **Vercel (`isblade.vercel.app`)**: Hospeda exclusivamente o Frontend estático (`prototipo/`). Diretório raiz deve ser `prototipo` (ou raiz com `outputDirectory: prototipo`). Nunca deve ser configurado como `servidor`.
+     - **VPS Linux (`play.isblade.tecx.pro`)**: Hospeda exclusivamente o Backend Node.js (`servidor/server.js`), WebSocket multiplayer e persistência.
