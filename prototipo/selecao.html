@@ -1246,7 +1246,7 @@ function updateHeroCard(){
 
   // Weapon label
   var wLabel = '⚔️ Guerreiro · Espada longa (2 mãos)';
-  if(c.weapon === 'swordshield' || c.weapon === 'shield') wLabel = '🛡️ Guardião · Escudo';
+  if(c.weapon === 'swordshield' || c.weapon === 'shield' || c.classe === 'guardiao') wLabel = '🛡️ Guardião · Espada & Escudo';
   else if(c.weapon === 'staff') wLabel = '🔮 Mago · Cajado';
   else if(c.weapon === 'book') wLabel = '✚ Clérigo · Livro Astral';
   var elW = document.getElementById('gearWeapon'); if(elW) elW.textContent = wLabel;
@@ -1570,8 +1570,9 @@ var L2_WPN_AXIS_FIX = Math.PI / 2;
 
 /* CLAUDE [lobby-arma]: previa da arma pela classe (mago e clerigo usam o cajado, como no jogo; resto = espada de 2 maos) */
 function modeloArmaLobby(c){
-  var cls = c.classe || (c.weapon === 'staff' ? 'mago' : c.weapon === 'book' ? 'clerico' : '');
+  var cls = c.classe || (c.weapon === 'staff' ? 'mago' : c.weapon === 'book' ? 'clerico' : (c.weapon === 'shield' || c.weapon === 'swordshield') ? 'guardiao' : '');
   if(c.weapon === 'staff' || c.weapon === 'book' || cls === 'mago' || cls === 'clerico') return 'assets/personagens/cedar_staff.glb';
+  if(c.weapon === 'shield' || c.weapon === 'swordshield' || cls === 'guardiao') return 'assets/personagens/bastard_sword.glb';
   return 'assets/personagens/twohanded_sword.glb';
 }
 function attachL2Item(root, boneName, glbUrl, options, cb){
@@ -1709,8 +1710,11 @@ function loadCharacter3D(){
     applyHair(root, c.hairStyle || 'both', c.hairColor || '#ffffff');
 
     // Equipar Armas
-    if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
+    if(c.weapon === 'swordshield' || c.weapon === 'shield' || c.classe === 'guardiao'){/* Guardião clássico L2: Espada de 1 Mão + Escudo */
       shieldObj = attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/round_shield.glb', {
+        visible: true
+      });
+      weaponObj = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/bastard_sword.glb', {
         visible: true
       });
     } else if(c.weapon !== 'none'){
@@ -1783,8 +1787,11 @@ function loadBackgroundCharacters3D(){
       applyHair(root, c.hairStyle || 'both', c.hairColor || '#ffffff');
 
       // Equipar Armas do personagem do fundo
-      if(c.weapon === 'swordshield' || c.weapon === 'shield'){/* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
+      if(c.weapon === 'swordshield' || c.weapon === 'shield' || c.classe === 'guardiao'){/* Guardião clássico L2: Espada de 1 Mão + Escudo */
         attachL2Item(root, 'Shield_L_Bone', 'assets/personagens/round_shield.glb', {
+          visible: true
+        });
+        attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/bastard_sword.glb', {
           visible: true
         });
       } else if(c.weapon !== 'none'){

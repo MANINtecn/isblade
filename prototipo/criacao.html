@@ -663,10 +663,13 @@ function attachWeapon(){
     if(wpBone){ weaponObj = makeStaff(); wpBone.add(weaponObj); }
   } else if((currentWeapon === 'sword' || currentWeapon === 'dragon_slayer') && wpBone){
     weaponObj = attachL2Item(wpBone, null, 'assets/personagens/twohanded_sword.glb');
-  } else if(currentWeapon === 'shield'){
-    /* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
+  } else if(currentWeapon === 'shield' || currentWeapon === 'swordshield' || currentClasse === 'guardiao'){
+    /* Guardião: Espada de 1 Mão + Escudo */
     if(shdBone){
       shieldObj = attachL2Item(shdBone, null, 'assets/personagens/round_shield.glb');
+    }
+    if(wpBone){
+      weaponObj = attachL2Item(wpBone, null, 'assets/personagens/bastard_sword.glb');
     }
   }
 }

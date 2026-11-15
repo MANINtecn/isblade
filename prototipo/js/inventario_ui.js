@@ -43,11 +43,26 @@
     var t = typeof b === 'string' ? b : tipoDe(b);
     var tam = o.tam || 32;
     var iconKey = id || t || 'sword_long';
-    var fallback = 'sword_long';
-    if(b && b.slot){
-      var slotMap = { helmet: 'helmet_iron', chest: 'chest_plate', legs: 'legs_plate', gloves: 'gloves_hide', boots: 'boots_swift', shield: 'shield_guardian', weapon: 'sword_long' };
-      fallback = slotMap[b.slot] || 'sword_long';
+    var slot = (b && b.slot) || o.slot;
+    if(!slot && typeof b === 'string'){
+      if(b.indexOf('pant') >= 0 || b.indexOf('leg') >= 0 || b.indexOf('gaiter') >= 0) slot = 'legs';
+      else if(b.indexOf('boot') >= 0) slot = 'boots';
+      else if(b.indexOf('glove') >= 0) slot = 'gloves';
+      else if(b.indexOf('chest') >= 0 || b.indexOf('plate') >= 0) slot = 'chest';
+      else if(b.indexOf('helm') >= 0) slot = 'helmet';
+      else if(b.indexOf('shield') >= 0) slot = 'shield';
     }
+    // Mapeamentos diretos de sinonimos
+    if(iconKey === 'pants' || iconKey === 'calca' || iconKey === 'legs') iconKey = 'legs_plate';
+    if(iconKey === 'boots' || iconKey === 'bota') iconKey = 'boots_swift';
+    if(iconKey === 'gloves' || iconKey === 'luva') iconKey = 'gloves_hide';
+    if(iconKey === 'chest' || iconKey === 'peitoral') iconKey = 'chest_plate';
+    if(iconKey === 'helmet' || iconKey === 'capacete') iconKey = 'helmet_iron';
+    if(iconKey === 'shield' || iconKey === 'escudo') iconKey = 'round_shield';
+
+    var slotMap = { helmet: 'helmet_iron', chest: 'chest_plate', legs: 'legs_plate', gloves: 'gloves_hide', boots: 'boots_swift', shield: 'round_shield', weapon: 'sword_long' };
+    var fallback = (slot && slotMap[slot]) ? slotMap[slot] : 'sword_long';
+
     return '<img src="assets/icones/' + iconKey + '.png" width="' + tam + '" height="' + tam + '" alt="" style="display:block;width:' + tam + 'px;height:' + tam + 'px;object-fit:cover;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/' + fallback + '.png\';"/>';
   };
 
@@ -156,7 +171,7 @@
           var iconItem = b || eqIt.base || 'sword_long';
           h.push(
             '<div class="l2-item-slot' + (sel === eqIt.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(eqIt.uid) + '" data-slot="' + sKey + '" data-eq="1" title="' + esc(op.nome(eqIt)) + ' (Clique direito para desequipar)" style="left:' + pos.x + 'px;top:' + pos.y + 'px;">' +
-              U.icone(iconItem, { tam: 32 }) +
+              U.icone(iconItem, { tam: 32, slot: sKey }) +
               ((eqIt.en | 0) ? '<span class="en">+' + (eqIt.en | 0) + '</span>' : '') +
               ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
             '</div>'
@@ -218,7 +233,7 @@
             var iconItem = b || it.base || 'sword_long';
             h.push(
               '<div class="l2-item-slot' + (sel === it.uid ? ' sel' : '') + '" draggable="true" data-u="' + esc(it.uid) + '" data-bag="1" title="' + esc(op.nome(it)) + ' (Clique direito para equipar)" style="left:' + sx + 'px;top:' + sy + 'px;">' +
-                U.icone(iconItem, { tam: 32 }) +
+                U.icone(iconItem, { tam: 32, slot: sKey }) +
                 ((it.en | 0) ? '<span class="en">+' + (it.en | 0) + '</span>' : '') +
                 ((b && b.grau && b.grau !== 'sem') ? '<span class="gr" style="color:' + (g.css || '#fff') + '">' + esc(b.grau) + '</span>' : '') +
               '</div>'

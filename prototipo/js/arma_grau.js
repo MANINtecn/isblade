@@ -544,13 +544,21 @@
       rig._meshParts = {};
       rig.root.traverse(function(c){
         if(c.isMesh){
-          var nl = (c.name || '').toLowerCase();
-          if(nl.indexOf('chest') >= 0 || nl.indexOf('_u') >= 0) rig._meshParts.chest = c;
-          else if(nl.indexOf('legs') >= 0 || nl.indexOf('_l') >= 0) rig._meshParts.legs = c;
-          else if(nl.indexOf('gloves') >= 0 || nl.indexOf('_g') >= 0) rig._meshParts.gloves = c;
-          else if(nl.indexOf('boots') >= 0 || nl.indexOf('_b') >= 0) rig._meshParts.boots = c;
-          else if(nl.indexOf('face') >= 0 || nl.indexOf('_f') >= 0) rig._meshParts.face = c;
-          else if(nl.indexOf('hair') >= 0 || nl.indexOf('_h') >= 0) rig._meshParts.hair = c;
+          var nl = ((c.name || '') + ' ' + (c.geometry && c.geometry.name ? c.geometry.name : '')).toLowerCase();
+          // Cabelo e Rosto SEMPRE têm prioridade para não colidir com _b (boots) do Hair_Back ou _f (face) do Hair_Front
+          if(nl.indexOf('hair') >= 0 || nl.indexOf('_ah') >= 0 || nl.indexOf('_bh') >= 0 || nl.indexOf('_h') >= 0){
+            if(!rig._meshParts.hair) rig._meshParts.hair = c;
+          } else if(nl.indexOf('face') >= 0 || nl.indexOf('_f') >= 0){
+            rig._meshParts.face = c;
+          } else if(nl.indexOf('chest') >= 0 || nl.indexOf('_u') >= 0){
+            rig._meshParts.chest = c;
+          } else if(nl.indexOf('legs') >= 0 || nl.indexOf('_l') >= 0){
+            rig._meshParts.legs = c;
+          } else if(nl.indexOf('gloves') >= 0 || nl.indexOf('_g') >= 0){
+            rig._meshParts.gloves = c;
+          } else if(nl.indexOf('boots') >= 0 || nl.indexOf('_b') >= 0){
+            rig._meshParts.boots = c;
+          }
         }
       });
     }
@@ -592,6 +600,7 @@
         matList.forEach(function(mat){
           if(mat._origMap && mat.map !== mat._origMap){
             mat.map = mat._origMap;
+            if(mat.color) mat.color.setHex(0xffffff);
             mat.transparent = false;
             mat.alphaTest = 0;
             mat.opacity = 1.0;
@@ -609,6 +618,7 @@
             matList.forEach(function(mat){
               if(mat.map !== tex){
                 mat.map = tex;
+                if(mat.color) mat.color.setHex(0xffffff);
                 mat.transparent = false;
                 mat.alphaTest = 0;
                 mat.opacity = 1.0;

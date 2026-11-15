@@ -4062,3 +4062,46 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - O painel agora funciona como um card executivo compacto (~330px de altura), contendo: cabeçalho com nome/título/raça/localização, barras de vitais clássicas (CP, HP, MP, EXP), grade 3x2 de atributos de raça L2 (STR, INT, DEX, WIT, CON, MEN) e badges de equipamento inicial.
   - **Equilíbrio e Visibilidade 3D**:
     - Ambos os painéis (esquerdo e direito) agora são centralizados verticalmente na viewport (`align-self: center`), deixando a visão central ampla, límpida e com foco total no modelo 3D do personagem e no cenário da catedral.
+
+### [Antigravity] 15/11/2026 - Correção de Mapeamento de Malha (Bug da Bota Pintando Cabelo), Ícone de Calça e Espada 1M do Guardião
+
+- **Contexto e Queixas do Usuário**:
+  - **Bug da Bota Pintando o Cabelo**: Ao equipar botas no inventário, o cabelo da personagem (ex: Anã) era tingido de preto instantaneamente, enquanto as botas permaneciam na sandália básica de underwear.
+  - **Ícone Incorreto da Calça/Pants**: No inventário, slots de calça estavam exibindo o ícone fallback de uma espada genérica (`sword_long.png`).
+  - **Espada Invisível no Guardião**: O Guardião estava empunhando apenas o escudo, mas com a animação de combate e idle oficial do L2 segurando o ar com a mão direita como se houvesse uma espada invisível.
+  - **Avisos do VS Code ("The content of the file is newer")**: Notificações nos arquivos `cidade.html` e `arena.html` ao tentar salvar após modificações externas no repositório.
+
+- **Diagnóstico & Causa Raiz**:
+  1. **Bug da Bota no `arma_grau.js`**:
+     - O código antigo de identificação de malhas percorria a hierarquia e testava:
+       ```javascript
+       if(nl.indexOf('chest') >= 0 || nl.indexOf('_u') >= 0) rig._meshParts.chest = c;
+       else if(nl.indexOf('legs') >= 0 || nl.indexOf('_l') >= 0) rig._meshParts.legs = c;
+       else if(nl.indexOf('gloves') >= 0 || nl.indexOf('_g') >= 0) rig._meshParts.gloves = c;
+       else if(nl.indexOf('boots') >= 0 || nl.indexOf('_b') >= 0) rig._meshParts.boots = c;
+       else if(nl.indexOf('face') >= 0 || nl.indexOf('_f') >= 0) rig._meshParts.face = c;
+       else if(nl.indexOf('hair') >= 0 || nl.indexOf('_h') >= 0) rig._meshParts.hair = c;
+       ```
+     - Em todos os modelos oficiais do L2 (`dwarf_f.glb`, `elf_f.glb`, `darkelf_f.glb`, etc.), o cabelo traseiro possui o nome `"Hair_Back"` e a geometria termina em `_bh`.
+     - O teste `nl.indexOf('_b') >= 0` verificava a substring `_b` dentro de `"hair_back"`, classificando a malha do **Cabelo Traseiro** como **Bota** (`rig._meshParts.boots`) antes de chegar no teste de `hair`!
+     - Ao equipar uma bota de couro/aço no inventário, a textura escura da bota era mapeada sobre o cabelo da personagem, tingindo-o de preto e deixando as botas em underwear!
+  2. **Ícone de Calças no `inventario_ui.js`**:
+     - `U.icone(item)` não reconhecia variantes de slot (`pants`, `calca`, `legs`) para fallback específico, caindo no default genérico `sword_long.png`.
+  3. **Guardião e a Espada de 1 Mão**:
+     - No Lineage 2 Interlude oficial, a classe Tanker/Guardião utiliza **Espada de 1 Mão + Escudo**.
+     - Códigos legados em `selecao.html`, `criacao.html`, `cidade.html` e `arena.html` forçavam `swd1h.visible = false` sob o comentário incorreto *"o Guardiao nao usa espada"*. Isso deixava a animação oficial `Wait_1HS` (que segura a empunhadura na mão direita) desarmada, aparentando um bug de espada invisível.
+
+- **Soluções Implementadas**:
+  1. **Correção de Mapeamento em `prototipo/js/arma_grau.js`**:
+     - Priorizadas as verificações de `hair` (`hair`, `_ah`, `_bh`, `_h`) e `face` (`face`, `_f`) ANTES de checar `boots`, `gloves`, `legs` ou `chest`.
+     - Adicionado reset de cor base (`mat.color.setHex(0xffffff)`) na troca de texturas e no desequipamento, impedindo que cores de cabelo ou tonalidades anteriores manchem o set de armadura.
+     - Teste de regressão executado em 100% dos 24 GLBs de personagens: todas as malhas agora mapeiam exatamente 1 bota, 1 calça, 1 peito, 1 luva, 1 rosto e 1-2 cabelos.
+  2. **Correção dos Ícones em `prototipo/js/inventario_ui.js`**:
+     - Normalizados os sinônimos de calça (`calca`, `pants`, `legs`) para retornar `assets/ui/icones/legs_plate.png`.
+     - Passado o slot no contexto da renderização dos slots vazios e ocupados no paperdoll e na mochila.
+  3. **Espada de 1 Mão + Escudo para o Guardião**:
+     - `prototipo/selecao.html`: Anexa `bastard_sword.glb` na mão direita (`Weapon_R_Bone`) e `round_shield.glb` no antebraço esquerdo (`Shield_L_Bone`) para personagens Guardião, tanto no herói central quanto nos heróis do fundo. Atualizado badge para `🛡️ Guardião · Espada & Escudo`.
+     - `prototipo/criacao.html`: Ao selecionar a classe Guardião, anexa simultaneamente a `bastard_sword.glb` e o `round_shield.glb`.
+     - `prototipo/cidade.html` & `prototipo/arena.html`: Configurado `rig.swd1h.visible = is1H;` (onde `is1H = (WPN === 'shield' || WPN === 'swordshield')`), permitindo que a espada de 1 mão renderize perfeitamente alinhada à empunhadura da mão direita durante caminhada, corrida, combate e descanso.
+  4. **Orientação Técnica sobre Conflito de Salvamento no VS Code**:
+     - Quando o arquivo em disco é atualizado por commits do repositório enquanto abas permanecem abertas no editor, o VS Code exibe *"The content of the file is newer"*. O usuário deve descartar/reverter a aba em memória (ou fechar e reabrir) para carregar a versão mais recente do disco, evitando sobrescrever o código novo.

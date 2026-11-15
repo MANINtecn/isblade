@@ -5908,7 +5908,7 @@ function applyWeaponVis(rig){
 
 
 
-  var is1H = (WPN === 'shield');
+  var is1H = (WPN === 'shield' || WPN === 'swordshield');
 
 
 
@@ -5924,7 +5924,7 @@ function applyWeaponVis(rig){
 
 
 
-    if(rig.swd1h) rig.swd1h.visible = false;/* CLAUDE [guardiao]: o Guardiao nao usa espada */
+    if(rig.swd1h) rig.swd1h.visible = is1H;/* Guardiao: Espada de 1 Mao + Escudo */
 
 
 

@@ -2476,7 +2476,7 @@ function applyWeaponVis(rig){
 
   var is2H = (WPN === 'sword');
 
-  var is1H = (WPN === 'shield');
+  var is1H = (WPN === 'shield' || WPN === 'swordshield');
 
   var isStaff = wpnCaster();/* [clerigo] o Clerigo segura o cajado tambem */
 
@@ -2484,7 +2484,7 @@ function applyWeaponVis(rig){
 
     if(rig.swd2h) rig.swd2h.visible = is2H;
 
-    if(rig.swd1h) rig.swd1h.visible = false;/* CLAUDE [guardiao]: o Guardiao nao usa espada */
+    if(rig.swd1h) rig.swd1h.visible = is1H;/* Guardiao: Espada de 1 Mao + Escudo */
 
     if(rig.sword && !rig.swd2h) rig.sword.visible = is2H;
 
