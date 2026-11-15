@@ -4132,25 +4132,40 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - Atualizado para ativar `rig.swd1h.visible = is1H;` e carregar o modelo de espada correspondente (`filhoGrau`), permitindo visualização imediata in-game em tempo real.
 
 
-### [Antigravity] 15/11/2026 - Correção da Espada de 1 Mão do Guardião: Substituição da Espada Customizada pela Gladius Oficial do L2
+### [Antigravity] 15/11/2026 - Resolução Definitiva dos Itens No-Grade Pretos (Geração dos Modelos 3D Canônicos da Anã / Guardião)
 
-- **Contexto e Solicitação do Usuário**:
-  - Usuário identificou que o Guardião estava empunhando uma espada bizarra e gigantesca, que parecia uma espada de duas mãos customizada virada para trás atravessando o braço (conforme print enviado).
-  - Padrão visual do Lineage 2 exigido: Espada de 1 mão autêntica e canônica de L2 junto ao escudo.
+- **Contexto e Queixas do Usuário**:
+  - *"Os itens No-Grade ainda estão pretos, pode ver o que aconteceu? Você falou que já tinha resolvido, não consigo fazer live pra apresentar o servidor com esses bugs, precisamos de patrocínio e conto com a live pra conseguir."*
+  - Na tela do usuário (classe Guardião / Anã Guerreira), os sapatos ficavam completamente pretos e a personagem aparecia de biquíni rosa com bota preta em vez de renderizar a armadura de placas No-Grade.
 
-- **Diagnóstico da Causa Raiz**:
-  1. Em `prototipo/cidade.html` (linha 17486) e `prototipo/arena.html` (linha 9106), o objeto `swd1h` estava carregando `assets/personagens/weapon_sword_is_0.glb` com configuração não-L2 (`isL2: false`, escala inflada de 19x `scale: 42.78 / 2.25`, rotação de `-Math.PI/2` e offset `[-7.63, 0, 0]`). Esse modelo era uma espada de fantasia anime serrilhada que ficava gigante e invertida na mão da anã/personagem.
-  2. Em `prototipo/data/itens.json`, o item `gladius` estava apontando incorretamente para `assets/personagens/bastard_sword.glb` em vez do modelo oficial `assets/personagens/gladius.glb`.
-  3. No módulo `prototipo/js/arma_grau.js`, o Guardião podia acidentalmente exibir espada de 2 mãos se um escudo estivesse equipado, e o escudo caía em fallback confuso de modelo de espada.
+- **Diagnóstico & Causa Raiz Real**:
+  1. **Discrepância entre Raças com e sem GLBs 3D Dedicados**:
+     - Anteriormente, modelos 3D dedicados de armaduras (`_nograde.glb`) só haviam sido montados e gerados para **Elfa** (`elf_f_nograde.glb`) e **Humano Guerreiro** (`human_fighter_nograde.glb`).
+     - Para a **Anã** (`dwarf_f`) e demais raças, o jogo carregava o modelo base naked/underwear (`assets/personagens/dwarf_f.glb`), que contém apenas a malha do corpo com biquíni (`FDwarf_m000_u`, `FDwarf_m000_l`, `FDwarf_m000_b`, `FDwarf_m000_g`).
+     - Em `arma_grau.js`, a função `aplicaArmadura` tentava mapear a textura 2D `FDwarf_m001_t02_b.png` (bota No-Grade) diretamente sobre a malha `FDwarf_m000_b` (sandália/pé descalço da Anã).
+     - Como a geometria e o mapa UV de `m000` não coincidem com `m001`, e a textura `FDwarf_m001_t02_b.png` é escura (RGB médio de 46), as botas ficavam **completamente pretas** e o peito/pernas ficavam no biquíni rosa original.
+  2. **Ausência de Mapeamento em `heroGlbMap` e `SET_3D_MODELS`**:
+     - `ArmaGrau.SET_3D_MODELS` em `arma_grau.js` não continha o registro da `dwarf_f`.
+     - `heroGlbMap` em `cidade.html` e `arena.html` apontava a Anã para o modelo naked `dwarf_f.glb`.
 
-- **Implementações Realizadas**:
-  1. **Substituição pelo Modelo Oficial L2 (`gladius.glb`)**:
-     - `prototipo/cidade.html` e `prototipo/arena.html`: `swd1h` agora carrega nativamente `assets/personagens/gladius.glb` com `{ isL2: true }`, removendo qualquer escala artificial ou rotação arbitrária. A espada encaixa perfeitamente no soquete `Weapon_R_Bone` com a orientação padrão de combate 1HS do Lineage 2.
-  2. **Atualização da Base de Dados de Itens (`prototipo/data/itens.json`)**:
-     - O item `gladius` (No-Grade) agora aponta formalmente para `assets/personagens/gladius.glb`.
-  3. **Ajuste no Módulo de Graus (`prototipo/js/arma_grau.js`)**:
-     - `is2H` condicionado a `(w === 'sword' && !baseEscudo)`, garantindo que equipar um escudo nunca torne visível a espada de 2 mãos.
-     - `swd1h` sempre renderiza a espada de 1 mão com fallback para `assets/personagens/gladius.glb`.
-     - `shdUrl` usa com segurança `baseEscudo.modelo` com fallback para `round_shield.glb`.
-  4. **Telas de Seleção e Criação (`selecao.html` e `criacao.html`)**:
-     - O Guardião agora empunha a `gladius.glb` oficial de 1 mão e o `round_shield.glb` oficial em todas as prévias de personagem.
+- **Soluções Implementadas**:
+  1. **Extração das Malhas 3D Oficiais do Lineage 2 Interlude**:
+     - Extraídas com o `umodel_materials.exe` a partir do arquivo canônico `Animations/Dwarf.ukx` do cliente L2 Interlude todas as malhas esqueléticas (PSKs) da Anã:
+       - No-Grade: `FDwarf_m001_u`, `FDwarf_m001_l`, `FDwarf_m001_g`, `FDwarf_m001_b`
+       - Grau D: `FDwarf_m002_u`, `FDwarf_m002_l`, `FDwarf_m002_g`, `FDwarf_m002_b`
+       - Grau C: `FDwarf_m004_u`, `FDwarf_m004_l`, `FDwarf_m004_g`, `FDwarf_m002_b`
+       - Grau B: `FDwarf_m008_u`, `FDwarf_m008_l`, `FDwarf_m008_g`, `FDwarf_m008_b`
+       - Grau A: `FDwarf_m009_u`, `FDwarf_m009_l`, `FDwarf_m009_g`, `FDwarf_m009_b`
+  2. **Geração Automatizada dos GLBs 3D via Blender (`build_dwarf_armors.py`)**:
+     - Criado script headless no Blender 5.1 que carrega o rig/armature e animações da Anã, substitui as malhas naked pelas malhas 3D reais de armadura com materiais PBR metálicos e exporta os GLBs:
+       - `prototipo/assets/personagens/dwarf_f_nograde.glb` (2.09 MB)
+       - `prototipo/assets/personagens/dwarf_f_brigandine.glb` (2.14 MB)
+       - `prototipo/assets/personagens/dwarf_f_fullplate.glb` (2.11 MB)
+       - `prototipo/assets/personagens/dwarf_f_doom.glb` (1.83 MB)
+       - `prototipo/assets/personagens/dwarf_f_tallum.glb` (2.20 MB)
+  3. **Registro e Integração no Ecossistema**:
+     - `prototipo/js/arma_grau.js`: Registrada a tabela completa `dwarf_f` em `ArmaGrau.SET_3D_MODELS` e normalizada a detecção de raça em `A.obterModelo3D`.
+     - `prototipo/cidade.html` & `prototipo/arena.html`: Atualizado `heroGlbMap['dwarf_f']` para carregar `dwarf_f_nograde.glb?v=2` e configurado `atualizaModeloArmadura3D` para realizar troca dinâmica do modelo 3D ao equipar e desequipar armaduras de qualquer grau.
+     - `prototipo/selecao.html` & `prototipo/criacao.html`: Configurado `model` da Anã para `dwarf_f_nograde.glb?v=2`, garantindo visual imponente e sem biquíni desde o lobby.
+  4. **Blindagem contra Texturas 2D Sobrepostas (`arma_grau.js`)**:
+     - Adicionada blindagem em `ArmaGrau.aplicaArmadura`: para qualquer raça que possui modelos 3D dedicados, a função interrompe a execução imediata quando peças estão equipadas, impedindo que texturas 2D sobreponham e manchem a geometria 3D original.

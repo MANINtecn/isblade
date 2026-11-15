@@ -426,7 +426,7 @@
     if(s.indexOf('magic_f') >= 0 || s.indexOf('fmagic') >= 0) return 'magic_f';
     if(s.indexOf('magic_m') >= 0 || s.indexOf('mmagic') >= 0) return 'magic_m';
     if(s.indexOf('female') >= 0 || s.indexOf('ffighter') >= 0) return 'human_fighter_female';
-    if(s.indexOf('fighter') >= 0 || s.indexOf('mfighter') >= 0) return 'human_fighter';
+    if(s.indexOf('fighter') >= 0 || s.indexOf('mfighter') >= 0 || s.indexOf('starter') >= 0 || s.indexOf('human_m') >= 0) return 'human_fighter';
 
     if(rig && rig.root){
       var detected = '';
@@ -547,6 +547,14 @@
        glbUrl.indexOf('_tallum.glb') >= 0 ||
        glbUrl.indexOf('_imperial.glb') >= 0){
       return;
+    }
+
+    var race = detectRace(rig);
+    // Se a raça já possui modelos 3D dedicados (elf_f, human_fighter, dwarf_f),
+    // a troca é gerenciada por atualizaModeloArmadura3D(). Não colar texturas 2D sobre a malha de underwear
+    if(A.SET_3D_MODELS && A.SET_3D_MODELS[race]){
+      var hasAnyEquip = equip && (equip.chest || equip.legs || equip.boots || equip.gloves);
+      if(hasAnyEquip) return;
     }
 
     if(!rig._meshParts){
@@ -712,12 +720,22 @@
       C:     'assets/personagens/human_fighter_fullplate.glb?v=2',
       B:     'assets/personagens/human_fighter_doom.glb?v=2',
       A:     'assets/personagens/human_fighter_imperial.glb?v=2'
+    },
+    dwarf_f: {
+      naked: 'assets/personagens/dwarf_f.glb?v=9',
+      sem:   'assets/personagens/dwarf_f_nograde.glb?v=2',
+      D:     'assets/personagens/dwarf_f_brigandine.glb?v=2',
+      C:     'assets/personagens/dwarf_f_fullplate.glb?v=2',
+      B:     'assets/personagens/dwarf_f_doom.glb?v=2',
+      A:     'assets/personagens/dwarf_f_tallum.glb?v=2'
     }
   };
 
   A.obterModelo3D = function(race, grau, hasChest){
     var r = (race || 'elf_f').toLowerCase();
-    if(r === 'fighter' || r === 'starter') r = 'human_fighter';
+    if(r === 'fighter' || r === 'starter' || r === 'human_m') r = 'human_fighter';
+    if(r.indexOf('dwarf_f') >= 0 || r.indexOf('fdwarf') >= 0) r = 'dwarf_f';
+    if(r.indexOf('elf_f') >= 0 || r.indexOf('felf') >= 0) r = 'elf_f';
     var table = A.SET_3D_MODELS[r];
     if(!table) return null;
     if(hasChest === false){

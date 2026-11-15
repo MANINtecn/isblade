@@ -9275,7 +9275,7 @@ function switchCharacter(type){
     'orc_m': 'assets/personagens/orc_m.glb?v=8',
     'orc_f': 'assets/personagens/orc_f.glb?v=8',
     'dwarf_m': 'assets/personagens/dwarf_m.glb?v=8',
-    'dwarf_f': 'assets/personagens/dwarf_f.glb?v=8',
+    'dwarf_f': 'assets/personagens/dwarf_f_nograde.glb?v=2',
     'darkelf_m': 'assets/personagens/darkelf_m.glb?v=6',
     'darkelf_f': 'assets/personagens/darkelf_f.glb?v=6'
   };
@@ -9302,7 +9302,9 @@ function switchCharacter(type){
 window.atualizaModeloArmadura3D = function(onFinish){
   if(!vrm || !vrm.root) return;
   var charType = (localStorage.getItem('isblade.char_type') || 'fighter').toLowerCase();
-  if(charType === 'fighter' || charType === 'starter') charType = 'human_fighter';
+  if(charType === 'fighter' || charType === 'starter' || charType === 'human_m') charType = 'human_fighter';
+  if(charType.indexOf('dwarf_f') >= 0 || charType.indexOf('fdwarf') >= 0) charType = 'dwarf_f';
+  if(charType.indexOf('elf_f') >= 0 || charType.indexOf('felf') >= 0) charType = 'elf_f';
 
   var inv = window.INV || INV;
   var hasChest = !!(inv && inv.equip && inv.equip.chest);
