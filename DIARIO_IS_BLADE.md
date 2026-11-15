@@ -4035,39 +4035,49 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - `cfgSelectChar`: Invoca `Conta.enviar(true)` para persistir qualquer alteração de estado no backend/localStorage e redireciona para `selecao.html`.
     - `cfgLogout`: Executa `Conta.sair()`, realizando sincronização pendente, invalidação de sessão, limpeza das chaves de credencial local e redirecionamento limpo para `login.html`.
 
-### [Antigravity] 14/11/2026 - Conversão do Sistema de Diálogos dos NPCs para HTML Nativo Oficial do Lineage 2 Interlude
 
-- **Demanda do Usuário**:
-  - *"nos npcs ainda usa o html prototipo e naoo html nativo do L2 vamos trabalhar nisso ?"* -> Aprovado pelo usuário ("*pode sim*").
-- **Diagnóstico & Causa Raiz**:
-  - `prototipo/js/l2_npcs.js` utilizava uma caixa modal moderna com gradientes azuis (`radial-gradient`), emojis nos avatares (`🧙`, `🔨`, `👁️`, `📦`, `🪙`), botões flexbox contemporâneos (`.l2-npc-btn`) e tipografia de sistema (`system-ui`), descolada da estética dos diálogos clássicos de Lineage 2 Interlude.
-- **Implementação do HTML Nativo do Lineage 2**:
-  1. **Moldura e Janela Nativa Oficial L2**:
-     - Fundo com a textura oficial de pergaminho/ardósia escura `l2_npc_window.png` (310x380 px, extraída dos pacotes `L2UI_CH3/Texture/npc1_back.png`).
-     - Largura clássica de 310px (padrão oficial de diálogos do Lineage 2), com `max-width: 94vw` responsivo.
-     - Botão fechar nativo `FrameCloseBtn.png` (16x16 px) posicionado no canto superior direito (`top: 5px; right: 5px;`), com alternância automática para `frameclosebtn_over.png` no hover e `FrameCloseOnBtn.png` no clique.
-     - Barra de título arrastável no topo (`.l2-npc-titlebar`), permitindo ao jogador mover livremente a janela de diálogo pela tela com o mouse, idêntico ao cliente de PC do Lineage 2.
-  2. **Tipografia e Tags Oficiais de HTML do L2**:
-     - Tipografia oficial: **Tahoma, Arial, sans-serif**, 11px/12px, cor `#b8b0a2` com sombra sutil `1px 1px 0 #000`.
-     - Título e nome com destaque dourado `<font color="LEVEL">` (`#e5b338`) e subtítulo da profissão em cinza `<font color="808080">` (`#8c8578`).
-     - Divisor ornamental horizontal simulando o clássico `SquareGray` em gradiente dourado sutil (`.l2-html-divider`).
-     - Opções de diálogo formatadas como **hyperlinks nativos do L2** com bullet de diamante dourado: `<a class="l2-html-link"><span class="l2-html-bullet">◆</span>Texto</a>` (cor normal `#c49c36`, hover `#ffe98f` com sublinhado).
-  3. **Botões Chanfrados Oficiais do L2**:
-     - Botões de navegação e ação (`.l2-btn`) renderizados com a textura chanfrada de ferro e bronze `btn_normal.png` (76x23 px), com `btn_over.png` no hover e `btn_down.png` ao pressionar.
-  4. **Navegação em Sub-páginas com Botão Voltar**:
-     - Implementado fluxo com `renderSubPage(html, backCallback)`:
-       - **Clarissa (Gatekeeper)**: Sub-página de teleporte com tabela clássica (`.l2-html-table`) listando destinos (Torre da Insolência, Salão do Baium, Arena PvP, Cruma, Fortaleza, Pântano) com taxas em Adena (`.l2-price`) e botão nativo `[Voltar]`.
-       - **Altran (Ferreiro)**: Sub-página com livro de receitas do anão (Dragon Slayer, Imperial Crusader, Bastard Sword) e forja de encantamento com visual L2.
-       - **Mammon (Sete Selos)**: Sub-página com tabela de câmbio de pedras seladas (azul, verde, vermelha para Ancient Adena) e lore do selo.
-       - **Wilford (Armazém)**: Sub-página com regulamento da guilda e acesso ao baú.
-       - **Galladucci (Mercador)**: Sub-página com catálogo de equipamentos por classe (Guardião, Místico, Guerreiro) e rotas comerciais.
-  5. **Design Sonoro Clássico do L2**:
-     - Ao abrir o diálogo: reproduz o som suave de abertura de tomo/pergaminho (`assets/audio/bookOpen.ogg`).
-     - Ao fechar o diálogo: reproduz o som de fechamento de tomo (`assets/audio/bookClose.ogg`).
-     - Ao clicar em links e botões: reproduz o estalo metálico característico da interface do L2 (`assets/audio/metalClick.ogg`).
-  6. **Compatibilidade Total**:
-     - Preservada 100% da integração com o servidor: chamadas para `Loja.abrir('altran')`, `Loja.abrir('mammon')`, `Loja.abrir('wilford')`, `Loja.abrir('galladucci')`.
-     - Preservados teleporte por `window.irArea`, `window.L2Teleport`, `window.openPortalMenu`.
-     - `prototipo/js/moradores.js` atualizado para compartilhar a mesma estética L2 com Tahoma e `l2_npc_window.png`.
-     - `prototipo/cidade.html` atualizado com cache-buster `l2_npcs.js?v=6`.
+### [Antigravity] 14/11/2026 - Diálogos Nativos Oficiais do Lineage 2 e Restilização Completa do Lobby (Seleção de Personagens)
 
+- **1. Diálogos Nativos dos NPCs no Padrão Oficial do Lineage 2 Interlude (`prototipo/js/l2_npcs.js` e `prototipo/js/moradores.js`)**:
+  - **Interface & Texturas Oficiais (`L2UI_CH3`)**:
+    - Substituição do antigo protótipo de diálogo por janelas fiéis à interface original do Lineage 2 Interlude.
+    - Janela com moldura metálica 9-slice `l2_npc_window.png` (310x380 px), cantos chanfrados escuros e botão oficial de fechar `FrameCloseBtn.png` (16x16 px) com hover `frameclosebtn_over.png`.
+    - Janela totalmente arrastável com o mouse pelo cabeçalho (draggable header com clamp aos limites da tela).
+    - Tipografia clássica: `Tahoma 11px`, espaçamento de 1.45, títulos em dourado clássico `<font color="LEVEL">` (`#e5c158`), links de diálogo com o icônico diamante `◆` do L2 e realce de texto.
+  - **Áudio Nativo do L2**:
+    - Abertura e fechamento de diálogos com sons autênticos do cliente L2 (`assets/audio/bookOpen.ogg`, `assets/audio/bookClose.ogg`, `assets/audio/metalClick.ogg`).
+  - **Sub-páginas & Funcionalidades Completas**:
+    - **Gatekeeper Clarissa**: Tabela de teleporte nativa com taxas de Adena, destinos (Talking Island Village, Obelisk of Victory, Elven Ruins, Whispering Woods, Gludio Castle Town) e botão de retorno `[Voltar]` com estilo de botão L2 (`btn_normal.png`).
+    - **Ferreiro Altran**: Menu de forja e encantamento de equipamentos.
+    - **Comerciante Galladucci**: Catálogo de itens e suprimentos para aventureiros.
+    - **Guarda-Volumes Wilford**: Interface de Armazém pessoal e de clã.
+    - **Mammon / Mercador dos Selos**: Troca de Ancient Adena e itens sagrados.
+  - **Cache & Deploy**: Cache-buster atualizado em `cidade.html` (`l2_npcs.js?v=6`).
+
+- **2. Restilização Completa da Tela de Seleção de Personagens / Lobby (`prototipo/selecao.html`)**:
+  - **Visual & Atmosfera Clássica do Templo de Einhasad**:
+    - Cenário 3D Three.js integrado com a iluminação mística de catedral: luz ambiente noturna azulada (`AmbientLight`), facho direcional quente vindo de cima (`DirectionalLight`), pedestal central com anéis dourados e glifo rúnico luminoso giratório, 4 colunas góticas com braseiros de bronze e chamas cintilantes (`PointLight` com efeito flicker senoidal dinâmico).
+  - **Molduras & Texturas Oficiais Lineage 2**:
+    - **Painel Esquerdo (Ficha de Status do Herói)**:
+      - Moldura 9-slice `l2_npc_window.png` sobre ardósia escura (`rgba(14, 14, 14, 0.94)`).
+      - Nome do guerreiro com tipografia Cinzel/Tahoma dourada (`#ffe68a`), nível com insígnia dourada e localização.
+      - Gauges de Status Oficiais do L2: barra de **CP** (Combat Points, âmbar `#d4a342`), **HP** (Hit Points, vermelho rubi `#c53030`), **MP** (Mana Points, azul celestial `#2b7cc4`) e **EXP** (verde esmeralda `#34a853`).
+      - Grade com os **6 Atributos Clássicos de Raça do Lineage 2**: **STR** (Força), **INT** (Inteligência), **DEX** (Destreza), **WIT** (Espírito), **CON** (Constituição) e **MEN** (Mentalidade), alimentados diretamente da configuração de raças do L2 (`RACE_CONFIG`).
+      - Painel de progressão dinâmica IS BLADE (FOR, INT, AGI, VIT) mantido e harmonizado.
+      - Descrição e lore canônico da linhagem com aspas e borda dourada.
+    - **Painel Direito (Lista de Slots de Personagens)**:
+      - Moldura oficial L2 com cabeçalho de seção `<font color="LEVEL">PERSONAGENS CRIADOS</font> (X / 7)`.
+      - Cards de slot estilizados com a textura oficial `l2_lobby_slot_back.png` (256x108 px).
+      - Slot ativo com moldura dourada resplandecente (`border: 1.5px solid #e5c158; box-shadow: inset 0 0 10px rgba(229,193,88,0.45), 0 0 14px rgba(229,193,88,0.55)`), nome brilhante e destaque do ícone.
+      - Slots vazios com moldura sutil para criação de novos heróis.
+    - **Rodapé & Botão START Oficial**:
+      - Botão icônico **START** com a textura chanfrada clássica `l2_lobby_start_btn.png` (141x50 px), tipografia "START" em alto-relevo dourado com sombra e glow luminoso, efeito de pulso ao passar o mouse e som de ativação clássico (`soul_shot_shot.wav`).
+      - Botões de ação secundária ("Criar Novo Personagem", "Excluir Personagem", "Desconectar") implementados com a textura oficial `btn_normal.png` (76x23 px), com estados `:hover` (`btn_over.png`) e `:active` (`btn_down.png`).
+    - **Modais de Confirmação (Excluir e Renomear)**:
+      - Molduras 9-slice `l2_npc_window.png`, botão de fechar `FrameCloseBtn.png`, mensagens em tipografia L2 e botões de confirmação/cancelamento estilizados.
+    - **Áudio & Vozes Nativas**:
+      - Seleção de personagens e hover com som metálico clássico `assets/audio/metalClick.ogg`.
+      - Integração com o banco de vozes nativas de todas as raças (`assets/vozes/`): ao selecionar um herói, ele reproduz sua frase de apresentação clássica (`greeting_1.ogg` das pastas `MHFighter`, `FHFighter`, `MHMagician`, `FHMagician`, `MElf`, `FElf`, `MOFighter`, `FOFighter`, `MDwarf`, `FDwarf`, `MDElf`, `FDElf`).
+      - Trilha sonora oficial `assets/musica/intro.ogg` tocando no fundo.
+  - **Limpeza de Memória e Disco**:
+    - Removidos 20 arquivos temporários de preview/prints antigos (`preview_*.png`, `test_render*.png`), liberando mais de 10 MB de disco e memória.
