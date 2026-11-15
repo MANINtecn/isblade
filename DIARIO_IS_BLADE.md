@@ -4105,3 +4105,22 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - `prototipo/cidade.html` & `prototipo/arena.html`: Configurado `rig.swd1h.visible = is1H;` (onde `is1H = (WPN === 'shield' || WPN === 'swordshield')`), permitindo que a espada de 1 mão renderize perfeitamente alinhada à empunhadura da mão direita durante caminhada, corrida, combate e descanso.
   4. **Orientação Técnica sobre Conflito de Salvamento no VS Code**:
      - Quando o arquivo em disco é atualizado por commits do repositório enquanto abas permanecem abertas no editor, o VS Code exibe *"The content of the file is newer"*. O usuário deve descartar/reverter a aba em memória (ou fechar e reabrir) para carregar a versão mais recente do disco, evitando sobrescrever o código novo.
+
+### [Antigravity] 15/11/2026 - Kit Inicial Canônico do Guardião (Gladius + Round Shield) no Servidor e Cliente
+
+- **Contexto e Solicitação do Usuário**:
+  - Aceitar a espada de 1 mão de vez para o Guardião (eliminando a discrepância da animação de combate L2 segurando o nada).
+  - Testar no jogo antes de mexer em animações no Blender.
+  - Regra obrigatória: Todo Guardião criado deve receber a Espada inicial (`Gladius`) e o Escudo inicial (`Round Shield`) equipados no inventário.
+
+- **Diagnóstico & Correção da Persistência de Itens**:
+  1. **Servidor (`servidor/inventario.js`)**:
+     - No método `garante(pers)` que gera o inventário inicial no backend, `classe === 'shield'` gerava apenas o `shield_guardian` e não colocava nenhuma arma no slot `weapon`.
+     - Alterado para instanciar e equipar tanto a `gladius` no slot `weapon` quanto o `shield_guardian` no slot `shield`.
+     - Adicionada autocorreção para Guardiões já criados que estivessem sem espada equipada no backend, equipando automaticamente uma `gladius`.
+  2. **Cliente / Offline (`prototipo/cidade.html` e `prototipo/arena.html`)**:
+     - Na função `initInv()`, havia um trecho legado `if(WPN==='shield') delete INV.equip.weapon;` que deletava a arma da mão do Guardião a cada inicialização!
+     - Removido o `delete INV.equip.weapon` e adicionada garantia de que `INV.equip.weapon` recebe a `gladius` e `INV.equip.shield` recebe o `shield_guardian`.
+  3. **Módulo de Graus (`prototipo/js/arma_grau.js`)**:
+     - `ArmaGrau.aplica` estava forçando `rig.swd1h.visible = false;` a cada frame/troca de equipamento.
+     - Atualizado para ativar `rig.swd1h.visible = is1H;` e carregar o modelo de espada correspondente (`filhoGrau`), permitindo visualização imediata in-game em tempo real.

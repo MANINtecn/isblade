@@ -501,7 +501,14 @@
     if(rig.sword && !rig.swd2h){
       rig.sword.visible = (w === 'sword');
     }
-    if(rig.swd1h) rig.swd1h.visible = false;
+    /* espada de uma mao (Guardiao) */
+    var is1H = (w === 'shield' || !!baseEscudo);
+    if(rig.swd1h){
+      rig.swd1h.visible = is1H;
+      if(is1H && url && w === 'shield'){
+        filhoGrau(rig.swd1h, attach, url);
+      }
+    }
 
     /* escudo na mao esquerda */
     var shdUrl = (baseEscudo && baseEscudo.modelo) || (w === 'shield' ? (url || 'assets/personagens/round_shield.glb') : null);

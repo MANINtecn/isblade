@@ -39,7 +39,13 @@ function garante(pers){
   if(!inv || !Array.isArray(inv.items) || !inv.equip || typeof inv.equip !== 'object'){
     inv = { items: [], equip: {}, adena: 1000 };
     if(classe === 'shield'){
-      /* Guardiao: joga apenas com escudo (Round Shield inicial), NUNCA espada */
+      /* Guardiao: Espada de 1 Mão (Gladius) + Escudo (Round Shield) iniciais */
+      const swdBase = D.bases.find(b => b.id === 'gladius') || D.bases.find(b => b.id === 'sword_long');
+      if(swdBase){
+        const swdItem = mkItem(swdBase.id, 'normal');
+        inv.items.push(swdItem);
+        inv.equip.weapon = swdItem.uid;
+      }
       const shdBase = D.bases.find(b => b.id === 'shield_guardian');
       if(shdBase){
         const shdItem = mkItem(shdBase.id, 'normal');
@@ -80,6 +86,24 @@ function garante(pers){
   if(inv.consum.soulshot === undefined && inv.consum.spiritshot === undefined){
     const sId = (classe === 'staff' || classe === 'book') ? 'spiritshot' : 'soulshot';
     inv.consum[sId] = 500;                    /* [soulshot] carga inicial de 500 tiros (como no L2) */
+  }
+  if(classe === 'shield'){
+    if(!inv.equip.weapon){
+      const existingSwd = inv.items.find(i => { const b = baseDe(i.base); return b && b.slot === 'weapon'; });
+      if(existingSwd){ inv.equip.weapon = existingSwd.uid; }
+      else {
+        const swdBase = D.bases.find(b => b.id === 'gladius') || D.bases.find(b => b.id === 'sword_long');
+        if(swdBase){ const swdItem = mkItem(swdBase.id, 'normal'); inv.items.push(swdItem); inv.equip.weapon = swdItem.uid; }
+      }
+    }
+    if(!inv.equip.shield){
+      const existingShd = inv.items.find(i => { const b = baseDe(i.base); return b && b.slot === 'shield'; });
+      if(existingShd){ inv.equip.shield = existingShd.uid; }
+      else {
+        const shdBase = D.bases.find(b => b.id === 'shield_guardian');
+        if(shdBase){ const shdItem = mkItem(shdBase.id, 'normal'); inv.items.push(shdItem); inv.equip.shield = shdItem.uid; }
+      }
+    }
   }
   return inv;
 }

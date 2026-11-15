@@ -13468,8 +13468,9 @@ function initInv(){
     var _cur = _wB ? _wB.weapon : null;
     if(_cur!==WPN){
       if(WPN==='shield'){
-        delete INV.equip.weapon;
-        saveInv();
+        var _swd=INV.items.filter(function(i){return i.base==='gladius';})[0];
+        if(!_swd){_swd=mkItem('gladius','normal');INV.items.push(_swd);}
+        if(_swd){INV.equip.weapon=_swd.uid;saveInv();}
       } else {
         var _alvo=INV.items.filter(function(i){var b=baseOf(i.base); return b && b.weapon===itemDaArma(WPN);})[0];
         if(!_alvo){var _b=ITM.bases.filter(function(b){return b.weapon===itemDaArma(WPN);})[0];if(_b){_alvo=mkItem(_b.id,'normal');INV.items.push(_alvo);}}
@@ -13477,7 +13478,11 @@ function initInv(){
       }
     }
     if(WPN==='shield'){
-      delete INV.equip.weapon;
+      if(!INV.equip.weapon){
+        var _swd=INV.items.filter(function(i){return i.base==='gladius';})[0];
+        if(!_swd){_swd=mkItem('gladius','normal');INV.items.push(_swd);}
+        if(_swd){INV.equip.weapon=_swd.uid;saveInv();}
+      }
       if(!INV.equip.shield){
         var _shd=INV.items.filter(function(i){return i.base==='shield_guardian';})[0];
         if(!_shd){_shd=mkItem('shield_guardian','normal');INV.items.push(_shd);}
