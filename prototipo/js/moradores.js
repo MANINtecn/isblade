@@ -77,12 +77,13 @@
   /* ---- janela de conversa ---- */
   function monta(){
     if(el) return; var st = document.createElement('style');
-    st.textContent = '#morConv{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(520px,94vw);z-index:320;display:none;padding:10px 12px;color:#e8f0ff;font:13px system-ui,sans-serif;' +
-      'background:linear-gradient(rgba(16,24,44,.97),rgba(6,10,20,.97));box-shadow:inset 0 0 0 1px #c9a24a,0 10px 30px rgba(0,0,0,.7);clip-path:polygon(0 10px,10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px))}' +
-      '#morConv .hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}#morConv .hd b{color:#ffe6a8;letter-spacing:.06em}#morConv .hd small{color:#9fd0ff}#morConv .hd button{margin-left:auto}' +
-      '#morConv .log{max-height:130px;overflow:auto;margin-bottom:8px}#morConv .log div{margin:3px 0}#morConv .log .eu{color:#9fb0cc}#morConv .log .ele b{color:#ffe6a8}' +
-      '#morConv .rap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}#morConv button{pointer-events:auto;cursor:pointer;font:700 11px system-ui,sans-serif;color:#e8f0ff;background:#16223d;border:1px solid #2b3a63;border-radius:4px;padding:7px 10px}' +
-      '#morConv .lin{display:flex;gap:6px}#morConv input{flex:1;min-width:0;padding:8px;border-radius:4px;border:1px solid #2b3a63;background:#0b1428;color:#fff;font:inherit}';
+    st.textContent = '#morConv{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);width:min(480px,94vw);z-index:10000;display:none;padding:12px 14px;color:#c0b8ac;font:11px Tahoma,Arial,sans-serif;' +
+      'background:rgba(14,14,14,.96);border-style:solid;border-width:10px 7px 7px 7px;border-image:url("assets/ui/exported/L2UI_CH3/Texture/l2_npc_window.png") 10 7 7 7 fill stretch;box-shadow:0 10px 35px rgba(0,0,0,.9)}' +
+      '#morConv .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;border-bottom:1px solid rgba(80,70,60,.35);padding-bottom:4px}#morConv .hd b{color:#e5b338;font-size:12px;letter-spacing:.03em}#morConv .hd small{color:#8c8578;font-size:10px}#morConv .hd button{margin-left:auto}' +
+      '#morConv .log{max-height:130px;overflow-y:auto;margin-bottom:8px;line-height:1.45}#morConv .log div{margin:3px 0}#morConv .log .eu{color:#cca352}#morConv .log .ele b{color:#e5b338}' +
+      '#morConv .rap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}#morConv button{pointer-events:auto;cursor:pointer;font:bold 11px Tahoma,Arial,sans-serif;color:#b8b0a2;background:url("assets/ui/exported/L2UI_CH3/Texture/btn_normal.png") no-repeat center;background-size:100% 100%;border:none;outline:none;padding:4px 10px;text-shadow:1px 1px 0 #000}' +
+      '#morConv button:hover{background-image:url("assets/ui/exported/L2UI_CH3/Texture/btn_over.png");color:#fff}#morConv button:active{background-image:url("assets/ui/exported/L2UI_CH3/Texture/btn_down.png");color:#ffd978}' +
+      '#morConv .lin{display:flex;gap:6px}#morConv input{flex:1;min-width:0;padding:6px 8px;border:1px solid #4a3e30;background:#0d0d0d;color:#e0d8c8;font:inherit}';
     document.head.appendChild(st); el = document.createElement('div'); el.id = 'morConv'; document.body.appendChild(el);
     ['keydown', 'keyup', 'keypress'].forEach(function(t){ el.addEventListener(t, function(e){ e.stopPropagation(); if(t === 'keydown' && e.key === 'Escape') M.fecha(); if(t === 'keydown' && e.key === 'Enter') manda(); }); });
     el.addEventListener('click', function(ev){ var b = ev.target.closest('button'); if(!b) return; ev.stopPropagation(); var a = b.getAttribute('data-a');
