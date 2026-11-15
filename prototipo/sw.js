@@ -2,7 +2,7 @@
    Paginas, scripts, estilos e JSON NAO passam por aqui: vao sempre para a rede (o navegador cuida do cache HTTP), entao o site nunca fica preso numa versao antiga.
    A URL com ?v=N faz parte da chave: subir o numero (ex.: guardian_anims.glb?v=3) busca o arquivo novo.
    Quer limpar os assets de todos os aparelhos? Suba VERSAO_ASSETS. */
-var VERSAO_ASSETS = 'v1';
+var VERSAO_ASSETS = 'v2';
 var ASSETS = 'is-assets-' + VERSAO_ASSETS;
 var EXT_ASSET = /\.(glb|gltf|vrm|fbx|png|jpg|jpeg|webp|svg|ogg|mp3|wav|woff2?|ttf|bin|md5anim|psa)$/i;
 
