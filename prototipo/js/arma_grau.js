@@ -494,27 +494,29 @@
     var w = base && base.weapon, url = (base && base.modelo) || null;
 
     /* espada de duas maos */
+    var is2H = (w === 'sword' && !baseEscudo);
     if(rig.swd2h){
-      rig.swd2h.visible = (w === 'sword');
-      if(w === 'sword') filhoGrau(rig.swd2h, attach, url || 'assets/personagens/twohanded_sword.glb');
+      rig.swd2h.visible = is2H;
+      if(is2H) filhoGrau(rig.swd2h, attach, url || 'assets/personagens/twohanded_sword.glb');
     }
     if(rig.sword && !rig.swd2h){
-      rig.sword.visible = (w === 'sword');
+      rig.sword.visible = is2H;
     }
     /* espada de uma mao (Guardiao) */
     var is1H = (w === 'shield' || !!baseEscudo);
     if(rig.swd1h){
       rig.swd1h.visible = is1H;
-      if(is1H && url && w === 'shield'){
-        filhoGrau(rig.swd1h, attach, url);
+      if(is1H){
+        var swd1hUrl = (w === 'shield' || !!baseEscudo) && url ? url : 'assets/personagens/gladius.glb';
+        filhoGrau(rig.swd1h, attach, swd1hUrl);
       }
     }
 
     /* escudo na mao esquerda */
-    var shdUrl = (baseEscudo && baseEscudo.modelo) || (w === 'shield' ? (url || 'assets/personagens/round_shield.glb') : null);
+    var shdUrl = (baseEscudo && baseEscudo.modelo) || 'assets/personagens/round_shield.glb';
     if(rig.shd){
       rig.shd.visible = (w === 'shield' || !!baseEscudo);
-      if(rig.shd.visible) filhoGrau(rig.shd, attach, shdUrl || 'assets/personagens/round_shield.glb');
+      if(rig.shd.visible) filhoGrau(rig.shd, attach, shdUrl);
     }
 
     /* cajado do mago na mao direita */

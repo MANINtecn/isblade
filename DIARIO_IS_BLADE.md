@@ -4130,3 +4130,27 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   3. **Módulo de Graus (`prototipo/js/arma_grau.js`)**:
      - `ArmaGrau.aplica` estava forçando `rig.swd1h.visible = false;` a cada frame/troca de equipamento.
      - Atualizado para ativar `rig.swd1h.visible = is1H;` e carregar o modelo de espada correspondente (`filhoGrau`), permitindo visualização imediata in-game em tempo real.
+
+
+### [Antigravity] 15/11/2026 - Correção da Espada de 1 Mão do Guardião: Substituição da Espada Customizada pela Gladius Oficial do L2
+
+- **Contexto e Solicitação do Usuário**:
+  - Usuário identificou que o Guardião estava empunhando uma espada bizarra e gigantesca, que parecia uma espada de duas mãos customizada virada para trás atravessando o braço (conforme print enviado).
+  - Padrão visual do Lineage 2 exigido: Espada de 1 mão autêntica e canônica de L2 junto ao escudo.
+
+- **Diagnóstico da Causa Raiz**:
+  1. Em `prototipo/cidade.html` (linha 17486) e `prototipo/arena.html` (linha 9106), o objeto `swd1h` estava carregando `assets/personagens/weapon_sword_is_0.glb` com configuração não-L2 (`isL2: false`, escala inflada de 19x `scale: 42.78 / 2.25`, rotação de `-Math.PI/2` e offset `[-7.63, 0, 0]`). Esse modelo era uma espada de fantasia anime serrilhada que ficava gigante e invertida na mão da anã/personagem.
+  2. Em `prototipo/data/itens.json`, o item `gladius` estava apontando incorretamente para `assets/personagens/bastard_sword.glb` em vez do modelo oficial `assets/personagens/gladius.glb`.
+  3. No módulo `prototipo/js/arma_grau.js`, o Guardião podia acidentalmente exibir espada de 2 mãos se um escudo estivesse equipado, e o escudo caía em fallback confuso de modelo de espada.
+
+- **Implementações Realizadas**:
+  1. **Substituição pelo Modelo Oficial L2 (`gladius.glb`)**:
+     - `prototipo/cidade.html` e `prototipo/arena.html`: `swd1h` agora carrega nativamente `assets/personagens/gladius.glb` com `{ isL2: true }`, removendo qualquer escala artificial ou rotação arbitrária. A espada encaixa perfeitamente no soquete `Weapon_R_Bone` com a orientação padrão de combate 1HS do Lineage 2.
+  2. **Atualização da Base de Dados de Itens (`prototipo/data/itens.json`)**:
+     - O item `gladius` (No-Grade) agora aponta formalmente para `assets/personagens/gladius.glb`.
+  3. **Ajuste no Módulo de Graus (`prototipo/js/arma_grau.js`)**:
+     - `is2H` condicionado a `(w === 'sword' && !baseEscudo)`, garantindo que equipar um escudo nunca torne visível a espada de 2 mãos.
+     - `swd1h` sempre renderiza a espada de 1 mão com fallback para `assets/personagens/gladius.glb`.
+     - `shdUrl` usa com segurança `baseEscudo.modelo` com fallback para `round_shield.glb`.
+  4. **Telas de Seleção e Criação (`selecao.html` e `criacao.html`)**:
+     - O Guardião agora empunha a `gladius.glb` oficial de 1 mão e o `round_shield.glb` oficial em todas as prévias de personagem.

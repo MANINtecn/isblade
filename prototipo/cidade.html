@@ -17483,42 +17483,10 @@ function loadL2Player(modelUrl, sword, cb){
 
 
 
-    var swd1h = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/weapon_sword_is_0.glb', {
-
-
-
-      isL2: false,
-
-
-
-      position: [-7.63, 0, 0], /* centro do cabo (y=0.27 do modelo) no centro do cabo da Bastard (x=-2.5) */
-
-
-
-      rotation: [0, 0, -Math.PI / 2], /* lamina do eixo Y do modelo para +X do osso */
-
-
-
-      scale: 42.78 / 2.25,
-
-
-
-      visible: false,/* CLAUDE [guardiao]: sem espada */
-
-
-
-      fallbackUrl: 'assets/personagens/bastard_sword.glb',
-
-
-
-      fallbackIsL2: true,
-
-
-
+    var swd1h = attachL2Item(root, 'Weapon_R_Bone', 'assets/personagens/gladius.glb', {
+      isL2: true,
+      visible: (WPN === 'shield' || WPN === 'swordshield'),
       loader: gltfLoader
-
-
-
     });
 
 

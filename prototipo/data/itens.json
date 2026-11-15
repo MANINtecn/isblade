@@ -61,7 +61,7 @@
 
   "bases": [
     { "id": "sword_long", "name": "Espada de Duas Mãos", "slot": "weapon", "grau": "sem", "weapon": "sword", "modelo": "assets/armas/twohanded_sword.glb", "stats": { "dano": 10 } },
-    { "id": "gladius", "name": "Gladius", "slot": "weapon", "grau": "sem", "weapon": "shield", "modelo": "assets/personagens/bastard_sword.glb", "stats": { "dano": 8 } },
+    { "id": "gladius", "name": "Gladius", "slot": "weapon", "grau": "sem", "weapon": "shield", "modelo": "assets/personagens/gladius.glb", "stats": { "dano": 8 } },
     { "id": "shield_guardian", "name": "Round Shield", "slot": "shield", "grau": "sem", "weapon": "shield", "modelo": "assets/personagens/round_shield.glb", "stats": { "dano": 3, "defesa": 5 } },
     { "id": "staff_arcane", "name": "Cajado de Cedro", "slot": "weapon", "grau": "sem", "weapon": "staff", "modelo": "assets/armas/cedar_staff.glb", "stats": { "dano": 12 } },
     { "id": "helmet_iron", "name": "Elmo de Ferro", "slot": "helmet", "grau": "sem", "stats": { "vida": 20, "defesa": 2 } },
