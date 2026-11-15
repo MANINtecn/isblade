@@ -4169,3 +4169,46 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - `prototipo/selecao.html` & `prototipo/criacao.html`: Configurado `model` da Anã para `dwarf_f_nograde.glb?v=2`, garantindo visual imponente e sem biquíni desde o lobby.
   4. **Blindagem contra Texturas 2D Sobrepostas (`arma_grau.js`)**:
      - Adicionada blindagem em `ArmaGrau.aplicaArmadura`: para qualquer raça que possui modelos 3D dedicados, a função interrompe a execução imediata quando peças estão equipadas, impedindo que texturas 2D sobreponham e manchem a geometria 3D original.
+
+
+### [Antigravity] 15/11/2026 - Generalização Total dos Modelos 3D No-Grade para 100% das 12 Raças do L2 & Correção de Arma 1H do Guardião
+
+- **Demanda do Usuário**:
+  - *"tá mas por que não faz o serviço completo? e eu tenho que voltar aqui e pedir de novo? se estamos usando todos os personagens do L2 então deve funcionar em todos perfeitamente."*
+  - *"creio que você tenha escolhido uma espada de 2 mãos para o guardião, veja que não é como no L2."*
+
+- **Diagnóstico & Causa Raiz Real**:
+  1. **Cobertura Incompleta das Raças do L2**:
+     - Anteriormente, apenas 3 raças tinham modelos `_nograde.glb` dedicados gerados: Elfa (`elf_f`), Humano Guerreiro (`human_fighter`) e Anã (`dwarf_f`). As outras 7 raças (`human_fighter_female`, `magic_m`, `magic_f`, `elf_m`, `orc_m`, `orc_f`, `dwarf_m`) ainda apontavam para seus arquivos base `_naked.glb` de underwear (roupas íntimas/biquíni).
+     - Quando qualquer uma dessas 7 raças era jogada ou criada, a função `aplicaArmadura` tentava aplicar texturas de botas/peitorais No-Grade diretamente na geometria nua de underwear (`m000`), resultando em pés e pernas pretos e visual quebrado.
+  2. **Espada de 2 Mãos Inserida na Mão do Guardião com Escudo**:
+     - Em `ArmaGrau.aplica` (`js/arma_grau.js`), a variável `swd1hUrl` pegava `url` da arma equipada (`sword_long` -> `twohanded_sword.glb`), carregando uma montante de duas mãos gigante na mão direita do Guardião mesmo quando um escudo estava equipado na mão esquerda.
+  3. **Fallback Inadequado de Inicialização**:
+     - Em `cidade.html` e `arena.html`, a variável inicial `hasChest` começava como `false`, fazendo com que `ArmaGrau.obterModelo3D` selecionasse o modelo `table['naked']` logo no spawn inicial se o inventário ainda não tivesse lido o peitoral, exibindo o biquíni rosa no primeiro frame.
+
+- **Soluções Implementadas**:
+  1. **Extração das Malhas 3D Oficiais (PSKs) de Todas as 7 Raças Restantes**:
+     - Extraídas com `umodel_materials.exe` as peças No-Grade (`_m001_u`, `_m001_l`, `_m001_g`, `_m001_b`) dos pacotes `Fighter.ukx`, `Magic.ukx`, `Elf.ukx`, `Orc.ukx` e `Dwarf.ukx`.
+  2. **Geração Automatizada via Blender 5.1 Headless (`build_all_nograde_armors.py`)**:
+     - Criados os 7 novos modelos GLB canônicos com geometria e texturas oficiais de armadura No-Grade:
+       - `human_fighter_female_nograde.glb` (1.63 MB)
+       - `magic_m_nograde.glb` (2.16 MB)
+       - `magic_f_nograde.glb` (1.92 MB)
+       - `elf_m_nograde.glb` (1.70 MB)
+       - `orc_m_nograde.glb` (1.86 MB)
+       - `orc_f_nograde.glb` (1.86 MB)
+       - `dwarf_m_nograde.glb` (1.86 MB)
+  3. **Universalização Completa do Ecossistema**:
+     - `prototipo/js/arma_grau.js`:
+       - Tabela `ArmaGrau.SET_3D_MODELS` expandida para incluir todas as 12 raças canônicas do Lineage 2.
+       - `ArmaGrau.obterModelo3D`: normalização de todas as 12 raças com fallback padrão sempre para o modelo No-Grade (`table['sem']`), eliminando qualquer possibilidade de spawn em roupas íntimas.
+       - `ArmaGrau.aplicaArmadura`: blindagem contra carimbo de texturas 2D planas sobre malhas de personagens.
+       - `ArmaGrau.aplica`: correção da espada do Guardião. Quando `is1H` é verdadeiro (escudo equipado), a arma da mão direita é obrigatoriamente uma espada de 1 mão (`gladius.glb`, `bastard_sword.glb`, `samurai_longsword.glb`), jamais carregando montantes de 2 mãos (`twohanded_sword.glb`, `claymore.glb`, etc.).
+     - `prototipo/cidade.html` & `prototipo/arena.html`:
+       - `heroGlbMap` atualizado para carregar o modelo `_nograde.glb?v=2` para todas as 12 raças.
+       - Inicialização do spawn corrigida (`hasChest: true`), garantindo que o herói surja sempre paramentado com armadura completa.
+       - Fallback padrão atualizado de `human_fighter.glb` (naked) para `human_fighter_nograde.glb?v=2`.
+       - `atualizaModeloArmadura3D` normalizado para todas as raças.
+     - `prototipo/selecao.html` & `prototipo/criacao.html`:
+       - Tabelas `RACE_CONFIG` e `RACE_DATA` atualizadas para apontar 100% dos personagens para seus modelos 3D No-Grade (`_nograde.glb?v=2` / `darkelf_m.glb?v=6` / `darkelf_f.glb?v=6`).
+

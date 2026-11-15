@@ -502,12 +502,22 @@
     if(rig.sword && !rig.swd2h){
       rig.sword.visible = is2H;
     }
-    /* espada de uma mao (Guardiao) */
+    /* espada de uma mao + escudo (Guardiao) */
     var is1H = (w === 'shield' || !!baseEscudo);
     if(rig.swd1h){
       rig.swd1h.visible = is1H;
       if(is1H){
-        var swd1hUrl = (w === 'shield' || !!baseEscudo) && url ? url : 'assets/personagens/gladius.glb';
+        // Espada de 1 mao do Guardiao: NUNCA usar espada de 2 maos
+        var swd1hUrl = 'assets/personagens/gladius.glb';
+        if(w === 'shield'){
+          swd1hUrl = url || 'assets/personagens/gladius.glb';
+        } else if(base && base.grau){
+          var g = base.grau;
+          if(g === 'D') swd1hUrl = 'assets/armas/bastard_sword.glb';
+          else if(g === 'C') swd1hUrl = 'assets/armas/samurai_longsword.glb';
+          else if(g === 'B') swd1hUrl = 'assets/personagens/gladius.glb';
+          else if(g === 'A') swd1hUrl = 'assets/personagens/gladius.glb';
+        }
         filhoGrau(rig.swd1h, attach, swd1hUrl);
       }
     }
@@ -545,16 +555,17 @@
        glbUrl.indexOf('_fullplate.glb') >= 0 ||
        glbUrl.indexOf('_doom.glb') >= 0 ||
        glbUrl.indexOf('_tallum.glb') >= 0 ||
-       glbUrl.indexOf('_imperial.glb') >= 0){
+       glbUrl.indexOf('_imperial.glb') >= 0 ||
+       glbUrl.indexOf('darkelf_m.glb') >= 0 ||
+       glbUrl.indexOf('darkelf_f.glb') >= 0){
       return;
     }
 
     var race = detectRace(rig);
-    // Se a raça já possui modelos 3D dedicados (elf_f, human_fighter, dwarf_f),
-    // a troca é gerenciada por atualizaModeloArmadura3D(). Não colar texturas 2D sobre a malha de underwear
+    // Todas as 12 racas do L2 possuem modelos 3D dedicados completos.
+    // NUNCA colar texturas 2D planas sobre malhas de underwear/biquini para nao gerar itens pretos.
     if(A.SET_3D_MODELS && A.SET_3D_MODELS[race]){
-      var hasAnyEquip = equip && (equip.chest || equip.legs || equip.boots || equip.gloves);
-      if(hasAnyEquip) return;
+      return;
     }
 
     if(!rig._meshParts){
@@ -728,22 +739,67 @@
       C:     'assets/personagens/dwarf_f_fullplate.glb?v=2',
       B:     'assets/personagens/dwarf_f_doom.glb?v=2',
       A:     'assets/personagens/dwarf_f_tallum.glb?v=2'
+    },
+    human_fighter_female: {
+      naked: 'assets/personagens/human_fighter_female.glb?v=9',
+      sem:   'assets/personagens/human_fighter_female_nograde.glb?v=2'
+    },
+    magic_m: {
+      naked: 'assets/personagens/magic_m.glb?v=9',
+      sem:   'assets/personagens/magic_m_nograde.glb?v=2'
+    },
+    magic_f: {
+      naked: 'assets/personagens/magic_f.glb?v=9',
+      sem:   'assets/personagens/magic_f_nograde.glb?v=2'
+    },
+    elf_m: {
+      naked: 'assets/personagens/elf_m.glb?v=9',
+      sem:   'assets/personagens/elf_m_nograde.glb?v=2'
+    },
+    orc_m: {
+      naked: 'assets/personagens/orc_m.glb?v=9',
+      sem:   'assets/personagens/orc_m_nograde.glb?v=2'
+    },
+    orc_f: {
+      naked: 'assets/personagens/orc_f.glb?v=9',
+      sem:   'assets/personagens/orc_f_nograde.glb?v=2'
+    },
+    dwarf_m: {
+      naked: 'assets/personagens/dwarf_m.glb?v=9',
+      sem:   'assets/personagens/dwarf_m_nograde.glb?v=2'
+    },
+    darkelf_m: {
+      naked: 'assets/personagens/darkelf_m.glb?v=6',
+      sem:   'assets/personagens/darkelf_m.glb?v=6'
+    },
+    darkelf_f: {
+      naked: 'assets/personagens/darkelf_f.glb?v=6',
+      sem:   'assets/personagens/darkelf_f.glb?v=6'
     }
   };
 
   A.obterModelo3D = function(race, grau, hasChest){
-    var r = (race || 'elf_f').toLowerCase();
+    var r = (race || 'human_fighter').toLowerCase();
     if(r === 'fighter' || r === 'starter' || r === 'human_m') r = 'human_fighter';
+    if(r.indexOf('female') >= 0 || r.indexOf('ffighter') >= 0) r = 'human_fighter_female';
+    if(r.indexOf('darkelf_f') >= 0 || r.indexOf('fdarkelf') >= 0) r = 'darkelf_f';
+    if(r.indexOf('darkelf_m') >= 0 || r.indexOf('mdarkelf') >= 0) r = 'darkelf_m';
     if(r.indexOf('dwarf_f') >= 0 || r.indexOf('fdwarf') >= 0) r = 'dwarf_f';
+    if(r.indexOf('dwarf_m') >= 0 || r.indexOf('mdwarf') >= 0) r = 'dwarf_m';
+    if(r.indexOf('orc_f') >= 0 || r.indexOf('forc') >= 0) r = 'orc_f';
+    if(r.indexOf('orc_m') >= 0 || r.indexOf('morc') >= 0) r = 'orc_m';
+    if(r.indexOf('magic_f') >= 0 || r.indexOf('fmagic') >= 0) r = 'magic_f';
+    if(r.indexOf('magic_m') >= 0 || r.indexOf('mmagic') >= 0) r = 'magic_m';
     if(r.indexOf('elf_f') >= 0 || r.indexOf('felf') >= 0) r = 'elf_f';
+    if(r.indexOf('elf_m') >= 0 || r.indexOf('melf') >= 0) r = 'elf_m';
+
     var table = A.SET_3D_MODELS[r];
+    if(!table) table = A.SET_3D_MODELS['human_fighter'];
     if(!table) return null;
-    if(hasChest === false){
-      return table['naked'] || table['sem'] || null;
-    }
+
     if(!grau || grau === 'sem'){
       return table['sem'] || table['naked'] || null;
     }
-    return table[grau] || table['sem'] || null;
+    return table[grau] || table['sem'] || table['naked'] || null;
   };
 })();

@@ -9267,25 +9267,24 @@ function switchCharacter(type){
     'fighter': 'assets/personagens/human_fighter_nograde.glb?v=2',
     'starter': 'assets/personagens/human_fighter_nograde.glb?v=2',
     'imperial': 'assets/personagens/human_fighter_imperial.glb?v=2',
-    'human_fighter_female': 'assets/personagens/human_fighter_female.glb?v=8',
-    'magic_m': 'assets/personagens/magic_m.glb?v=8',
-    'magic_f': 'assets/personagens/magic_f.glb?v=8',
-    'elf_m': 'assets/personagens/elf_m.glb?v=8',
+    'human_fighter_female': 'assets/personagens/human_fighter_female_nograde.glb?v=2',
+    'magic_m': 'assets/personagens/magic_m_nograde.glb?v=2',
+    'magic_f': 'assets/personagens/magic_f_nograde.glb?v=2',
+    'elf_m': 'assets/personagens/elf_m_nograde.glb?v=2',
     'elf_f': 'assets/personagens/elf_f_nograde.glb?v=2',
-    'orc_m': 'assets/personagens/orc_m.glb?v=8',
-    'orc_f': 'assets/personagens/orc_f.glb?v=8',
-    'dwarf_m': 'assets/personagens/dwarf_m.glb?v=8',
+    'orc_m': 'assets/personagens/orc_m_nograde.glb?v=2',
+    'orc_f': 'assets/personagens/orc_f_nograde.glb?v=2',
+    'dwarf_m': 'assets/personagens/dwarf_m_nograde.glb?v=2',
     'dwarf_f': 'assets/personagens/dwarf_f_nograde.glb?v=2',
     'darkelf_m': 'assets/personagens/darkelf_m.glb?v=6',
     'darkelf_f': 'assets/personagens/darkelf_f.glb?v=6'
   };
 
   var curGrau = 'sem';
-  var hasChest = false;
+  var hasChest = true;
   if(window.INV && INV.equip){
     var chestIt = INV.equip.chest && findItem(INV.equip.chest);
     var chestB = chestIt && baseOf(chestIt.base);
-    hasChest = !!chestIt;
     if(chestB && chestB.grau) curGrau = chestB.grau;
   }
   var resolvedGlb = (window.ArmaGrau && ArmaGrau.obterModelo3D && ArmaGrau.obterModelo3D(type, curGrau, hasChest)) || heroGlbMap[type];
@@ -9295,20 +9294,29 @@ function switchCharacter(type){
   } else if(type === 'talibrac'){
     loadRig('assets/Talibrac.vrm', 2.45, swdColor, onReady);
   } else {
-    loadL2Player('assets/personagens/human_fighter.glb?v=8', swdColor, onReady);
+    loadL2Player('assets/personagens/human_fighter_nograde.glb?v=2', swdColor, onReady);
   }
 }
 
 window.atualizaModeloArmadura3D = function(onFinish){
   if(!vrm || !vrm.root) return;
-  var charType = (localStorage.getItem('isblade.char_type') || 'fighter').toLowerCase();
+  var charType = (localStorage.getItem('isblade.char_type') || 'human_fighter').toLowerCase();
   if(charType === 'fighter' || charType === 'starter' || charType === 'human_m') charType = 'human_fighter';
+  if(charType.indexOf('female') >= 0 || charType.indexOf('ffighter') >= 0) charType = 'human_fighter_female';
+  if(charType.indexOf('darkelf_f') >= 0 || charType.indexOf('fdarkelf') >= 0) charType = 'darkelf_f';
+  if(charType.indexOf('darkelf_m') >= 0 || charType.indexOf('mdarkelf') >= 0) charType = 'darkelf_m';
   if(charType.indexOf('dwarf_f') >= 0 || charType.indexOf('fdwarf') >= 0) charType = 'dwarf_f';
+  if(charType.indexOf('dwarf_m') >= 0 || charType.indexOf('mdwarf') >= 0) charType = 'dwarf_m';
+  if(charType.indexOf('orc_f') >= 0 || charType.indexOf('forc') >= 0) charType = 'orc_f';
+  if(charType.indexOf('orc_m') >= 0 || charType.indexOf('morc') >= 0) charType = 'orc_m';
+  if(charType.indexOf('magic_f') >= 0 || charType.indexOf('fmagic') >= 0) charType = 'magic_f';
+  if(charType.indexOf('magic_m') >= 0 || charType.indexOf('mmagic') >= 0) charType = 'magic_m';
   if(charType.indexOf('elf_f') >= 0 || charType.indexOf('felf') >= 0) charType = 'elf_f';
+  if(charType.indexOf('elf_m') >= 0 || charType.indexOf('melf') >= 0) charType = 'elf_m';
 
   var inv = window.INV || INV;
-  var hasChest = !!(inv && inv.equip && inv.equip.chest);
-  var chestIt = hasChest && findItem(inv.equip.chest);
+  var hasChest = true;
+  var chestIt = inv && inv.equip && inv.equip.chest && findItem(inv.equip.chest);
   var chestB = chestIt && baseOf(chestIt.base);
   var grau = (chestB && chestB.grau) || 'sem';
   if(grau === 'sem' && inv && inv.equip){
