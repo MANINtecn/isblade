@@ -4067,3 +4067,74 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Criação de personagem: testado clique no input de nome, confirmação de que `.tabs`, painéis e botões permanecem 100% visíveis.
   - Carregamento na cidade: validada Anã Feminina (`dwarf_f`) com set No-Grade completo equipado — texturas No-Grade oficiais aplicadas com sucesso (`cidade_dwarf_nograde_verif.png`).
   - Desequipar itens: testado `unequipSlot('chest')` e `unequipSlot('shield')`, confirmando persistência e renderização desequipada (`cidade_dwarf_desequipada_verif.png`).
+
+
+### [Antigravity] 14/11/2026 - Correção de Ícones e Slot de Calças (Pants), Fallback de Slot, No-Grade 3D e Sets Grade D, C, B, A
+
+- **Problemas Relatados**:
+  1. O ícone das calças (pants) no inventário estava aparecendo com a imagem de uma espada.
+  2. Roupas No-Grade no personagem 3D apareciam totalmente pretas ou em roupa íntima em alguns modelos.
+  3. Dúvida se os sets Grade D, C, B e A estavam devidamente renderizados em 3D nos personagens masculinos e femininos.
+
+- **Implementações e Correções Técnicas**:
+  1. **Extração de Ícones Oficiais do Lineage 2 Interlude (`prototipo/assets/icones/`)**:
+     - Extraídos diretamente do pacote oficial `Icon.utx` 34 ícones em alta resolução para calças e pernas de armadura: `legs_plate.png`, `legs_plate_d.png`, `legs_plate_c.png`, `legs_plate_b.png`, `legs_plate_a.png`, `legs_leather.png`, `legs_tunic.png`, além de luvas, botas e capacetes.
+  2. **Correção do Fallback de Slot no Inventário (`prototipo/js/inventario_ui.js`)**:
+     - No tratamento de erro de carregamento de imagem (`onerror`), o fallback genérico apontava para espada (`sword_ico.png`).
+     - Implementado mapeamento rigoroso por slot (`SLOT_FALLBACK_ICONS`): o slot `legs` cai estritamente em `assets/icones/legs_plate.png`, `chest` em `chest_plate.png`, `gloves` em `gloves_plate.png`, `boots` em `boots_plate.png`, `head` em `helm_plate.png`, e `shield` em `shield_ico.png`.
+  3. **Correção de Texturas No-Grade e Materiais 3D (`prototipo/js/arma_grau.js`)**:
+     - Corrigida a identificação de malhas usando `rig._currentGlbUrl || rig.modelUrl`, garantindo que modelos carregados dinamicamente na cidade e na arena sejam detectados corretamente.
+     - Corrigido typo no nome da textura do torso No-Grade masculino (`MFighter_m001_t02_u.png`).
+  4. **Exportação e Modelagem do Set Doom Fighter 3D (`prototipo/assets/personagens/human_fighter_doom.glb`)**:
+     - Criado script no Blender headless que combinou as malhas de armadura Doom Heavy (`MFighter_m005_u`, `MFighter_m005_l`, `MFighter_m005_g`, `MFighter_m005_b`) com o esqueleto base oficial do Human Fighter e todas as 13 animações de combate do jogo.
+     - Exportado o modelo final `human_fighter_doom.glb` (9.5 MB) com rigging e texturas completas.
+  5. **Mapeamento dos 5 Sets 3D (No-Grade, D, C, B, A)**:
+     - Ambos `elf_f` (Elfa) e `human_fighter` (Humano Guerreiro) agora possuem mapeamento completo em `A.SET_3D_MODELS` cobrindo todos os graus:
+       - No-Grade (`sem`): Malha base com texturas oficiais `t02`.
+       - Grade D: Set Brigandine / Manticore.
+       - Grade C: Set Composite / Demon.
+       - Grade B: Set Doom Heavy (`human_fighter_doom.glb` e `elf_f_doom.glb`).
+       - Grade A: Set Dark Crystal / Tallum.
+  6. **Atualização do Banco de Itens e Lojas (`prototipo/data/itens.json`, `prototipo/data/loja.json`)**:
+     - Cadastrados itens completos para o slot `legs` (Calça de Placas No-Grade, Calça Brigandine D, Calça Composite C, Calça Doom B, Calça Dark Crystal A).
+     - Adicionadas calças às lojas dos NPCs Galladucci (Talking Island) e Mammon.
+
+### [Antigravity] 14/11/2026 - Varredura Completa e Solda das Emendas dos 4 Mapas Abertos (Cruma, Fortaleza, Pântano, Baium) e Renders 3D
+
+- **Problemas Relatados**:
+  1. Necessidade de varredura detalhada nas emendas de transição entre o campo da cidade e os 4 mapas do mundo aberto (Torre de Cruma, Fortaleza, Pântano Flamejante e Torre do Baium).
+  2. Existência de degraus íngremes, buracos e barreiras invisíveis ("motivo estrutura" em `mapa_vivo.js`) causados por desencontros de até 46 metros entre o terreno do campo (`CAMPO_TI` / `TERRA_FUNDO`) e as malhas dos mapas.
+  3. Existência de uma ilha isolada de 7.047 m² no planalto do Baium sem conexão contínua até a cidade.
+  4. Pedido do usuário para soldar todas as emendas e renderizar vistas 3D no Blender demonstrando as correções.
+
+- **Diagnóstico e Causa Raiz**:
+  - `CAMPO_TI` era um anel genérico gerado por ondas senoidais até 300m de raio, sobrepondo e cortando a Fortaleza a -4m (enquanto a Fortaleza fica a +7m, gerando uma queda de 11 metros na soleira).
+  - A peça legada `BASE_TORRE` estava com matriz de transformação corrompida flutuando a +35m, e o `lagos_mundo.py` gerava um lago artificial de 18.000 m² cobrindo a entrada do Baium por não excluir a Região 4 do filtro de bacias.
+  - A fenda de lava (-32m) no Pântano não possuía o aterro sólido `TERRA_PANTANO` integrado ao pipeline de exportação.
+  - As células externas da Fortaleza e Pântano estavam sendo atribuídas à região do mapa além do raio do walkgrid (636 células fora de alcance), acionando colisões inexistentes.
+
+- **Implementações e Soldas Geométricas**:
+  1. **Solda da Torre do Baium (`BASE_TORRE` - Rodovia de Montanha e Pátio)**:
+     - Construída via pavimentada de 34 metros de largura superando a crista montanhosa e conectando o campo ao pátio do Baium:
+       - Subida do campo até a crista: 78.3 metros, inclinação suave de **$17.4^\circ$** (teto do jogo é $40^\circ$).
+       - Descida ao pátio: 87.9 metros, inclinação de **$13.9^\circ$**.
+     - Ilhas isoladas de 7.047 m², 18.171 m² e 13.311 m² **completamente eliminadas**: a área andável ligada à cidade atingiu **99.9%** (213 hectares).
+     - Corrigido `prototipo/tools/lagos_mundo.py`: adicionada Região 4 a `saida = ... | np.isin(reg, [1, 2, 3, 4])`, eliminando a inundação indevida da Torre do Baium.
+  2. **Solda da Fortaleza (`EMENDA_FORTRESS`)**:
+     - Rampa suave de paralelepípedos de 28 metros de largura e 77 metros de extensão ligando o campo (+0.5m) à soleira (+6.89m) em um declive de apenas **$4.7^\circ$**.
+     - No `exporta_mundo.py`, aplicado limitador estrito de raio do walkgrid (100m para Fortaleza, 170m para Pântano, 300m para Cruma), reduzindo as células "fora do alcance" da Fortaleza de 636 para **0 (Zero)** e aumentando o casamento de piso de 68% para **84%**.
+  3. **Solda do Pântano Flamejante (`TERRA_PANTANO` e `EMENDA_PANTANO`)**:
+     - Criado aterro de rocha vulcânica sólida ($128\text{ m} \times 148\text{ m}$) sobre a fenda de lava (-32m), preenchendo a depressão entre as duas grandes alas do Pântano com piso transitando de +0.6m a -2.6m.
+     - Estrada de acesso de 26m de largura com declive de **$1.0^\circ$** ligando o campo à entrada do Pântano.
+  4. **Solda da Torre de Cruma (`EMENDA_CRUMA`)**:
+     - Estrada de pedra de 28 metros de largura e 176 metros de extensão conectando a orla do campo ao pórtico de entrada de Cruma em -2.03m.
+     - Perímetro andável de Cruma ampliado de 671 para 840 células (+169 células livres de passagem).
+  5. **Automação do Pipeline de Exportação (`fechar_mundo.py`, `exporta_mundo.py`, `pecas_emenda.py`)**:
+     - Integradas todas as 5 novas peças de solda em `CHAOS` para interpolação laplaciana do terreno de fundo (`TERRA_FUNDO`) e geração binária da grade (`mundo_grade.bin`).
+  6. **Renderização 3D Automatizada no Blender (`prototipo/tools/render_emendas.py`)**:
+     - Criado script de renderização com câmera orbital e iluminação solar que gerou 5 imagens em alta resolução em `prototipo/assets/mundo/renders/` e no diretório de artifacts:
+       - `01_mapa_mundi_visao_geral.png`: Vista aérea do mundo aberto e os 4 corredores.
+       - `02_solda_fortaleza.png`: Rampa de acesso à soleira da Fortaleza.
+       - `03_solda_torre_baium.png`: Rodovia de montanha e entrada no pátio do Baium.
+       - `04_solda_cruma.png`: Corredor e soleira da Torre de Cruma.
+       - `05_solda_pantano.png`: Aterro vulcânico e entrada do Pântano Flamejante.
