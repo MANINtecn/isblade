@@ -4075,12 +4075,18 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   1. **Bug da Bota no `arma_grau.js`**:
      - O código antigo de identificação de malhas percorria a hierarquia e testava:
        ```javascript
-       if(nl.indexOf('chest') >= 0 || nl.indexOf('_u') >= 0) rig._meshParts.chest = c;
-       else if(nl.indexOf('legs') >= 0 || nl.indexOf('_l') >= 0) rig._meshParts.legs = c;
-       else if(nl.indexOf('gloves') >= 0 || nl.indexOf('_g') >= 0) rig._meshParts.gloves = c;
-       else if(nl.indexOf('boots') >= 0 || nl.indexOf('_b') >= 0) rig._meshParts.boots = c;
-       else if(nl.indexOf('face') >= 0 || nl.indexOf('_f') >= 0) rig._meshParts.face = c;
-       else if(nl.indexOf('hair') >= 0 || nl.indexOf('_h') >= 0) rig._meshParts.hair = c;
+       if (nl.indexOf("chest") >= 0 || nl.indexOf("_u") >= 0)
+         rig._meshParts.chest = c;
+       else if (nl.indexOf("legs") >= 0 || nl.indexOf("_l") >= 0)
+         rig._meshParts.legs = c;
+       else if (nl.indexOf("gloves") >= 0 || nl.indexOf("_g") >= 0)
+         rig._meshParts.gloves = c;
+       else if (nl.indexOf("boots") >= 0 || nl.indexOf("_b") >= 0)
+         rig._meshParts.boots = c;
+       else if (nl.indexOf("face") >= 0 || nl.indexOf("_f") >= 0)
+         rig._meshParts.face = c;
+       else if (nl.indexOf("hair") >= 0 || nl.indexOf("_h") >= 0)
+         rig._meshParts.hair = c;
        ```
      - Em todos os modelos oficiais do L2 (`dwarf_f.glb`, `elf_f.glb`, `darkelf_f.glb`, etc.), o cabelo traseiro possui o nome `"Hair_Back"` e a geometria termina em `_bh`.
      - O teste `nl.indexOf('_b') >= 0` verificava a substring `_b` dentro de `"hair_back"`, classificando a malha do **Cabelo Traseiro** como **Bota** (`rig._meshParts.boots`) antes de chegar no teste de `hair`!
@@ -4089,7 +4095,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - `U.icone(item)` não reconhecia variantes de slot (`pants`, `calca`, `legs`) para fallback específico, caindo no default genérico `sword_long.png`.
   3. **Guardião e a Espada de 1 Mão**:
      - No Lineage 2 Interlude oficial, a classe Tanker/Guardião utiliza **Espada de 1 Mão + Escudo**.
-     - Códigos legados em `selecao.html`, `criacao.html`, `cidade.html` e `arena.html` forçavam `swd1h.visible = false` sob o comentário incorreto *"o Guardiao nao usa espada"*. Isso deixava a animação oficial `Wait_1HS` (que segura a empunhadura na mão direita) desarmada, aparentando um bug de espada invisível.
+     - Códigos legados em `selecao.html`, `criacao.html`, `cidade.html` e `arena.html` forçavam `swd1h.visible = false` sob o comentário incorreto _"o Guardiao nao usa espada"_. Isso deixava a animação oficial `Wait_1HS` (que segura a empunhadura na mão direita) desarmada, aparentando um bug de espada invisível.
 
 - **Soluções Implementadas**:
   1. **Correção de Mapeamento em `prototipo/js/arma_grau.js`**:
@@ -4104,7 +4110,7 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - `prototipo/criacao.html`: Ao selecionar a classe Guardião, anexa simultaneamente a `bastard_sword.glb` e o `round_shield.glb`.
      - `prototipo/cidade.html` & `prototipo/arena.html`: Configurado `rig.swd1h.visible = is1H;` (onde `is1H = (WPN === 'shield' || WPN === 'swordshield')`), permitindo que a espada de 1 mão renderize perfeitamente alinhada à empunhadura da mão direita durante caminhada, corrida, combate e descanso.
   4. **Orientação Técnica sobre Conflito de Salvamento no VS Code**:
-     - Quando o arquivo em disco é atualizado por commits do repositório enquanto abas permanecem abertas no editor, o VS Code exibe *"The content of the file is newer"*. O usuário deve descartar/reverter a aba em memória (ou fechar e reabrir) para carregar a versão mais recente do disco, evitando sobrescrever o código novo.
+     - Quando o arquivo em disco é atualizado por commits do repositório enquanto abas permanecem abertas no editor, o VS Code exibe _"The content of the file is newer"_. O usuário deve descartar/reverter a aba em memória (ou fechar e reabrir) para carregar a versão mais recente do disco, evitando sobrescrever o código novo.
 
 ### [Antigravity] 15/11/2026 - Kit Inicial Canônico do Guardião (Gladius + Round Shield) no Servidor e Cliente
 
@@ -4124,25 +4130,3 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   3. **Módulo de Graus (`prototipo/js/arma_grau.js`)**:
      - `ArmaGrau.aplica` estava forçando `rig.swd1h.visible = false;` a cada frame/troca de equipamento.
      - Atualizado para ativar `rig.swd1h.visible = is1H;` e carregar o modelo de espada correspondente (`filhoGrau`), permitindo visualização imediata in-game em tempo real.
-
-### [Antigravity] 15/11/2026 - Blindagem do Repositório para Vercel (Eliminação Total de Serverless Functions e Consumo de CPU)
-
-- **Diagnóstico Cabal do Consumo de 4h 11m de Active CPU**:
-  - Os logs em tempo real da Vercel (`Project Logs` do `isblade`) evidenciaram que requisições estáticas para `/js/pwa.js`, `/css/portal.css`, `/js/giro.js` e `/` estavam marcadas com o ícone `[f]` (Vercel Serverless Function).
-  - O log disparava repetidamente:
-    `contas: reset cancelado (sem backup) ENOENT: arquivo ou diretório inexistente, abra '/var/task/servidor/dados...'`
-  - **Causa Raiz**: Como a pasta `servidor/` continha `server.js` e `package.json` sem estar no `.vercelignore` da raiz, a Vercel configurou o repositório como um projeto Node.js e empacotou o `server.js` como uma Lambda Function (`/var/task`). Cada download de arquivo estático (.css, .js, .png, .glb) executava o Node.js como Serverless Function em vez de ser servido pela CDN Edge. Isso transformou mais de 150 mil requisições em 4h 11m de consumo indevido de CPU ativa.
-- **Medidas de Blindagem Implementadas no Repositório**:
-  1. **`.vercelignore` (Raiz)**:
-     - Adicionadas as regras de exclusão estrita para `servidor`, `servidor/**`, `node_modules` e `**/node_modules`.
-     - A Vercel agora ignora completamente o backend, impedindo qualquer detecção ou empacotamento de funções Node.js.
-  2. **`vercel.json` (Raiz)**:
-     - Criado arquivo de configuração global na raiz do repositório definindo:
-       - `"outputDirectory": "prototipo"` (força a Vercel a servir exclusivamente os arquivos estáticos de `prototipo/`).
-       - `"cleanUrls": true`.
-       - Cabeçalhos de cache imutável de 1 ano para assets (`public, max-age=31536000, immutable`), desonerando requisições repetidas.
-  3. **`prototipo/vercel.json`**:
-     - Sincronizado com cabeçalhos de cache de 1 ano para `/assets/(.*)`.
-- **Separação Arquitetural Canônica**:
-  - **Frontend (Vercel)**: 100% estático, servido via Edge CDN global, **0 funções serverless e 0 segundos de CPU consumidos**.
-  - **Backend MMO (VPS)**: Conexões WebSocket e regras de combate rodando de forma dedicada e isolada na VPS Linux (`51.79.41.62` / `play.isblade.tecx.pro`).
