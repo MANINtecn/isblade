@@ -4272,3 +4272,32 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - Removido `prototipo/package.json` para evitar que a Vercel acione o `@vercel/node`.
      - Limpo `prototipo/vercel.json` mantendo regras de cache e URLs limpas.
      - Incrementadas as versões dos scripts (`?v=42`) para forçar atualização em todos os clientes e navegadores.
+
+
+### [Antigravity] 15/11/2026 - Ícone Canônico do Lineage 2 (Grimório de Magias) no Botão de Skills Mobile e Menu
+
+- **Demanda do Usuário**:
+  - *"o l2 tem esse icone nativo que representa a janela das skill voce deve saber que estamos usando a interface do L2"*
+  - O botão de habilidades no mobile e nos menus não deve usar ícones genéricos (espada, raio ou emojis SVG), mas sim a textura oficial canônica do Lineage 2 Interlude que representa a janela de Habilidades e Magias (`MagicSkillWnd`).
+
+- **Pesquisa e Identificação dos Assets Oficiais do L2 Interlude**:
+  1. No cliente oficial do Lineage 2 (`L2UI_CH3.utx`), a janela de Habilidades e Magias é representada canonicamente pelo **Grimório de Magias Aberto**:
+     - `mainwndtabicon2.png` (32x32): Textura canônica do livro/grimório aberto de magias.
+     - `mainwndtabicon2_over.png`: Estado hover (brilho dourado ativo).
+     - `mainwndtabicon2_down.png`: Estado pressionado.
+  2. Os botões de menu do dock oficial do L2 possuem dimensão padrão de 36x36px com moldura metálica e rebites de bronze (`menubutton1.png` Status, `menubutton2.png` Inventário, `menubutton3.png` Mapa, `menubutton4.png` Sistema).
+
+- **Composição das Texturas Canônicas 36x36px**:
+  - Geradas em `prototipo/assets/ui/`:
+    - `menubutton_skill.png` (36x36 RGBA): Moldura oficial de bronze com o grimório aberto do L2 centralizado.
+    - `menubutton_skill_over.png` (36x36 RGBA): Moldura com iluminação dourada e grimório com efeito ativo.
+    - `menubutton_skill_down.png` (36x36 RGBA): Moldura em baixo-relevo com clique pressionado.
+
+- **Implementação nos Menus e Mobile**:
+  1. **Navegação Mobile (`prototipo/js/mobile.js`)**:
+     - Botão `#mbskill` agora utiliza como background a textura `assets/ui/menubutton_skill.png?v=43` e `:active` com `menubutton_skill_over.png?v=43`.
+     - Padronizados todos os 4 botões mobile para o conjunto oficial L2 (`menubutton3.png` Mapa, `menubutton_skill.png` Skills, `menubutton2.png` Inventário, `menubutton4.png` Sistema), eliminando qualquer elemento SVG genérico.
+  2. **Menu de Sistema (`cidade.html` e `arena.html`)**:
+     - Atualizado `#cfgBtnSkills` para renderizar o ícone canônico do grimório L2.
+  3. **Cache Busting**:
+     - Versão dos arquivos atualizada para `v=43` em `cidade.html` e `arena.html` para forçar o recarregamento imediato em navegadores mobile e desktop.

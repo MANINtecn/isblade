@@ -28,9 +28,18 @@
     '#mb .sk svg{width:72%;height:72%}#mb .sk .k{display:none}' +
     '#mb .sk .cd{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.6);height:0}#mb .sk .ct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;text-shadow:0 1px 3px #000}' +
     'body.mb-edit #mb .b{outline:2px dashed rgba(255,214,102,.9);outline-offset:2px;opacity:1}' +
-    '#mbfs,#mbmap,#mbskill,#mbinv,#mbsys,#mbedit{position:fixed;z-index:75;padding:0;width:36px;height:36px;border:0;border-radius:9px;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45),0 2px 6px rgba(0,0,0,.5);color:#cfe8ff;font:600 15px system-ui,sans-serif;display:none;align-items:center;justify-content:center;opacity:.9;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
-    '#mbfs:active,#mbmap:active,#mbskill:active,#mbinv:active,#mbsys:active,#mbedit:active{background:rgba(92,200,255,.35);transform:scale(.93)}' +
-    '#mbfs{left:12px;top:96px;width:auto;padding:0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}#mbmap{right:10px;top:8px}#mbskill{right:52px;top:8px;color:#ffd166}#mbinv{right:94px;top:8px;color:#a5d8ff}#mbsys{right:136px;top:8px}#mbedit{right:178px;top:8px}' +
+    '#mbfs,#mbmap,#mbskill,#mbinv,#mbsys,#mbedit{position:fixed;z-index:75;padding:0;width:36px;height:36px;border:0;border-radius:4px;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:36px 36px;box-shadow:0 3px 8px rgba(0,0,0,.6);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+    '#mbfs{left:12px;top:96px;width:auto;padding:0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45);color:#cfe8ff;font-family:system-ui,sans-serif}' +
+    '#mbmap{right:10px;top:8px;background-image:url("assets/ui/menubutton3.png?v=43")}' +
+    '#mbmap:active{background-image:url("assets/ui/menubutton3_over.png?v=43");transform:scale(.94)}' +
+    '#mbskill{right:52px;top:8px;background-image:url("assets/ui/menubutton_skill.png?v=43")}' +
+    '#mbskill:active{background-image:url("assets/ui/menubutton_skill_over.png?v=43");transform:scale(.94)}' +
+    '#mbinv{right:94px;top:8px;background-image:url("assets/ui/menubutton2.png?v=43")}' +
+    '#mbinv:active{background-image:url("assets/ui/menubutton2_over.png?v=43");transform:scale(.94)}' +
+    '#mbsys{right:136px;top:8px;background-image:url("assets/ui/menubutton4.png?v=43")}' +
+    '#mbsys:active{background-image:url("assets/ui/menubutton4_over.png?v=43");transform:scale(.94)}' +
+    '#mbedit{right:178px;top:8px;border-radius:7px;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45);color:#cfe8ff;font:600 15px system-ui,sans-serif;display:none;align-items:center;justify-content:center}' +
+    '#mbedit:active{background:rgba(92,200,255,.35);transform:scale(.93)}' +
     'body.is-touch #mbmap,body.is-touch #mbskill,body.is-touch #mbinv,body.is-touch #mbsys,body.is-touch #mbedit{display:flex!important}body.is-touch #mbfs{display:flex}' +
     '#mbbar{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;display:none;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(7,12,24,.82);box-shadow:inset 0 0 0 1px rgba(255,214,102,.7);color:#ffe9b0;font:600 12px system-ui,sans-serif}' +
     '#mbbar button{font:700 12px system-ui,sans-serif;padding:6px 10px;border-radius:7px;border:0;background:rgba(120,196,255,.25);color:#fff}body.mb-edit #mbbar{display:flex}' +
@@ -89,10 +98,9 @@
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible'){ travaGiro(); mantemTelaLigada(); } });
     window.addEventListener('orientationchange', travaGiro);
     try { history.pushState({ g: 1 }, '', location.href); window.addEventListener('popstate', function(){ try { history.pushState({ g: 1 }, '', location.href); } catch(e){} }); } catch(e){}      /* gesto/botao voltar sem querer nao fecha o jogo */
-    var bm = document.createElement('button'); bm.id = 'mbmap'; bm.type = 'button'; bm.textContent = '▦'; bm.title = 'Mapa'; bm.onclick = function(){ document.body.classList.toggle('mapa-aberto'); }; document.body.appendChild(bm);
+    var bm = document.createElement('button'); bm.id = 'mbmap'; bm.type = 'button'; bm.title = 'Mapa'; bm.onclick = function(){ document.body.classList.toggle('mapa-aberto'); }; document.body.appendChild(bm);
 
     var bsk = document.createElement('button'); bsk.id = 'mbskill'; bsk.type = 'button';
-    bsk.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z"/></svg>';
     bsk.title = 'Habilidades (K)';
     bsk.onclick = function(){
       if(typeof window.toggleSk === 'function') window.toggleSk();
@@ -101,7 +109,6 @@
     document.body.appendChild(bsk);
 
     var binv = document.createElement('button'); binv.id = 'mbinv'; binv.type = 'button';
-    binv.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>';
     binv.title = 'Inventário (I)';
     binv.onclick = function(){
       if(typeof window.toggleInv === 'function') window.toggleInv();
@@ -109,7 +116,7 @@
     };
     document.body.appendChild(binv);
 
-    var bs = document.createElement('button'); bs.id = 'mbsys'; bs.type = 'button'; bs.textContent = '⚙'; bs.title = 'Menu'; bs.onclick = function(){ document.body.classList.toggle('sys-aberto'); }; document.body.appendChild(bs);
+    var bs = document.createElement('button'); bs.id = 'mbsys'; bs.type = 'button'; bs.title = 'Menu'; bs.onclick = function(){ document.body.classList.toggle('sys-aberto'); }; document.body.appendChild(bs);
     if(pagina !== 'outra'){
       var be = document.createElement('button'); be.id = 'mbedit'; be.type = 'button'; be.textContent = '✎'; be.title = 'Editar botoes'; be.onclick = function(){ editar(true); }; document.body.appendChild(be);
       var bar = document.createElement('div'); bar.id = 'mbbar'; bar.innerHTML = 'Arraste os botões &nbsp;<button type="button" id="mbsalva">Salvar</button><button type="button" id="mbpadrao">Padrão</button>'; document.body.appendChild(bar);
