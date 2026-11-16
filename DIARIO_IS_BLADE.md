@@ -4189,3 +4189,18 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - **Armazenamento (prints)**: Cache Storage so tem a casca do cliente (`royale-client-shell-v10`); IndexedDB `royale-release-store` guarda metadados da versao. Os pacotes do jogo nao aparecem no Cache Storage.
 - **Para o IS BLADE**: a ordem de prioridade muda. Antes de KTX2: (1) animacoes compartilhadas (nosso maior peso por arquivo), (2) cortar mapa/cidade em pecas e carregar por distancia (o `mapa_vivo.js` ja faz por mapa inteiro), (3) nome por hash + cache eterno, (4) workers. Registrado em `REGRAS_ASSETS_WEB.md`.
 - **Falta**: HAR com F5 dentro da gravacao (aba Rede aberta, Desativar cache marcado) para medir o download ate entrar no jogo; LOG DE DESEMPENHO nosso em combate.
+
+
+### [Antigravity] 16/11/2026 - Nova Regra: KTX2 em conjunto com WebP para alívio de GPU Mobile
+
+- **Diretriz do Dono**:
+  - *"fazer o ktx2 trabalhar junto com webp pra dar mais folga pra placa dos celulares, regra nova bota no diario tbm pra nao se esquecer"*
+- **Arquitetura da Solução Híbrida (WebP + KTX2)**:
+  1. **WebP (Compressão de Tráfego / Download)**:
+     - Garante arquivos compactos no fio de rede e carregamento rápido de dados.
+     - Utilizado para texturas 2D, interface (HUD, ícones), fundos e camada de fallback universal.
+  2. **KTX2 / Basis Universal (Alívio Crítico de VRAM e GPU Mobile)**:
+     - As texturas 3D (cenários, mapas, armaduras, armas e monstros) em KTX2 permanecem comprimidas diretamente na memória de vídeo (VRAM) da GPU móvel (usando ETC2 no Android e ASTC/BCn nativos).
+     - Ao contrário do WebP/PNG que o navegador precisa descompactar inteiro em RGBA32 (gastando 4 bytes por pixel de VRAM), o KTX2 consome apenas ~0.5 a 1 byte por pixel, liberando mais de 75% de memória da placa de vídeo dos celulares e reduzindo o consumo de bateria e aquecimento.
+  3. **Operação Conjunta**:
+     - O pipeline de carregamento (`js/assets_web.js` + `vendor.js`) usará o `KTX2Loader` com transcodificador Basis via Web Worker, entregando KTX2 para a placa de vídeo e mantendo o WebP como fallback de compatibilidade onde KTX2 não estiver presente.
