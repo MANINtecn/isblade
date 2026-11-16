@@ -717,8 +717,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 import * as THREE from './lib/vendor.js';
 window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader);      /* [assets-web] troca a origem pela entrega (meshopt + WebP); regras em REGRAS_ASSETS_WEB.md */
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
-import { Guardiao } from './js/guardiao.js?v=21';
-import { Net } from './js/net.js?v=49';
+import { Guardiao } from './js/guardiao.js?v=22';
+import { Net } from './js/net.js?v=50';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -4385,7 +4385,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
   if(!BOSS_ON||S.dead){if(!mobsHit&&!an.noRange&&!MOBS.length)floatText('Errou','#7f8db0',16,'p');return;}/* sala sem chefe: so os mobs contam */
 
   var bossReach = Math.max(0, reach - 1.5);
-  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-3)>raioMira(an)):(bossReach>rng||(half<3.1&&cone>half));/* [mira] circulo no ponto mirado */
+  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-3)>raioMira(an)):(bossReach>rng||(half<3.1&&cone>half+(an.skill&&an.skill.larg?Math.atan2(1.5+an.skill.larg,Math.max(reach,.5)):0)));/* [mira] circulo no ponto mirado; [feixe-escudo] corpo do chefe + folga */
   if(!an.noRange&&foraBoss){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
 
   var E=S.en,dmg=an.dmg,tag='';S.ultBossT=performance.now();/* [alvo] */
@@ -5696,7 +5696,7 @@ function hitMobs(an,rng,half){
     if(an.alvo){if(Math.hypot(m.x-an.alvo.x,m.z-an.alvo.z)-m.r*.6>raioMira(an))return;}/* [mira] 360 graus ao redor do ponto */else{
     if(reach>rng)return;
 
-    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r,Math.max(reach,.5)))return;}
+    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r+(an.skill&&an.skill.larg||0),Math.max(reach,.5)))return;}/* [feixe-escudo] larg = folga minima perto do escudo */
 
     damageMob(m,mobDmg(an),an);n++;
 

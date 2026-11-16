@@ -4466,3 +4466,12 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   - Abas rápidas para Nível (botões rápidos D, C, B, A, S, Hero + slider fino), Sobrevivência (Ress, Heal, God Mode, Kill Alvo), Velocidade GM, Economia, Encantamento, Teleportes Globais e Atalho para Bots PvP.
   - Integrado em `arena.html` e `cidade.html`.
 - [Claude] 16/11: publicado (commit + push). guardiao.js subiu para ?v=21: o v=20 ja tinha ido ao ar no commit do outro agente apontando para o codigo antigo (cache).
+
+### [Claude] 16/11 - Skill 1 do Guardiao no jogo: FEIXE DO ESCUDO (substitui o Escudo de Energia)
+
+- Animacao: acao `G1_FeixeJogo` (48 fps, 92 quadros) feita da G1_Feixe sem os 3 s de carga parada: 0-16 preparo, 16 pose de carga (o jogo congela ai enquanto segura), 24 solta, 54 fim do feixe, 92 fim. Exportada como clipe `l2_feixe` (export_guardian.py) -> guardian_anims.glb ?v=6; otimizar.mjs + verificar.mjs (147/147 iguais, maior diferenca 4.84e-4). CM.g_s1 = l2_feixe, hit .261, cut .40, fz .333.
+- Mecanica (`js/guardiao.js` [feixe-escudo]): segura ate 3 s (solta sozinho aos 3 s); toque rapido solta na hora; dano pela carga 60%/100%/150%/200% (0/1/2/3 s, interpolado); sem absorcao/reflexo; golpe pelas costas interrompe a carga. Acerto: cone 16 graus (half .1396) x 10 m, atravessa todos; mobs: half + atan((raio do mob + 1 m)/dist); chefe: half + atan((1,5 + 1)/dist) (arena.html e cidade.html, campo skill.larg).
+- PvP: `js/net.js` manda `mc` (multiplicador); `servidor/server.js` le `carga` do JSON e limita mc em [0,6; 2] (sem mc = 0,6). Bots sem mc batem 60%. Pendente anti-trapaca: o servidor confia no mc dentro da faixa.
+- `data/armas/shield.json` skill 1: nome Feixe do Escudo, range 10, half .1396, carga [0.6, 2], descricao nova.
+- Efeitos (`js/guardiao_fx.js` feixeCarga/feixeLeque, no pre-aquecimento): flare anamorfico na face do escudo em 3 degraus (estrela de 8 pontas no 3o) + lascas convergindo; leque de 16 graus (veu de filamentos correndo, miolo suave, 11 raios), clarao na boca, lascas; texturas assets/fx/guardiao_s1_*.png.
+- Testado no navegador (servidor local isolado): toque -> mc 0,62 (dano 65->40); segurar -> soltou sozinho aos 3 s, mc 2,0 (74->148); cone/alcance/folga aplicados; sem erro de JS. Efeitos renderizados isolados sem erro de shader. NAO visto em tempo real (sem placa de video no teste). Versoes: guardiao.js?v=22, guardiao_fx.js?v=10, net.js?v=50.

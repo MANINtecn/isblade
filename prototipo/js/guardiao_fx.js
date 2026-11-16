@@ -576,6 +576,87 @@ export function criarFX(THREE, ctx){
     };
   }
 
+  /* ---------- [feixe-escudo] 16/11/2026 Skill 1 nova: FEIXE DO ESCUDO (portado de tools/blender_fx/guardiao_s1_feixe.py, aprovado pelo dono no Blender) ----------
+     carga: Optical Lens Flare na face do escudo crescendo em 3 degraus (1 s, 2 s, 3 s; no 3o ganha a estrela de 8 pontas) + lascas de luz convergindo.
+     soltura: LEQUE de luz de 16 graus em 3D ate 10 m (veu de filamentos correndo + miolo suave + 11 raios), clarao na boca, lascas. Branco quente caindo para ouro.
+     Texturas: assets/fx/guardiao_s1_{flare,feixe,lasca}.png (branco com alfa; a cor vem do material). */
+  var texCache = {}, texL = null;
+  function fxTex(n, rep){ if(!texCache[n]){ texL = texL || new THREE.TextureLoader(); var t = texL.load('assets/fx/' + n + '?v=1'); if(rep){ t.wrapS = t.wrapT = THREE.RepeatWrapping; } texCache[n] = t; } return texCache[n]; }
+  var LZ_VS = 'varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }';
+  var LZ_FS = 'uniform sampler2D uTex; uniform vec3 uCol; uniform float uA, uForca, uQuente, uFacing, uSome, uSoF, uBase; uniform vec2 uRep, uOff; varying vec2 vUv; varying vec3 vN; varying vec3 vV;\n' +
+    'void main(){ float tx = texture2D(uTex, vUv * uRep + uOff).a; float a = uSoF > .5 ? 1.0 : mix(uBase, 1.0, tx);' +
+    ' if(uFacing > 0.0) a *= pow(abs(dot(normalize(vN), normalize(vV))), uFacing); float hot = uSoF > .5 ? a : tx;' +
+    ' if(uSome > -1.0){ float t = clamp((1.0 - vUv.x) / (1.0 - uSome), 0.0, 1.0); a *= t * t * clamp(vUv.x / .04, 0.0, 1.0); }' +
+    ' a *= uA; vec3 c = mix(uCol, vec3(1.0, .97, .9), pow(clamp(hot, 0.0, 1.0), uQuente)) * uForca; gl_FragColor = vec4(c, a); }';
+  function luzMat(o){
+    return mat(LZ_VS, LZ_FS, { uTex: { value: fxTex(o.tex || 'guardiao_s1_feixe.png', true) }, uCol: { value: col(o.cor || 0xff9e2e) }, uA: { value: 0 }, uForca: { value: o.forca || 2 }, uQuente: { value: o.quente || 2.5 },
+      uFacing: { value: o.facing || 0 }, uSome: { value: o.some === undefined ? -2 : o.some }, uSoF: { value: o.soF ? 1 : 0 }, uBase: { value: o.base || 0 }, uRep: { value: new THREE.Vector2(o.rep ? o.rep[0] : 1, o.rep ? o.rep[1] : 1) }, uOff: { value: new THREE.Vector2(0, 0) } });
+  }
+  var coneCache = {};
+  function coneGeo(r0, meia, comp, segs, repV){               /* cone (ou tubo se meia = 0) ao longo de +Z, boca em 0. uv.x = comprimento, uv.y = volta */
+    var k = [r0, meia, comp, segs, repV].join(','); if(coneCache[k]) return coneCache[k];
+    var rf = r0 + comp * Math.tan(meia), P = [], N = [], U = [], I = [], s, i;
+    for(i = 0; i < 2; i++) for(s = 0; s <= segs; s++){ var a = s / segs * Math.PI * 2, r = i ? rf : r0; P.push(Math.cos(a) * r, Math.sin(a) * r, comp * i); N.push(Math.cos(a), Math.sin(a), -Math.sin(meia)); U.push(i, s / segs * repV); }
+    for(s = 0; s < segs; s++) I.push(s, s + 1, segs + 1 + s + 1, s, segs + 1 + s + 1, segs + 1 + s);
+    var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.setIndex(I);
+    return (coneCache[k] = g);
+  }
+  function spr(tex, cor){ var m = new THREE.SpriteMaterial({ map: fxTex(tex), color: col(cor), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }); m.userData.own = true; var s = new THREE.Sprite(m); s.frustumCulled = false; return s; }
+  var FX_OURO = 0xff9e2e, FX_OURO_C = 0xffd27a, FX_BRANCO = 0xfff4e0;
+
+  function feixeCarga(o){
+    var grp = new THREE.Group(), fl = spr('guardiao_s1_flare.png', FX_OURO), nu = spr('guardiao_s1_flare.png', FX_BRANCO), est = spr('guardiao_s1_flare.png', FX_OURO_C), las = [], i;
+    est.material.rotation = Math.PI / 4; grp.add(fl, nu, est);
+    for(i = 0; i < 18; i++){ var l = spr('guardiao_s1_lasca.png', FX_OURO); l.userData = { t: 9, d: new V3() }; las.push(l); grp.add(l); }
+    var st = { t: 0, lv: 0, pop: 0, nasc: 0 };
+    var e = add(grp, 999, function(u, dt, t){
+      var b = o.getBoca(); if(b) grp.position.set(b.x, b.y, b.z);
+      var lv = st.t >= 3 ? 3 : (st.t >= 2 ? 2 : (st.t >= 1 ? 1 : 0)); if(lv > st.lv){ st.lv = lv; st.pop = 1; if(b) luz(b.x, b.y, b.z, { color: 0xffc860, intensity: 18 + lv * 10, life: .35 }); }
+      st.pop = Math.max(0, st.pop - dt * 3.2); var cresce = smooth(t / .2), tam = [.55, .75, .95, 1.2][st.lv] * (1 + st.pop * .4) * cresce;
+      fl.scale.set(tam * 1.6, tam * 1.6, 1); fl.material.opacity = .85 * cresce; nu.scale.set(tam * .5, tam * .5, 1); nu.material.opacity = cresce;
+      est.scale.set(tam * 1.2, tam * 1.2, 1); est.material.opacity = st.lv >= 3 ? .55 + .45 * st.pop : 0;
+      st.nasc += dt * (6 + st.lv * 5);                                        /* lascas: mais rapidas e mais numerosas a cada degrau */
+      las.forEach(function(l){ var q = l.userData;
+        if(q.t >= 1 && st.nasc >= 1){ st.nasc -= 1; q.t = 0; var a = rnd() * 6.283, el = rr(-.6, .9); q.d.set(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)).multiplyScalar(rr(.9, 1.4)); l.material.rotation = rnd() * 6.283; }
+        if(q.t < 1){ q.t += dt / Math.max(.18, .38 - st.lv * .06); var k = Math.min(1, q.t); l.position.copy(q.d).multiplyScalar(1 - k * k); l.scale.set(.05, .22 * (1 - k * .6), 1); l.material.opacity = Math.sin(Math.min(1, k) * Math.PI) * .95; }
+        else l.material.opacity = 0;
+      });
+    });
+    return {
+      tempo: function(t){ st.t = t; },
+      nivel: function(){ return st.lv; },
+      soltar: function(p){ e.t = e.dur; feixeLeque({ x: p.x, y: p.y, z: p.z, face: p.face, nivel: st.lv }); },
+      kill: function(){ e.t = e.dur; }
+    };
+  }
+
+  function feixeLeque(o){
+    var MEIA = 8 * Math.PI / 180, ALC = o.alc || 10, T = .7, k = .75 + .085 * (o.nivel || 0);       /* carga maior = leque mais forte */
+    var grp = new THREE.Group(); grp.position.set(o.x, o.y, o.z); grp.rotation.y = o.face;
+    var mVeu = luzMat({ cor: FX_OURO, forca: 2.4, quente: 3, facing: 1.5, some: 0, base: .45, rep: [2, 1] }), veu = new THREE.Mesh(coneGeo(.14, MEIA, ALC, 40, 4), mVeu);
+    var mMio = luzMat({ cor: FX_OURO_C, forca: 1.6, quente: 1.6, facing: 1.2, some: 0, soF: true }), mio = new THREE.Mesh(coneGeo(.07, MEIA * .6, ALC * .85, 32, 2), mMio);
+    veu.frustumCulled = mio.frustumCulled = false; grp.add(veu, mio);
+    var raios = [], i, Z = new V3(0, 0, 1);
+    seeded(Math.floor(o.face * 1000) + 7);
+    for(i = 0; i < 11; i++){
+      var an = rnd() * 6.283, rr0 = Math.sqrt(rnd()) * MEIA * .92, d = new V3(Math.sin(rr0) * Math.cos(an), Math.sin(rr0) * Math.sin(an), Math.cos(rr0)).normalize();
+      var m = luzMat({ cor: FX_OURO_C, forca: 3.2, quente: .9, facing: 1.4, some: .2, soF: true, rep: [3, 1] }), me = new THREE.Mesh(coneGeo(rr(.035, .07), 0, ALC * rr(.7, 1), 10, 1), m);
+      me.quaternion.setFromUnitVectors(Z, d); me.frustumCulled = false; me.userData = { at: rnd() * .06, a: rr(.6, 1) }; raios.push(me); grp.add(me);
+    }
+    var boca = spr('guardiao_s1_flare.png', FX_OURO_C), nb = spr('guardiao_s1_flare.png', FX_BRANCO); grp.add(boca, nb);
+    var las = []; for(i = 0; i < 22; i++){ var l = spr('guardiao_s1_lasca.png', FX_OURO), a2 = rnd() * 6.283, r2 = rr(.1, 1) * MEIA;
+      l.userData = { d: new V3(Math.sin(r2) * Math.cos(a2), Math.sin(r2) * Math.sin(a2), Math.cos(r2)), t0: rnd() * .16, du: rr(.2, .32), d0: rr(.2, .9), d1: rr(5, ALC) }; l.material.rotation = rnd() * 6.283; las.push(l); grp.add(l); }
+    luz(o.x, o.y, o.z + 0, { color: 0xffc860, intensity: 70 + 25 * (o.nivel || 0), life: .55 });
+    return add(grp, T, function(u, dt, t){
+      var ab = smooth(t / .06), fim = t < .45 ? 1 : Math.max(0, 1 - (t - .45) / .2), off = -t * 3.4;
+      var sc = .02 + .98 * ab; veu.scale.set(sc, sc, sc); mio.scale.set(sc, sc, sc);
+      mVeu.uniforms.uA.value = k * ab * fim; mVeu.uniforms.uOff.value.x = off; mMio.uniforms.uA.value = .4 * k * ab * fim; mMio.uniforms.uOff.value.x = off * .7;
+      raios.forEach(function(me){ var q = me.userData, a3 = smooth((t - q.at) / .06), f3 = t < .42 + q.at ? 1 : Math.max(0, 1 - (t - .42 - q.at) / .12); me.scale.set(f3 * .9 + .1, f3 * .9 + .1, Math.max(.02, a3)); me.material.uniforms.uA.value = q.a * k * a3 * f3; me.material.uniforms.uOff.value.x = off * 1.3; });
+      var bo = t < .08 ? 1 : Math.max(0, 1 - (t - .08) / .5); boca.scale.set(2.3 * (.7 + .3 * bo), 2.3 * (.7 + .3 * bo), 1); boca.material.opacity = bo; nb.scale.set(.7, .7, 1); nb.material.opacity = bo;
+      las.forEach(function(l){ var q = l.userData, kk = (t - q.t0) / q.du; if(kk < 0 || kk > 1){ l.material.opacity = 0; return; } l.position.copy(q.d).multiplyScalar(q.d0 + (q.d1 - q.d0) * kk); l.scale.set(.06, .3 * (1 - kk * .6), 1); l.material.opacity = 1 - kk; });
+    });
+  }
+
   /* pre-aquecimento: a luz dos efeitos entra na cena JA no carregamento (nunca mais muda o numero de luzes) e cada efeito e criado uma vez e compilado antes de aparecer na tela.
      sem isso, a 1a skill compilava de 10 a 13 shaders de uma vez (travada de centenas de ms) e cada efeito novo compilava o seu na hora de aparecer. Chamado pelo Guardiao.init. */
   var sentinelas = [];
@@ -585,7 +666,8 @@ export function criarFX(THREE, ctx){
     var T = [function(){ espetos(0, 0, 0, o0); }, function(){ casca(0, 0, 0, { r0: 1, r1: 1, h0: 1, h1: 1, life: .02 }); }, function(){ anel(0, 0, o0); }, function(){ disco(0, 0, 0, o0); },
       function(){ rachaduras(0, 0, { R: 2, life: .02 }); }, function(){ cratera(0, 0, { R: 1, life: .02 }); }, function(){ rochas(0, 0, { n: 1 }); }, function(){ brasas(0, 0, 0, { n: 1, life: .02 }); },
       function(){ humo(0, 0, { n: 1 }); }, function(){ cupula(0, 0, { r: 1, life: .02 }); }, function(){ runas(0, 0, { r: 1, life: .02 }); }, function(){ trilha(function(){ return new V3(0, 0, 0); }, o0); },
-      function(){ correntes(0, 0, 0, o0); }, function(){ escudoFantasma(0, 0, o0); }, function(){ cunha(0, 0, 0, o0); }, function(){ domo({ getPos: function(){ return { x: 0, z: 0, face: 0 }; } }); }];
+      function(){ correntes(0, 0, 0, o0); }, function(){ escudoFantasma(0, 0, o0); }, function(){ cunha(0, 0, 0, o0); }, function(){ domo({ getPos: function(){ return { x: 0, z: 0, face: 0 }; } }); },
+      function(){ var c0 = feixeCarga({ getBoca: function(){ return { x: 0, y: 0, z: 0 }; } }); c0.soltar({ x: 0, y: 0, z: 0, face: 0, nivel: 3 }); }];   /* [feixe-escudo] */
     T.forEach(function(f){ try { f(); } catch(e){} });
     try { escudoEnergia(0, 0, 0, { limpo: true, life: .02 }); } catch(e){}
     try { if(extra) extra(); } catch(e){ console.warn('aquecer (extra):', e); }
@@ -595,7 +677,7 @@ export function criarFX(THREE, ctx){
   }
   iniciarLuz();
 
-  return { escudoVoo: escudoVoo, aquecer: aquecer, domo: domo, feixe: feixe, escudoCarga: escudoCarga, escudoEnergia: escudoEnergia, cunha: cunha, update: update, add: add, espetos: espetos, casca: casca, anel: anel, disco: disco, rachaduras: rachaduras, cratera: cratera, rochas: rochas, brasas: brasas, humo: humo,
+  return { escudoVoo: escudoVoo, aquecer: aquecer, domo: domo, feixe: feixe, feixeCarga: feixeCarga, feixeLeque: feixeLeque, escudoCarga: escudoCarga, escudoEnergia: escudoEnergia, cunha: cunha, update: update, add: add, espetos: espetos, casca: casca, anel: anel, disco: disco, rachaduras: rachaduras, cratera: cratera, rochas: rochas, brasas: brasas, humo: humo,
            cupula: cupula, runas: runas, trilha: trilha, seguir: seguir, espetosGirando: espetosGirando, correntes: correntes, escudoFantasma: escudoFantasma, luz: luz, rnd: rnd, rr: rr, seeded: seeded };
 }
 /* <<< CLAUDE [guardiao] */

@@ -1278,8 +1278,8 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader);      /* [assets-
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=21';
-import { Net } from './js/net.js?v=49';
+import { Guardiao } from './js/guardiao.js?v=22';
+import { Net } from './js/net.js?v=50';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -9489,7 +9489,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-1.2)>raioMira(an)):(reach>rng||(half<3.1&&cone>half));/* [mago] circulo no ponto mirado */
+  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-1.2)>raioMira(an)):(reach>rng||(half<3.1&&cone>half+(an.skill&&an.skill.larg?Math.atan2(1.5+an.skill.larg,Math.max(reach,.5)):0)));/* [mago] circulo no ponto mirado; [feixe-escudo] corpo do alvo + folga */
   if(!an.noRange&&foraBoss){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
 
 
@@ -11734,7 +11734,7 @@ function hitMobs(an,rng,half){
 
 
 
-    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r,Math.max(reach,.5)))return;
+    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r+(an.skill&&an.skill.larg||0),Math.max(reach,.5)))return;/* [feixe-escudo] larg = folga minima perto do escudo */
 
 
 

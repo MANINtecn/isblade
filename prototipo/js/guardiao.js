@@ -6,7 +6,7 @@
      3) fora de combate (sem hit dado/recebido por `saidaSegundos`, 60 s) libera a troca;
      4) trocar de arma nao zera o cooldown das skills (guardado por arma). */
 
-import { criarFX } from './guardiao_fx.js?v=9';
+import { criarFX } from './guardiao_fx.js?v=10';
 
 export const Guardiao = (function(){
   var ctx = null;
@@ -61,7 +61,7 @@ export const Guardiao = (function(){
   var clipsPromise = null;
   G.carregarClipes = function(THREE, gltfLoader){
     if(!clipsPromise) clipsPromise = new Promise(function(ok){
-      gltfLoader.load('assets/personagens/guardian_anims.glb?v=5', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });
+      gltfLoader.load('assets/personagens/guardian_anims.glb?v=6', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });
     });
     return clipsPromise;
   };
@@ -228,7 +228,7 @@ export const Guardiao = (function(){
     sweep:  { c: 'g_atk1',   sp: 2.0, hit: .58, cut: .86, lg: 2.6 },
     thrust: { c: 'g_atk2',   sp: 1.9, hit: .52, cut: .92, lg: 0 },
     spin:   { c: 'g_atk3',   sp: 1.7, hit: .58, cut: .82, lg: 0 },
-    g_s1:   { c: 'l2_cast1', sp: 1.0, hit: .86, cut: .94, lg: 0, fz: 1.1 },      /* CastMid do L2 (1,79 s): escudo erguido = pose segurada (congela em fz s), impulso = liberacao (golpe em ~1,53 s) */
+    g_s1:   { c: 'l2_feixe', sp: 1.0, hit: .261, cut: .40, lg: 0, fz: .333 },   /* [feixe-escudo] Magicshot do L2 espelhado (1,92 s): escudo erguido a frente = pose de carga (congela em fz), empurra o escudo e solta o feixe em 24/92 */
     g_s2:   { c: 'l2_s2', sp: 2.0, hit: .63, cut: .75, lg: 0 },       /* SpAtk03_2HS do L2: pulo + pancada ajoelhado com o escudo no chao (impacto em 1,03 s) */
     g_s3:   { c: 'l2_s3', sp: 2.0, hit: .95, cut: .995, lg: 0 },       /* CastLong do L2 (recortado, x1,6): invocacao com os bracos erguidos; a chuva cai ao baixar (2,10 s) */
     g_s4:   { c: 'l2_s4', sp: 1.0, hit: .41, cut: .53, lg: 0 },       /* Social_Atk do L2 (x1,3): gesto de desafio, escudo aberto e braco apontando (impacto em 0,85 s) */
@@ -242,10 +242,14 @@ export const Guardiao = (function(){
 
   /* ---------- efeitos de estado das skills (reducao de dano, zona, puxao) ---------- */
   var buffs = { reflexoT: 0, defT: 0, zona: null, puxar: null };
-  /* ---------- Escudo de Energia (skill 1), canalizada: segura a tecla = absorve o dano da frente (180 graus), enche um domo de colmeia e devolve ao soltar ----------
-     nivel do reflexo pelo tempo segurado: 0-3 s = 50%, 3-5 s = 100%, 5 s = 200%. Sem golpe recebido na frente nao acumula nada e nao devolve. */
-  var CANAL_T = 5, CANAL_CAP = .4, CANAL_FRAME = 120;               /* CANAL_CAP: dano (fracao da vida maxima) que fecha o domo todo */
-  var canal = { ph: 0, t: 0, acc: 0, ctrl: null, dano: 0, mult: .5 };    /* ph: 0 parado, 1 aquecendo, 2 canalizando, 3 soltou */
+  /* ---------- [feixe-escudo] 16/11/2026 Skill 1: FEIXE DO ESCUDO (substitui o Escudo de Energia que absorvia/refletia dano) ----------
+     segura a tecla ate 3 s carregando (escudo erguido a frente); ao soltar (ou aos 3 s sozinho) sai um leque de luz de 16 graus ate 10 m que atravessa todos os alvos.
+     Toque rapido = solta na hora. Dano pela carga: 60% (na hora) -> 100% (1 s) -> 150% (2 s) -> 200% (3 s). Golpe pelas costas interrompe a carga.
+     Acerto: cone de 16 graus + largura do corpo do alvo + folga minima de 1 m perto do escudo (skill.larg). */
+  var CANAL_T = 3, CANAL_FRAME = 16, FEIXE = { range: 10, half: 8 * Math.PI / 180, larg: 1.0 };
+  var CARGA_MULT = [[0, .6], [1, 1], [2, 1.5], [3, 2]];
+  function multCarga(t){ t = Math.max(0, Math.min(3, t)); for(var i = 1; i < CARGA_MULT.length; i++){ var a = CARGA_MULT[i - 1], b = CARGA_MULT[i]; if(t <= b[0]) return a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); } return 2; }
+  var canal = { ph: 0, t: 0, acc: 0, ctrl: null, dano: 0, mult: .6 };    /* ph: 0 parado, 2 carregando, 3 soltou */
   G.canal = canal;
   function fimCanal(){ if(canal.ctrl){ canal.ctrl.kill(); canal.ctrl = null; } canal.ph = 0; }
   function golpeNaFrente(S){                                         /* o atacante e o inimigo mais proximo; frente = ate 90 graus de cada lado da mira */
@@ -262,15 +266,13 @@ export const Guardiao = (function(){
     if(canal.ph !== 2 || !canal.ctrl) return false;
     var S = ctx.getS(), cfg = CM.g_s1, rig = ctx.getVrm(), act = rig && rig.drv && rig.drv.cur, idx = G.dados.armas.shield.skills.indexOf(an.skill);
     canal.t += dt; S.stun = 0; canal.ctrl.tempo(canal.t);
-    var l = canal.t >= 5 ? 2 : (canal.t >= 3 ? 1 : 0); if(l > (canal.lv || 0)){ canal.lv = l; canal.ctrl.pulso(); } canal.lv = l;
-    if(S.skHeld === idx && canal.t < CANAL_T){                          /* segurando: o escudo e o domo ja estao ativos; a animacao congela na pose de carga */
+    if(S.skHeld === idx && canal.t < CANAL_T){                          /* segurando: o flare cresce no escudo; a animacao congela na pose de carga */
       if(an.tt >= (cfg.fz ? cfg.fz / cfg.sp : sec(CANAL_FRAME, cfg.sp))){ if(act) act.paused = true; return true; }
       return false;
     }
-    canal.ph = 3; if(act) act.paused = false;                            /* soltou (ou chegou aos 5 s): resolve o reflexo */
-    canal.mult = canal.t >= 5 ? 2 : (canal.t >= 3 ? 1 : .5); canal.dano = Math.round(canal.acc * canal.mult);
-    if(canal.dano <= 0){ an.hitT = 1e9; fimCanal(); }                  /* nada acumulado: sem golpe e sem efeito */
-    else { an.dmg = canal.dano; an.skill = Object.assign({}, an.skill, { range: 15, half: Math.PI / 2 }); }
+    canal.ph = 3; if(act) act.paused = false;                            /* soltou (toque rapido = na hora) ou chegou aos 3 s: o resto do clipe empurra o escudo e o feixe sai no golpe */
+    canal.mult = multCarga(canal.t); an.dmg = Math.max(1, Math.round(an.dmg * canal.mult)); an.mc = +canal.mult.toFixed(2);
+    an.skill = Object.assign({}, an.skill, FEIXE);
     return false;
   };
   /* LIBERACAO (agilidade): `cut` = fracao do clipe em que o personagem volta a agir = ultimo golpe + uma pequena recuperacao; o resto do clipe (a "cauda" em que o braco relaxa) e cortado,
@@ -285,9 +287,8 @@ export const Guardiao = (function(){
   };
   G.filtrarDano = function(d){
     if(!ctx || ctx.getWPN() !== 'shield' || d <= 0) return d;
-    if(canal.ph === 2 && canal.ctrl && golpeNaFrente(ctx.getS())){      /* absorve tudo o que vem da frente e encaixa celulas no domo */
-      var S0 = ctx.getS(), porCel = Math.max(1, (S0.pmax || 1000) * CANAL_CAP / canal.ctrl.total);
-      canal.acc += d; canal.ctrl.enc(Math.max(1, Math.round(d / porCel))); return 0;
+    if(canal.ph === 2 && canal.ctrl && !golpeNaFrente(ctx.getS())){     /* [feixe-escudo] golpe pelas costas interrompe a carga (dano normal) */
+      var S0 = ctx.getS(), r0 = ctx.getVrm(), a0 = r0 && r0.drv && r0.drv.cur; if(a0) a0.paused = false; fimCanal(); S0.anim = null;
     }
     var f = 1;
     if(buffs.reflexoT > 0) f *= .5;                 /* Escudo de Energia: absorve metade do dano recebido */
@@ -331,9 +332,9 @@ export const Guardiao = (function(){
   G.aoCastar = function(sk){
     if(!ctx || !FX || !sk || ctx.getWPN() !== 'shield') return;
     var S = ctx.getS(), cfg = CM[sk.pose]; if(!cfg) return;
-    if(sk.pose === 'g_s1'){                                          /* canalizada: o domo e o escudo astral nascem quando a animacao chega na pose de carga (G.canalTick) */
-      fimCanal(); canal.ph = 2; canal.lv = 0; canal.acc = 0; canal.t = 0; canal.dano = 0;               /* o escudo astral e o domo aparecem NA HORA do cast */
-      canal.ctrl = FX.domo({ info: geoEscudo(ctx.getVrm()), getPos: function(){ var s = ctx.getS(); return { x: s.px, z: s.pz, face: s.face }; } });
+    if(sk.pose === 'g_s1'){                                          /* [feixe-escudo] carga: o flare nasce NA HORA do cast na face do escudo e cresce em 3 degraus (1 s, 2 s, 3 s) */
+      fimCanal(); canal.ph = 2; canal.t = 0; canal.mult = .6;
+      canal.ctrl = FX.feixeCarga({ getBoca: bocaEscudo });
     } else if(sk.pose === 'g_s6'){                                   /* o escudo do braco vira um disco de energia que voa ate 5,7 m, segura um instante e volta; o escudo real some do braco enquanto isso */
       var gc6 = geoEscudo(ctx.getVrm()), ev6 = FX.add(null, .01, null, cfg.solta || 1.13), al6 = (ctx.getS().anim && ctx.getS().anim.alvo) || null;      /* [mira] ponto mirado (se houver) */
       ev6.done = function(){
@@ -355,6 +356,10 @@ export const Guardiao = (function(){
   /* ---------- ataque padrao (3 golpes): sweep = investida + pancada (g_atk1), thrust = giro de 360 (g_atk2), spin = salto + pancada no chao (g_atk3, so ele quebra o chao) ----------
      paleta: aco/branco quente + faiscas douradas + poeira de pedra. aoAtacar roda quando o golpe comeca (rastro, poeira); fxBasico roda no impacto. */
   function posEscudo(){ var o = shieldObj(); return o ? o.getWorldPosition(new window.THREE.Vector3()) : null; }
+  function bocaEscudo(){                                            /* [feixe-escudo] ponto ~30 cm a frente da face do escudo (de onde sai o feixe) */
+    var S = ctx.getS(), f = ctx.fx.fwd(S.face), p = posEscudo() || { x: S.px, y: 1.25, z: S.pz };
+    return { x: p.x + f[0] * .3, y: p.y, z: p.z + f[1] * .3 };
+  }
   G.aoAtacar = function(an){
     if(!ctx || !FX || !an || an.skill || ctx.getWPN() !== 'shield') return;
     var cfg = CM[an.id], rig = ctx.getVrm(), clip = rig && cfg && rig.clips[cfg.c]; if(!clip) return;
@@ -399,11 +404,10 @@ export const Guardiao = (function(){
   G.fxSwing = function(an){
     G.log.push((an.skill ? an.skill.pose : '?') + ':' + (an.part || 1) + '@' + agora().toFixed(2));
     var sk = an.skill; if(!sk || !ctx || !FX) return; var S = ctx.getS(), f = ctx.fx.fwd(S.face), px = S.px, pz = S.pz, sh = ctx.shake;
-    if(sk.pose === 'g_s1'){                                          /* escudo de energia: cone de 90 graus por 5 m */
-      if(canal.ctrl){ canal.ctrl.soltar(); canal.ctrl = null; }          /* o domo se expande ate 10 m; o dano refletido ja foi aplicado pelo golpe */
-      FX.espetos(px + f[0] * 1.2, 1.2, pz + f[1] * 1.2, { n: 20, seed: 11, size: 3, color: COR.gelo, hot: COR.branco, life: .5 });
-      FX.brasas(px + f[0] * 2, .3, pz + f[1] * 2, { n: 26, spread: 3, rise: 2.2, color: COR.ceu, life: 1.4, size: .2 }); FX.luz(px + f[0] * 1.5, 1.3, pz + f[1] * 1.5, { color: COR.gelo, intensity: 70, life: .6 });
-      sh(.35);
+    if(sk.pose === 'g_s1'){                                          /* [feixe-escudo] solta o leque de luz de 16 graus ate 10 m saindo da face do escudo */
+      var b1 = bocaEscudo(), p1 = { x: b1.x, y: b1.y, z: b1.z, face: S.face };
+      if(canal.ctrl){ canal.ctrl.soltar(p1); canal.ctrl = null; } else FX.feixeLeque({ x: p1.x, y: p1.y, z: p1.z, face: S.face, nivel: 0 });
+      sh(.2 + .15 * Math.min(1, (canal.mult - .6) / 1.4));
     } else if(sk.pose === 'g_s2'){                                   /* fortaleza egide: zona de 6 m por 8 s */
       buffs.zona = { x: px, z: pz, r: 6, t: 8, ang: 0, acc: 0, dano: Math.max(1, Math.round(sk.dmg * .3)) };   /* o domo gira: a cada .5 s corta quem esta dentro (dano = 30% do da skill) e cura mais que o golpe comum */
       FX.runas(px, pz, { r: 6.4, life: 8 }); FX.cupula(px, pz, { r: 6, life: 8 });

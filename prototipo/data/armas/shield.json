@@ -16,19 +16,20 @@
   },
   "skills": [
     {
-      "name": "Escudo de Energia",
+      "name": "Feixe do Escudo",
       "pose": "g_s1",
       "cd": 12,
       "dmg": 55,
       "dur": 0.9,
-      "range": 5,
-      "half": 0.785,
+      "range": 10,
+      "half": 0.1396,
+      "carga": [0.6, 2],
       "ifr": 0,
       "intr": 2,
-      "hitk": 0.74,
+      "hitk": 0.26,
       "css": "#ff8a2a",
       "unlock": 1,
-      "desc": "Segure a tecla: ergue um escudo astral e absorve todo o dano recebido pela frente (180 graus), formando um domo de colmeia. Ao soltar (ou aos 5 s) o domo se expande por 10 m e devolve o dano acumulado: 50% (0-3 s), 100% (3-5 s) ou 200% (5 s). Sem golpes na frente, nada acumula.",
+      "desc": "Segure a tecla ate 3 s carregando com o escudo erguido a frente; ao soltar, um leque de luz de 16 graus sai do escudo ate 10 m e atinge todos os alvos no caminho. Toque rapido solta na hora. Dano pela carga: 60% (na hora), 100% (1 s), 150% (2 s), 200% (3 s, solta sozinho). Golpe pelas costas interrompe a carga.",
       "icon": "aegis_burst"
     },
     {
