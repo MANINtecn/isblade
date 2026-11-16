@@ -141,7 +141,8 @@ export const Net = (function(){
   function addRemoto(p){
     if(remotos.has(p.id)) return;
     var e = { id: p.id, sid: p.sid || '', lv: p.lv || 1, nome: p.nome, cla: p.cla || '', wb: p.wb || '', raca: p.raca, cls: p.cls, arma: p.arma, team: p.team || '', hp: p.hp, pmax: p.pmax, x: p.x, z: p.z, f: p.f, tx: p.x, tz: p.z, tf: p.f, a: 'idle', ts: 1, g: 0, morto: false, grp: new THREE.Group(), rig: null, tag: null, curA: '', vis: true, dentro: true, hpDes: -1 };
-    e.grp.position.set(p.x, 0, p.z); e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e); e.en = p.en | 0; brilho(e);
+    var initY = ctx.chaoRemoto ? ctx.chaoRemoto(p.x, p.z) : (typeof p.y === 'number' && ctx.alturaRemota ? ctx.alturaRemota(p.y) : 0);
+    e.grp.position.set(p.x, initY, p.z); e.gy = initY; e.grp.rotation.y = p.f; ctx.scene.add(e.grp); remotos.set(p.id, e); e.en = p.en | 0; brilho(e);
     ctx.loadL2(heroUrl(p.raca), function(r){
       if(!remotos.has(e.id)){ return; }
       e.rig = r; e.grp.add(r.root); r.drv = { mixer: new THREE.AnimationMixer(r.root), actions: {}, cur: null, curName: '', hold: 0 }; r.tipo = e.raca; ctx.anexar(r, THREE);
@@ -163,7 +164,22 @@ export const Net = (function(){
     if(recalc){ lista = []; remotos.forEach(function(e){ lista.push({ e: e, d: Math.hypot(e.x - S.px, e.z - S.pz) }); }); lista.sort(function(a, b){ return a.d - b.d; }); lista.forEach(function(o, i){ o.e.vis = i < MAXV && o.e.dentro; o.e.grp.visible = o.e.vis; }); }
     remotos.forEach(function(e){
       var k = Math.min(1, dt * 11); e.x += (e.tx - e.x) * k; e.z += (e.tz - e.z) * k; e.f = angLerp(e.f, e.tf, Math.min(1, dt * 12)); e.grp.position.x = e.x; e.grp.position.z = e.z; e.grp.rotation.y = e.f;
-      if(ctx.alturaRemota){ var yy = typeof e.ty === 'number' ? ctx.alturaRemota(e.ty) : (ctx.chaoRemoto ? ctx.chaoRemoto(e.x, e.z) : 0); e.gy = (e.gy === undefined || Math.abs(yy - e.gy) > 6) ? yy : e.gy + (yy - e.gy) * k; e.grp.position.y = e.gy; }      /* [mapas-multi] relevo: altura que o outro mandou */
+      if(ctx.alturaRemota || ctx.chaoRemoto){
+        var yy;
+        if(ctx.chaoRemoto && ((e.sid && e.sid.indexOf('bot_') === 0) || e.ty === null || e.ty === undefined || e.ty === 0)){
+          yy = ctx.chaoRemoto(e.x, e.z);
+        } else if(typeof e.ty === 'number' && ctx.alturaRemota){
+          yy = ctx.alturaRemota(e.ty);
+        } else if(ctx.chaoRemoto){
+          yy = ctx.chaoRemoto(e.x, e.z);
+        } else if(typeof e.ty === 'number'){
+          yy = e.ty;
+        } else {
+          yy = 0;
+        }
+        e.gy = (e.gy === undefined || Math.abs(yy - e.gy) > 6) ? yy : e.gy + (yy - e.gy) * k;
+        e.grp.position.y = e.gy;
+      }      /* [mapas-multi] relevo: altura que o outro mandou ou snap no chão */
       if(!e.vis || !e.rig) return;
       if(e.hp !== e.hpDes) desenhaTag(e);
       tocar(e, e.morto ? 'death' : e.a); if(e.rig.drv.cur && e.rig.drv.cur.timeScale !== (e.ts || 1)) e.rig.drv.cur.timeScale = e.ts || 1;
@@ -256,6 +272,10 @@ export const Net = (function(){
     else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp, m); if(ctx.curaFx){ var S0 = ctx.getS(); ctx.curaFx(m, S0.px, S0.pz); } } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); if(ctx.curaFx) ctx.curaFx(m, e.x, e.z); } } }      /* [clerigo] cura de jogador: valor e efeito no alvo */
     else if(m.t === 'bot_painel'){ if(window.PainelBots && window.PainelBots.toggle) window.PainelBots.toggle(m.open); }
     else if(m.t === 'bot_info'){ if(window.PainelBots && window.PainelBots.atualizaInfo) window.PainelBots.atualizaInfo(m); }
+    else if(m.t === 'admin_abrir'){ if(window.PainelAdmin && window.PainelAdmin.abrir) window.PainelAdmin.abrir(m); }
+    else if(m.t === 'admin_info'){ if(window.PainelAdmin && window.PainelAdmin.atualizar) window.PainelAdmin.atualizar(m); }
+    else if(m.t === 'admin_speed'){ if(window.PainelAdmin && window.PainelAdmin.aplicarSpeed) window.PainelAdmin.aplicarSpeed(m.speed); }
+    else if(m.t === 'admin_teleport'){ if(window.PainelAdmin && window.PainelAdmin.onTeleport) window.PainelAdmin.onTeleport(m); }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
 
@@ -556,6 +576,8 @@ export const Net = (function(){
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */
   N.botCmd = function(o){ if(N.on) send(Object.assign({ t: 'bot_cmd' }, o || {})); };
+  N.adminCmd = function(o){ if(N.on) send(Object.assign({ t: 'admin_cmd' }, o || {})); };
+  N.alvoAtual = function(){ return (alvoEl && alvoEl.dataset && alvoEl.dataset.id ? parseInt(alvoEl.dataset.id, 10) : 0) || 0; };
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };
   N.alterna = function(forca){ alterna(forca); };
   return N;

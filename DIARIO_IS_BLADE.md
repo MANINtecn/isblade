@@ -4415,3 +4415,53 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   - Painel atualizado com seletor de Nivel e Grau (Nv 20 D, Nv 40 C, Nv 52 B, Nv 61 A, Nv 76 S + ajuste fino de 1 a 85).
   - Preview dinamico de equipamento, armas, glow e skills no painel antes de invocar.
   - Comandos no chat expandidos: /bot 10 76 (10 bots Nv 76 Grau S), /bot arena 10 40 (na arena), /bot campo 10 20 (fora da muralha).
+
+### [Claude] 16/11 - Guardiao: as 6 skills em lista no Blender + Skill 2 (Egide) em refino
+
+- Painel N > Skills (`tools/blender_fx/painel_skills_mago.py`, tambem salvo como texto no .blend) ganhou GD1..GD6 no topo; clique troca de cena, entra na camera e toca. Flares (TRACK_TO) passam a mirar a camera da cena.
+- Cenas novas no `guardian_skills.blend`: GUARDIAO_S2_EGIDE (efeitos refinados em andamento), S3_CHUVA, S4_RUGIDO, S5_CORRENTE, S6_ARREMESSO. Cada uma usa a MESMA animacao do jogo (L2_Skill2_Slam .. L2_Skill6_ShieldThrow); o dono deixou claro: nas skills 2-6 NAO trocar animacao, so os efeitos.
+- `tools/blender_fx/guardiao_fx_lib.py`: biblioteca comum (material de luz da skill 1, veu, cone, flare, cena por skill com compositor PROPRIO - compartilhar o Render Layers da skill 1 fazia o render sair da skill 1). Renderizar so a cena ativa (render de outra cena derrubou o Blender uma vez).
+- `guardiao_s1_texturas.py`: dither no alfa (tira o degrau/banding dos flares com bloom) + `guardiao_hex_chao.png`. `guardiao_s2_egide.py`: clarao + lascas no impacto, 6 costuras de luz ate os vertices do hexagono de 6 m, veu nas bordas pulsando a cada 0,5 s, brilho suave no chao, particulas subindo. Pendente: veu ainda com cara de caixa, quadrado escuro no centro do chao.
+- [Claude] 16/11 (cont.): dono decidiu - Egide CONTINUA domo (excecao ao redondo), so com o acabamento novo; skills 2-6 mantem conceito e animacao do jogo, so os efeitos mudam. Montadas no Blender (scripts em tools/blender_fx/guardiao_s2..s6_*.py, todos usam guardiao_fx_lib.py):
+  - GD2 Egide: domo de luz (veu com filamentos subindo, borda fresnel, miolo transparente) + 6 costuras de luz + clarao + lascas + particulas; pulso a cada 0,5 s. Sem placa no chao, cratera, rochas, fumaca.
+  - GD3 Chuva: flare acima das maos erguidas, raio subindo ao ceu no q.100, 18 escudos de LUZ (`assets/fx/guardiao_escudo_luz.png`) caindo de ponta com rastro; toque = clarao + lascas.
+  - GD4 Rugido: flare no peito, coluna de veu translucida (pe dissolvendo), 28 raios de luz em 360 graus ate 10 m (peito e chao), aura fina de defesa + particulas.
+  - GD5 Correntes: elos de luz em losango (`assets/fx/guardiao_elo.png`) alternando plano, garra de 3 lascas + flare ao agarrar; tempos do jogo (.3/.55/.45 s). Roxo removido.
+  - GD6 Arremesso: escudo de luz girando no eixo vertical (no proprio plano pareceria serra), rastro de lascas, pilar + 8 costuras ao cravar, 3 golpes na ida e 3 maiores na volta (quadros do JSON); o escudo real some da mao no voo.
+  - Lib: `domo()`, `aro` (fresnel), `nasce` (pe que dissolve). Pendente: aprovacao do dono e port de tudo para o jogo (guardiao_fx.js / guardiao.js).
+- [Claude] 16/11 (DESFEITO): o dono reprovou as GD2-GD6 - eu troquei tudo por luz (domo de luz sem os simbolos que sugam vida, corrente de luz, escudo de luz voando em pe). Regra dele: refinar = a skill continua fazendo e mostrando o que ja faz (ex. GD6: escudo sai girando, cai, finca e volta quebrando cratera, estilo Cabal), so com acabamento profissional/fino; nao meter luz em tudo. Desfeito: cenas S2-S6 apagadas do guardian_skills.blend (copia `guardian_skills_antes_desfazer_s2s6.blend`), scripts guardiao_s2..s6_*.py e texturas hex_chao/escudo_luz/elo apagados, painel so com GD1. Mantidos: GD1 (aprovada) e `guardiao_fx_lib.py`. Jogo nao foi tocado. Proximo: levantar os elementos de cada skill atual e propor, item por item, o acabamento - antes de montar.
+- [Claude] 16/11: as 6 skills do Guardiao abertas no painel N > Skills: GD1 (Feixe, nova) + GD2-GD6 ORIGINAIS sem mexer (cenas GUARDIAO_S2..S6_ORIGINAL: copia do Guardiao tocando a acao original Skill2_AegisFortress..Skill6_ShieldThrow + a colecao de efeitos original FX_Skill2_Aegis..FX_Skill6_ShieldThrow LIGADA, nao copiada). As colecoes FX_Skill2..5 estavam com hide_render (so afeta render; o export_guardian usa selecao) - liberado para renderizar. Base para o refino item por item.
+
+### [Claude] 16/11 - Guardiao skill 6 (Arremesso): voo do escudo no jogo igual ao Blender (estilo Cabal)
+
+- Dono: GD3/GD4 boas, nao mexer; no jogo o arremesso nao estava como no Blender (Skill6_ShieldThrow). Medido no Blender: escudo gira de frente para tras (eixo lateral), sobe em arco, crava inclinado e enterrado ~7 m a frente, fica fincado ~0,8 s, arranca e volta girando em arco. Jogo: girava em pe no eixo vertical, ia reto na altura da mao, parava no ar 0,12 s (golpes 2 e 3 da ida explodiam sem o escudo la).
+- `js/guardiao_fx.js` escudoVoo [arremesso-cabal]: giro no eixo lateral (rotation.order YXZ), ida em arco (~1 m acima da linha) descendo ate cravar inclinado (TILT .55 rad, ~30% enterrado, tranco curto), volta em arco girando para tras. Recebe groundY.
+- `js/guardiao.js`: tHold = ate o 1o golpe da volta (duracao do clipe x hits[3] - solta - tOut; ~0,49 s), tBack .38, groundY = altura da raiz do modelo (pes); rastro e espetos duram o voo inteiro. Versoes: guardiao_fx.js?v=9, guardiao.js?v=20 (arena e cidade). CRLF preservado (o sed tinha convertido; restaurado).
+- Verificado: teste isolado com o codigo real (passo 1/48 s): arco ate 2,1 m, crava em 0,31 s com a ponta 0,43 m no chao, fica ate 0,8 s, volta em arco ate a mao (1,19 s), onEnd devolve o escudo. NAO verificado visualmente no jogo (navegador de teste sem placa de video roda o jogo lento demais para prints uteis).
+
+
+### [Antigravity] 16/11 - Correção de Snap ao Solo dos Bots e Sistema Completo de Poderes de Admin / GM
+
+- **Correção da Flutuação dos Bots (Eixo Y & Snap ao Solo)**:
+  - Causa identificada: os bots tinham `y = 0` estático inicializado no servidor (`fakes.js`). No cliente (`net.js`), ao receber `e.ty === 0`, o sistema tentava executar `ctx.alturaRemota(0)` em vez de calcular o piso real via `ctx.chaoRemoto(e.x, e.z)`. Como a Arena/Coliseu e terrenos fora da muralha possuem desnível negativo (ex: `Y = -2.2`), os bots ficavam flutuando 2.2 metros no ar.
+  - Correção aplicada:
+    * `servidor/fakes.js`: `y: null` para que o servidor não imponha uma altura falsa fixa.
+    * `prototipo/js/net.js`: `addRemoto` e `atualizaRemotos` agora priorizam `ctx.chaoRemoto(e.x, e.z)` para bots e entidades sem altura enviada pelo servidor, assentando os pés dos bots perfeitamente em qualquer mapa, colina, ladeira ou arena.
+    * `prototipo/arena.html`: adicionado `chaoRemoto` ao `Net.init` retornando `Torre.on ? Torre.altura : 0`.
+- **Sistema de Poderes de Admin / GM (`servidor/admin.js`)**:
+  - Módulo exclusivo de controle administrativo com suporte a comandos de chat (prefixos `//` e `/`) e mensagens de socket seguras (`admin_cmd`):
+    * `//setlevel [1-85]` ou `//lvl [1-85]`: altera o nível do jogador (ou alvo) instantaneamente, recalculando HP, MP, CP, salvando conta (`Contas.grava()`) e sincronizando na HUD.
+    * `//ress` ou `//res`: ressuscita o jogador (ou alvo caído) imediatamente com 100% de vida/mana, limpando status de morte.
+    * `//heal`: cura total instantânea de HP/MP/CP.
+    * `//god` ou `//invul`: God Mode (Modo Invulnerável / Imortalidade) toggle — quando ativo, ignora completamente danos de jogadores, skills e monstros do mapa aberto e dungeons (`fere` e `W.fere`).
+    * `//kill`: abate instantâneo do alvo mirado.
+    * `//speed [1-4]`: velocidade de movimento GM (1x a 4x) no cliente com relaxamento correspondente no servidor (`VMAX * mult`).
+    * `//adena [qtd]`: adiciona Adena diretamente ao inventário com persistência e atualização em tempo real.
+    * `//enchant [4-16]`: encanta a arma para +4 (azul), +7 (azul vívido), +10 (púrpura) ou +16 (vermelho hero) com broadcast de glow para todos.
+    * `//teleport [cidade|arena|curuma|fortress|pantano|baium]` ou `//goto`: teletransporte administrativo para qualquer zona.
+    * `//admin` ou `//painel` ou `//gm`: abre o painel visual.
+- **Painel de Controle Visual de Admin / GM (`prototipo/js/painel_admin.js`)**:
+  - Interface no estilo clássico Lineage 2 GM (tema dourado e escuro, janela arrastável).
+  - Botão flutuante `👑 GM [F10]` e atalho de teclado `F10`.
+  - Abas rápidas para Nível (botões rápidos D, C, B, A, S, Hero + slider fino), Sobrevivência (Ress, Heal, God Mode, Kill Alvo), Velocidade GM, Economia, Encantamento, Teleportes Globais e Atalho para Bots PvP.
+  - Integrado em `arena.html` e `cidade.html`.

@@ -229,7 +229,7 @@ function spawnBots(opts){
       x: bx,
       z: bz,
       f: r2(Math.random() * 6.28),
-      y: 0,
+      y: null,
       a: 'idle',
       ts: 1,
       guarda: false,

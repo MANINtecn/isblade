@@ -42,7 +42,8 @@ const Mobs = require('./mobs_mundo');
 const { Baium, baiumOk } = require('./baium');      /* [baium-servidor] a luta do Baium roda aqui */
 const Moradores = require('./moradores').cria({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [moradores] NPCs com rotina e conversa na cidade */
 const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */
-const Fakes = require('./fakes');                                                                     /* [fakes] bots de PvP (comandos /bot e painel) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
+const Fakes = require('./fakes');                                                                     /* [fakes] bots de PvP (comandos /bot e painel) */
+const Admin = require('./admin');                                                                     /* [admin] poderes de GM (setlevel, ress, heal, god, speed, adena) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 const XP_SALAS = { shade: 1, caster: 1, brute: 1, mini_boss: 1, boss: 1 };      /* [auditoria 13/11] tipos da DG antiga por salas: os unicos aceitos na mensagem xp */
 function ganhaXp(J, v){
   if(!J || J.isBot || !J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
@@ -148,7 +149,7 @@ function mundoDe(c){
   if(!MAPAS[c.mapa].aberto && c.mapa !== 'cidade') return null;      /* [campo] a cidade tem o Campo de Talking Island (mobs do mundo aberto) */
   if(!c.mundo){
     const W = c.mundo = c.mapa === 'cidade' ? Mobs.mundoAberto() : new Mobs.Mundo(c.mapa);      /* [pagina-unica] cidade = Campo + Cruma + Fortaleza + Pantano no mundo */
-    W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); };
+    W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto && !Q.godMode) envia(Q, ev); };
     W.tiro = (m, Q, s) => difunde(c, { t: 'mtiro', id: m.id, a: Q.id, s: Math.round(s * 100) / 100 });
     W.aviso = txt => difunde(c, { t: 'pkmsg', m: txt });
     W.tele = o => difunde(c, o);                                        /* [chefes-marcados] marcas no chao dos golpes do chefe */
@@ -184,6 +185,7 @@ function fimDuelo(c, perdedor, vencedor, motivo){
 
 /* ---- dano de um golpe/projetil numa vitima (guarda de frente reduz; duelo nao mata) ---- */
 function fere(c, A, V, base, t, pid){
+  if(V.godMode) return;                                                                           /* [admin] God Mode: imortal a qualquer dano */
   let dano = Math.max(1, Math.round(base * (.92 + Math.random() * .16) * PVP_MULT)), bloqueio = false;
   if(V.guarda && Math.abs(angDif(Math.atan2(A.x - V.x, A.z - V.z), V.f)) < 1.1){ dano = Math.max(1, Math.round(dano * .2)); bloqueio = true; }   /* guarda de frente */
   if((A.preceAte || 0) > t) dano = Math.round(dano * (1 + (A.preceAtk || 0)));                  /* [clerigo] Prece: +ataque */
@@ -345,6 +347,7 @@ function ataque(c, A, m){
   }
 }
 Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir });
+Admin.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, Contas, Prog, Inv, Fakes, pmaxMax });
 
 /* ---- HTTP estatico ---- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.vrm': 'model/gltf-binary', '.fbx': 'application/octet-stream', '.wasm': 'application/wasm', '.ogg': 'audio/ogg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.bin': 'application/octet-stream', '.woff2': 'font/woff2', '.ico': 'image/x-icon' };
@@ -405,7 +408,7 @@ wss.on('connection', ws => {
     if(m.t === 'st'){                                               /* posicao, direcao, animacao (nome do clipe), velocidade do clipe, arma, guarda */
       const t = agora(), dt = Math.min(.5, Math.max(.03, t - J.ultSt)); J.ultSt = t;      /* intervalo limitado: ficar quieto nao da credito para teleportar depois */
       if(typeof m.x === 'number' && typeof m.z === 'number' && !J.morto){
-        const dx = m.x - J.x, dz = m.z - J.z, d = Math.hypot(dx, dz), max = VMAX * dt + .5;
+        const dx = m.x - J.x, dz = m.z - J.z, d = Math.hypot(dx, dz), mult = J.adminSpeed || 1, max = VMAX * mult * dt + .5;
         if(d > max){ J.x += dx / d * max; J.z += dz / d * max; } else { J.x = m.x; J.z = m.z; }          /* limita a velocidade; se andou demais, so chega mais devagar */
       }
       if(typeof m.pm === 'number' && isFinite(m.pm)){ const pm = Math.max(50, Math.min(J.pers ? pmaxMax(J.pers) : 5000, m.pm | 0)); if(pm !== J.pmax){ const cheio = J.hp >= J.pmax; J.pmax = pm; J.hp = cheio && !J.morto ? pm : Math.min(J.hp, pm); } }      /* vida maxima atual do jogo (nivel/equipamento carregam depois de entrar); limitada pelo que o personagem pode ter */
@@ -502,7 +505,7 @@ wss.on('connection', ws => {
         if(!Mobs.dgTorreOk(key)){ envia(J, { t: 'dgs', k: 'nao' }); return; }
         if(!c.dgsW || c.dgsW.chave !== key){
           const W = c.dgsW = Mobs.criaDg(key);
-          if(W){ W.evento = o => difunde(c, o); W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto) envia(Q, ev); }; W.tiro = (mo, Q, s) => difunde(c, { t: 'mtiro', id: mo.id, a: Q.id, s: Math.round(s * 100) / 100 }); }      /* dano e projetil dos mobs da DG */
+          if(W){ W.evento = o => difunde(c, o); W.fere = (Q, ev) => { if(c.jog.get(Q.id) === Q && !Q.morto && !Q.godMode) envia(Q, ev); }; W.tiro = (mo, Q, s) => difunde(c, { t: 'mtiro', id: mo.id, a: Q.id, s: Math.round(s * 100) / 100 }); }      /* dano e projetil dos mobs da DG */
         }
         if(!c.dgsW){ envia(J, { t: 'dgs', k: 'nao' }); return; }
         envia(J, c.dgsW.estado('ok'));
@@ -543,7 +546,9 @@ wss.on('connection', ws => {
     }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
     else if(m.t === 'bot_cmd'){ Fakes.executa(c, J, m); }
+    else if(m.t === 'admin_cmd'){ Admin.executa(c, J, m); }
     else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .3){ J.ultChat = t; const txt = String(m.m || '').slice(0, 120).trim();      /* chat: geral = canal; c:'g' = grupo (em qualquer mapa) */
+      if(txt && Admin.ehComando(txt)){ Admin.comando(c, J, txt); return; }
       if(txt && (txt.startsWith('/bot') || txt.startsWith('/fake') || txt === '/painel')){ Fakes.comando(c, J, txt); return; }
       if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }
       else if(txt && m.c === 'c'){ const C = Clas.de(J.pers); if(!C) envia(J, { t: 'chat', n: 'Sistema', m: 'Você não está em um clã.', c: 's' }); else for(const o of membrosOnline(C)) envia(o, { t: 'chat', n: J.nome, m: txt, c: 'c' }); }      /* [cla] chat do cla (@) */
