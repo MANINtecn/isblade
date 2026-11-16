@@ -4266,3 +4266,15 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - `prototipo/arena.html`: `SPRINT_MULT = 1.855`, guarda `3.0`, `d.cur.timeScale` clamp expandido.
   - `prototipo/cidade.html`: `SPRINT_MULT = 1.855`, guarda `3.0`, `d.cur.timeScale` clamp expandido.
   - `servidor/server.js`: `VMAX = 17`.
+
+
+### [Antigravity] 16/11/2026 - Campo de Nome Limpo na Criação de Personagem
+
+- **Diretriz Atendida**:
+  - *"NA CRIAÇÃO DE PERSOnagem ta vindo predefinido o nome icaro deve vir limpo"*
+
+- **Modificações Realizadas**:
+  - `prototipo/criacao.html`:
+    - Removido o valor pré-definido `value="&Iacute;caro"` do elemento `<input id="charName">`, iniciando agora completamente limpo (`value=""`) com o placeholder `"Digite seu nome..."`.
+    - Em `setupNameValidation()`, desativada a injeção automática de nome padrão no campo, mantendo o input limpo para digitação direta do jogador.
+    - Mensagem de orientação ajustada para `"Digite o nome do seu herói."` com foco automático caso o jogador tente prosseguir sem nomear seu personagem.

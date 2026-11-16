@@ -428,7 +428,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
     <!-- Campo de Nome nativo L2 fixo no painel (sem 3ª aba) -->
     <div class="l2-name-pane">
       <div class="lbl">◆ Nome do Personagem <small id="nameStatusTag"></small></div>
-      <input type="text" id="charName" class="name-input" value="&Iacute;caro" maxlength="16" placeholder="Digite seu nome..." autocomplete="off" autocapitalize="words" enterkeyhint="done">
+      <input type="text" id="charName" class="name-input" value="" maxlength="16" placeholder="Digite seu nome..." autocomplete="off" autocapitalize="words" enterkeyhint="done">
       <div id="nameFeedback" class="fb">Digite o nome do seu her&oacute;i.</div>
     </div>
   </div>
@@ -1139,7 +1139,7 @@ function getExistingNames(){
 
 function checkNameAvailability(name){
   var clean = (name || '').trim();
-  if(!clean) return { valid: false, msg: '⚠️ Digite o nome do seu herói.', color: '#94a3b8' };
+  if(!clean) return { valid: false, msg: 'Digite o nome do seu herói.', color: '#a0a8b8' };
   if(clean.length < 2) return { valid: false, msg: '⚠️ Nome muito curto (mínimo 2 letras).', color: '#f59e0b' };
   var existing = getExistingNames();
   if(existing.indexOf(clean.toLowerCase()) !== -1){
@@ -1153,14 +1153,7 @@ function setupNameValidation(){
   var fbEl = document.getElementById('nameFeedback');
   if(!nameEl || !fbEl) return;
 
-  var existing = getExistingNames();
-  var defaultName = 'Ícaro';
-  if(existing.indexOf(defaultName.toLowerCase()) !== -1){
-    var n = 2;
-    while(existing.indexOf((defaultName + ' ' + n).toLowerCase()) !== -1){ n++; }
-    defaultName = defaultName + ' ' + n;
-  }
-  nameEl.value = defaultName;
+  nameEl.value = '';
 
   function updateStatus(){
     var val = nameEl.value.trim();
