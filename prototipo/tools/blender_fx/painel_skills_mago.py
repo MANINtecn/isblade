@@ -3,6 +3,12 @@ Rodar no Blender (Scripting > Run Script) ou pelo MCP; o script tambem fica salv
 import bpy
 
 SKILLS = [                                   # (cena, rotulo)
+    ("GUARDIAO_S1_FEIXE", "GD1  Feixe do Escudo (nv 1) - PRONTA"),
+    ("GUARDIAO_S2_ORIGINAL", "GD2  Fortaleza Egide (original, sem mexer)"),
+    ("GUARDIAO_S3_ORIGINAL", "GD3  Chuva de Escudos (original, sem mexer)"),
+    ("GUARDIAO_S4_ORIGINAL", "GD4  Rugido do Guardiao (original, sem mexer)"),
+    ("GUARDIAO_S5_ORIGINAL", "GD5  Corrente de Puxao (original, sem mexer)"),
+    ("GUARDIAO_S6_ORIGINAL", "GD6  Arremesso do Escudo (original, sem mexer)"),
     ("MAGO_SKILL1", "1  Shuriken de Vento (Spellhowler)"),
     ("MAGO_ATAQUE", "Ataque padrao (cristais)"),
     ("MAGO_S2_FOGO", "2  Fogo: Meteoro de Magma (Archmage)"),
@@ -45,6 +51,7 @@ def _billboards(sc):
     for o in sc.objects:
         for k in o.constraints:
             if k.name in ("CL_BB", "GW_BB"): k.target = sc.camera
+            elif k.type == "TRACK_TO" and k.target and k.target.type == "CAMERA": k.target = sc.camera      # flares do Guardiao
 
 class SKILLS_OT_ir(bpy.types.Operator):
     bl_idname = "skills.ir"; bl_label = "Ver skill"; bl_options = {"REGISTER"}

@@ -480,13 +480,19 @@ export function criarFX(THREE, ctx){
   function escudoVoo(o){
     var m = enMat(o.color || 0xff6a1a, o.hot || 0xfff0c8, o.edge || 0xffc83a); m.uniforms.uGain.value = o.gain || 1.25;
     var mesh = new THREE.Mesh(o.info.geo, m); mesh.frustumCulled = false; mesh.scale.setScalar((o.info.altura || 2) / 2 * (o.size || 1));
-    var tO = o.tOut || .3, tH = o.tHold || .12, tB = o.tBack || .55, T = tO + tH + tB, from = o.from, fx = Math.sin(o.face), fz = Math.cos(o.face), D = o.dist || 5.7, tgt = { x: from.x + fx * D, y: from.y, z: from.z + fz * D };
+    /* [arremesso-cabal] 16/11/2026: igual ao Skill6_ShieldThrow do Blender (estilo Cabal): o escudo gira DE FRENTE PARA TRAS (eixo lateral),
+       sobe em arco, desce e CRAVA inclinado no chao (parte enterrada), fica fincado durante os golpes da ida, ARRANCA do chao e volta girando em arco.
+       Antes: girava em pe no eixo vertical, ia reto na altura da mao e parava no ar 0,12 s. */
+    var tO = o.tOut || .3, tH = o.tHold || .12, tB = o.tBack || .55, T = tO + tH + tB, from = o.from, fx = Math.sin(o.face), fz = Math.cos(o.face), D = o.dist || 5.7;
+    var alt = (o.info.altura || 2) * (o.size || 1), gy = (typeof o.groundY === 'number') ? o.groundY : from.y - 1.3, TILT = .55, ARCO = o.arc || 1.0,
+        tgt = { x: from.x + fx * D, y: gy + alt * .2, z: from.z + fz * D };           /* inclinado TILT: ~30% do escudo fica enterrado (ponta para baixo) */
+    mesh.rotation.order = 'YXZ';
     var e = add(mesh, T, function(u, dt, t){
-      var a, hand = o.getHand ? (o.getHand() || from) : from, p;
-      if(t < tO){ a = 1 - Math.pow(1 - t / tO, 2); p = { x: from.x + (tgt.x - from.x) * a, y: from.y + .25 * Math.sin(a * Math.PI), z: from.z + (tgt.z - from.z) * a }; }
-      else if(t < tO + tH){ p = tgt; }
-      else { a = (t - tO - tH) / tB; a = a * a * (3 - 2 * a); p = { x: tgt.x + (hand.x - tgt.x) * a, y: tgt.y + (hand.y - tgt.y) * a + .3 * Math.sin(a * Math.PI), z: tgt.z + (hand.z - tgt.z) * a }; }
-      mesh.position.set(p.x, p.y, p.z); mesh.rotation.set(0, o.face + t * 20, 0);
+      var a, s, hand = o.getHand ? (o.getHand() || from) : from, p, giro;
+      if(t < tO){ a = t / tO; p = { x: from.x + (tgt.x - from.x) * a, y: from.y + (tgt.y - from.y) * a * a + ARCO * 4 * a * (1 - a), z: from.z + (tgt.z - from.z) * a }; giro = (TILT + Math.PI * 2 * 3) * a; }
+      else if(t < tO + tH){ a = (t - tO) / tH; var tr = a < .12 ? (1 - a / .12) * .05 : 0; p = { x: tgt.x, y: tgt.y - tr, z: tgt.z }; giro = TILT; }   /* fincado: tranco curto ao cravar */
+      else { a = (t - tO - tH) / tB; s = a * a * (3 - 2 * a); p = { x: tgt.x + (hand.x - tgt.x) * s, y: tgt.y + (hand.y - tgt.y) * s + ARCO * 1.2 * 4 * s * (1 - s), z: tgt.z + (hand.z - tgt.z) * s }; giro = TILT - Math.PI * 2 * 4 * s; }
+      mesh.position.set(p.x, p.y, p.z); mesh.rotation.set(giro, o.face, 0);
       m.uniforms.uTime.value = t * 2; m.uniforms.uA.value = u < .06 ? u / .06 : (u > .94 ? (1 - u) / .06 : 1);
     });
     e.done = o.onEnd; return e;

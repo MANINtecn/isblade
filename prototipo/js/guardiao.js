@@ -6,7 +6,7 @@
      3) fora de combate (sem hit dado/recebido por `saidaSegundos`, 60 s) libera a troca;
      4) trocar de arma nao zera o cooldown das skills (guardado por arma). */
 
-import { criarFX } from './guardiao_fx.js?v=8';
+import { criarFX } from './guardiao_fx.js?v=9';
 
 export const Guardiao = (function(){
   var ctx = null;
@@ -341,10 +341,13 @@ export const Guardiao = (function(){
         if(!gc6){ return; }
         if(o6) o6.visible = false;
         var d6 = al6 ? Math.hypot(al6.x - S6.px, al6.z - S6.pz) : 5.7, f6 = al6 ? Math.atan2(al6.x - S6.px, al6.z - S6.pz) : S6.face;      /* o escudo vai ao PONTO travado no lancamento, mesmo que o jogador ja tenha virado/andado */
-        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: f6, dist: Math.max(2, d6), tOut: al6 ? Math.min(.45, .3 * Math.sqrt(Math.max(2, d6) / 5.7)) : .3, tHold: .12, tBack: .55, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
+        /* [arremesso-cabal] 16/11/2026: fica FINCADO ate o 1o golpe da volta (hits[3] do JSON) e arranca do chao junto com ele, como no Blender */
+        var tO6 = al6 ? Math.min(.45, .3 * Math.sqrt(Math.max(2, d6) / 5.7)) : .3, rg6 = ctx.getVrm(), cl6 = rg6 && rg6.clips && rg6.clips[cfg.c], dur6 = cl6 ? cl6.duration / (cfg.sp || 1) : 2.58,
+            hv6 = (sk.hits && sk.hits[3]) || .745, tH6 = Math.max(.15, dur6 * hv6 - (cfg.solta || 1.13) - tO6), tB6 = .38, tT6 = tO6 + tH6 + tB6;
+        var vo = FX.escudoVoo({ info: gc6, from: { x: hp6.x, y: hp6.y, z: hp6.z }, face: f6, dist: Math.max(2, d6), tOut: tO6, tHold: tH6, tBack: tB6, groundY: (rg6 && rg6.root) ? rg6.root.getWorldPosition(new T6.Vector3()).y : undefined, color: COR.fogo, hot: COR.quente, edge: COR.ouro,
           getHand: function(){ var oo = shieldObj(); return oo ? oo.getWorldPosition(new T6.Vector3()) : null; }, onEnd: function(){ var oo = shieldObj(); if(oo) oo.visible = true; } });
-        FX.trilha(function(){ return vo.obj ? vo.obj.position.clone() : null; }, { color: COR.fogo, hot: COR.quente, width: .55, life: 1.2, n: 30 });
-        FX.seguir(function(){ return vo.obj; }, function(grp){ return FX.espetosGirando(grp, {}); }, 1.0, 0);
+        FX.trilha(function(){ return vo.obj ? vo.obj.position.clone() : null; }, { color: COR.fogo, hot: COR.quente, width: .55, life: tT6 + .2, n: 30 });
+        FX.seguir(function(){ return vo.obj; }, function(grp){ return FX.espetosGirando(grp, {}); }, tT6, 0);
       };
     }
   };

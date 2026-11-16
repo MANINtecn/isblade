@@ -4465,3 +4465,4 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   - Botão flutuante `👑 GM [F10]` e atalho de teclado `F10`.
   - Abas rápidas para Nível (botões rápidos D, C, B, A, S, Hero + slider fino), Sobrevivência (Ress, Heal, God Mode, Kill Alvo), Velocidade GM, Economia, Encantamento, Teleportes Globais e Atalho para Bots PvP.
   - Integrado em `arena.html` e `cidade.html`.
+- [Claude] 16/11: publicado (commit + push). guardiao.js subiu para ?v=21: o v=20 ja tinha ido ao ar no commit do outro agente apontando para o codigo antigo (cache).
