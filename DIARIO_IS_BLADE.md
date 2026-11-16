@@ -4232,3 +4232,43 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   3. **Alinhamento Arquitetural**:
      - **Vercel (`isblade.vercel.app`)**: Hospeda exclusivamente o Frontend estático (`prototipo/`). Diretório raiz deve ser `prototipo` (ou raiz com `outputDirectory: prototipo`). Nunca deve ser configurado como `servidor`.
      - **VPS Linux (`play.isblade.tecx.pro`)**: Hospeda exclusivamente o Backend Node.js (`servidor/server.js`), WebSocket multiplayer e persistência.
+
+
+### [Antigravity] 15/11/2026 - Acesso a Habilidades no Mobile e Limpeza da Barra de Atalhos (PC e Mobile)
+
+- **Demandas do Usuário**:
+  1. No celular (mobile), não havia como abrir a janela de habilidades do personagem (sem tecla física `K`).
+  2. Tanto no PC quanto no celular, a barra de atalhos vinha pré-populada com ícones genéricos de espada (`sword_long.png`). O usuário solicitou deixar a barra 100% limpa para que os jogadores possam arrastar e equipar livremente suas próprias skills.
+
+- **Diagnóstico Técnico**:
+  1. **Barra Pré-populada com Espadas**:
+     - Em `prototipo/js/l2_hud.js`, o método `loadSlots()` continha um laço que forçava `this.slots[i] = { type: 'skill', skillSlot: i, name: 'Skill ' + (i + 1), ico: '' }` nos slots 0 a 5 sempre que a barra estivesse vazia.
+     - No método `sync()`, quando `data.ico` e `data.svg` eram vazios, o código fazia fallback para `<img src="assets/icones/sword_long.png">`, preenchendo todos os slots com espadas.
+     - O `localStorage` dos navegadores mantinha esses registros salvos.
+  2. **Inacessibilidade das Skills no Mobile**:
+     - No celular, não há tecla `K`. O botão `#skBtn` existia no HTML, mas possuía `display: none !important` via `mu_hud.css` e colidia de posição com o botão de edição móvel (`#mbedit`).
+     - A função `toggleSk` e `toggleInv` eram funções locais nos scripts de página e não estavam expostas no escopo global `window`.
+  3. **Arrastar Skills no Mobile (Touch)**:
+     - Telas touch não disparam nativamente os eventos HTML5 de Drag & Drop (`dragstart`, `drop`).
+
+- **Soluções Implementadas**:
+  1. **Limpeza Completa da Barra de Atalhos (`prototipo/js/l2_hud.js`)**:
+     - Removido o preenchimento automático de slots vazios com skills fictícias.
+     - Implementado algoritmo de purga em `loadSlots()` que detecta dados fictícios antigos salvos em cache/localStorage (sem ícone/svg) e redefine os slots para `null`.
+     - Atualizado `sync()`: slots vazios ou sem ícone ficam completamente limpos (`iconEl.innerHTML = ''`), sem exibir espadas genéricas.
+  2. **Novo Botão de Skills no Mobile (`prototipo/js/mobile.js`)**:
+     - Adicionado botão dedicado de Habilidades (`#mbskill`, ícone de raio ⚡) e botão de Inventário (`#mbinv`, ícone 🎒) na barra superior direita do celular.
+     - Layout mobile reajustado com espaçamento ergonômico de 36x36px: Mapa (`#mbmap`, 10px), Skills (`#mbskill`, 52px), Inventário (`#mbinv`, 94px), Menu (`#mbsys`, 136px), Editar (`#mbedit`, 178px).
+     - Vinculado clique direto às funções `window.toggleSk()` e `window.toggleInv()`.
+  3. **Sistema Tap-to-Equip para Mobile e PC (`skills_ui.js` e `l2_hud.js`)**:
+     - Ao tocar ou clicar em qualquer skill desbloqueada na janela de Habilidades (`MagicSkillWnd`), ela fica selecionada com um brilho dourado (`.l2-sk-row.selected`) e ativa `window._selectedSkillToPlace`.
+     - Uma notificação informativa orienta: *"Toque em um slot da barra de atalhos para equipar"*.
+     - Ao tocar em qualquer slot da barra do L2 (ou nos botões `s0..s5` do celular), a skill é atribuída e salva imediatamente no slot.
+     - O Drag & Drop nativo via mouse continua 100% funcional no PC.
+  4. **Exposição Global e Sincronização**:
+     - Expostos `window.toggleSk = toggleSk;` e `window.toggleInv = toggleInv;` em `prototipo/cidade.html` e `prototipo/arena.html`.
+     - Ajustado o espelhamento periódico em `mobile.js` para ler diretamente de `window.L2Hud.slots`, ocultando botões vazios e exibindo apenas skills equipadas.
+  5. **Garantia de Deploy Estático Limpo na Vercel**:
+     - Removido `prototipo/package.json` para evitar que a Vercel acione o `@vercel/node`.
+     - Limpo `prototipo/vercel.json` mantendo regras de cache e URLs limpas.
+     - Incrementadas as versões dos scripts (`?v=42`) para forçar atualização em todos os clientes e navegadores.

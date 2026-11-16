@@ -22,7 +22,7 @@
 
 
 
-<link rel="stylesheet" href="css/l2_hud.css?v=38">
+<link rel="stylesheet" href="css/l2_hud.css?v=42">
 <link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
@@ -776,7 +776,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=8"></script>
+<script src="js/mobile.js?v=42"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=1"></script>
 <script src="js/mago_fx.js?v=4"></script>
@@ -793,7 +793,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/expedicao.js?v=6"></script>
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=39"></script>
-<script src="js/skills_ui.js?v=38"></script>
+<script src="js/skills_ui.js?v=42"></script>
 <script src="js/moradores.js?v=2"></script>
 <script src="js/mundo_campo.js?v=5"></script>
 <script src="js/mapa_vivo.js?v=12"></script>
@@ -1292,7 +1292,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=32';
+import { MuHud } from './js/mu_hud.js?v=42';
 
 
 
@@ -13167,6 +13167,7 @@ function toggleInv(force){
 
 
 }
+window.toggleInv=toggleInv;
 
 
 
@@ -13312,6 +13313,7 @@ function toggleSk(force){
 
 
 }
+window.toggleSk=toggleSk;
 
 
 

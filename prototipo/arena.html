@@ -11,7 +11,7 @@
 
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
-<link rel="stylesheet" href="css/l2_hud.css?v=38">
+<link rel="stylesheet" href="css/l2_hud.css?v=42">
 <link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
@@ -464,7 +464,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=8"></script>
+<script src="js/mobile.js?v=42"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=1"></script>
 <script src="js/mago_fx.js?v=4"></script>
@@ -481,7 +481,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/expedicao.js?v=5"></script>
 <script src="js/modo_camera.js?v=1"></script>
 <script src="js/inventario_ui.js?v=39"></script>
-<script src="js/skills_ui.js?v=38"></script>
+<script src="js/skills_ui.js?v=42"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
@@ -731,7 +731,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 import { Torre } from './js/torre.js?v=10';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=32';
+import { MuHud } from './js/mu_hud.js?v=42';
 
 window.THREE = THREE;
 
@@ -7105,6 +7105,7 @@ function toggleInv(force){
   if(invOpen){try{document.exitPointerLock();}catch(_){}renderInv();if(window.L2Drag)L2Drag.restore('inv');}
 
 }
+window.toggleInv=toggleInv;
 
 function renderInv(){
 
@@ -7180,6 +7181,7 @@ function toggleSk(force){
   if(skOpen){try{document.exitPointerLock();}catch(_){}renderSk();if(window.L2Drag)L2Drag.restore('skp');}
 
 }
+window.toggleSk=toggleSk;
 
 function skStats(s){
 

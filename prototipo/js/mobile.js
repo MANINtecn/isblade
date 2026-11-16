@@ -28,9 +28,10 @@
     '#mb .sk svg{width:72%;height:72%}#mb .sk .k{display:none}' +
     '#mb .sk .cd{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.6);height:0}#mb .sk .ct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;text-shadow:0 1px 3px #000}' +
     'body.mb-edit #mb .b{outline:2px dashed rgba(255,214,102,.9);outline-offset:2px;opacity:1}' +
-    '#mbfs,#mbmap,#mbsys,#mbedit{position:fixed;z-index:70;padding:0;width:34px;height:34px;border:0;border-radius:9px;background:rgba(7,12,24,.5);box-shadow:inset 0 0 0 1px rgba(120,196,255,.4);color:#cfe8ff;font:600 15px system-ui,sans-serif;display:none;align-items:center;justify-content:center;opacity:.8}' +
-    '#mbfs{left:12px;top:96px;width:auto;padding:0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}#mbmap{right:10px;top:8px}#mbsys{right:52px;top:8px}#mbedit{right:94px;top:8px}' +
-    'body.is-touch #mbmap,body.is-touch #mbsys,body.is-touch #mbedit{display:flex}body.is-touch #mbfs{display:flex}' +
+    '#mbfs,#mbmap,#mbskill,#mbinv,#mbsys,#mbedit{position:fixed;z-index:75;padding:0;width:36px;height:36px;border:0;border-radius:9px;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45),0 2px 6px rgba(0,0,0,.5);color:#cfe8ff;font:600 15px system-ui,sans-serif;display:none;align-items:center;justify-content:center;opacity:.9;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+    '#mbfs:active,#mbmap:active,#mbskill:active,#mbinv:active,#mbsys:active,#mbedit:active{background:rgba(92,200,255,.35);transform:scale(.93)}' +
+    '#mbfs{left:12px;top:96px;width:auto;padding:0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}#mbmap{right:10px;top:8px}#mbskill{right:52px;top:8px;color:#ffd166}#mbinv{right:94px;top:8px;color:#a5d8ff}#mbsys{right:136px;top:8px}#mbedit{right:178px;top:8px}' +
+    'body.is-touch #mbmap,body.is-touch #mbskill,body.is-touch #mbinv,body.is-touch #mbsys,body.is-touch #mbedit{display:flex!important}body.is-touch #mbfs{display:flex}' +
     '#mbbar{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;display:none;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(7,12,24,.82);box-shadow:inset 0 0 0 1px rgba(255,214,102,.7);color:#ffe9b0;font:600 12px system-ui,sans-serif}' +
     '#mbbar button{font:700 12px system-ui,sans-serif;padding:6px 10px;border-radius:7px;border:0;background:rgba(120,196,255,.25);color:#fff}body.mb-edit #mbbar{display:flex}' +
     /* HUD no toque: so as barras; os botoes I C S Q O abrem pela engrenagem; minimapa recolhido */
@@ -89,6 +90,25 @@
     window.addEventListener('orientationchange', travaGiro);
     try { history.pushState({ g: 1 }, '', location.href); window.addEventListener('popstate', function(){ try { history.pushState({ g: 1 }, '', location.href); } catch(e){} }); } catch(e){}      /* gesto/botao voltar sem querer nao fecha o jogo */
     var bm = document.createElement('button'); bm.id = 'mbmap'; bm.type = 'button'; bm.textContent = '▦'; bm.title = 'Mapa'; bm.onclick = function(){ document.body.classList.toggle('mapa-aberto'); }; document.body.appendChild(bm);
+
+    var bsk = document.createElement('button'); bsk.id = 'mbskill'; bsk.type = 'button';
+    bsk.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z"/></svg>';
+    bsk.title = 'Habilidades (K)';
+    bsk.onclick = function(){
+      if(typeof window.toggleSk === 'function') window.toggleSk();
+      else { var skBtn = document.getElementById('skBtn'); if(skBtn) skBtn.click(); }
+    };
+    document.body.appendChild(bsk);
+
+    var binv = document.createElement('button'); binv.id = 'mbinv'; binv.type = 'button';
+    binv.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>';
+    binv.title = 'Inventário (I)';
+    binv.onclick = function(){
+      if(typeof window.toggleInv === 'function') window.toggleInv();
+      else { var invBtn = document.getElementById('invBtn'); if(invBtn) invBtn.click(); }
+    };
+    document.body.appendChild(binv);
+
     var bs = document.createElement('button'); bs.id = 'mbsys'; bs.type = 'button'; bs.textContent = '⚙'; bs.title = 'Menu'; bs.onclick = function(){ document.body.classList.toggle('sys-aberto'); }; document.body.appendChild(bs);
     if(pagina !== 'outra'){
       var be = document.createElement('button'); be.id = 'mbedit'; be.type = 'button'; be.textContent = '✎'; be.title = 'Editar botoes'; be.onclick = function(){ editar(true); }; document.body.appendChild(be);
@@ -139,22 +159,51 @@
     mb.appendChild(botao('blq', 'ac blq', I.blq, function(){ tecla('keydown', 'c', 'KeyC'); }, function(){ tecla('keyup', 'c', 'KeyC'); }));
     var sk = [];
     for(var i = 0; i < 6; i++){ (function(i){
-      var b = botao('s' + i, 'sk', '<span class="ic"></span><span class="k"></span><span class="cd"></span><span class="ct"></span>', function(){ var H = window.MuHudRef; if(H) H.triggerSlot(i); });
+      var b = botao('s' + i, 'sk', '<span class="ic"></span><span class="k"></span><span class="cd"></span><span class="ct"></span>', function(){
+        if(window._selectedSkillToPlace && window.L2Hud){
+          window.L2Hud.slots[i] = Object.assign({}, window._selectedSkillToPlace);
+          window.L2Hud.saveSlots();
+          window.L2Hud.sync();
+          window._selectedSkillToPlace = null;
+          document.querySelectorAll('.l2-sk-row.selected').forEach(function(el){ el.classList.remove('selected'); });
+          try { if(window.banner) window.banner('SKILL EQUIPADA', 'Atribuída ao Atalho ' + (i + 1), '#5aa9ff'); } catch(_) {}
+          return;
+        }
+        if(window.L2Hud && typeof window.L2Hud.triggerSlot === 'function'){
+          window.L2Hud.triggerSlot(i);
+        } else if(window.MuHudRef){
+          window.MuHudRef.triggerSlot(i);
+        }
+      });
       mb.appendChild(b); sk.push(b);
     })(i); }
     document.body.appendChild(mb); posiciona();
     setInterval(function(){                                       /* espelha icone e recarga da barra; troca ATACAR por ENTRAR/ABRIR perto de portal, bau ou porta */
       var pr = document.getElementById('portal-prompt'), ver = !editando && !!(pr && getComputedStyle(pr).display !== 'none' && pr.textContent.trim());
       modoUsar = ver; atk.classList.toggle('usar', ver); var tx = ver ? rotulo(pr.textContent) : 'ATACAR'; if(atk.textContent !== tx) atk.textContent = tx;
-      var slots = document.querySelectorAll('.mu-hotbar-slot');
-      for(var i = 0; i < 6; i++){
-        var s = slots[i], b = sk[i]; if(!s || !b) continue;
-        var ic = s.querySelector('.slot-icon'), cd = s.querySelector('.slot-cd-fill'), ct = s.querySelector('.slot-cd-txt');
-        var h = ic ? ic.innerHTML : ''; if(b._h !== h){ b._h = h; b.querySelector('.ic').innerHTML = h; }
-        b.style.visibility = (h || editando) ? '' : 'hidden';
-        b.querySelector('.cd').style.height = cd ? cd.style.height : '0'; b.querySelector('.ct').textContent = ct ? ct.textContent : '';
+      var l2Slots = document.querySelectorAll('.l2-sc-slot');
+      if(l2Slots.length > 0 && window.L2Hud){
+        for(var i = 0; i < 6; i++){
+          var s = l2Slots[i], b = sk[i]; if(!s || !b) continue;
+          var data = window.L2Hud.slots[i];
+          var ic = s.querySelector('.l2-sc-icon'), cd = s.querySelector('.l2-sc-cd-fill'), ct = s.querySelector('.l2-sc-cd-txt');
+          var h = (data && ic) ? ic.innerHTML : '';
+          if(b._h !== h){ b._h = h; b.querySelector('.ic').innerHTML = h; }
+          b.style.visibility = (h || editando) ? '' : 'hidden';
+          b.querySelector('.cd').style.height = cd ? cd.style.height : '0';
+          b.querySelector('.ct').textContent = ct ? ct.textContent : '';
+        }
+      } else {
+        var slots = document.querySelectorAll('.mu-hotbar-slot');
+        for(var i = 0; i < 6; i++){
+          var s = slots[i], b = sk[i]; if(!s || !b) continue;
+          var ic = s.querySelector('.slot-icon'), cd = s.querySelector('.slot-cd-fill'), ct = s.querySelector('.slot-cd-txt');
+          var h = ic ? ic.innerHTML : ''; if(b._h !== h){ b._h = h; b.querySelector('.ic').innerHTML = h; }
+          b.style.visibility = (h || editando) ? '' : 'hidden';
+          b.querySelector('.cd').style.height = cd ? cd.style.height : '0'; b.querySelector('.ct').textContent = ct ? ct.textContent : '';
+        }
       }
-    }, 200);
+    }, 150);
   }
   if(document.body) ini(); else document.addEventListener('DOMContentLoaded', ini);
 })();

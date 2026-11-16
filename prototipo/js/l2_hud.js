@@ -55,15 +55,18 @@ export const L2Hud = {
       this.autoSoulshot = localStorage.getItem(perChar(AUTO_SS_KEY)) === '1';
     } catch (_) {}
 
-    // Popula inicialmente os slots com as skills desbloqueadas se a barra estiver vazia
-    var hasAny = this.slots.some(function(d) { return d; });
-    if (!hasAny) {
-      for (var i = 0; i < 6; i++) {
-        this.slots[i] = { type: 'skill', skillSlot: i, name: 'Skill ' + (i + 1), ico: '' };
+    // Purgar placeholders e skills fictícias antigas (ex: "Skill 1" sem ícone que ficavam com ícone de espada)
+    var changed = false;
+    for (var i = 0; i < 12; i++) {
+      var d = this.slots[i];
+      if (d && d.type === 'skill') {
+        if (!d.ico && !d.svg && (!d.name || /^Skill \d+$/i.test(d.name))) {
+          this.slots[i] = null;
+          changed = true;
+        }
       }
-      // Coloca Soulshot no slot 7 por padrão para conveniência
-      this.slots[6] = { type: 'item', id: 'soulshot', name: 'Soulshot: No Grade', ico: 'assets/icones/soulshot.png' };
-      this.slots[7] = { type: 'item', id: 'pocao_vida', name: 'Poção de Vida', ico: 'assets/icones/pocao_vida.png' };
+    }
+    if (changed) {
       this.saveSlots();
     }
   },
@@ -172,6 +175,18 @@ export const L2Hud = {
     slots.forEach(function(slotEl, idx) {
       slotEl.addEventListener('click', function(e) {
         e.preventDefault();
+        // Se houver uma skill selecionada na janela de skills (toque/clique), equipa no slot
+        if (window._selectedSkillToPlace) {
+          self.slots[idx] = Object.assign({}, window._selectedSkillToPlace);
+          self.saveSlots();
+          self.sync();
+          window._selectedSkillToPlace = null;
+          document.querySelectorAll('.l2-sk-row.selected').forEach(function(el) { el.classList.remove('selected'); });
+          try {
+            if (window.banner) window.banner('SKILL EQUIPADA', 'Atribuída ao Atalho ' + (idx + 1), '#5aa9ff');
+          } catch (_) {}
+          return;
+        }
         self.triggerSlot(idx);
       });
 
@@ -372,7 +387,8 @@ export const L2Hud = {
         } else if (data.svg) {
           iconEl.innerHTML = '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + data.svg + '</div>';
         } else {
-          iconEl.innerHTML = '<img src="assets/icones/sword_long.png" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;">';
+          // Deixa o slot limpo e sem ícone se não houver asset configurado
+          iconEl.innerHTML = '';
         }
         if (autoEl) autoEl.style.display = 'none';
       } else if (data.type === 'item') {

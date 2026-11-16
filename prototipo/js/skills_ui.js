@@ -98,11 +98,12 @@
         ico: s.ico || '',
         svg: op.skillIconSVG ? op.skillIconSVG(s, 32) : ''
       });
+      window._selectedSkillToPlace = JSON.parse(payload);
       ev.dataTransfer.setData('text/plain', payload);
       ev.dataTransfer.setData('application/json', payload);
     };
 
-    // Eventos de clique (fechar, abas, alternar variante da skill)
+    // Eventos de clique (fechar, abas, alternar variante da skill e Selecionar para Equipar)
     box.onclick = function(ev){
       var t = ev.target.closest('[data-a],.l2-sk-row');
       if(!t) return;
@@ -118,6 +119,27 @@
         var slot = +t.getAttribute('data-slot');
         var idx = +t.getAttribute('data-idx');
         if(op.selectSkill) op.selectSkill(slot, idx);
+
+        var s = skills[slot];
+        if(s){
+          var isAlreadySelected = t.classList.contains('selected');
+          document.querySelectorAll('.l2-sk-row.selected').forEach(function(el){ el.classList.remove('selected'); });
+          if(isAlreadySelected){
+            window._selectedSkillToPlace = null;
+          } else {
+            t.classList.add('selected');
+            window._selectedSkillToPlace = {
+              type: 'skill',
+              skillSlot: slot,
+              name: s.name,
+              ico: s.ico || '',
+              svg: op.skillIconSVG ? op.skillIconSVG(s, 32) : ''
+            };
+            try {
+              if(window.banner) window.banner(s.name.toUpperCase(), 'Toque em um slot da barra de atalhos para equipar', '#ffd166');
+            } catch(_) {}
+          }
+        }
       }
     };
 
