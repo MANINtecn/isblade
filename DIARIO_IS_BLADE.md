@@ -4132,214 +4132,33 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - Atualizado para ativar `rig.swd1h.visible = is1H;` e carregar o modelo de espada correspondente (`filhoGrau`), permitindo visualização imediata in-game em tempo real.
 
 
-### [Antigravity] 15/11/2026 - Resolução Definitiva dos Itens No-Grade Pretos (Geração dos Modelos 3D Canônicos da Anã / Guardião)
+### [Claude] 16/11 - Coluna-farol na cidade, preparo de shaders (regra) e piso do centro
 
-- **Contexto e Queixas do Usuário**:
-  - *"Os itens No-Grade ainda estão pretos, pode ver o que aconteceu? Você falou que já tinha resolvido, não consigo fazer live pra apresentar o servidor com esses bugs, precisamos de patrocínio e conto com a live pra conseguir."*
-  - Na tela do usuário (classe Guardião / Anã Guerreira), os sapatos ficavam completamente pretos e a personagem aparecia de biquíni rosa com bota preta em vez de renderizar a armadura de placas No-Grade.
-
-- **Diagnóstico & Causa Raiz Real**:
-  1. **Discrepância entre Raças com e sem GLBs 3D Dedicados**:
-     - Anteriormente, modelos 3D dedicados de armaduras (`_nograde.glb`) só haviam sido montados e gerados para **Elfa** (`elf_f_nograde.glb`) e **Humano Guerreiro** (`human_fighter_nograde.glb`).
-     - Para a **Anã** (`dwarf_f`) e demais raças, o jogo carregava o modelo base naked/underwear (`assets/personagens/dwarf_f.glb`), que contém apenas a malha do corpo com biquíni (`FDwarf_m000_u`, `FDwarf_m000_l`, `FDwarf_m000_b`, `FDwarf_m000_g`).
-     - Em `arma_grau.js`, a função `aplicaArmadura` tentava mapear a textura 2D `FDwarf_m001_t02_b.png` (bota No-Grade) diretamente sobre a malha `FDwarf_m000_b` (sandália/pé descalço da Anã).
-     - Como a geometria e o mapa UV de `m000` não coincidem com `m001`, e a textura `FDwarf_m001_t02_b.png` é escura (RGB médio de 46), as botas ficavam **completamente pretas** e o peito/pernas ficavam no biquíni rosa original.
-  2. **Ausência de Mapeamento em `heroGlbMap` e `SET_3D_MODELS`**:
-     - `ArmaGrau.SET_3D_MODELS` em `arma_grau.js` não continha o registro da `dwarf_f`.
-     - `heroGlbMap` em `cidade.html` e `arena.html` apontava a Anã para o modelo naked `dwarf_f.glb`.
-
-- **Soluções Implementadas**:
-  1. **Extração das Malhas 3D Oficiais do Lineage 2 Interlude**:
-     - Extraídas com o `umodel_materials.exe` a partir do arquivo canônico `Animations/Dwarf.ukx` do cliente L2 Interlude todas as malhas esqueléticas (PSKs) da Anã:
-       - No-Grade: `FDwarf_m001_u`, `FDwarf_m001_l`, `FDwarf_m001_g`, `FDwarf_m001_b`
-       - Grau D: `FDwarf_m002_u`, `FDwarf_m002_l`, `FDwarf_m002_g`, `FDwarf_m002_b`
-       - Grau C: `FDwarf_m004_u`, `FDwarf_m004_l`, `FDwarf_m004_g`, `FDwarf_m002_b`
-       - Grau B: `FDwarf_m008_u`, `FDwarf_m008_l`, `FDwarf_m008_g`, `FDwarf_m008_b`
-       - Grau A: `FDwarf_m009_u`, `FDwarf_m009_l`, `FDwarf_m009_g`, `FDwarf_m009_b`
-  2. **Geração Automatizada dos GLBs 3D via Blender (`build_dwarf_armors.py`)**:
-     - Criado script headless no Blender 5.1 que carrega o rig/armature e animações da Anã, substitui as malhas naked pelas malhas 3D reais de armadura com materiais PBR metálicos e exporta os GLBs:
-       - `prototipo/assets/personagens/dwarf_f_nograde.glb` (2.09 MB)
-       - `prototipo/assets/personagens/dwarf_f_brigandine.glb` (2.14 MB)
-       - `prototipo/assets/personagens/dwarf_f_fullplate.glb` (2.11 MB)
-       - `prototipo/assets/personagens/dwarf_f_doom.glb` (1.83 MB)
-       - `prototipo/assets/personagens/dwarf_f_tallum.glb` (2.20 MB)
-  3. **Registro e Integração no Ecossistema**:
-     - `prototipo/js/arma_grau.js`: Registrada a tabela completa `dwarf_f` em `ArmaGrau.SET_3D_MODELS` e normalizada a detecção de raça em `A.obterModelo3D`.
-     - `prototipo/cidade.html` & `prototipo/arena.html`: Atualizado `heroGlbMap['dwarf_f']` para carregar `dwarf_f_nograde.glb?v=2` e configurado `atualizaModeloArmadura3D` para realizar troca dinâmica do modelo 3D ao equipar e desequipar armaduras de qualquer grau.
-     - `prototipo/selecao.html` & `prototipo/criacao.html`: Configurado `model` da Anã para `dwarf_f_nograde.glb?v=2`, garantindo visual imponente e sem biquíni desde o lobby.
-  4. **Blindagem contra Texturas 2D Sobrepostas (`arma_grau.js`)**:
-     - Adicionada blindagem em `ArmaGrau.aplicaArmadura`: para qualquer raça que possui modelos 3D dedicados, a função interrompe a execução imediata quando peças estão equipadas, impedindo que texturas 2D sobreponham e manchem a geometria 3D original.
+- **Pedido**: particulas da cidade vistas de longe (domo), travadinha na marcacao hexagonal, desempenho no celular.
+- **Domo**: era o ceu de estrelas da arena (600 pontos, meia-esfera 80 m, `fog:false`). Pesava pouco, mas poluia o mundo todo. Trocado por UMA coluna dourada de particulas subindo do centro da praca (60 m, pontos quadrados de tamanho fixo na tela) = farol de direcao (celular nao sobe a camera). As faiscas lilas do centro viraram essa coluna.
+- **REGRA preparo de shaders**: `prepShaders(raiz)` em `cidade.html` compila os shaders e sobe as texturas ANTES de aparecer. Chamado no fim do carregamento da cidade, em cada mapa do `MapaVivo` (`opt.preparar`, a fila de pecas espera os shaders) e em cada modelo de mob.
+- **Piso do centro**: hexagono e borda a 4 mm do piso brigavam (piscavam). Subiram para 6 cm.
+- **REGRA texturas KTX2**: mapas/modelos novos usam texturas KTX2 (Basis). Fortaleza tem 291 JPG/PNG (8 MB): descompactar e subir isso no celular e o que trava a chegada. Conversao ainda a fazer.
+- PWA -> APK nao ganha desempenho (mesmo WebView/WebGL). Aguardando o LOG DE DESEMPENHO do celular do dono para achar o gargalo real.
+- Backups: `cidade.html.antes_coluna`, `js/mapa_vivo.js.antes_shaders`.
 
 
-### [Antigravity] 15/11/2026 - Generalização Total dos Modelos 3D No-Grade para 100% das 12 Raças do L2 & Correção de Arma 1H do Guardião
+### [Antigravity] 16/11/2026 - Fundo Nativo do Lineage 2 no Lobby de Seleção e Criação
 
-- **Demanda do Usuário**:
-  - *"tá mas por que não faz o serviço completo? e eu tenho que voltar aqui e pedir de novo? se estamos usando todos os personagens do L2 então deve funcionar em todos perfeitamente."*
-  - *"creio que você tenha escolhido uma espada de 2 mãos para o guardião, veja que não é como no L2."*
+- **Solicitação do Usuário**:
+  - *"quero o looby de seleção e de criação sem o fundo de castelo e sim um fundo nativo do L2"*
+  - Remoção definitiva da imagem genérica de interior de catedral gótica/castelo e substituição por um cenário 100% nativo e canônico do Lineage 2.
 
-- **Diagnóstico & Causa Raiz Real**:
-  1. **Cobertura Incompleta das Raças do L2**:
-     - Anteriormente, apenas 3 raças tinham modelos `_nograde.glb` dedicados gerados: Elfa (`elf_f`), Humano Guerreiro (`human_fighter`) e Anã (`dwarf_f`). As outras 7 raças (`human_fighter_female`, `magic_m`, `magic_f`, `elf_m`, `orc_m`, `orc_f`, `dwarf_m`) ainda apontavam para seus arquivos base `_naked.glb` de underwear (roupas íntimas/biquíni).
-     - Quando qualquer uma dessas 7 raças era jogada ou criada, a função `aplicaArmadura` tentava aplicar texturas de botas/peitorais No-Grade diretamente na geometria nua de underwear (`m000`), resultando em pés e pernas pretos e visual quebrado.
-  2. **Espada de 2 Mãos Inserida na Mão do Guardião com Escudo**:
-     - Em `ArmaGrau.aplica` (`js/arma_grau.js`), a variável `swd1hUrl` pegava `url` da arma equipada (`sword_long` -> `twohanded_sword.glb`), carregando uma montante de duas mãos gigante na mão direita do Guardião mesmo quando um escudo estava equipado na mão esquerda.
-  3. **Fallback Inadequado de Inicialização**:
-     - Em `cidade.html` e `arena.html`, a variável inicial `hasChest` começava como `false`, fazendo com que `ArmaGrau.obterModelo3D` selecionasse o modelo `table['naked']` logo no spawn inicial se o inventário ainda não tivesse lido o peitoral, exibindo o biquíni rosa no primeiro frame.
-
-- **Soluções Implementadas**:
-  1. **Extração das Malhas 3D Oficiais (PSKs) de Todas as 7 Raças Restantes**:
-     - Extraídas com `umodel_materials.exe` as peças No-Grade (`_m001_u`, `_m001_l`, `_m001_g`, `_m001_b`) dos pacotes `Fighter.ukx`, `Magic.ukx`, `Elf.ukx`, `Orc.ukx` e `Dwarf.ukx`.
-  2. **Geração Automatizada via Blender 5.1 Headless (`build_all_nograde_armors.py`)**:
-     - Criados os 7 novos modelos GLB canônicos com geometria e texturas oficiais de armadura No-Grade:
-       - `human_fighter_female_nograde.glb` (1.63 MB)
-       - `magic_m_nograde.glb` (2.16 MB)
-       - `magic_f_nograde.glb` (1.92 MB)
-       - `elf_m_nograde.glb` (1.70 MB)
-       - `orc_m_nograde.glb` (1.86 MB)
-       - `orc_f_nograde.glb` (1.86 MB)
-       - `dwarf_m_nograde.glb` (1.86 MB)
-  3. **Universalização Completa do Ecossistema**:
-     - `prototipo/js/arma_grau.js`:
-       - Tabela `ArmaGrau.SET_3D_MODELS` expandida para incluir todas as 12 raças canônicas do Lineage 2.
-       - `ArmaGrau.obterModelo3D`: normalização de todas as 12 raças com fallback padrão sempre para o modelo No-Grade (`table['sem']`), eliminando qualquer possibilidade de spawn em roupas íntimas.
-       - `ArmaGrau.aplicaArmadura`: blindagem contra carimbo de texturas 2D planas sobre malhas de personagens.
-       - `ArmaGrau.aplica`: correção da espada do Guardião. Quando `is1H` é verdadeiro (escudo equipado), a arma da mão direita é obrigatoriamente uma espada de 1 mão (`gladius.glb`, `bastard_sword.glb`, `samurai_longsword.glb`), jamais carregando montantes de 2 mãos (`twohanded_sword.glb`, `claymore.glb`, etc.).
-     - `prototipo/cidade.html` & `prototipo/arena.html`:
-       - `heroGlbMap` atualizado para carregar o modelo `_nograde.glb?v=2` para todas as 12 raças.
-       - Inicialização do spawn corrigida (`hasChest: true`), garantindo que o herói surja sempre paramentado com armadura completa.
-       - Fallback padrão atualizado de `human_fighter.glb` (naked) para `human_fighter_nograde.glb?v=2`.
-       - `atualizaModeloArmadura3D` normalizado para todas as raças.
-     - `prototipo/selecao.html` & `prototipo/criacao.html`:
-       - Tabelas `RACE_CONFIG` e `RACE_DATA` atualizadas para apontar 100% dos personagens para seus modelos 3D No-Grade (`_nograde.glb?v=2` / `darkelf_m.glb?v=6` / `darkelf_f.glb?v=6`).
+- **Ações Realizadas**:
+  1. **Substituição do Cenário de Fundo**:
+     - Localizado e integrado o cenário nativo e icônico do Lineage 2 C4 / C5 / Interlude (`prototipo/assets/l2_native_lobby_bg.jpg`): panorama de Talking Island ao entardecer com o porto, farol ancestral, encostas suaves e as duas luas lendárias no céu crepuscular (a Lua Branca e a Lua Vermelha / Einhasad e Gran Kain).
+     - Aplicado em `prototipo/selecao.html` e `prototipo/criacao.html` através de `scene.background = new THREE.TextureLoader().load('assets/l2_native_lobby_bg.jpg?v=46');`.
+  2. **Harmonização de Névoa Atmosférica e Iluminação**:
+     - Ajustado o `scene.fog = new THREE.FogExp2(0x121b2d, 0.010);` para tonalidade azul crepúsculo profundo, mesclando com o céu aberto do Lineage 2 sem escurecer os personagens em primeiro plano.
+  3. **Acabamento do Pedestal de Criação (`criacao.html`)**:
+     - Base do pedestal texturizada com pedra nobre de templo L2 (`cathedral_stone_floor.jpg`).
+     - Adicionado glifo emissivo central da Runa Sagrada de Einhasad (`portal_floor_seal.png`) com mescla aditiva, unificando o padrão visual de seleção e criação.
+  4. **Atualização da Pré-carga**:
+     - `prototipo/assets/precarga.json` atualizado para pré-carregar `assets/l2_native_lobby_bg.jpg`.
 
 
-
-### [Antigravity] 15/11/2026 - Correção Definitiva do Deploy na Vercel (Eliminação do package.json em prototipo e Deploy Estático Puro)
-
-- **Contexto & Diagnóstico do Erro na Vercel**:
-  - Nas tentativas de deploy dos commits recentes, a Vercel falhava repetidamente com o seguinte log de erro:
-    `Error: [BUILD_FAILED] No entrypoint found in "/vercel/path0/prototipo". Set package.json "main" to a server file, or add one of: app.js, server.js...`
-  - **Causa Raiz**:
-    - Existia dentro de `prototipo/` um `package.json` antigo contendo uma dependência de testes (`ws: ^8.22.0`).
-    - Ao clonar o repositório e entrar na pasta `prototipo/`, a CLI da Vercel detectava o `package.json` sem script de build nem framework definido (Next/Vite). Com isso, a Vercel assumia erroneamente que `prototipo/` era um backend Serverless Node.js e tentava compilar um entrypoint de servidor (`index.js`, `server.js`, `app.js`).
-    - Como o frontend do jogo é puramente estático (HTML5, Three.js, GLB, CSS, JS), a compilação falhava aos 10 segundos.
-- **Medidas Implementadas**:
-  1. **Remoção de Arquivos de Pacote do Frontend**:
-     - Removidos do controle de versão `prototipo/package.json` e `prototipo/package-lock.json` via `git rm`.
-     - Sem arquivos de pacote no frontend, a Vercel reconhece a pasta instantaneamente como **Site Estático Puro (Zero Config)**, publicando todos os arquivos estáticos diretamente na Edge CDN global em segundos, sem rodar compilação ou funções serverless.
-  2. **Refinamento do `.vercelignore` em `prototipo/`**:
-     - Atualizadas as regras de exclusão para suprimir ferramentas de extração, scripts python, bat e arquivos de backup, garantindo upload enxuto e ágil.
-  3. **Alinhamento Arquitetural**:
-     - **Vercel (`isblade.vercel.app`)**: Hospeda exclusivamente o Frontend estático (`prototipo/`). Diretório raiz deve ser `prototipo` (ou raiz com `outputDirectory: prototipo`). Nunca deve ser configurado como `servidor`.
-     - **VPS Linux (`play.isblade.tecx.pro`)**: Hospeda exclusivamente o Backend Node.js (`servidor/server.js`), WebSocket multiplayer e persistência.
-
-
-### [Antigravity] 15/11/2026 - Acesso a Habilidades no Mobile e Limpeza da Barra de Atalhos (PC e Mobile)
-
-- **Demandas do Usuário**:
-  1. No celular (mobile), não havia como abrir a janela de habilidades do personagem (sem tecla física `K`).
-  2. Tanto no PC quanto no celular, a barra de atalhos vinha pré-populada com ícones genéricos de espada (`sword_long.png`). O usuário solicitou deixar a barra 100% limpa para que os jogadores possam arrastar e equipar livremente suas próprias skills.
-
-- **Diagnóstico Técnico**:
-  1. **Barra Pré-populada com Espadas**:
-     - Em `prototipo/js/l2_hud.js`, o método `loadSlots()` continha um laço que forçava `this.slots[i] = { type: 'skill', skillSlot: i, name: 'Skill ' + (i + 1), ico: '' }` nos slots 0 a 5 sempre que a barra estivesse vazia.
-     - No método `sync()`, quando `data.ico` e `data.svg` eram vazios, o código fazia fallback para `<img src="assets/icones/sword_long.png">`, preenchendo todos os slots com espadas.
-     - O `localStorage` dos navegadores mantinha esses registros salvos.
-  2. **Inacessibilidade das Skills no Mobile**:
-     - No celular, não há tecla `K`. O botão `#skBtn` existia no HTML, mas possuía `display: none !important` via `mu_hud.css` e colidia de posição com o botão de edição móvel (`#mbedit`).
-     - A função `toggleSk` e `toggleInv` eram funções locais nos scripts de página e não estavam expostas no escopo global `window`.
-  3. **Arrastar Skills no Mobile (Touch)**:
-     - Telas touch não disparam nativamente os eventos HTML5 de Drag & Drop (`dragstart`, `drop`).
-
-- **Soluções Implementadas**:
-  1. **Limpeza Completa da Barra de Atalhos (`prototipo/js/l2_hud.js`)**:
-     - Removido o preenchimento automático de slots vazios com skills fictícias.
-     - Implementado algoritmo de purga em `loadSlots()` que detecta dados fictícios antigos salvos em cache/localStorage (sem ícone/svg) e redefine os slots para `null`.
-     - Atualizado `sync()`: slots vazios ou sem ícone ficam completamente limpos (`iconEl.innerHTML = ''`), sem exibir espadas genéricas.
-  2. **Novo Botão de Skills no Mobile (`prototipo/js/mobile.js`)**:
-     - Adicionado botão dedicado de Habilidades (`#mbskill`, ícone de raio ⚡) e botão de Inventário (`#mbinv`, ícone 🎒) na barra superior direita do celular.
-     - Layout mobile reajustado com espaçamento ergonômico de 36x36px: Mapa (`#mbmap`, 10px), Skills (`#mbskill`, 52px), Inventário (`#mbinv`, 94px), Menu (`#mbsys`, 136px), Editar (`#mbedit`, 178px).
-     - Vinculado clique direto às funções `window.toggleSk()` e `window.toggleInv()`.
-  3. **Sistema Tap-to-Equip para Mobile e PC (`skills_ui.js` e `l2_hud.js`)**:
-     - Ao tocar ou clicar em qualquer skill desbloqueada na janela de Habilidades (`MagicSkillWnd`), ela fica selecionada com um brilho dourado (`.l2-sk-row.selected`) e ativa `window._selectedSkillToPlace`.
-     - Uma notificação informativa orienta: *"Toque em um slot da barra de atalhos para equipar"*.
-     - Ao tocar em qualquer slot da barra do L2 (ou nos botões `s0..s5` do celular), a skill é atribuída e salva imediatamente no slot.
-     - O Drag & Drop nativo via mouse continua 100% funcional no PC.
-  4. **Exposição Global e Sincronização**:
-     - Expostos `window.toggleSk = toggleSk;` e `window.toggleInv = toggleInv;` em `prototipo/cidade.html` e `prototipo/arena.html`.
-     - Ajustado o espelhamento periódico em `mobile.js` para ler diretamente de `window.L2Hud.slots`, ocultando botões vazios e exibindo apenas skills equipadas.
-  5. **Garantia de Deploy Estático Limpo na Vercel**:
-     - Removido `prototipo/package.json` para evitar que a Vercel acione o `@vercel/node`.
-     - Limpo `prototipo/vercel.json` mantendo regras de cache e URLs limpas.
-     - Incrementadas as versões dos scripts (`?v=42`) para forçar atualização em todos os clientes e navegadores.
-
-
-### [Antigravity] 15/11/2026 - Ícone Canônico do Lineage 2 (Grimório de Magias) no Botão de Skills Mobile e Menu
-
-- **Demanda do Usuário**:
-  - *"o l2 tem esse icone nativo que representa a janela das skill voce deve saber que estamos usando a interface do L2"*
-  - O botão de habilidades no mobile e nos menus não deve usar ícones genéricos (espada, raio ou emojis SVG), mas sim a textura oficial canônica do Lineage 2 Interlude que representa a janela de Habilidades e Magias (`MagicSkillWnd`).
-
-- **Pesquisa e Identificação dos Assets Oficiais do L2 Interlude**:
-  1. No cliente oficial do Lineage 2 (`L2UI_CH3.utx`), a janela de Habilidades e Magias é representada canonicamente pelo **Grimório de Magias Aberto**:
-     - `mainwndtabicon2.png` (32x32): Textura canônica do livro/grimório aberto de magias.
-     - `mainwndtabicon2_over.png`: Estado hover (brilho dourado ativo).
-     - `mainwndtabicon2_down.png`: Estado pressionado.
-  2. Os botões de menu do dock oficial do L2 possuem dimensão padrão de 36x36px com moldura metálica e rebites de bronze (`menubutton1.png` Status, `menubutton2.png` Inventário, `menubutton3.png` Mapa, `menubutton4.png` Sistema).
-
-- **Composição das Texturas Canônicas 36x36px**:
-  - Geradas em `prototipo/assets/ui/`:
-    - `menubutton_skill.png` (36x36 RGBA): Moldura oficial de bronze com o grimório aberto do L2 centralizado.
-    - `menubutton_skill_over.png` (36x36 RGBA): Moldura com iluminação dourada e grimório com efeito ativo.
-    - `menubutton_skill_down.png` (36x36 RGBA): Moldura em baixo-relevo com clique pressionado.
-
-- **Implementação nos Menus e Mobile**:
-  1. **Navegação Mobile (`prototipo/js/mobile.js`)**:
-     - Botão `#mbskill` agora utiliza como background a textura `assets/ui/menubutton_skill.png?v=43` e `:active` com `menubutton_skill_over.png?v=43`.
-     - Padronizados todos os 4 botões mobile para o conjunto oficial L2 (`menubutton3.png` Mapa, `menubutton_skill.png` Skills, `menubutton2.png` Inventário, `menubutton4.png` Sistema), eliminando qualquer elemento SVG genérico.
-  2. **Menu de Sistema (`cidade.html` e `arena.html`)**:
-     - Atualizado `#cfgBtnSkills` para renderizar o ícone canônico do grimório L2.
-  3. **Cache Busting**:
-     - Versão dos arquivos atualizada para `v=43` em `cidade.html` e `arena.html` para forçar o recarregamento imediato em navegadores mobile e desktop.
-
-
-### [Claude] 15/11/2026 - Guerreiro: 7 skills novas no Blender e instalacao no jogo (pedido do dono)
-
-- Pedidos do dono (sessao): "precisamos criar novas habilidades para nosso guerreiro" -> 7 skills no Blender com a formula do estilo refinado (Optical Lens Flare) e os personagens; depois "guerreiro sem dash?", "mais dedicacao ... glow trabalhada"; ajustes por skill (tirar hexagonos/quebra de chao sem motivo, sombra da espada, Modo de Batalha com a lamina toda, Execucao com 5 cortes estilo Cabal, Lancador cravando na frente, Fenda maior com pedras de verdade, Massacre virou Tufao + Sede de Sangue com lamina horizontal e giro no lugar movido pelo jogador). Por fim: "essas skills vao ser as padrao do guerreiro e deleta as antigas" e "pode instalar sim, ja terminamos por enquanto".
-- Blender: `prototipo/assets/personagens/guerreiro_skills_novas.blend` (local, fora do git), scripts `tools/blender_fx/guerreiro_novas.py` (cenas), `guerreiro_fx2.py` (efeitos: flare em 3 camadas, glow de pos-processo por cena, fantasmas/sombra da espada, contorno do corpo, hit-stop, tremor, pedras), `guerreiro_texturas2.py` (assets/fx/guerreiro2_*.png), `build_guerreiro_novas.py`. Skills: N0 Investida Relampago (dash 7,6 m), N1 Contra-Golpe, N2 Tufao + Sede de Sangue (9 voltas, 9 golpes + explosao, rouba vida), N3 Modo de Batalha (buff), N4 Execucao (5 cortes + detonacao), N5 Corte Lancador (crava, lanca, 2 no ar, crava vertical), N6 Fenda Sismica (fissura de 9 m).
-- Plano da instalacao (rotina skill-pronta): exportar os clipes do Humano M (w_n0..w_n6) para `guerreiro_clips/MFighter.glb`; trocar o kit em `data/armas/sword.json` (sai o kit antigo e as variantes do Avanco) e os niveis em `progressao.json`; efeitos novos em `js/guerreiro_fx.js`; icones, sons e ganchos em arena.html e cidade.html; servidor: janela dos golpes multiplos pela duracao da skill e buff 'modo'. Numeros de jogo propostos por mim (o dono confere).
-- **Resultado (15/11): kit novo do Guerreiro instalado (Humano M com os clipes do Blender; outras racas com clipes de reserva)**.
-  - Clipes: `tools/blender_fx/guerreiro_clips_export_novas.py` -> `assets/personagens/guerreiro_clips/MFighter.glb` (w_n0..w_n6, 1,6 MB) + `medidas.json` (dur, hits, cut, lg). O deslocamento do corpo sai do clipe e vira `lg` (o jogo move o jogador por codigo); o salto do Lancador foi passado para o osso Bip01 (so visual). `js/guardiao.js` (v19): tabela W_T nova e `lg` por clipe.
-  - Dados (`data/armas/sword.json`, backup `.antes_kit_novo`; variantes do Avanco removidas): 0 Investida Relampago (nv 5, cd 6, 90, avanco 7,6 m, invulneravel 0,6 s), 1 Contra-Golpe (nv 1, cd 9, 140, invulneravel 0,95 s = janela de aparo, stun 1,5 s), 2 Corte Lancador (nv 10, cd 12, 5x55, lanca), 3 Fenda Sismica (nv 15, cd 14, 140, linha de 9 m, stun 1,6 s), 4 Tufao + Sede de Sangue (nv 20, cd 18, 10x34, `mover` = anda com o direcional durante o giro, `roubo` 20% do dano vira vida), 5 Modo de Batalha (nv 25, cd 45, buff so dele +30% ataque +10% defesa por 15 s), 6 Execucao (nv 30, cd 28, 5x75). `progressao.json`: niveis 1/5/10/15/20/25/30. `combate.json`: 7o espaco de skill na tecla 1 (as 6 teclas QERFTZ continuam; da para trocar em Config). Numeros propostos por mim: o dono confere.
-  - Servidor (`server.js`, backup `.antes_kit_guerreiro`): le `dur` da skill e a janela dos golpes multiplos vira max(3 s, dur + 1) (o Tufao vai a ~4,2 s); suporte `modo` = buff so do proprio jogador (aviso `sup k:'modo'`).
-  - Efeitos (`js/guerreiro_fx.js` v4): `swingN/hitN/remotoN/modo` com Optical Lens Flare em 3 camadas, ecos do corpo (pose congelada), sombra da espada, contorno do corpo (casca por tras), vortice do Tufao, drenagem de vida, marcas de corte que detonam (Execucao), fissura de 9 m, leque e estrela de quebra de chao no Lancador; texturas `assets/fx/guerreiro2_*.png`.
-  - Paginas (arena.html E cidade.html, `tools/patch_guerreiro_kit_novo.py`): poses w_n*, Tufao com movimento, `rouboVida` (PvE), Modo de Batalha no `suporteRecebe`, sons L2 por pose, 7 icones Cabal, reservas w_n* nas tabelas CM/POSE (racas sem os clipes).
-  - Testado (servidor local, Chrome com WebGL por software, `tools/teste_guerreiro_kit_novo.py`): arena duelo com o Humano: 7 clipes anexam, as 7 skills saem sem erro de pagina, golpes enviados 1/1/5/1/10/1/5, chefe 1800 -> 0; Tufao andou 1,8 m segurando W; cidade (conectado): mesmas partes, Tufao andou 4,5 m, Modo de Batalha chegou do servidor (+30% por 15 s). Achado no teste: o chefe do duelo interrompe skills longas se acertar o jogador (o teste deixa o jogador invulneravel para medir).
-  - NAO testado: PvP com 2 jogadores (dano das partes no servidor, stun, roubo de vida no PvP: hoje o roubo so vale no PvE), o aparo do Contra-Golpe contra um golpe real (a janela e por invulnerabilidade no cliente; o servidor nao tem invulnerabilidade no PvP), mapas abertos e DG, celular, qualidade alta, sons nao ouvidos, Humano feminino e outras racas so com reserva generica (o Elfo M foi testado: ver abaixo). Bonus de Execucao por vida baixa nao foi feito (so os 5 cortes).
-  - Elfo M (sem os clipes do Blender: reserva generica w_n* nas tabelas CM/POSE): skills 0 a 5 castaram e terminaram sem erro de pagina; o teste estourou o tempo (15 min, navegador lento) durante a Execucao, que ficou sem conferir nessa raca.
-
-
-### [Antigravity] 16/11/2026 - Correção Visual do Lobby, Postura Canônica da Staff e Botão de Skills no MenuWnd Inferior
-
-- **Demandas do Usuário**:
-  1. *"o lobby do mobile ainda tem coisas sem textura"*: colunas e braseiros procedurais azuis/amarelos sem textura no saguão de seleção.
-  2. *"o personagem tá segurando a staff parecendo uma sword 2hand? veja na foto"*: o mago no lobby e no jogo empunhava o cajado com as duas mãos virado para o chão como se fosse uma espada de 2 mãos.
-  3. *"e os ícones no topo direito devem aparecer apenas dentro do game" / "você colocou esses 4 ícones novos em cima pra termos o ícone das skill, mas precisamos apenas do ícone do livro e você coloca embaixo junto com os que já tinha"*: remover os botões duplicados do topo e integrar o botão do Livro / Grimório de Habilidades diretamente no dock inferior (`#l2-menu-wnd`), junto dos botões nativos existentes do Lineage 2.
-
-- **Diagnóstico e Correções Implementadas**:
-  1. **Remoção dos Primitivos Sem Textura e Texturização do Altar (`prototipo/selecao.html`)**:
-     - Removidos os cilindros azuis e esferas amarelas procedurais sem textura que bloqueavam o campo de visão no celular.
-     - Preservada a iluminação dinâmica pontual quente com cintilação viva (`brazierLights`).
-     - Aplicadas texturas reais de pedra gótica (`assets/cathedral_stone_floor.jpg`) com mapeamento UV refinado no altar inferior (`lowerDais`), altar central do herói (`midDais`) e anel de lajes (`slabRing`).
-     - Substituído o disco azul simples da runa por um selo mágico detalhado de alta resolução (`assets/fx/portal_floor_seal.png`) com blending aditivo transparente no chão do altar principal e sob os pés dos personagens do fundo.
-  2. **Postura Canônica do Cajado / Magos e Conjuradores**:
-     - Identificada a causa raiz: `selecao.html`, `criacao.html`, `cidade.html` e `arena.html` forçavam a animação `idle` (`Wait_2HS` - postura bimanual de espada pesada) quando qualquer arma estava equipada.
-     - Ajustado o seletor de animações para identificar classes místicas / cajado (`staff`, `book`, `mago`, `clerico`) e armas de 1 mão (`shield`, `guardiao`): agora utilizam `idle_hand` (`Wait_Hand`), mantendo a postura ereta e elegante do Lineage 2, segurando o cajado com uma mão ao lado do corpo com a ponta voltada para cima, e o braço esquerdo livre.
-  3. **Ícone do Livro Integrado no Dock Inferior Oficial (`l2_hud.js`, `l2_hud.css`, `mobile.js`)**:
-     - Removidos os 4 botões do topo do mobile em `mobile.js`, deixando o topo limpo.
-     - Expandido o dock inferior do L2 (`#l2-menu-wnd`) de 173px para 212px de largura com a textura de moldura reajustada (`l2_menu_wnd_bg.png`).
-     - Adicionado o botão oficial do Livro / Grimório de Magias (`#l2BtnSkill` com `menubutton_skill.png`) no dock inferior, posicionado entre Status e Inventário:
-       `Status (15px) | Skills/Livro (52px) | Inventário (89px) | Mapa (126px) | Sistema (163px)`.
-     - Vinculado clique/toque direto a `toggleSk()`, abrindo a janela oficial `MagicSkillWnd` tanto no mobile quanto no PC.
-  4. **Atualização de Cache e Tags**:
-     - Atualizadas as versões de scripts e estilos para `v=44` em `cidade.html`, `arena.html`, `selecao.html` e `mu_hud.js`.

@@ -1367,8 +1367,8 @@ function init3D(){
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   scene = new THREE.Scene();
-  scene.background = new THREE.TextureLoader().load('assets/lobby_temple_bg.jpg');
-  scene.fog = new THREE.FogExp2(0x090e1c, 0.012);
+  scene.background = new THREE.TextureLoader().load('assets/l2_native_lobby_bg.jpg?v=46');
+  scene.fog = new THREE.FogExp2(0x121b2d, 0.010);
 
   camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
   enquadra();

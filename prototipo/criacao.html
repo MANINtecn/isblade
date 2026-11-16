@@ -376,8 +376,8 @@ function init(){
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   scene = new THREE.Scene();
-  scene.background = new THREE.TextureLoader().load('assets/lobby_temple_bg.jpg');
-  scene.fog = new THREE.FogExp2(0x090e1c, 0.012);
+  scene.background = new THREE.TextureLoader().load('assets/l2_native_lobby_bg.jpg?v=46');
+  scene.fog = new THREE.FogExp2(0x121b2d, 0.010);
 
   camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 100);
   enquadra();
@@ -427,37 +427,46 @@ function setupLighting(){
 function setupPedestal(){
   pedestalGroup = new THREE.Group();
 
-  // Stone base
-  var baseGeo = new THREE.CylinderGeometry(1.6, 1.8, 0.35, 48);
+  // Stone base com textura nobre de pedra L2
+  var pedTex = new THREE.TextureLoader().load('assets/cathedral_stone_floor.jpg');
+  pedTex.wrapS = pedTex.wrapT = THREE.RepeatWrapping;
+  pedTex.repeat.set(2, 2);
+
+  var baseGeo = new THREE.CylinderGeometry(1.6, 1.85, 0.35, 48);
   var baseMat = new THREE.MeshStandardMaterial({
-    color: 0x181e2b,
-    roughness: 0.8,
-    metalness: 0.2
+    map: pedTex,
+    color: 0x3b4a62,
+    roughness: 0.72,
+    metalness: 0.28
   });
   var base = new THREE.Mesh(baseGeo, baseMat);
   base.position.y = -0.175;
   base.receiveShadow = true;
   pedestalGroup.add(base);
 
-  // Glowing rune ring
-  var ringGeo = new THREE.RingGeometry(1.15, 1.45, 48);
-  var ringMat = new THREE.MeshBasicMaterial({
+  // Runa Sagrada emissiva de Einhasad
+  var sealTex = new THREE.TextureLoader().load('assets/fx/portal_floor_seal.png');
+  var runicGeo = new THREE.PlaneGeometry(3.0, 3.0);
+  var runicMat = new THREE.MeshBasicMaterial({
+    map: sealTex,
     color: 0x5aa9ff,
     transparent: true,
-    opacity: 0.65,
+    opacity: 0.82,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
     side: THREE.DoubleSide
   });
-  var ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.005;
-  pedestalGroup.add(ring);
+  var runic = new THREE.Mesh(runicGeo, runicMat);
+  runic.rotation.x = -Math.PI / 2;
+  runic.position.y = 0.005;
+  pedestalGroup.add(runic);
 
   // Outer gold rim
-  var rimGeo = new THREE.TorusGeometry(1.58, 0.03, 16, 64);
-  var rimMat = new THREE.MeshStandardMaterial({ color: 0xf5c451, metalness: 0.9, roughness: 0.3 });
+  var rimGeo = new THREE.TorusGeometry(1.62, 0.035, 16, 64);
+  var rimMat = new THREE.MeshStandardMaterial({ color: 0xf5c451, metalness: 0.9, roughness: 0.25, emissive: 0x442800 });
   var rim = new THREE.Mesh(rimGeo, rimMat);
   rim.rotation.x = Math.PI / 2;
-  rim.position.y = 0.002;
+  rim.position.y = 0.004;
   pedestalGroup.add(rim);
 
   scene.add(pedestalGroup);
