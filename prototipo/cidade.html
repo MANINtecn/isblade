@@ -782,7 +782,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
-<script src="js/guerreiro_fx.js?v=2"></script>
+<script src="js/guerreiro_fx.js?v=4"></script>
 <script src="js/perf_log.js?v=4"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
@@ -1272,7 +1272,7 @@ import * as THREE from './lib/vendor.js';
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=18';
+import { Guardiao } from './js/guardiao.js?v=19';
 import { Net } from './js/net.js?v=49';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
@@ -2004,6 +2004,7 @@ var SFX=(function(){
     c_s4_hit:function(){return smp('blessthebody_shot',.6,1.05) || smp(F.gL,.4,1);},
     c_s5_swing:function(){return smp('might_cast',.6,1.1) || smp(F.las,.28,1.4);},
     c_s5_hit:function(){return smp('might_shot',.65,1) || smp(F.gL,.4,1);},
+    w_n0_swing:function(){return smp('fatal_strike_shot',.45,1.3)||smp(F.las,.3,1.2);},w_n0_hit:function(){return smp('power_strike_shot',.7,1.2)||smp(F.gH,.6,1.1);},w_n1_swing:function(){return smp('shieldstun_shot',.45,1.1)||smp(F.las,.3,1);},w_n1_hit:function(){return smp('power_strike_shot',.75,1)||smp(F.gH,.7,1);},w_n2_swing:function(){return smp(L2.swordGreat,.5,.9)||smp(F.las,.3,1);},w_n2_hit:function(){return smp(L2.shing,.3,1.4)||smp(F.gL,.25,1.4);},w_n3_swing:function(){return smp('might_cast',.6,.9)||smp(F.las,.3,1);},w_n3_hit:function(){return smp('battle_roar_shot',.75,.95)||smp(F.gL,.5,1);},w_n4_swing:function(){return smp('fatal_strike_shot',.5,1.1)||smp(F.las,.3,1);},w_n4_hit:function(){return smp('power_strike_shot',.6,1.15)||smp(F.gH,.6,1.1);},w_n5_swing:function(){return smp(L2.swordGreat,.5,1)||smp(F.las,.3,1);},w_n5_hit:function(){return smp('baium_earthquake_shot',.55,1.15)||smp(F.gH,.7,1);},w_n6_swing:function(){return smp('shieldstun_shot',.5,.8)||smp(F.las,.3,.8);},w_n6_hit:function(){return (smp('baium_earthquake_shot',.85,.9)&&smp('fatal_strike_shot',.5,.9))||smp(F.gH,.9,.8);},/* [guerreiro] kit novo */
     w_s1_swing:function(){return smp(L2.swordGreat,.5,1.0)||smp(F.las,.3,1);},
     w_s1_hit:function(){return smp('power_strike_shot',.7,1.1)||smp(F.gH,.6,1);},
     w_s3_swing:function(){return smp('shieldstun_shot',.5,.8)||smp(F.las,.3,.8);},
@@ -2867,7 +2868,7 @@ function iconSVG(id,size){
 
 var SKILL_ICONS={
   avanco:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><path d="M2 10h9M3 16h11M2 22h9" stroke="#4fc3f7" stroke-width="1.4" stroke-linecap="square" opacity=".7"/><polygon points="12,7 28,16 12,25 16,16" fill="#22344d" stroke="#c8d6e5" stroke-width="1.2" stroke-linejoin="miter"/><path d="M16 16h9" stroke="#ffe082" stroke-width="1.6" stroke-linecap="square"/></svg>',/* [icones] passo/avanco: seta de lamina com rastro de velocidade */
-w_poderoso:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="6,5 9,4 23,19 20,22" fill="#cfd8e6"/><polygon points="19,19 25,25 22,28 16,22" fill="#ffb04a"/><polyline points="9,27 13,24 16,28 20,25" stroke="#f0402a" stroke-width="2" fill="none"/></svg>',
+w_investida:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polyline points="3,12 10,12" stroke="#ff6a3a" stroke-width="1.4"/><polyline points="2,17 11,17" stroke="#ff8a4a" stroke-width="1.2"/><polyline points="4,22 9,22" stroke="#ff6a3a" stroke-width="1"/><polygon points="9,19 24,8 27,9 26,12 11,23" fill="#cfd8e6"/><polygon points="9,19 11,23 8,25 6,22" fill="#ffb04a"/><polygon points="26,5 27,8 30,9 27,10 26,13 25,10 22,9 25,8" fill="#ffe082"/></svg>',w_contra:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,4 26,16 16,28 6,16" fill="none" stroke="#ffe082" stroke-width="1.8"/><polygon points="16,8 22,16 16,24 10,16" fill="#3a2c10"/><polygon points="9,24 22,9 24,10 23,12 11,26" fill="#cfd8e6"/><polygon points="16,13 17,15 19,16 17,17 16,19 15,17 13,16 15,15" fill="#fff6d8"/></svg>',w_tufao:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,16 27,9 26,13" fill="#d8201a"/><polygon points="16,16 9,26 13,26" fill="#ff6a3a"/><polygon points="16,16 6,8 7,12" fill="#e0402a"/><polygon points="14,15 25,12 26,14 15,17" fill="#cfd8e6"/><polygon points="16,13 17,15 19,16 17,17 16,19 15,17 13,16 15,15" fill="#ffe082"/></svg>',w_modo:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,3 18,7 18,22 14,22 14,7" fill="#cfd8e6"/><polygon points="12,22 20,22 20,24 12,24" fill="#ffb04a"/><polygon points="15,24 17,24 17,29 15,29" fill="#8a6a40"/><polyline points="9,20 11,14 9,8" fill="none" stroke="#ff4a1a" stroke-width="1.6"/><polyline points="23,20 21,14 23,8" fill="none" stroke="#ff4a1a" stroke-width="1.6"/><polyline points="6,18 7,12 6,7" fill="none" stroke="#ff8a3a" stroke-width="1"/><polyline points="26,18 25,12 26,7" fill="none" stroke="#ff8a3a" stroke-width="1"/></svg>',w_execucao:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polyline points="6,8 26,24" stroke="#ff4a2a" stroke-width="1.8"/><polyline points="26,8 6,24" stroke="#ff8a3a" stroke-width="1.6"/><polyline points="16,4 16,28" stroke="#fff0d0" stroke-width="2"/><polygon points="16,11 18,15 22,16 18,17 16,21 14,17 10,16 14,15" fill="#ffe082"/></svg>',w_lancador:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="15,27 15,9 17,6 19,9 19,27" fill="#cfd8e6"/><polyline points="6,14 10,9 14,14" fill="none" stroke="#ff6a3a" stroke-width="1.6"/><polyline points="18,14 22,9 26,14" fill="none" stroke="#ff6a3a" stroke-width="1.6"/><polyline points="4,28 9,24 12,28 16,25 20,28 23,24 28,28" fill="none" stroke="#ffb04a" stroke-width="1.2"/></svg>',w_fenda:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="14,3 18,3 18,17 16,21 14,17" fill="#cfd8e6"/><polygon points="12,3 20,3 20,5 12,5" fill="#ffb04a"/><polyline points="16,21 14,24 17,26 15,29" fill="none" stroke="#ff6a14" stroke-width="2"/><polyline points="16,23 9,27 5,26" fill="none" stroke="#ff8a3a" stroke-width="1.2"/><polyline points="17,24 23,27 27,26" fill="none" stroke="#ff8a3a" stroke-width="1.2"/></svg>',w_poderoso:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="6,5 9,4 23,19 20,22" fill="#cfd8e6"/><polygon points="19,19 25,25 22,28 16,22" fill="#ffb04a"/><polyline points="9,27 13,24 16,28 20,25" stroke="#f0402a" stroke-width="2" fill="none"/></svg>',
 w_atordoante:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,3 19,7 19,19 16,22 13,19 13,7" fill="#cfd8e6"/><rect x="9" y="21" width="14" height="2.4" fill="#ffb04a"/><polyline points="16,25 10,29 6,26" stroke="#f0402a" stroke-width="2" fill="none"/><polyline points="16,25 22,29 26,26" stroke="#f0402a" stroke-width="2" fill="none"/><polyline points="16,25 16,29" stroke="#f0402a" stroke-width="2" fill="none"/><polygon points="6,8 8,5 10,8 8,11" fill="#ffe082"/><polygon points="22,9 24,6 26,9 24,12" fill="#ffe082"/></svg>',
 w_redemoinho:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><g transform="rotate(0 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(90 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(180 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><g transform="rotate(270 16 16)"><polygon points="16,4 22,8 18,9 16,14" fill="#cfd8e6"/></g><polygon points="14,14 16,12 18,14 16,16" fill="#f0402a"/></svg>',
 w_grito:'<svg width="32" height="32" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="#0b121e" stroke="#2c3d55" stroke-width="1.2"/><polygon points="16,9 18.5,12 18.5,25 16,27 13.5,25 13.5,12" fill="#cfd8e6"/><polygon points="16,2 20,8 16,10 12,8" fill="#f0402a"/><polygon points="16,5 18,8 16,9 14,8" fill="#ffe082"/><polyline points="6,9 3,14 6,19" stroke="#ffb04a" stroke-width="2" fill="none"/><polyline points="26,9 29,14 26,19" stroke="#ffb04a" stroke-width="2" fill="none"/><polyline points="9,11 7,14 9,17" stroke="#ffb04a" stroke-width="1.5" fill="none"/><polyline points="23,11 25,14 23,17" stroke="#ffb04a" stroke-width="1.5" fill="none"/></svg>',
@@ -6319,6 +6320,13 @@ var CM={
   w_s4:  {c:'boss_combo',sp:2.4,hit:.18,cut:.70,lg:0},
   w_s5:  {c:'slash4',    sp:1.4,hit:.30,cut:.75,lg:0},
   w_s6:  {c:'skill_ult', sp:1.6,hit:.25,cut:.65,lg:0},
+  w_n0:  {c:'slash2',    sp:1.3,hit:.35,cut:.80,lg:7.0},/* [guerreiro] reserva do kit novo para quem nao tem os clipes do Blender */
+  w_n1:  {c:'slash4',    sp:1.2,hit:.45,cut:.80,lg:.6},
+  w_n2:  {c:'boss_combo',sp:1.0,hit:.14,cut:.88,lg:0},
+  w_n3:  {c:'slash4',    sp:1.0,hit:.36,cut:.60,lg:0},
+  w_n4:  {c:'boss_combo',sp:1.2,hit:.13,cut:.78,lg:2.4},
+  w_n5:  {c:'skill_ult', sp:1.0,hit:.12,cut:.86,lg:1.1},
+  w_n6:  {c:'skill_wave',sp:1.5,hit:.30,cut:.60,lg:0},
   m_s1:  {c:'slash2',    sp:1.5,hit:.30,cut:.80,lg:0}
 
 
@@ -6327,7 +6335,7 @@ var CM={
 
 
 
-function getClipConfig(pose){if(WPN==='sword'&&/^w_s[1-6]$/.test(pose)&&vrm&&vrm.wClips&&vrm.wClips[pose]&&vrm.clips&&vrm.clips[pose])return vrm.wClips[pose];/* [guerreiro] clipe do Blender (so Humano M) */
+function getClipConfig(pose){if(WPN==='sword'&&/^w_[sn][0-9]$/.test(pose)&&vrm&&vrm.wClips&&vrm.wClips[pose]&&vrm.clips&&vrm.clips[pose])return vrm.wClips[pose];/* [guerreiro] clipe do Blender (so Humano M) */
 
 
 
@@ -8634,7 +8642,7 @@ function hexCss(c){return '#'+('000000'+c.toString(16)).slice(-6);}
 /* >>> CLAUDE [pvp-fx] efeito das skills dos OUTROS jogadores (o servidor avisa 'atk'; cada cliente refaz a explosao na posicao do atacante) */
 var REMOTEFX=false;
 function skillFxRemoto(e,i,f,m){
-  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;if(/^w_s/.test(sk.pose)&&window.GuerreiroFX){if(sk.pose!=='w_s5'){try{GuerreiroFX.remoto(sk.pose,{x:e.x,z:e.z,f:f});}catch(_){}}return;}/* [guerreiro] */if(sk.suporte)return;/* [clerigo] efeito vem do aviso sup */if(sk.proj&&sk.proj.visual)return;if(sk.area&&sk.area.cura&&m&&m.x!==undefined){try{ClerigoFX.glifo(m.x,m.z,m.d||sk.area.delay,sk.area.raio,(sk.area.pulsos||4)*(sk.area.iv||1),sk.area.pulsos);}catch(_){}return;}/* [clerigo] */if(sk.area&&m&&m.x!==undefined){try{if(sk.pose==='m_s2')MagoFX2.meteoro(m.x,m.z,m.d||sk.area.delay);else MagoFX2.coluna(m.x,m.z,m.d||sk.area.delay,e.x,e.z);}catch(_){}return;}
+  var w=DATA.armas&&DATA.armas[e.arma],sk=w&&w.skills&&w.skills[i];if(!sk||!sk.pose)return;if(/^w_[sn]/.test(sk.pose)&&window.GuerreiroFX){if(sk.pose!=='w_s5'){try{GuerreiroFX.remoto(sk.pose,{x:e.x,z:e.z,f:f});}catch(_){}}return;}/* [guerreiro] */if(sk.suporte)return;/* [clerigo] efeito vem do aviso sup */if(sk.proj&&sk.proj.visual)return;if(sk.area&&sk.area.cura&&m&&m.x!==undefined){try{ClerigoFX.glifo(m.x,m.z,m.d||sk.area.delay,sk.area.raio,(sk.area.pulsos||4)*(sk.area.iv||1),sk.area.pulsos);}catch(_){}return;}/* [clerigo] */if(sk.area&&m&&m.x!==undefined){try{if(sk.pose==='m_s2')MagoFX2.meteoro(m.x,m.z,m.d||sk.area.delay);else MagoFX2.coluna(m.x,m.z,m.d||sk.area.delay,e.x,e.z);}catch(_){}return;}
   if(Math.hypot(e.x-S.px,e.z-S.pz)>80)return;
   var n=(sk.hits||[1]).length;
   for(var k=0;k<n;k++)(function(k){setTimeout(function(){
@@ -8666,11 +8674,11 @@ function skillSwingFx(an){
 
 
 
-  if(!(an&&an.skill&&/^w_s/.test(an.skill.pose)))burst(S.px, 1.3, S.pz, 12, 0x5aa9ff, 2.6);
+  if(!(an&&an.skill&&/^w_[sn]/.test(an.skill.pose)))burst(S.px, 1.3, S.pz, 12, 0x5aa9ff, 2.6);
 
 
 
-  if(!(an&&an.skill&&/^w_s/.test(an.skill.pose)))spark(S.px, 1.4, S.pz, 2.0, 0xcfe6ff, 0.25);
+  if(!(an&&an.skill&&/^w_[sn]/.test(an.skill.pose)))spark(S.px, 1.4, S.pz, 2.0, 0xcfe6ff, 0.25);
 
 
 
@@ -8685,7 +8693,7 @@ function skillSwingFx(an){
   /* >>> CLAUDE [guardiao] 2026-10-27 — efeitos do Guardiao */
 
   if(WPN==='shield'){Guardiao.fxSwing(an);return;}
-  if(WPN==='sword'&&/^w_s/.test(sk.pose)&&window.GuerreiroFX){try{GuerreiroFX.swing(sk.pose,{px:S.px,pz:S.pz,face:S.face,rig:vrm,an:an});}catch(_){}return;}/* [guerreiro] */
+  if(WPN==='sword'&&/^w_[sn]/.test(sk.pose)&&window.GuerreiroFX){try{GuerreiroFX.swing(sk.pose,{px:S.px,pz:S.pz,face:S.face,rig:vrm,an:an});}catch(_){}return;}/* [guerreiro] */
 
   /* <<< CLAUDE [guardiao] */
 
@@ -8802,7 +8810,7 @@ function skillHitFx(an,hx,hz){
   /* >>> CLAUDE [guardiao] 2026-10-27 — efeitos de acerto do Guardiao */
 
   if(WPN==='shield'){Guardiao.fxHit(an,hx,hz);return;}
-  if(WPN==='sword'&&/^w_s/.test(sk.pose)&&window.GuerreiroFX){try{GuerreiroFX.hit(sk.pose,hx,hz,{px:S.px,pz:S.pz,face:S.face,rig:vrm,last:last,part:an.part,parts:an.parts});}catch(_){}return;}/* [guerreiro] */
+  if(WPN==='sword'&&/^w_[sn]/.test(sk.pose)&&window.GuerreiroFX){try{GuerreiroFX.hit(sk.pose,hx,hz,{px:S.px,pz:S.pz,face:S.face,rig:vrm,last:last,part:an.part,parts:an.parts});}catch(_){}return;}/* [guerreiro] */
 
   /* <<< CLAUDE [guardiao] */
 
@@ -8957,6 +8965,13 @@ var POSE={
   m_s3:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   m_s4:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   m_s5:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n0:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n1:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n2:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n3:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n4:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n5:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
+  w_n6:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   c_s1:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   c_s2:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
   c_s3:{w:.9,e:-2.0,yw:.4,ye:-.4,lg:0,spin:false},
@@ -9357,7 +9372,7 @@ function supChao(x,z,y){try{return getGroundHeight(x,z,y);}catch(_){return 0;}}
 var SUP={escudo:null,ccAte:0,preceAte:0,atk:0,def:0};window.__sup=function(){return SUP;};window.__alvoSup=function(sk){return alvoSuporte(sk);};/* depuracao dos testes */
 function posDe(id){if(window.Net&&id===Net.id)return {x:S.px,y:supChao(S.px,S.pz,S.py),z:S.pz};var o=window.Net&&Net.alvos().filter(function(q){return q.id===id;})[0];return o?{x:o.x,y:supChao(o.x,o.z),z:o.z}:null;}
 function alvoSuporte(sk){/* aliado na mira: o outro jogador mais alinhado com a frente, dentro do alcance; 0 = o proprio clerigo (o servidor confere) */
-  if(!sk||!sk.suporte||sk.suporte.tipo==='prece'||sk.suporte.tipo==='grito'||!window.Net)return 0;var b=0,bd=.5,rev=sk.suporte.tipo==='revive';
+  if(!sk||!sk.suporte||sk.suporte.tipo==='prece'||sk.suporte.tipo==='grito'||sk.suporte.tipo==='modo'||!window.Net)return 0;var b=0,bd=.5,rev=sk.suporte.tipo==='revive';
   Net.alvos().forEach(function(o){var caido=o.morto||o.hp<=0;if(rev?!caido:caido)return;/* Ressurreicao: so quem caiu */var dx=o.x-S.px,dz=o.z-S.pz,d=Math.hypot(dx,dz);if(d>(sk.range||14)+1||d<.3)return;var a=Math.abs(angDiff(S.face,Math.atan2(dx,dz)));if(a<bd){bd=a;b=o.id;}});return b;}
 function suporteRecebe(m){try{
   var eu=window.Net&&m.v===Net.id,now=performance.now()/1000;
@@ -9369,6 +9384,9 @@ function suporteRecebe(m){try{
   }else if(m.k==='prece'){
     var L=m.l||[];if(window.Net&&L.indexOf(Net.id)>=0){SUP.preceAte=now+(m.dur||20);SUP.atk=m.atk||.15;SUP.def=m.def||.15;floatText('PRECE','#ffd977',22,'p');}
     ClerigoFX.prece(m.x,m.z,5,L.map(function(id){return function(){return posDe(id);};}),m.dur||20);SFX.play('c_s5_hit');
+  }else if(m.k==='modo'){/* [guerreiro] Modo de Batalha: buff so do proprio guerreiro */
+    var LM=m.l||[];if(window.Net&&LM.indexOf(Net.id)>=0){SUP.preceAte=now+(m.dur||15);SUP.atk=m.atk||.3;SUP.def=m.def||.1;floatText('MODO DE BATALHA','#ff5a20',22,'p');try{GuerreiroFX.hit('w_n3',S.px,S.pz,{rig:vrm,px:S.px,pz:S.pz,face:S.face});GuerreiroFX.modo(vrm,m.dur||15);}catch(_){}}
+    else{try{var pm=posDe(m.de);if(pm)GuerreiroFX.modoRemoto(pm.x,pm.z);}catch(_){}}SFX.play('w_n3_hit');
   }else if(m.k==='grito'){/* [guerreiro] Grito de Guerra: +ataque/+defesa em area */
     var LG=m.l||[];if(window.Net&&LG.indexOf(Net.id)>=0){SUP.preceAte=now+(m.dur||8);SUP.atk=m.atk||.25;SUP.def=m.def||.15;floatText('GRITO DE GUERRA','#ff7a30',22,'p');}
     try{GuerreiroFX.hit('w_s5',m.x,m.z,{px:m.x,pz:m.z});GuerreiroFX.grito(m.x,m.z,8,LG.map(function(id){return function(){return posDe(id);};}),m.dur||8);}catch(_){}SFX.play('w_s5_hit');
@@ -9584,7 +9602,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
+  S.hp=Math.max(0,S.hp-dmg);/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);dr+=rouboVida(an,dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */if(TRAIN.on){trainLog(dmg);S.hp=S.maxhp;}/* treino: registra o dano e o alvo nunca cai */S.flash=1;hitGauge(gd,!!(an.skill&&an.skill.launch));if(!an.dome){S.hitStop=Math.max(S.hitStop,big?HS_BIG:HS_SMALL);S.knock=an.sk?.5:.22;S.shake=an.sk?(an.sk.secret?.45:.28):.12;}
 
 
 
@@ -11600,6 +11618,7 @@ function mobDmg(an){var d=an.dmg;if(SUP.preceAte>performance.now()/1000)d*=1+SUP
 
 
 
+function rouboVida(an,d){var sk=an&&an.skill;return (sk&&sk.roubo&&d>0)?Math.max(1,Math.round(d*sk.roubo)):0;}/* [guerreiro] Tufao + Sede de Sangue: cura parte do dano causado (PvE) */
 function damageMob(m,dmg,an){
   if(m&&!m.dead){var crit=an.crit=!an.dome&&Math.random()<(P.critChance!=null?P.critChance:.1);if(crit)dmg=Math.round(dmg*(P.critMult||1.5));/* [critico] sorteado a cada golpe; numero azul */}
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
@@ -11619,7 +11638,7 @@ function damageMob(m,dmg,an){
 
 
 
-  m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
+  m.hp=Math.max(0,m.hp-dmg);m.flash=1;/* >>> CLAUDE [guardiao] 2026-10-28 — Fortaleza Egide drena vida */{var dr=Guardiao.drenar(dmg);dr+=rouboVida(an,dmg);if(dr>0){S.php=Math.min(S.pmax,S.php+dr);floatText('+'+dr,'#7dff9a',20,'p');}}/* <<< CLAUDE [guardiao] */
 
 
 
@@ -15897,7 +15916,7 @@ function frame2(dt,T){
 
 
 
-  var animRoot=!!an0&&((an0.skill&&an0.skill.armor)||((an0.clipMode?an0.lg:(POSE[an0.id]?POSE[an0.id].lg:0))>2.2));
+  var animRoot=!!an0&&((an0.skill&&an0.skill.armor&&!an0.skill.mover)||((an0.clipMode?an0.lg:(POSE[an0.id]?POSE[an0.id].lg:0))>2.2));
 
 
 

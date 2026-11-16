@@ -85,7 +85,7 @@
 
   /* ---------- skills ---------- */
   G.swing = function(pose, o){
-    if(!G.pronto) return; var rig = o.rig, swd = rig && rig.swd2h, x = o.px, z = o.pz, dur;
+    if(!G.pronto) return; if(/^w_n/.test(pose)) return G.swingN(pose, o || {}); var rig = o.rig, swd = rig && rig.swd2h, x = o.px, z = o.pz, dur;
     if(pose === 'w_s1') trilha(swd, .75, 1.3);
     else if(pose === 'w_s3'){ trilha(swd, 1.3, 1.2); var fx = x + Math.sin(o.face) * 2.6, fz = z + Math.cos(o.face) * 2.6; var av = brilhoChao(fx, fz, 3.4, CARM, 1.15); seq(1.0, function(u){ av.scale.setScalar(.4 + .6 * Math.min(1, u * 3)); }); }
     else if(pose === 'w_s4'){ trilha(swd, 3.6, 1.2); var area = brilhoChao(x, z, 3.9, CARM, 3.6); vivos.push(function(){ try{ area.position.set(window.S ? S.px : x, 0, window.S ? S.pz : z); }catch(_){} return !area.parent; }); luzPonto(x, 1.1, z, 0xff6a2a, 3.5, 3.4); }
@@ -98,7 +98,7 @@
         seq(2.3, function(u, t){ var k = u < .3 ? 0 : u < .5 ? (u - .3) / .2 : u < .92 ? 1 : Math.max(0, 1 - (u - .92) / .08); gm.scale.set(1, Math.max(.001, k), 1); cor.material.map.offset.y -= .04; }, function(){ swd.remove(gm); cor.material.dispose(); halo.material.dispose(); }); } } }
   };
   G.hit = function(pose, hx, hz, o){
-    if(!G.pronto) return; o = o || {}; var swd = o.rig && o.rig.swd2h, tp = pontaMundo(swd), px = o.px, pz = o.pz, last = o.last !== false;
+    if(!G.pronto) return; o = o || {}; if(/^w_n/.test(pose)) return G.hitN(pose, hx, hz, o); var swd = o.rig && o.rig.swd2h, tp = pontaMundo(swd), px = o.px, pz = o.pz, last = o.last !== false;
     var ex = tp ? tp.x : hx, ey = tp ? Math.max(.4, tp.y) : 1.3, ez = tp ? tp.z : hz;
     if(pose === 'w_s1'){ clarao(ex, ey, ez, 3.2, ACO, .35); espinhos(ex, ey, ez, leve() ? 12 : 22, 1.8, ACO, .3); brasas(ex, ey, ez, 22, 2.4, 2.0); lascas(hx, hz, 8, 3.4, .13); fenda(hx, hz, 3, BRASA, 1.4, .3); onda(hx, hz, 3.4, BRASA, .6); luzPonto(hx, 1.2, hz, 0xff7a30, 4, .35); agita(.25); }
     else if(pose === 'w_s3'){ clarao(ex, ey, ez, 4.4, ACO, .45); espinhos(ex, ey, ez, leve() ? 16 : 28, 2.2, ACO, .32); brasas(hx, .6, hz, 44, 3, 2.6); lascas(hx, hz, 22, 4.6, .2); fenda(hx, hz, 4.8, BRASA, 2.2, .2); fenda(hx, hz, 3.2, CARM, 2.0, 1.7);
@@ -121,5 +121,164 @@
       for(var j = 0; j < 5; j++){ (function(j){ var s = new T.Mesh(new T.ConeGeometry(.12, .3, 4), aditivo(0xff4a10, null, 1)); cena.add(s); var a0 = j * 1.256 + i; seq(1.6, function(u, t){ var a = a0 + u * 1.1; s.position.set(p.x + Math.cos(a) * .8, .1 + 2.6 * u, p.z + Math.sin(a) * .8); s.rotation.y = a; s.scale.setScalar(Math.max(.01, Math.sin(u * Math.PI))); }, function(){ some(s); }); })(j); } }, 40 + i * 70); });
   };
   /* outro jogador usou a skill: mostra no ponto dele (sem a espada dele) */
-  G.remoto = function(pose, e){ if(!G.pronto || !e) return; var x = e.x, z = e.z, f = e.f || 0; if(pose === 'w_s5') G.hit('w_s5', x, z, { px: x, pz: z }); else if(pose === 'w_s6') G.hit('w_s6', x + Math.sin(f) * 2.4, z + Math.cos(f) * 2.4, { face: f, last: true, px: x, pz: z }); else if(pose === 'w_s3') G.hit('w_s3', x + Math.sin(f) * 2.6, z + Math.cos(f) * 2.6, { px: x, pz: z }); else if(pose === 'w_s1') G.hit('w_s1', x + Math.sin(f) * 2.2, z + Math.cos(f) * 2.2, { px: x, pz: z }); else if(pose === 'w_s4'){ brilhoChao(x, z, 3.9, CARM, 3); onda(x, z, 3.8, BRASA, .5); } };
+  G.remoto = function(pose, e){ if(!G.pronto || !e) return; if(/^w_n/.test(pose)) return G.remotoN(pose, e); var x = e.x, z = e.z, f = e.f || 0; if(pose === 'w_s5') G.hit('w_s5', x, z, { px: x, pz: z }); else if(pose === 'w_s6') G.hit('w_s6', x + Math.sin(f) * 2.4, z + Math.cos(f) * 2.4, { face: f, last: true, px: x, pz: z }); else if(pose === 'w_s3') G.hit('w_s3', x + Math.sin(f) * 2.6, z + Math.cos(f) * 2.6, { px: x, pz: z }); else if(pose === 'w_s1') G.hit('w_s1', x + Math.sin(f) * 2.2, z + Math.cos(f) * 2.2, { px: x, pz: z }); else if(pose === 'w_s4'){ brilhoChao(x, z, 3.9, CARM, 3); onda(x, z, 3.8, BRASA, .5); } };
+
+  /* =====================================================================================================================
+     KIT NOVO (15/11/2026): poses w_n0..w_n6, desenho aprovado no Blender (guerreiro_skills_novas.blend, tools/blender_fx/guerreiro_novas.py + guerreiro_fx2.py).
+     Formula: Optical Lens Flare em 3 camadas (halo largo + estrela anamorfica + barra), ecos do corpo (pose congelada), sombra da espada (copias da lamina que somem),
+     contorno do corpo (casca inflada por tras = brilho so na silhueta), sem hexagono e sem quebra de chao onde a espada nao bate no chao.
+       w_n0 Investida Relampago  w_n1 Contra-Golpe  w_n2 Tufao + Sede de Sangue  w_n3 Modo de Batalha  w_n4 Execucao  w_n5 Corte Lancador  w_n6 Fenda Sismica
+     ===================================================================================================================== */
+  var SANG = 0x8c0303, CARM2 = 0xd81408;
+  function txN(n){ if(!TX[n]){ TX[n] = new T.TextureLoader().load('assets/fx/guerreiro2_' + n + '.png?v=1'); } return TX[n]; }
+  function flareN(x, y, z, tam, cor, dur, largo){
+    var h = sprite(txN('halo'), cor, tam * 1.3, .9), s = sprite(txN('flare'), cor, tam, 1), n = sprite(txN('flare'), 0xfff4e0, tam * .4, 1), b = largo === false ? null : sprite(txN('flare_largo'), cor, tam * 3, 1);
+    [h, s, n, b].forEach(function(q){ if(q){ q.position.set(x, y, z); cena.add(q); } }); if(b) b.scale.set(tam * 3, tam * .38, 1);
+    seq(dur || .45, function(u){ var k = u < .1 ? u / .1 : 1 - (u - .1) / .9, e = .45 + .65 * Math.min(1, u * 6);
+      s.scale.set(tam * e, tam * e, 1); s.material.opacity = Math.max(0, k); n.material.opacity = Math.max(0, k * (1 - u)); h.material.opacity = Math.max(0, .85 * (1 - u * .9));
+      if(b){ b.scale.set(tam * 3 * e, tam * .38, 1); b.material.opacity = Math.max(0, k); } }, function(){ some(s); some(h); some(n); if(b) some(b); });
+  }
+  function matCasca(cor, op, infla){
+    var m = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: op, blending: T.AdditiveBlending, depthWrite: false, side: T.BackSide });
+    m.userData.inf = { value: infla || 0 };
+    m.onBeforeCompile = function(sh){ sh.uniforms.uInf = m.userData.inf; sh.vertexShader = 'uniform float uInf;\n' + sh.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed = vec3( position ) + normal * uInf;'); };
+    return m;
+  }
+  function malhas(rig){ var L = []; if(rig && rig.root) rig.root.traverse(function(o){ if(o.isSkinnedMesh && o.visible && o.geometry && o.geometry.attributes.normal) L.push(o); }); return L; }
+  function escalaRig(rig){ var L = malhas(rig); return L.length ? L[0].matrixWorld.getMaxScaleOnAxis() : 1; }
+  /* contorno: casca colada no corpo (mesmo esqueleto = acompanha a animacao); fn(t) -> opacidade; some quando fn devolve < 0 */
+  function contornoN(rig, cor, dur, fn){
+    if(!rig || !rig.root) return; var L = malhas(rig); if(!L.length) return; if(cor === CARM2) cor = 0xff3c0a;   /* carmesim puro aditivo sobre a pele + bloom puxa para o rosa: brasa no contorno */
+    var sc = escalaRig(rig), m = matCasca(cor, 0, .022 / Math.max(sc, 1e-4)), cs = [];
+    L.forEach(function(o){ var c = new T.SkinnedMesh(o.geometry, m); c.bind(o.skeleton, o.bindMatrix); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); c.frustumCulled = false; c.renderOrder = 5; o.parent.add(c); cs.push(c); });
+    seq(dur, function(u, t){ m.opacity = .65 * Math.max(0, Math.min(1, fn ? fn(t, u) : (u < .1 ? u / .1 : 1 - u))); }, function(){ cs.forEach(function(c){ if(c.parent) c.parent.remove(c); }); m.dispose(); });
+  }
+  /* eco do corpo: copia da pose ATUAL (ossos congelados) com brilho na silhueta e um pouco de miolo; some em `vida` s */
+  function ecoN(rig, cor, vida, a0, soEspada){
+    if(!rig) return; var g = new T.Group(); cena.add(g); var mf = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .18 * a0, blending: T.AdditiveBlending, depthWrite: false });
+    var sc = escalaRig(rig), mc = matCasca(cor, a0, .03 / Math.max(sc, 1e-4)), ms = [mf, mc];
+    if(!soEspada && !leve()) malhas(rig).forEach(function(o){
+      o.updateMatrixWorld(true); var bs = o.skeleton.bones.map(function(b){ var n = new T.Bone(); n.matrixAutoUpdate = false; n.matrixWorld.copy(b.matrixWorld); return n; }), sk = new T.Skeleton(bs, o.skeleton.boneInverses);
+      [mf, mc].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.bind(sk, o.bindMatrix); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); });
+    });
+    var swd = rig.swd2h; if(swd){ swd.updateMatrixWorld(true); var me = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .55 * a0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); ms.push(me);
+      swd.traverse(function(o){ if(!o.isMesh || !o.geometry) return; var c = new T.Mesh(o.geometry, me); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); }); }
+    seq(vida, function(u){ var k = 1 - u; mf.opacity = .18 * a0 * k; mc.opacity = a0 * k; if(ms[2]) ms[2].opacity = .55 * a0 * k * k; }, function(){ cena.remove(g); ms.forEach(function(mm){ mm.dispose(); }); });
+  }
+  /* sombra da espada: uma copia da lamina a cada `passo` s durante `dur` s */
+  function sombrasN(rig, dur, passo, cor, vida, a0, atraso){ var t = -(atraso || 0), prox = 0; vivos.push(function(dt){ t += dt; if(t < 0) return false; if(t >= prox){ prox += passo * (leve() ? 2 : 1); ecoN(rig, cor, vida, a0, true); } return t >= dur; }); }
+  function ecosN(rig, ini, fim, passo, cor, vida, a0){ var t = 0, prox = ini; vivos.push(function(dt){ t += dt; if(t >= prox && t <= fim){ prox += passo * (leve() ? 2 : 1); ecoN(rig, cor, vida, a0, false); } return t > fim; }); }
+  function peitoDe(o){ return { x: (window.S ? S.px : o.px), y: 1.3, z: (window.S ? S.pz : o.pz) }; }
+  /* estilhacos de vida voando do alvo ate o peito do guerreiro (Sede de Sangue) */
+  function drenoN(x, y, z, n, alvoFn, cor){
+    for(var i = 0; i < n; i++){ (function(){ var s = sprite(txN('losango'), cor || CARM2, rnd(.25, .4), 1), lado = new T.Vector3(rnd(-1.4, 1.4), rnd(.3, 1.4), rnd(-1.4, 1.4)), o0 = new T.Vector3(x, y, z), dur = rnd(.35, .55), atraso = rnd(0, .12); s.visible = false; cena.add(s);
+      seq(dur + atraso, function(u, t){ var e = Math.max(0, (t - atraso) / dur); if(e <= 0) return; s.visible = true; e = e * e * (3 - 2 * e); var p = alvoFn(), D = new T.Vector3(p.x, p.y, p.z), C = o0.clone().add(D).multiplyScalar(.5).add(lado);
+        s.position.copy(o0).multiplyScalar((1 - e) * (1 - e)).addScaledVector(C, 2 * (1 - e) * e).addScaledVector(D, e * e); s.material.opacity = e > .85 ? (1 - e) / .15 : 1; }, function(){ some(s); }); })(); }
+  }
+  function marcaN(x, y, z, ang, cor){ var s = sprite(txN('flare_largo'), cor, 2.4, 1); s.scale.set(2.4, .26, 1); s.material.rotation = ang; s.position.set(x, y, z); cena.add(s); return s; }
+  function estilhacosN(x, y, z, n, cor){ for(var i = 0; i < n; i++){ (function(){ var s = sprite(txN('losango'), cor, rnd(.35, .55), 1), a = rnd(0, 6.28), v = rnd(2.2, 4), vz = rnd(1, 3); s.position.set(x, y, z); cena.add(s); seq(.45, function(u, t){ s.position.set(x + Math.cos(a) * v * t, y + vz * t, z + Math.sin(a) * v * t); s.material.opacity = 1 - u; }, function(){ some(s); }); })(); } }
+  function vorticeN(fnCentro, dur, n, cor){
+    n = leve() ? Math.ceil(n / 3) : n; var ps = [];
+    for(var i = 0; i < n; i++){ var vento = i % 3 !== 0, s = sprite(vento ? txN('vento') : txN('losango'), vento ? 0xffe0c0 : 0xff6a14, 1, 1); if(vento) s.scale.set(rnd(1, 2), .1, 1); else s.scale.set(.25, .25, 1); cena.add(s); ps.push({ s: s, a: rnd(0, 6.28), r: rnd(.9, 1.9), w: rnd(11, 16), z0: rnd(.1, .9), t0: rnd(0, dur * .9), vida: rnd(.3, .55) }); }
+    var t = 0; vivos.push(function(dt){ t += dt; var c = fnCentro(); ps.forEach(function(p){ var k = (t - p.t0) / p.vida; if(k < 0 || k > 1){ p.s.visible = false; if(k > 1 && t < dur){ p.t0 = t + rnd(0, .1); } return; } p.s.visible = true; var a = p.a + p.w * (t - p.t0), r = p.r * (1 - .25 * k); p.s.position.set(c.x + Math.cos(a) * r, p.z0 + 2.4 * k, c.z + Math.sin(a) * r); p.s.material.opacity = k < .15 ? k / .15 : 1 - (k - .15) / .85; });
+      if(t >= dur + .6){ ps.forEach(function(p){ some(p.s); }); return true; } return false; });
+  }
+  function fissuraN(x, z, rumo, comp, larg, cor, vida){ var geo = new T.PlaneGeometry(comp, larg); geo.rotateX(-Math.PI / 2); var m = new T.Mesh(geo, aditivo(cor, txN('fissura'), 1)); m.rotation.y = rumo - Math.PI / 2; m.position.set(x, .06, z);   /* rumo = direcao no chao (como o face): comprimento ao longo dela */ m.frustumCulled = false; cena.add(m);
+    seq(vida || 1.6, function(u){ var s = u < .06 ? u / .06 : 1; m.scale.set(s, 1, 1); m.material.opacity = u < .75 ? 1 : Math.max(0, 1 - (u - .75) / .25); }, function(){ some(m); }); }
+  function rochasN(x, z, n, alt, ang){ if(!geoPedra) geoPedra = new T.DodecahedronGeometry(1, 0); for(var i = 0; i < n; i++){ (function(){ var m = new T.Mesh(geoPedra, new T.MeshLambertMaterial({ color: i % 2 ? 0x2c241f : 0x3b2e26, emissive: 0x331005 })); m.userData.keep = true;
+    var a = (ang == null ? rnd(0, 6.28) : ang + rnd(-.5, .5)), r = rnd(.3, .6), h = rnd(.6, 1) * (alt || 1); m.scale.set(rnd(.22, .34), h * .55, rnd(.2, .3)); m.position.set(x + Math.cos(a) * r, -h * .4, z + Math.sin(a) * r); m.rotation.set(rnd(-.4, .4), rnd(0, 6.28), rnd(-.4, .4)); cena.add(m);
+    seq(1.5, function(u){ var k = u < .08 ? u / .08 : (u > .82 ? 1 - (u - .82) / .18 : 1); m.position.y = -h * .4 + h * .55 * Math.min(1, k * 1.2); m.scale.y = Math.max(.01, h * .55 * (u > .82 ? k : 1)); }, function(){ cena.remove(m); m.material.dispose(); }); })(); } }
+  function estrelasStun(x, z, dur){ for(var k = 0; k < 4; k++){ (function(k){ var s = sprite(txN('flare'), OURO, .6, 1); cena.add(s); seq(dur, function(u, t){ var a = k * 1.5708 + t * 6; s.position.set(x + Math.cos(a) * .5, 2.3 + .06 * Math.sin(t * 9), z + Math.sin(a) * .5); s.material.opacity = u < .9 ? 1 : (1 - u) / .1; }, function(){ some(s); }); })(k); } }
+  function auraLamina(swd, dur, cor){
+    if(!swd) return; var P = ponta(swd); if(!P) return; var L = [];
+    for(var i = 0; i < 5; i++){ var s = sprite(txN('halo'), cor, P.len * .55, .0); s.position.copy(P.org).lerp(P.tip, .15 + .19 * i); swd.add(s); L.push(s); }
+    seq(dur, function(u, t){ var k = u < .05 ? u / .05 : (u > .92 ? (1 - u) / .08 : 1); L.forEach(function(s, i){ s.material.opacity = k * (.55 + .25 * Math.sin(t * 7 + i)); }); }, function(){ L.forEach(function(s){ swd.remove(s); s.material.dispose(); }); });
+  }
+  function tempos(an){ var ht = (an && an.hitT) || .5, L = an && an.hitList ? an.hitList.map(function(h){ return h.t; }) : [ht]; return { ht: ht, L: L, tot: (an && an.total) || 2 }; }
+
+  G.swingN = function(pose, o){
+    var rig = o.rig, swd = rig && rig.swd2h, x = o.px, z = o.pz, f = o.face || 0, tm = tempos(o.an), fx = Math.sin(f), fz = Math.cos(f);
+    if(pose === 'w_n0'){                                                                           /* Investida: arrancada com ecos, linhas de vento e rastro no chao */
+      contornoN(rig, CARM2, tm.ht + .6, function(t){ return t < .1 ? t / .1 * .8 : (t < tm.ht + .2 ? .8 : .8 - (t - tm.ht - .2) * 2); });
+      ecosN(rig, tm.ht * .4, tm.ht * 1.15, .05, CARM2, .32, .7); sombrasN(rig, tm.ht * 1.2, .035, CARM2, .25, .6, tm.ht * .3);
+      var L = o.an && o.an.lg ? o.an.lg : 7.6, gr = new T.PlaneGeometry(L, .7); gr.rotateX(-Math.PI / 2); var r = new T.Mesh(gr, aditivo(CARM, txN('flare_largo'), .8)); r.frustumCulled = false; r.position.set(x + fx * L / 2, .05, z + fz * L / 2); r.rotation.y = f - Math.PI / 2; cena.add(r);
+      seq(tm.ht + 1.2, function(u, t){ var k = t < tm.ht ? t / tm.ht : 1; r.scale.set(Math.max(.01, k), 1, 1); r.material.opacity = t < tm.ht + .5 ? .8 : Math.max(0, .8 * (1 - (t - tm.ht - .5) / .7)); }, function(){ some(r); });
+      for(var i = 0; i < (leve() ? 6 : 14); i++){ (function(){ var s = sprite(txN('vento'), 0xffe8d0, rnd(1.6, 3), 1), k = rnd(.1, .9), h = rnd(.3, 2); s.scale.set(rnd(1.6, 3), .07, 1); s.visible = false; cena.add(s); var t0 = tm.ht * (.35 + .6 * k);
+        seq(t0 + .3, function(u, t){ if(t < t0) return; s.visible = true; var e = (t - t0) / .3; s.position.set(x + fx * (L * k + e) + fz * rnd(-.3, .3) * 0, h, z + fz * (L * k + e)); s.material.opacity = 1 - e; }, function(){ some(s); }); })(); }
+      lascas(x, z, 6, 2.2, .1);
+    }
+    else if(pose === 'w_n1'){                                                                      /* Contra-Golpe: guarda dourada (placa em losango + contorno), sombra da espada no revide */
+      var g0 = tm.ht * .34, g1 = tm.ht * .5; contornoN(rig, OURO, tm.ht + .5, function(t){ return t < g0 ? t / g0 * .35 : (t < g1 ? .35 + .5 * (t - g0) / (g1 - g0) : Math.max(0, .85 - (t - g1) * 2.5)); });
+      var gm = new T.Mesh(new T.PlaneGeometry(1.1, 1.9), aditivo(OURO, txN('losango'), 0)); gm.position.set(x + fx * .75, 1.2, z + fz * .75); gm.rotation.y = f; gm.frustumCulled = false; cena.add(gm);
+      seq(g1 + .2, function(u, t){ gm.material.opacity = t < g0 ? 0 : (t < g1 ? .9 : Math.max(0, .9 - (t - g1) * 5)); var e = t > g1 ? 1 + (t - g1) * 2 : 1; gm.scale.set(e, e, 1); gm.position.set((window.S ? S.px : x) + fx * .75, 1.2, (window.S ? S.pz : z) + fz * .75); }, function(){ some(gm); });
+      setTimeout(function(){ var p = pontaMundo(swd); if(p) flareN(p.x, p.y, p.z, 1.2, OURO, .3, false); }, g0 * 1000);
+      sombrasN(rig, .32, .03, CARM2, .26, .6, tm.ht - .3); ecosN(rig, tm.ht - .14, tm.ht - .04, .07, CARM2, .3, .5); trilha(swd, tm.ht + .1, 1.1);
+    }
+    else if(pose === 'w_n2'){                                                                      /* Tufao: lamina deitada, vortice de vento, sombras da espada, contorno de sangue */
+      var giro = (tm.L[tm.L.length - 2] || tm.ht) + .1; contornoN(rig, SANG, tm.tot + .4, function(t){ return t < .3 ? t / .3 * .5 : (t < tm.tot ? .5 + .25 * Math.sin(t * 9) : Math.max(0, .5 - (t - tm.tot) * 2)); });
+      auraLamina(swd, tm.tot, SANG); trilha(swd, giro, .9); sombrasN(rig, giro, .045, CARM2, .2, .6, tm.ht * .6);
+      vorticeN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, giro, 70, CARM2);
+      if(!leve()) vorticeN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, giro, 30, SANG);
+    }
+    else if(pose === 'w_n3'){                                                                      /* Modo de Batalha: estilhacos convergem para a lamina enquanto ele concentra */
+      var P0 = swd && ponta(swd); if(P0){ for(var j = 0; j < (leve() ? 10 : 26); j++){ (function(){ var s = sprite(txN('losango'), BRASA, .2, 1), a0 = rnd(0, 6.28), r0 = rnd(1.2, 2), z0 = rnd(-.2, 1.6), t0 = rnd(0, tm.ht * .7), d = rnd(.3, .5); s.visible = false; cena.add(s);
+        seq(t0 + d, function(u, t){ if(t < t0) return; s.visible = true; var e = (t - t0) / d, alvo = P0.org.clone().lerp(P0.tip, .5); swd.localToWorld(alvo); var a = a0 + e * 2.4; s.position.set(alvo.x + Math.cos(a) * r0 * (1 - e * e), alvo.y + z0 * (1 - e * e), alvo.z + Math.sin(a) * r0 * (1 - e * e)); s.material.opacity = 1 - e * .5; }, function(){ some(s); }); })(); } }
+      contornoN(rig, CARM2, tm.ht + .1, function(t){ return .4 * t / tm.ht; });
+    }
+    else if(pose === 'w_n4'){                                                                      /* Execucao: arrancada com ecos, contorno, lamina em brasa, sombra da espada em cada corte */
+      contornoN(rig, CARM2, tm.tot + .5, function(t){ return t < .15 ? t / .15 * .6 : (t < tm.tot ? .6 + .25 * Math.sin(t * 8) : Math.max(0, .6 - (t - tm.tot) * 2)); });
+      auraLamina(swd, tm.tot, CARM2); ecosN(rig, .05, tm.ht * .9, .06, CARM2, .3, .55);
+      tm.L.forEach(function(th, k){ sombrasN(rig, k === tm.L.length - 1 ? .3 : .22, .03, CARM2, .28, k === tm.L.length - 1 ? .8 : .55, Math.max(0, th - .24)); });
+      trilha(swd, tm.tot, 1.1);
+    }
+    else if(pose === 'w_n5'){                                                                      /* Corte Lancador: sombra na cravada, no arranque, no ar e na descida */
+      tm.L.forEach(function(th, k){ sombrasN(rig, .26, .03, k === 0 ? BRASA : CARM2, .26, .55, Math.max(0, th - .22)); });
+      var tl = tm.L[1] || tm.ht; ecosN(rig, tl + .05, tl + .25, .08, CARM2, .3, .45); var td = tm.L[tm.L.length - 1]; ecosN(rig, td - .28, td, .1, CARM2, .3, .55); trilha(swd, tm.tot, 1.05);
+    }
+    else if(pose === 'w_n6'){                                                                      /* Fenda Sismica: lamina acende e o corpo pega brasa na cravada */
+      auraLamina(swd, tm.ht + .8, BRASA); contornoN(rig, BRASA, tm.ht + .7, function(t){ return t < tm.ht ? .15 : Math.max(0, .85 - (t - tm.ht) * 1.3); }); trilha(swd, tm.ht + .05, 1);
+    }
+  };
+  G.hitN = function(pose, hx, hz, o){
+    var swd = o.rig && o.rig.swd2h, tp = pontaMundo(swd), last = o.last !== false, part = o.part || 1, f = o.face || 0, fx = Math.sin(f), fz = Math.cos(f);
+    var ex = tp ? tp.x : hx, ey = tp ? Math.max(.4, tp.y) : 1.3, ez = tp ? tp.z : hz, pt = function(){ var q = peitoDe(o); return q; };
+    if(pose === 'w_n0'){                                                                           /* linha de corte no alvo; 0,38 s depois explode */
+      var cx = (o.px != null ? o.px : hx) - fx * 1.2, cz = (o.pz != null ? o.pz : hz) - fz * 1.2, mk = marcaN(cx, 1.25, cz, 0, ACO); flareN(cx, 1.25, cz, 1.2, ACO, .25, false);
+      seq(.42, function(u){ mk.scale.set(2.4 + u * .6, .26 * (1 - u * .4), 1); }, function(){ some(mk); flareN(cx, 1.25, cz, 4.4, CARM2, .6); flareN(cx, 1.25, cz, 2, ACO, .35, false); estilhacosN(cx, 1.25, cz, leve() ? 4 : 8, CARM2); brasas(cx, 1.2, cz, 18, 2.4, 2); agita(.5); flash('#ff3a1a', .2, 260); });
+    }
+    else if(pose === 'w_n1'){ flareN(ex, ey, ez, 2.8, CARM2, .45); flareN(ex, ey, ez, 1.1, ACO, .22, false); espinhos(ex, ey, ez, leve() ? 6 : 10, 1, ACO, .25); brasas(ex, ey, ez, 16, 2.2, 1.8); estrelasStun(hx, hz, 1.5); agita(.45); }
+    else if(pose === 'w_n2'){
+      if(!last){ flareN(ex, ey, ez, 1.5, part % 2 ? SANG : ACO, .28, part % 2 === 0); drenoN(ex, ey, ez, leve() ? 2 : 4, pt, CARM2); agita(.12); return; }
+      var X = window.S ? S.px : hx, Z = window.S ? S.pz : hz; flareN(X, 1.1, Z, 4.6, CARM2, .6); flareN(X, 1.1, Z, 3.4, SANG, .7, false); estilhacosN(X, 1.1, Z, leve() ? 5 : 10, CARM2); drenoN(X + 1.5, 1.2, Z, leve() ? 4 : 10, pt, CARM2); brasas(X, 1, Z, 30, 2.6, 2.4); agita(.6); flash('#c01008', .22, 300);
+    }
+    else if(pose === 'w_n3'){ var P = swd && ponta(swd); if(P){ [.18, .36, .54, .72, .9].forEach(function(k, i){ var v = P.org.clone().lerp(P.tip, k); swd.localToWorld(v); flareN(v.x, v.y, v.z, i === 2 ? 3 : 1.6, i === 2 ? ACO : BRASA, .5, i === 2); }); } agita(.4); flash('#ff4a1a', .18, 260); }
+    else if(pose === 'w_n4'){
+      var ox = o.px != null ? o.px + fx * 1.35 : hx, oz = o.pz != null ? o.pz + fz * 1.35 : hz; G._marcas = G._marcas || [];
+      if(!last){ flareN(ox, 1.3, oz, 1.6, ACO, .3, part % 2 === 1); var mk2 = marcaN(ox + rnd(-.15, .15), 1.3 + rnd(-.25, .25), oz, rnd(-1.2, 1.2), part % 2 ? CARM2 : BRASA); G._marcas.push(mk2); brasas(ox, 1.3, oz, 8, 1.6, 1.4); agita(.15); return; }
+      var feixe = sprite(txN('losango'), ACO, 1, 1); feixe.scale.set(.5, 5, 1); feixe.position.set(ox, 2.2, oz); cena.add(feixe); seq(.45, function(u){ feixe.scale.set(.5 * (1 - u), 5, 1); feixe.material.opacity = 1 - u; }, function(){ some(feixe); });
+      flareN(ox, 1.3, oz, 2.6, ACO, .35); var ms = G._marcas.splice(0); setTimeout(function(){ ms.forEach(function(m){ seq(.25, function(u){ m.scale.set(2.4 * (1 + u), .26 * (1 + 2 * u), 1); m.material.opacity = 1 - u; }, function(){ some(m); }); });
+        flareN(ox, 1.3, oz, 4.6, CARM2, .6); flareN(ox, 1.3, oz, 2.2, ACO, .35, false); estilhacosN(ox, 1.3, oz, leve() ? 5 : 10, CARM2); brasas(ox, 1.2, oz, 30, 2.6, 2.4); agita(.6); flash('#ff2a10', .22, 280); }, 300);
+    }
+    else if(pose === 'w_n5'){
+      if(part === 1){ flareN(ex, .4, ez, 1.4, BRASA, .3, false); fenda(ex, ez, 1.2, BRASA, 1.2, .2); return; }
+      if(part === 2){ for(var i = 0; i < 7; i++){ var a = f + (i - 3) * .15, L2 = rnd(2.8, 4); fissuraN(ex + Math.sin(a) * L2 / 2, ez + Math.cos(a) * L2 / 2, a, L2, .7, i % 2 ? BRASA : CARM, 1.6); rochasN(ex + Math.sin(a) * L2 * .5, ez + Math.cos(a) * L2 * .5, leve() ? 1 : 2, 1.1, a); }
+        lascas(ex + fx * .8, ez + fz * .8, 16, 4, .16); flareN(ex, .6, ez, 2.6, BRASA, .4); agita(.4); return; }
+      if(!last){ flareN(ex, ey, ez, 1.8, ACO, .3); brasas(ex, ey, ez, 8, 1.4, 1.6); agita(.15); return; }
+      fenda(ex, ez, 4.2, BRASA, 2.2, .3); fenda(ex, ez, 2.8, CARM, 2, 1.2); rochasN(ex, ez, leve() ? 4 : 8, 1.5); lascas(ex, ez, 26, 4.8, .2); flareN(ex, .8, ez, 4.4, ACO, .55); coluna(ex, ez, 3.6, .5, BRASA, .45, 2); agita(.7); flash('#ff6a14', .25, 300);
+    }
+    else if(pose === 'w_n6'){                                                                      /* a fenda corre 9 m pela frente: segmentos, rochas, jatos e flares; fecha com explosao */
+      var x0 = ex, z0 = ez; flareN(x0, .6, z0, 2.8, ACO, .4); fenda(x0, z0, 2.2, BRASA, 2.2, .4); agita(.45);
+      var passos = Math.round(9 / .75); for(var k = 0; k < passos; k++){ (function(k){ setTimeout(function(){ var d = .4 + k * .75, cx = x0 + fx * d, cz = z0 + fz * d; fissuraN(cx, cz, f, 1.45, 1.1, k % 2 ? BRASA : CARM, 1.8); rochasN(cx, cz, leve() ? 1 : 2, 1.1, k % 2 ? f + 1.57 : f - 1.57); if(k % 2 === 0){ coluna(cx, cz, 2.2, .26, BRASA, .3, 2); flareN(cx, .5, cz, 1.4, BRASA, .25, false); agita(.08); } lascas(cx, cz, 3, 2.2, .11);
+        if(k === passos - 1){ flareN(cx, .8, cz, 4, ACO, .5); coluna(cx, cz, 5, .6, CARM, .5, 2); lascas(cx, cz, 16, 3.6, .18); agita(.4); } }, k * 50); })(k); }
+    }
+  };
+  G.modo = function(rig, dur){ if(!G.pronto || !rig) return; auraLamina(rig.swd2h, dur, CARM2); contornoN(rig, CARM2, dur, function(t, u){ return u > .95 ? (1 - u) / .05 * .55 : .45 + .15 * Math.sin(t * 5); });
+    var t = 0, prox = 0; vivos.push(function(dt){ t += dt; if(t >= prox && window.S){ prox += .35; brasas(S.px, .4, S.pz, leve() ? 2 : 4, 2.8, .6); } return t >= dur; }); };
+  G.modoRemoto = function(x, z){ if(!G.pronto) return; flareN(x, 1.8, z, 3, BRASA, .5); brasas(x, .5, z, 20, 2.6, 1); };
+  G.remotoN = function(pose, e){ var x = e.x, z = e.z, f = e.f || 0, fx = Math.sin(f), fz = Math.cos(f);
+    if(pose === 'w_n0') G.hitN('w_n0', x, z, { px: x, pz: z, face: f, last: true });
+    else if(pose === 'w_n6') G.hitN('w_n6', x + fx * 1.4, z + fz * 1.4, { face: f, last: true });
+    else if(pose === 'w_n2') vorticeN(function(){ return { x: x, z: z }; }, 3.2, 40, CARM2);
+    else flareN(x + fx * 1.5, 1.3, z + fz * 1.5, 2.6, CARM2, .45);
+  };
 })();

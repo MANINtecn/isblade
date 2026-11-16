@@ -101,14 +101,14 @@ export const Guardiao = (function(){
   /* ---------- Guerreiro (espada 2 maos), skills 1,3,4,5,6: clipes baked do Blender (tools/blender_fx/guerreiro_clips_export.py -> assets/personagens/guerreiro_clips/<PSA>.glb)
      so o Humano M por enquanto. Mesmo retarget do anexarCast: so rotacoes + movimento (delta) do quadril e do osso raiz. hit/cut = fracao do clipe (medidos no Blender) */
   var W_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter' };
-  var W_T = { w_s1:{hit:.269,cut:.449,sp:1}, w_s3:{hit:.356,cut:.60,sp:1.12}, w_s4:{hit:.097,cut:.869,sp:1}, w_s5:{hit:.368,cut:.653,sp:1}, w_s6:{hit:.05,cut:.544,sp:1} };
+  var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.116,cut:0.856,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
   var wCache = {};
   G.anexarGuerreiro = function(rig, THREE){
     if(!rig || !rig.clips) return;
     var tipo = rig.tipo || ''; if(!tipo){ try { tipo = localStorage.getItem('isblade.char_type') || ''; } catch(e){} }
     var psa = W_PSA[String(tipo).toLowerCase()]; if(!psa) return;
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
-    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=1', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); }));
+    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); }));
     pr.then(function(list){
       if(!list || !list.length) return;
       var nos = {}; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis' || o.name === 'Bip01') nos[o.name] = o; });
@@ -131,7 +131,7 @@ export const Guardiao = (function(){
           tr.push(t);
         });
         c.tracks = tr; rig.clips[src.name] = c;
-        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: 0, psa: psa };
+        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, psa: psa };
       });
     });
   };

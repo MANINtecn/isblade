@@ -30,7 +30,7 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
-try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0, suporte: s.suporte || null })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0, suporte: s.suporte || null, dur: s.dur || 0 })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASICO = {};                                              /* arma -> ataque padrao em ponto mirado (data/armas/<arma>.json -> basico), ex.: cajado/mago */
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.basico && j.basico.niveis) BASICO[j.id] = j.basico; }); } catch(e){ console.log('basico:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
@@ -282,10 +282,10 @@ function suporteSkill(c, A, d, m, t){
   } else if(S.tipo === 'purifica'){
     V.ccAte = t + (S.imune || 2); ajudaFlag(c, A, V, t);
     difunde(c, { t: 'sup', k: 'purifica', v: V.id, de: A.id, dur: S.imune || 2 });
-  } else if(S.tipo === 'prece' || S.tipo === 'grito'){                                    /* [guerreiro] Grito de Guerra: mesmo buff em area da Prece, com o proprio visual (k: 'grito') */
+  } else if(S.tipo === 'prece' || S.tipo === 'grito' || S.tipo === 'modo'){                                    /* [guerreiro] Grito de Guerra: mesmo buff em area da Prece, com o proprio visual (k: 'grito') */
     const R = (S.raio || 5) + .45, L = [];
-    for(const W of c.jog.values()){ if(!aliado(W) || Math.hypot(W.x - A.x, W.z - A.z) > R) continue; W.preceAte = t + (S.dur || 20); W.preceAtk = (S.atk || .15) * fatorInt(A); W.preceDef = (S.def || .15) * fatorInt(A); ajudaFlag(c, A, W, t); L.push(W.id); }
-    difunde(c, { t: 'sup', k: S.tipo === 'grito' ? 'grito' : 'prece', de: A.id, x: r2(A.x), z: r2(A.z), l: L, dur: S.dur || 20, atk: S.atk || .15, def: S.def || .15 });
+    for(const W of c.jog.values()){ if(!aliado(W) || Math.hypot(W.x - A.x, W.z - A.z) > R || (S.tipo === 'modo' && W !== A)) continue; W.preceAte = t + (S.dur || 20); W.preceAtk = (S.atk || .15) * fatorInt(A); W.preceDef = (S.def || .15) * fatorInt(A); ajudaFlag(c, A, W, t); L.push(W.id); }
+    difunde(c, { t: 'sup', k: S.tipo === 'prece' ? 'prece' : S.tipo, de: A.id, x: r2(A.x), z: r2(A.z), l: L, dur: S.dur || 20, atk: S.atk || .15, def: S.def || .15 });
   }
 }
 function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
@@ -317,7 +317,7 @@ function ataque(c, A, m){
   if(m.k === 'b'){ d = BASIC[m.id]; if(!d || t - A.ultB < .22) return; A.ultB = t; }
   else if(m.k === 's'){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
-    if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > 3) return; parte2 = true; }            /* 2o golpe da mesma skill: sem nova recarga */
+    if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > Math.max(3, (s.dur || 0) + 1)) return; parte2 = true; }   /* [guerreiro] janela = duracao da skill (Tufao ~4,2 s) */            /* 2o golpe da mesma skill: sem nova recarga */
     else { if((A.cd[A.arma + i] || 0) > t + .9) return; A.cd[A.arma + i] = t + s.cd; A.ultSk = A.arma + i; A.ultSkT = t; }
     d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona, cura: s.cura, suporte: s.suporte };
   } else return;
