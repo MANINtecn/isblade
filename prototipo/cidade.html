@@ -796,7 +796,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/skills_ui.js?v=42"></script>
 <script src="js/moradores.js?v=2"></script>
 <script src="js/mundo_campo.js?v=5"></script>
-<script src="js/mapa_vivo.js?v=12"></script>
+<script src="js/mapa_vivo.js?v=13"></script>
 <script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
@@ -3150,6 +3150,20 @@ scene.fog=new THREE.FogExp2(0x78b8e0, 0.0018);
 
 
 var camera=new THREE.PerspectiveCamera(50,1,.1,2000);
+/* >>> CLAUDE [preparo] 16/11/2026 REGRA (dono): todo conteudo novo prepara os shaders (e sobe as texturas) ANTES de aparecer na tela, nunca na 1a vez que entra no campo de visao.
+   prepShaders(raiz): compila os programas de todos os materiais da raiz (inclusive escondidos) com as luzes da cena e manda as texturas para a placa.
+   compileAsync usa a compilacao paralela do aparelho quando existe; devolve uma Promise. Usado: fim do carregamento da cidade, mapas do MapaVivo, modelos de mobs. */
+var _TEXK=['map','normalMap','emissiveMap','roughnessMap','metalnessMap','aoMap','lightMap','alphaMap'];
+function prepShaders(raiz,semTex){
+  var p=null;if(!raiz)return Promise.resolve();
+  try{if(!semTex){var vt=new Set();raiz.traverse(function(o){if(!o.material)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){_TEXK.forEach(function(k){var t=m[k];if(t&&t.isTexture&&!vt.has(t)&&(t.image||(t.source&&t.source.data))){vt.add(t);renderer.initTexture(t);}});});});}}catch(e){console.warn('[preparo] texturas',e);}
+  try{if(BLOOM.on){bloomInit();renderer.setRenderTarget(BLOOM.rt);}/* o jogo desenha no alvo do bloom: compila para ele, senao recompila na hora */
+    p=renderer.compileAsync?renderer.compileAsync(raiz,camera,scene):(renderer.compile(raiz,camera,scene),null);}catch(e){console.warn('[preparo] shaders',e);}
+  try{renderer.setRenderTarget(null);}catch(_){}
+  return p||Promise.resolve();
+}
+window.__prepShaders=prepShaders;
+/* <<< CLAUDE [preparo] */
 
 
 
@@ -3509,7 +3523,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   if (/[?&]malha=1/.test(location.search)) MundoCampo.verMalha(true);/* [malha] */
   if (window.Lagos) Lagos.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).catch(function(e){ console.warn('lagos', e); });/* [lagos] bacias fechadas do terreno, com agua propria (nao e o mar) */
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
-  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
+  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer, preparar: prepShaders })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); });
 
@@ -3620,7 +3634,7 @@ var plazaBorder = new THREE.Mesh(
 
 );
 
-plazaBorder.position.y = 0.025;
+plazaBorder.position.y = 0.06;/* [piso] era 0.025 (briga com o piso) */
 
 scene.add(plazaBorder);
 
@@ -3646,7 +3660,7 @@ var duelFloor = new THREE.Mesh(
 
 );
 
-duelFloor.position.y = 0.024;
+duelFloor.position.y = 0.06;/* [piso] 16/11/2026: era 0.024, 4 mm acima do piso (0.02) = as camadas brigavam e piscavam; 6 cm separa sem aparecer */
 
 duelFloor.receiveShadow = true;
 
@@ -3844,6 +3858,7 @@ function finishL2Loading(){
   if(txt) txt.textContent = '100%';
 
   if(status) status.textContent = 'Mundo pronto! Entrando em Talking Island...';
+  try{ prepShaders(scene); }catch(_){}   /* [preparo] REGRA: shaders e texturas da cidade inteira prontos atras da tela de carregamento */
 
 
 
@@ -4732,35 +4747,16 @@ scarecrowGltfLoader.load('assets/personagens/scarecrow.glb', function(gltf){
 
 
 
-var starGeo=new THREE.BufferGeometry(),sp=new Float32Array(600*3);
-
-
-
-for(i=0;i<600;i++){var u=Math.random()*Math.PI*2,v=Math.acos(Math.random()*.9+.05),R=80;sp[i*3]=R*Math.sin(v)*Math.cos(u);sp[i*3+1]=R*Math.cos(v)+8;sp[i*3+2]=-R*Math.sin(v)*Math.sin(u)-10;}
-
-
-
-starGeo.setAttribute('position',new THREE.BufferAttribute(sp,3));
-
-
-
-scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xbcd2ff,size:.25,sizeAttenuation:true,fog:false})));
-
-
-
-var EMB=110,embGeo=new THREE.BufferGeometry(),ep=new Float32Array(EMB*3),es=[];
-
-
-
-for(i=0;i<EMB;i++){ep[i*3]=(Math.random()-.5)*32;ep[i*3+1]=Math.random()*8;ep[i*3+2]=(Math.random()-.5)*32;es.push(.15+Math.random()*.35);}
-
-
-
+/* >>> CLAUDE [coluna] 16/11/2026 (dono): sai o domo de estrelas da arena (600 pontos numa meia-esfera de 80 m, sem nevoa, visivel do mundo todo) e as faiscas lilas
+   espalhadas no centro. Entra UMA coluna de particulas douradas subindo do centro da praca: farol de direcao para voltar a cidade (no celular nao da para subir a camera).
+   Pontos quadrados (sem forma redonda), tamanho fixo na tela (sizeAttenuation:false) para enxergar de longe, sem nevoa. Um desenho por quadro. */
+var COL_H=60,EMB=QUAL.nivel==='baixa'?140:220,embGeo=new THREE.BufferGeometry(),ep=new Float32Array(EMB*3),es=[];
+for(i=0;i<EMB;i++){var _cr=i%10<7?.35:1.2;ep[i*3]=(Math.random()-.5)*2*_cr;ep[i*3+1]=.3+Math.random()*COL_H;ep[i*3+2]=(Math.random()-.5)*2*_cr;es.push(3+Math.random()*4);}
 embGeo.setAttribute('position',new THREE.BufferAttribute(ep,3));
-
-
-
-scene.add(new THREE.Points(embGeo,new THREE.PointsMaterial({color:0x8b7bff,size:.1,transparent:true,opacity:.8})));
+var colunaCidade=new THREE.Points(embGeo,new THREE.PointsMaterial({color:0xffd98a,size:3,sizeAttenuation:false,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
+colunaCidade.name='COLUNA_CIDADE';embGeo.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,COL_H/2,0),COL_H/2+2);/* esfera fixa: nao recalcula com os pontos subindo */
+scene.add(colunaCidade);
+/* <<< CLAUDE [coluna] */
 
 
 
@@ -11387,7 +11383,7 @@ function mob3dCarregar(tipos){
       new THREE.GLTFLoader().load('assets/mobs/modelos/'+md+'.glb?v=1',function(g){
         g.scene.traverse(function(n){if(!n.isMesh)return;n.frustumCulled=false;n.castShadow=false;
           (Array.isArray(n.material)?n.material:[n.material]).forEach(function(mt){mt.side=THREE.DoubleSide;if(mt.transparent){mt.transparent=false;mt.alphaTest=.45;mt.depthWrite=true;}if(mt.emissive){mt.emissive.setHex(0xffffff);if(mt.map)mt.emissiveMap=mt.map;}mt.emissiveIntensity=.22;});});
-        MOB3D.cache[md]={scene:g.scene,clips:g.animations};ok();
+        MOB3D.cache[md]={scene:g.scene,clips:g.animations};try{prepShaders(g.scene);}catch(_){}/* [preparo] mob pronto antes de aparecer */ok();
       },undefined,function(){ok();});
     });
     ps.push(MOB3D.pend[md]);
@@ -16969,7 +16965,7 @@ function frameBody(nowMs){
 
 
 
-  for(var q=0;q<EMB;q++){ap[q*3+1]+=es[q]*dt;if(ap[q*3+1]>8)ap[q*3+1]=0;}
+  for(var q=0;q<EMB;q++){ap[q*3+1]+=es[q]*dt;if(ap[q*3+1]>COL_H)ap[q*3+1]=.3;}/* [coluna] */
 
 
 

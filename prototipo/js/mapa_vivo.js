@@ -147,6 +147,8 @@ window.MapaVivo = (function(){
         var c = new THREE.Vector3();
         fila.forEach(function(o){ var gm = o.geometry; if(!gm.boundingSphere) gm.computeBoundingSphere(); c.copy(gm.boundingSphere.center); o.localToWorld(c); o.userData.mvx = c.x; o.userData.mvz = c.z; o.userData.mvr = gm.boundingSphere.radius * o.matrixWorld.getMaxScaleOnAxis(); o.userData.mvtri = (gm.index ? gm.index.count : (gm.attributes.position ? gm.attributes.position.count : 0)) / 3; });
         M.grupo = gr; M.fila = fila; M.tri0 = fila.length; M.tSubir = performance.now(); ordena(M, V.px, V.pz);
+        /* [preparo] 16/11/2026 REGRA: shaders do mapa compilam AGORA (ainda longe, pecas escondidas), nao quando cada peca entra na tela. Texturas continuam subindo aos poucos em sobe(). */
+        if(opt.preparar){ M.prep = true; var tp = performance.now(); Promise.resolve(opt.preparar(gr, true)).then(function(){ M.prep = false; lg(M, 'shaders prontos em ' + Math.round(performance.now() - tp) + ' ms'); }, function(){ M.prep = false; }); }
       }, function(e){ console.warn('[mapa-vivo] ' + M.id, e); M.estado = 0; M.erroT = performance.now(); });
     });
   }
@@ -154,7 +156,7 @@ window.MapaVivo = (function(){
   function ordena(M, x, z){ M.tOrd = performance.now(); M.xOrd = x; M.zOrd = z; M.fila.sort(function(a, b){ return dSup(b, x, z) - dSup(a, x, z); }); }   /* o ultimo da fila e o mais perto */
   var MAPS_TEX = ['map', 'normalMap', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'lightMap', 'alphaMap'];
   function sobe(M){
-    var f = M.fila; if(!f || !f.length) return;
+    var f = M.fila; if(!f || !f.length || M.prep) return;                                         /* [preparo] espera os shaders */
     if(Math.hypot(V.px - M.xOrd, V.pz - M.zOrd) > 60) ordena(M, V.px, V.pz);                      /* o jogador andou: refaz a ordem */
     var t0 = performance.now(), orc = opt.baixa ? 2.5 : 5, rd = opt.renderer, n = 0;
     while(f.length && (n === 0 || performance.now() - t0 < orc)){                              /* orcamento de TEMPO por quadro (pelo menos 1 peca) */
