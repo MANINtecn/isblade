@@ -89,7 +89,10 @@ export const Net = (function(){
   function desenhaTag(e){
     if(!e.tag) return; var c = e.tag.cv, g = c.getContext('2d'); g.clearRect(0, 0, 256, 72);
     g.font = '700 26px system-ui,Arial,sans-serif'; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.85)';
-    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (e.pk === 2 ? '#ff3b3b' : e.pk === 1 ? '#a77bff' : N.mapa === 'pvp' ? '#ffb3a8' : (e.team ? COR_TIME[e.team] : '#f4fbff'))); var nm = (e.cla ? '[' + e.cla + '] ' : '') + e.nome; g.strokeText(nm, 128, 28); g.fillStyle = cor; g.fillText(nm, 128, 28);      /* [cla] sigla antes do nome */
+    var prefixoTime = e.team === 'A' ? '[Time Azul] ' : (e.team === 'B' ? '[Time Vermelho] ' : '');
+    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (e.team && COR_TIME[e.team] ? COR_TIME[e.team] : (e.pk === 2 ? '#ff3b3b' : e.pk === 1 ? '#a77bff' : (N.mapa === 'pvp' ? '#ffb3a8' : '#f4fbff'))));
+    var nm = (e.cla ? '[' + e.cla + '] ' : '') + prefixoTime + e.nome;
+    g.strokeText(nm, 128, 28); g.fillStyle = cor; g.fillText(nm, 128, 28);      /* [cla] sigla antes do nome */
     var w = 150, x = 53, y = 42, k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
     g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(x - 2, y - 2, w + 4, 14); g.fillStyle = e.morto ? '#555' : (k > .5 ? '#5cd65c' : (k > .25 ? '#e6b422' : '#e54b4b')); g.fillRect(x, y, w * k, 10);
     e.tag.tex.needsUpdate = true; e.hpDes = e.hp;
@@ -135,7 +138,7 @@ export const Net = (function(){
   /* ---------- jogadores remotos ---------- */
   function aplicaArma(e){
     var r = e.rig; if(!r) return; var a = e.arma;
-    if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = false; if(ctx.livroRemoto) ctx.livroRemoto(r, a === 'book');      /* [clerigo] Livro Astral */
+    if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = a === 'staff'; if(ctx.livroRemoto) ctx.livroRemoto(r, a === 'book');      /* [clerigo] Livro Astral */
     if(ctx.armaRemota) ctx.armaRemota(r, e.wb || '');      /* [graus] modelo da arma pelo grau */
   }
   function addRemoto(p){
@@ -276,6 +279,18 @@ export const Net = (function(){
     else if(m.t === 'admin_info'){ if(window.PainelAdmin && window.PainelAdmin.atualizar) window.PainelAdmin.atualizar(m); }
     else if(m.t === 'admin_speed'){ if(window.PainelAdmin && window.PainelAdmin.aplicarSpeed) window.PainelAdmin.aplicarSpeed(m.speed); }
     else if(m.t === 'admin_teleport'){ if(window.PainelAdmin && window.PainelAdmin.onTeleport) window.PainelAdmin.onTeleport(m); }
+    else if(m.t === 'team_st'){
+      if(m.id === N.id){
+        if(N.eu) N.eu.team = m.team || '';
+        atualizaHud();
+      } else {
+        e = remotos.get(m.id);
+        if(e){
+          e.team = m.team || '';
+          if(e.tag) desenhaTag(e);
+        }
+      }
+    }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
 
@@ -577,6 +592,7 @@ export const Net = (function(){
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */
   N.botCmd = function(o){ if(N.on) send(Object.assign({ t: 'bot_cmd' }, o || {})); };
   N.adminCmd = function(o){ if(N.on) send(Object.assign({ t: 'admin_cmd' }, o || {})); };
+  N.setTeam = function(team){ if(N.on) send({ t: 'set_team', team: team || '' }); };
   N.alvoAtual = function(){ return (alvoEl && alvoEl.dataset && alvoEl.dataset.id ? parseInt(alvoEl.dataset.id, 10) : 0) || 0; };
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };
   N.alterna = function(forca){ alterna(forca); };

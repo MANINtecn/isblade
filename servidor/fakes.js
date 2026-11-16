@@ -32,9 +32,48 @@ const RACAS_BASE = [
   { raca: 'human_m', cls: 'fighter', arma: 'shield' },
   { raca: 'magic_m', cls: 'magic', arma: 'staff' },
   { raca: 'magic_f', cls: 'magic', arma: 'staff' },
+  { raca: 'elf_f', cls: 'clerigo', arma: 'book' },
+  { raca: 'human_f', cls: 'clerigo', arma: 'book' },
   { raca: 'darkelf_f', cls: 'fighter', arma: 'sword' },
   { raca: 'orc_m', cls: 'fighter', arma: 'sword' }
 ];
+
+/* Mapeamento de Classes Específicas para Seleção */
+const CLASSES_MAP = {
+  guerreiro: [
+    { raca: 'human_m', cls: 'fighter', arma: 'sword' },
+    { raca: 'human_f', cls: 'fighter', arma: 'sword' },
+    { raca: 'elf_f', cls: 'fighter', arma: 'sword' },
+    { raca: 'darkelf_f', cls: 'fighter', arma: 'sword' },
+    { raca: 'orc_m', cls: 'fighter', arma: 'sword' }
+  ],
+  guardiao: [
+    { raca: 'dwarf_f', cls: 'fighter', arma: 'shield' },
+    { raca: 'human_m', cls: 'fighter', arma: 'shield' },
+    { raca: 'elf_f', cls: 'fighter', arma: 'shield' }
+  ],
+  mago: [
+    { raca: 'magic_m', cls: 'magic', arma: 'staff' },
+    { raca: 'magic_f', cls: 'magic', arma: 'staff' }
+  ],
+  clerigo: [
+    { raca: 'elf_f', cls: 'clerigo', arma: 'book' },
+    { raca: 'human_f', cls: 'clerigo', arma: 'book' },
+    { raca: 'magic_f', cls: 'clerigo', arma: 'book' },
+    { raca: 'human_m', cls: 'clerigo', arma: 'book' }
+  ]
+};
+
+// Sinônimos & Aliases
+CLASSES_MAP.fighter = CLASSES_MAP.guerreiro;
+CLASSES_MAP.dps = CLASSES_MAP.guerreiro;
+CLASSES_MAP.tank = CLASSES_MAP.guardiao;
+CLASSES_MAP.shield = CLASSES_MAP.guardiao;
+CLASSES_MAP.nuker = CLASSES_MAP.mago;
+CLASSES_MAP.staff = CLASSES_MAP.mago;
+CLASSES_MAP.healer = CLASSES_MAP.clerigo;
+CLASSES_MAP.curandeiro = CLASSES_MAP.clerigo;
+CLASSES_MAP.book = CLASSES_MAP.clerigo;
 
 const COMBOS_BASICOS = ['sweep', 'thrust', 'spin'];
 const sorteio = a => a[Math.floor(Math.random() * a.length)];
@@ -130,7 +169,16 @@ function setupPorNivel(racaBase, armaTipo, lv){
   let wb = 'sword_long';
   let en = 0;
 
-  if(armaTipo === 'shield'){
+  if(armaTipo === 'book'){
+    // Clérigo / Healer (Livro Astral)
+    wb = 'book';
+    if(grau === 'S') en = 16;
+    else if(grau === 'A') en = 13;
+    else if(grau === 'B') en = 10;
+    else if(grau === 'C') en = 7;
+    else if(grau === 'D') en = 4;
+    else en = 0;
+  } else if(armaTipo === 'shield'){
     // Guardião (Espada 1H + Escudo)
     if(grau === 'S'){ wb = 'samurai_longsword'; en = 16; }
     else if(grau === 'A'){ wb = 'gladius'; en = 13; }
@@ -156,10 +204,20 @@ function setupPorNivel(racaBase, armaTipo, lv){
     else { wb = 'sword_long'; en = 0; }
   }
 
-  // 3. Skills liberadas conforme o nível (0 a 6)
-  const maxSkillIdx = lv >= 76 ? 6 : (lv >= 61 ? 4 : (lv >= 52 ? 3 : (lv >= 40 ? 2 : (lv >= 20 ? 1 : 0))));
+  // 3. Skills liberadas conforme o nível
   const skills = [];
-  for(let i = 0; i <= maxSkillIdx; i++) skills.push(i);
+  if(armaTipo === 'book'){
+    // Clérigo: 0 Cura Mirada, 1 Glifo de Cura, 2 Escudo Astral, 3 Purificação, 4 Prece, 5 Ressurreição
+    skills.push(0);
+    if(lv >= 5) skills.push(1);
+    if(lv >= 10) skills.push(2);
+    if(lv >= 20) skills.push(3);
+    if(lv >= 25) skills.push(4);
+    if(lv >= 30) skills.push(5);
+  } else {
+    const maxSkillIdx = lv >= 76 ? 6 : (lv >= 61 ? 4 : (lv >= 52 ? 3 : (lv >= 40 ? 2 : (lv >= 20 ? 1 : 0))));
+    for(let i = 0; i <= maxSkillIdx; i++) skills.push(i);
+  }
 
   // 4. HP proporcional ao nível e conjunto
   const hpBase = Math.round(300 + Math.pow(lv, 1.46) * 11);
@@ -179,23 +237,46 @@ function spawnBots(opts){
   const cz = typeof opts.z === 'number' ? opts.z : 0;
   const modo = opts.modo || 'pvp'; // 'pvp', 'inimigo', 'treino'
   const lv = Math.max(1, Math.min(85, opts.lv || 40));
+  const team = (opts.team === 'A' || opts.team === 'B') ? opts.team : '';
+  const classeDesejada = (opts.classe || '').toLowerCase().trim();
+  const comHealer = !!opts.comHealer;
 
   let criados = 0;
   for(let i = 0; i < qtd; i++){
     const id = proxBotId++;
-    const persona = sorteio(RACAS_BASE);
+
+    // Escolha da Persona (Classe + Raça + Arma)
+    let persona;
+    if(classeDesejada && CLASSES_MAP[classeDesejada]){
+      persona = sorteio(CLASSES_MAP[classeDesejada]);
+    } else if(comHealer && i === 0){
+      // 1º bot do time é sempre o Healer / Clérigo (Livro Astral)
+      persona = sorteio(CLASSES_MAP.clerigo);
+    } else if(comHealer && i === 1 && qtd >= 2){
+      // 2º bot do time é o Guardião / Tank (Escudo)
+      persona = sorteio(CLASSES_MAP.guardiao);
+    } else if(comHealer && i === 2 && qtd >= 3){
+      // 3º bot do time é o Mago / Nuker (Cajado)
+      persona = sorteio(CLASSES_MAP.mago);
+    } else {
+      persona = sorteio(RACAS_BASE);
+    }
+
     const setup = setupPorNivel(persona.raca, persona.arma, lv);
-    const nome = nomeDisponivel();
+    const nomeBase = nomeDisponivel();
+    const nome = team ? (team === 'A' ? 'Azul_' : 'Verm_') + nomeBase : nomeBase;
 
     const ang = (i / qtd) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
     const raio = 3.5 + Math.random() * 8.5;
     const bx = r2(cx + Math.sin(ang) * raio);
     const bz = r2(cz + Math.cos(ang) * raio);
+    const fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : r2(Math.random() * 6.28);
 
     const bot = {
       id,
       ws: { readyState: 1, send: () => {} }, // mock socket seguro
       nome,
+      team,
       raca: setup.raca,
       cls: persona.cls,
       arma: persona.arma,
@@ -228,7 +309,7 @@ function spawnBots(opts){
       mapa: canal.mapa,
       x: bx,
       z: bz,
-      f: r2(Math.random() * 6.28),
+      f: fRot,
       y: null,
       a: 'idle',
       ts: 1,
@@ -279,16 +360,76 @@ function spawnBots(opts){
   }
 
   // Notifica o canal sobre os novos bots com info de nível e grau
+  if(!opts.silencioso){
+    const grauTxt = grauPorNivel(lv);
+    const setNome = grauTxt === 'S' ? 'Imperial/Tallum (+16)' : (grauTxt === 'A' ? 'Tallum (+13)' : (grauTxt === 'B' ? 'Doom (+10)' : (grauTxt === 'C' ? 'Full Plate (+7)' : (grauTxt === 'D' ? 'Brigandine (+4)' : 'No-Grade'))));
+    const timeTxt = team ? ` [${team === 'A' ? 'Time Azul' : 'Time Vermelho'}]` : '';
+    CTX.difunde(canal, {
+      t: 'chat',
+      n: 'Sistema',
+      m: `⚔️ ${criados} bots${timeTxt} Nv ${lv} (Grau ${grauTxt} · ${setNome}) entraram na partida!`,
+      c: 's'
+    });
+  }
+
+  return criados;
+}
+
+/* Cria duas equipes rivais (Time Azul vs Time Vermelho) com posições opostas e Healers em cada lado */
+function spawnTimes(opts){
+  if(!CTX) return { timeA: 0, timeB: 0 };
+  const canal = opts.canal || canalArenaPvp() || canalCidade();
+  if(!canal) return { timeA: 0, timeB: 0 };
+
+  const qtdPorTime = Math.max(1, Math.min(25, opts.qtdPorTime || opts.qtd || 5));
+  const lv = Math.max(1, Math.min(85, opts.lv || 40));
+  const comHealer = opts.comHealer !== false;
+  const classeA = opts.classeA || opts.classe || '';
+  const classeB = opts.classeB || opts.classe || '';
+
+  const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
+  const cx = typeof opts.x === 'number' ? opts.x : (canal.mapa === 'pvp' ? are.x : 0);
+  const cz = typeof opts.z === 'number' ? opts.z : (canal.mapa === 'pvp' ? are.z : 105);
+
+  // Time Azul (A): nasce a Oeste (cx - 16) olhando para o Leste (direcaoOlhar: Math.PI / 2)
+  const spA = spawnBots({
+    canal,
+    x: cx - 16,
+    z: cz,
+    qtd: qtdPorTime,
+    lv,
+    team: 'A',
+    modo: 'pvp',
+    comHealer,
+    classe: classeA,
+    direcaoOlhar: Math.PI / 2,
+    silencioso: true
+  });
+
+  // Time Vermelho (B): nasce a Leste (cx + 16) olhando para o Oeste (direcaoOlhar: -Math.PI / 2)
+  const spB = spawnBots({
+    canal,
+    x: cx + 16,
+    z: cz,
+    qtd: qtdPorTime,
+    lv,
+    team: 'B',
+    modo: 'pvp',
+    comHealer,
+    classe: classeB,
+    direcaoOlhar: -Math.PI / 2,
+    silencioso: true
+  });
+
   const grauTxt = grauPorNivel(lv);
-  const setNome = grauTxt === 'S' ? 'Imperial/Tallum (+16)' : (grauTxt === 'A' ? 'Tallum (+13)' : (grauTxt === 'B' ? 'Doom (+10)' : (grauTxt === 'C' ? 'Full Plate (+7)' : (grauTxt === 'D' ? 'Brigandine (+4)' : 'No-Grade'))));
   CTX.difunde(canal, {
     t: 'chat',
     n: 'Sistema',
-    m: `⚔️ ${criados} bots Nv ${lv} (Grau ${grauTxt} · ${setNome}) entraram na partida!`,
+    m: `🚩 GUERRA DE TIMES: 🔵 Time Azul (${spA}) vs 🔴 Time Vermelho (${spB}) · Nv ${lv} (Grau ${grauTxt})! Healers ativos em cada lado!`,
     c: 's'
   });
 
-  return criados;
+  return { timeA: spA, timeB: spB };
 }
 
 /* Remove todos os bots ou bots de um canal */
@@ -341,15 +482,22 @@ function matarBots(canalAlvo){
 /* Encontra alvo adequado para o bot */
 function buscaAlvo(bot, c, t){
   let melhor = null;
-  let melhorDist = 42;
+  let melhorDist = 48;
 
   for(const cand of c.jog.values()){
     if(cand === bot || cand.morto || cand.hp <= 0) continue;
     if(t < cand.imune) continue;
 
+    // Se ambos tiverem time e forem do mesmo time: nunca atacar!
+    if(bot.team && cand.team && bot.team === cand.team) continue;
+
+    // Se o bot tiver time e o candidato for aliado: nunca atacar!
+    if(bot.team && CTX.aliadoDe && CTX.aliadoDe(c, bot, cand, t)) continue;
+
     // Se o bot estiver em modo 'inimigo', foca jogadores humanos
     if(bot.modo === 'inimigo' && cand.isBot) continue;
 
+    const timeRival = !!(bot.team && cand.team && bot.team !== cand.team);
     const atacouEsseBot = bot.atacante && bot.atacante === cand.id;
     const d = Math.hypot(cand.x - bot.x, cand.z - bot.z);
 
@@ -357,8 +505,11 @@ function buscaAlvo(bot, c, t){
       return cand;
     }
 
-    if(d < melhorDist){
-      melhorDist = d;
+    // Se o candidato for do time rival, prioriza o alvo
+    const pesoDist = timeRival ? (d * 0.6) : d;
+
+    if(pesoDist < melhorDist){
+      melhorDist = pesoDist;
       melhor = cand;
     }
   }
@@ -403,6 +554,116 @@ function tick(t, dt){
         continue;
       }
 
+      // IA DEDICADA DE CLÉRIGO / HEALER (LIVRO ASTRAL)
+      const isHealer = bot.arma === 'book' || bot.cls === 'clerigo';
+      if(isHealer){
+        // 1. Procura aliado caído do mesmo time para ressuscitar (até 12m)
+        let aliadoCaido = null;
+        let menorDistCaido = 14;
+        for(const W of c.jog.values()){
+          if(W === bot || !W.morto || (W.hp > 0)) continue;
+          if(CTX.aliadoDe && !CTX.aliadoDe(c, bot, W, t)) continue;
+          if(bot.team && W.team && bot.team !== W.team) continue;
+          const d = Math.hypot(W.x - bot.x, W.z - bot.z);
+          if(d < menorDistCaido){ menorDistCaido = d; aliadoCaido = W; }
+        }
+
+        // Se tem aliado caído e skill de ressurreição (skill 5, lv >= 30)
+        if(aliadoCaido && bot.skills.includes(5) && t > bot.tSkill){
+          const dx = aliadoCaido.x - bot.x, dz = aliadoCaido.z - bot.z;
+          const dist = Math.hypot(dx, dz) || 0.001;
+          bot.f = r2(Math.atan2(dx, dz));
+          if(dist > 9){
+            bot.a = 'run';
+            const k = Math.min(dist - 8, 4.6 * dt);
+            bot.x = r2(bot.x + (dx / dist) * k);
+            bot.z = r2(bot.z + (dz / dist) * k);
+          } else {
+            bot.a = 'c_s6';
+            bot.tSkill = t + 4.5;
+            bot.tAtk = t + 2.5;
+            CTX.ataque(c, bot, { k: 's', i: 5, al: aliadoCaido.id, f: bot.f, p: 1 });
+          }
+          continue;
+        }
+
+        // 2. Autopreservação: se o Healer estiver com pouco HP (< 65%)
+        if(bot.hp < bot.pmax * 0.65 && t > bot.tAtk){
+          if(bot.skills.includes(2) && (!bot.cd['book2'] || t > bot.cd['book2'])){
+            bot.a = 'c_s3';
+            bot.tAtk = t + 1.2;
+            CTX.ataque(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
+            continue;
+          } else {
+            bot.a = 'c_s1';
+            bot.tAtk = t + 1.0;
+            if(CTX.curaJog) CTX.curaJog(c, bot, bot, Math.round(bot.pmax * 0.35), t);
+            continue;
+          }
+        }
+
+        // 3. Procura aliado mais ferido do time
+        let aliadoFerido = null;
+        let menorPctHp = 0.85; // Só cura se tiver < 85% de vida
+        let aliadosPerto = 0;
+        for(const W of c.jog.values()){
+          if(W.morto || W.hp <= 0) continue;
+          if(CTX.aliadoDe && !CTX.aliadoDe(c, bot, W, t)) continue;
+          if(bot.team && W.team && bot.team !== W.team) continue;
+          const d = Math.hypot(W.x - bot.x, W.z - bot.z);
+          if(d < 5) aliadosPerto++;
+          const pct = W.hp / (W.pmax || 1);
+          if(pct < menorPctHp && d < 36){
+            menorPctHp = pct;
+            aliadoFerido = W;
+          }
+        }
+
+        // 4. Se tiver 2 ou mais aliados perto e Prece estiver pronta (buff em área de atk/def)
+        if(aliadosPerto >= 2 && bot.skills.includes(4) && t > bot.tSkill && (!bot.cd['book4'] || t > bot.cd['book4'])){
+          bot.a = 'c_s5';
+          bot.tSkill = t + 8.0;
+          bot.tAtk = t + 1.2;
+          CTX.ataque(c, bot, { k: 's', i: 4, f: bot.f, p: 1 });
+          continue;
+        }
+
+        // 5. Cura no aliado mais ferido
+        if(aliadoFerido){
+          const dx = aliadoFerido.x - bot.x, dz = aliadoFerido.z - bot.z;
+          const dist = Math.hypot(dx, dz) || 0.001;
+          bot.f = r2(Math.atan2(dx, dz));
+
+          if(dist > 12){
+            bot.a = 'run';
+            const k = Math.min(dist - 8, 4.8 * dt);
+            bot.x = r2(bot.x + (dx / dist) * k);
+            bot.z = r2(bot.z + (dz / dist) * k);
+          } else {
+            if(t > bot.tAtk){
+              bot.tAtk = t + 1.1 + Math.random() * 0.4;
+              if(menorPctHp < 0.45 && bot.skills.includes(2) && (!bot.cd['book2'] || t > bot.cd['book2'])){
+                // Aliado em perigo grave: Escudo Astral
+                bot.a = 'c_s3';
+                CTX.ataque(c, bot, { k: 's', i: 2, al: aliadoFerido.id, f: bot.f, p: 1 });
+              } else if(aliadosPerto >= 2 && bot.skills.includes(1) && (!bot.cd['book1'] || t > bot.cd['book1'])){
+                // Glifo de Cura no chão
+                bot.a = 'c_s2';
+                CTX.ataque(c, bot, { k: 's', i: 1, x: aliadoFerido.x, z: aliadoFerido.z, f: bot.f, p: 1 });
+              } else {
+                // Cura Mirada
+                bot.a = 'c_s1';
+                CTX.ataque(c, bot, { k: 's', i: 0, al: aliadoFerido.id, f: bot.f, p: 1 });
+                if(CTX.curaJog) CTX.curaJog(c, bot, aliadoFerido, 70, t);
+              }
+            } else {
+              bot.a = 'idle';
+            }
+          }
+          continue;
+        }
+      }
+
       // Atualiza / busca alvo
       let alvo = bot.alvoId ? c.jog.get(bot.alvoId) : null;
       if(!alvo || alvo.morto || alvo.hp <= 0 || Math.hypot(alvo.x - bot.x, alvo.z - bot.z) > 46){
@@ -434,8 +695,9 @@ function tick(t, dt){
       bot.f = r2(angAlvo);
 
       const isMago = bot.arma === 'staff';
+      const isHealerCombat = bot.arma === 'book' || bot.cls === 'clerigo';
       const isGuardiao = bot.arma === 'shield';
-      const distIdeal = isMago ? 10.0 : 2.1;
+      const distIdeal = (isMago || isHealerCombat) ? 10.0 : 2.1;
 
       // Distância de combate
       if(dist > distIdeal + 0.5){
@@ -446,8 +708,8 @@ function tick(t, dt){
         const k = Math.min(dist - distIdeal, vel * dt);
         bot.x = r2(bot.x + (dx / dist) * k);
         bot.z = r2(bot.z + (dz / dist) * k);
-      } else if(isMago && dist < 4.5){
-        // Mago recua se alvo encostar
+      } else if((isMago || isHealerCombat) && dist < 4.5){
+        // Mago / Healer recua se alvo encostar
         bot.guarda = false;
         bot.a = 'run';
         const k = 4.2 * dt;
@@ -489,7 +751,11 @@ function tick(t, dt){
           const temSkills = bot.skills && bot.skills.length > 0;
           const usaSkill = temSkills && t > bot.tSkill && Math.random() < 0.45;
 
-          if(usaSkill){
+          if(isHealerCombat){
+            // Ataque de luz do clérigo
+            bot.a = 'c_s1';
+            CTX.ataque(c, bot, { k: 'b', id: 'thrust', f: bot.f });
+          } else if(usaSkill){
             bot.tSkill = t + 3.2 + Math.random() * 2.5;
             const skIdx = sorteio(bot.skills);
             const anims = ['slash1', 'slash2', 'slash3', 'slash4', 'thrust', 'spin'];
@@ -549,13 +815,53 @@ function comando(c, J, txt){
     return;
   }
 
+  // /bot times [qtdPorTime] [lv] -> Guerra de Times (Azul vs Vermelho) com 1 Healer garantido em cada lado
+  if(sub === 'times' || sub === 'guerra'){
+    const qtdPorTime = Math.min(25, Math.max(1, parseInt(arg2, 10) || 5));
+    const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
+    const r = spawnTimes({ canal: c, x: J.x, z: J.z, qtdPorTime, lv, comHealer: true });
+    sis(`🚩 Guerra de Times iniciada! Azul (${r.timeA}) vs Vermelho (${r.timeB}) · Nv ${lv} com Healers em combate!`);
+    return;
+  }
+
+  // /bot time [azul|vermelho|A|B] [classe] [qtd] [lv]
+  if(sub === 'time' || sub === 'team'){
+    const timeArg = (arg2 || 'A').toUpperCase();
+    const team = (timeArg === 'A' || timeArg === 'AZUL' || timeArg === 'BLUE') ? 'A' : 'B';
+    const argClasse = (arg3 || 'equilibrada').toLowerCase();
+    const qtd = Math.min(30, Math.max(1, parseInt(partes[4], 10) || 5));
+    const lv = Math.min(85, Math.max(1, parseInt(partes[5], 10) || J.lv || 40));
+    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, team, modo: 'pvp', classe: argClasse, comHealer: argClasse.includes('healer') || argClasse === 'equilibrada' });
+    sis(`⚔️ ${sp} bots do ${team === 'A' ? 'Time Azul' : 'Time Vermelho'} (${argClasse}) Nv ${lv} criados!`);
+    return;
+  }
+
+  // /bot healer [qtd] [lv]
+  if(sub === 'healer' || sub === 'clerigo'){
+    const qtd = Math.min(20, Math.max(1, parseInt(arg2, 10) || 2));
+    const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
+    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, classe: 'clerigo', modo: 'pvp' });
+    sis(`✨ ${sp} bots Clérigos / Healers Nv ${lv} criados ao seu redor!`);
+    return;
+  }
+
+  // /bot classe [guerreiro|guardiao|mago|healer] [qtd] [lv]
+  if(sub === 'classe'){
+    const classe = (arg2 || 'guerreiro').toLowerCase();
+    const qtd = Math.min(30, Math.max(1, parseInt(arg3, 10) || 5));
+    const lv = Math.min(85, Math.max(1, parseInt(partes[4], 10) || J.lv || 40));
+    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, classe, modo: 'pvp' });
+    sis(`⚔️ ${sp} bots da classe ${classe.toUpperCase()} Nv ${lv} criados ao seu redor!`);
+    return;
+  }
+
   // /bot arena [qtd] [lv]
   if(sub === 'arena'){
     const qtd = Math.min(30, Math.max(1, parseInt(arg2, 10) || 10));
     const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
     const cArena = canalArenaPvp();
     const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
-    const sp = spawnBots({ canal: cArena, x: are.x, z: are.z, qtd, modo: 'pvp', lv });
+    const sp = spawnBots({ canal: cArena, x: are.x, z: are.z, qtd, modo: 'pvp', lv, comHealer: true });
     sis(`⚔️ ${sp} bots Nv ${lv} foram criados na Arena PvP! Vá até a Arena para lutar.`);
     return;
   }
@@ -567,7 +873,7 @@ function comando(c, J, txt){
     const cCid = canalCidade();
     const cx = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
     const cz = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
-    const sp = spawnBots({ canal: cCid, x: cx, z: cz, qtd, modo: 'pvp', lv });
+    const sp = spawnBots({ canal: cCid, x: cx, z: cz, qtd, modo: 'pvp', lv, comHealer: true });
     sis(`⚔️ ${sp} bots Nv ${lv} criados no campo aberto fora da muralha!`);
     return;
   }
@@ -598,14 +904,15 @@ function comando(c, J, txt){
   // /bot ajuda | /bot help
   if(sub === 'ajuda' || sub === 'help'){
     sis('--- COMANDOS DE BOTS PVP ---');
-    sis('/bot 10           -> Cria 10 bots com seu nível');
-    sis('/bot 10 76        -> Cria 10 bots Nv 76 (Grau S)');
-    sis('/bot arena 10 40  -> Cria 10 bots Nv 40 na Arena PvP');
-    sis('/bot campo 10 20  -> Cria 10 bots Nv 20 fora da muralha');
-    sis('/bot limpar       -> Deleta todos os bots');
-    sis('/bot matar        -> Abate todos os bots ativos');
-    sis('/bot modo pvp     -> Muda comportamento (pvp|inimigo|treino)');
-    sis('/painel           -> Abre o Painel Visual');
+    sis('/bot times 5 40           -> Inicia guerra 5v5 (Time Azul vs Vermelho com Healers)');
+    sis('/bot time azul healer 1 40 -> Cria 1 Healer no Time Azul');
+    sis('/bot classe mago 5 40      -> Cria 5 Magos');
+    sis('/bot healer 2 40           -> Cria 2 Healers');
+    sis('/time azul                 -> Entra no Time Azul (ou /time vermelho / /time neutro)');
+    sis('/bot 10 76                 -> Cria 10 bots Nv 76 (Grau S)');
+    sis('/bot arena 10 40           -> Cria 10 bots Nv 40 na Arena PvP');
+    sis('/bot limpar                -> Deleta todos os bots');
+    sis('/painel                    -> Abre o Painel Visual de Bots');
     return;
   }
 
@@ -615,7 +922,7 @@ function comando(c, J, txt){
   const lvNum = parseInt(arg2, 10);
   const lv = isNaN(lvNum) ? (J.lv || 40) : Math.min(85, Math.max(1, lvNum));
 
-  const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, modo: 'pvp', lv });
+  const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, modo: 'pvp', lv, comHealer: true });
   sis(`⚔️ ${sp} bots Nv ${lv} criados ao seu redor! Boa luta!`);
 }
 
@@ -627,7 +934,7 @@ function executa(c, J, m){
   const lv = Math.min(85, Math.max(1, parseInt(m.lv, 10) || J.lv || 40));
   const modo = ['pvp', 'inimigo', 'treino'].includes(m.modo) ? m.modo : 'pvp';
 
-  if(acao === 'spawn'){
+  if(acao === 'spawn_times'){
     let canal = c;
     let x = J.x, z = J.z;
 
@@ -641,7 +948,43 @@ function executa(c, J, m){
       z = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
     }
 
-    const criados = spawnBots({ canal, x, z, qtd, modo, lv });
+    const r = spawnTimes({
+      canal,
+      x,
+      z,
+      qtdPorTime: Math.min(25, Math.max(1, parseInt(m.qtdPorTime, 10) || 5)),
+      lv,
+      comHealer: m.comHealer !== false,
+      classeA: m.classeA || '',
+      classeB: m.classeB || ''
+    });
+    CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });
+    CTX.envia(J, { t: 'chat', n: 'Sistema', m: `🚩 Painel: Guerra de Times iniciada (Azul ${r.timeA} vs Vermelho ${r.timeB})!`, c: 's' });
+  } else if(acao === 'spawn'){
+    let canal = c;
+    let x = J.x, z = J.z;
+
+    if(m.local === 'arena'){
+      canal = canalArenaPvp();
+      const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
+      x = are.x; z = are.z;
+    } else if(m.local === 'campo'){
+      canal = canalCidade();
+      x = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
+      z = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
+    }
+
+    const criados = spawnBots({
+      canal,
+      x,
+      z,
+      qtd,
+      modo,
+      lv,
+      team: m.team || '',
+      classe: m.classe || '',
+      comHealer: m.comHealer !== false
+    });
     CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });
     CTX.envia(J, { t: 'chat', n: 'Sistema', m: `⚔️ Painel: ${criados} bots Nv ${lv} spawnados com sucesso!`, c: 's' });
   } else if(acao === 'limpar'){
@@ -665,6 +1008,7 @@ function executa(c, J, m){
 module.exports = {
   init,
   spawnBots,
+  spawnTimes,
   limparBots,
   matarBots,
   tick,
@@ -672,5 +1016,6 @@ module.exports = {
   executa,
   setupPorNivel,
   grauPorNivel,
+  CLASSES_MAP,
   get total(){ return bots.size; }
 };

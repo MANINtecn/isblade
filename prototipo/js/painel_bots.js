@@ -23,6 +23,13 @@
     lv: 40,
     local: 'aqui', // 'aqui', 'arena', 'campo'
     modo: 'pvp',   // 'pvp', 'inimigo', 'treino'
+    classe: '',    // '', 'guerreiro', 'guardiao', 'mago', 'clerigo'
+    team: '',      // '', 'A', 'B'
+    meuTime: '',   // '', 'A', 'B'
+    guerraQtd: 5,  // 5v5
+    guerraHealer: true,
+    guerraClasseA: '',
+    guerraClasseB: '',
     totalBots: 0,
     mapaAtual: 'cidade'
   };
@@ -356,7 +363,7 @@
         font-weight: 800;
         letter-spacing: 0.1em;
         cursor: pointer;
-        margin: 12px 0 8px;
+        margin: 10px 0 8px;
         text-align: center;
         text-shadow: 0 1px 3px #000;
         transition: all 0.15s ease;
@@ -369,6 +376,89 @@
       }
       .pb-btn-principal:active {
         transform: translateY(1px);
+      }
+
+      /* GUERRA DE TIMES (BLUE VS RED) */
+      .pb-guerra-box {
+        margin: 12px 0;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #854d0e;
+        background: linear-gradient(180deg, rgba(20, 16, 10, 0.85) 0%, rgba(10, 12, 18, 0.95) 100%);
+        box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.7);
+      }
+      .pb-guerra-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .pb-guerra-sub {
+        font-size: 10px;
+        color: #fcd34d;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .pb-btn-guerra {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 5px;
+        border: 2px solid #f5c451;
+        background: linear-gradient(90deg, #1e3a8a 0%, #312e81 40%, #701a75 60%, #991b1b 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 16px rgba(0, 0, 0, 0.8);
+        color: #fff;
+        font-family: "Cinzel", Georgia, serif;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        margin-top: 8px;
+        text-align: center;
+        text-shadow: 0 1px 3px #000;
+        transition: all 0.15s ease;
+      }
+      .pb-btn-guerra:hover {
+        border-color: #ffd166;
+        filter: brightness(1.15);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(245, 196, 81, 0.4);
+      }
+
+      /* BOTÕES DE TIME */
+      .pb-btn-time-a {
+        border-color: #3b82f6 !important;
+        color: #93c5fd !important;
+      }
+      .pb-btn-time-a.ativo {
+        background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+        color: #fff !important;
+        box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.5) !important;
+      }
+      .pb-btn-time-b {
+        border-color: #ef4444 !important;
+        color: #fca5a5 !important;
+      }
+      .pb-btn-time-b.ativo {
+        background: linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%) !important;
+        color: #fff !important;
+        box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.5) !important;
+      }
+
+      /* SELETORES ESTILIZADOS */
+      .pb-select-dark {
+        width: 100%;
+        height: 30px;
+        background: #0f1522;
+        border: 1px solid #374151;
+        border-radius: 4px;
+        color: #cbd5e1;
+        font: 700 11px system-ui, sans-serif;
+        padding: 0 8px;
+        outline: none;
+        cursor: pointer;
+      }
+      .pb-select-dark:focus {
+        border-color: #f5c451;
       }
 
       /* ACOES SECUNDARIAS */
@@ -481,7 +571,7 @@
           <span class="pb-status-badge pb-badge-verde" id="pbStatusCon">ONLINE</span>
         </div>
 
-        <!-- SELEÇÃO DE NÍVEL / GRAU -->
+        <!-- 1. SELEÇÃO DE NÍVEL / GRAU GERAL -->
         <div class="pb-secao-titulo">Nível & Grau dos Bots</div>
         <div class="pb-grid-opcoes pb-grid-opcoes-5">
           <button type="button" class="pb-btn-opcao" data-lv="20">Nv 20 (D)</button>
@@ -504,6 +594,82 @@
             <div class="pb-gear-detalhes" id="pbGearDetalhes">Armas Grau C (+7) · 3 de 7 Skills Desbloqueadas</div>
           </div>
           <span class="pb-gear-badge" id="pbGearBadge" style="color:#38bdf8">GRAU C</span>
+        </div>
+
+        <!-- 2. GUERRA DE TIMES (BLUE VS RED) -->
+        <div class="pb-guerra-box">
+          <div class="pb-guerra-header">
+            <span class="pb-secao-titulo" style="margin:0;border:none;">🚩 GUERRA DE TIMES (BLUE vs RED)</span>
+            <span class="pb-guerra-sub">1 Healer por Lado</span>
+          </div>
+
+          <!-- MEU TIME -->
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:6px 0 4px;text-transform:uppercase;">Meu Time (Jogador):</div>
+          <div class="pb-grid-opcoes">
+            <button type="button" class="pb-btn-opcao pb-btn-time-a" id="pbBtnMeuTimeA" data-meutime="A">🔵 Time Azul</button>
+            <button type="button" class="pb-btn-opcao pb-btn-time-b" id="pbBtnMeuTimeB" data-meutime="B">🔴 Time Vermelho</button>
+            <button type="button" class="pb-btn-opcao ativo" id="pbBtnMeuTimeNeutro" data-meutime="">⚪ Neutro / FFA</button>
+          </div>
+
+          <!-- TAMANHO DA GUERRA -->
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:6px 0 4px;text-transform:uppercase;">Tamanho da Batalha:</div>
+          <div class="pb-grid-opcoes">
+            <button type="button" class="pb-btn-opcao" data-guerraqtd="3">⚔️ 3 vs 3 (Trio)</button>
+            <button type="button" class="pb-btn-opcao ativo" data-guerraqtd="5">🛡️ 5 vs 5 (Padrão)</button>
+            <button type="button" class="pb-btn-opcao" data-guerraqtd="10">💥 10 vs 10 (Total)</button>
+          </div>
+
+          <!-- CLASSES DOS TIMES -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#93c5fd;margin-bottom:3px;">Classe Time Azul:</div>
+              <select class="pb-select-dark" id="pbSelectClasseA">
+                <option value="">Equilibrada (com Healer)</option>
+                <option value="guerreiro">Guerreiro (Espada 2H)</option>
+                <option value="guardiao">Guardião (Tank/Escudo)</option>
+                <option value="mago">Mago (Cajado Arcano)</option>
+                <option value="clerigo">Clérigo (Livro Astral)</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#fca5a5;margin-bottom:3px;">Classe Time Vermelho:</div>
+              <select class="pb-select-dark" id="pbSelectClasseB">
+                <option value="">Equilibrada (com Healer)</option>
+                <option value="guerreiro">Guerreiro (Espada 2H)</option>
+                <option value="guardiao">Guardião (Tank/Escudo)</option>
+                <option value="mago">Mago (Cajado Arcano)</option>
+                <option value="clerigo">Clérigo (Livro Astral)</option>
+              </select>
+            </div>
+          </div>
+
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#fcd34d;margin-top:8px;cursor:pointer;">
+            <input type="checkbox" id="pbCheckGuerraHealer" checked style="accent-color:#f5c451;cursor:pointer;">
+            Garantir 1 Clérigo / Healer obrigatório em cada time
+          </label>
+
+          <button type="button" class="pb-btn-guerra" id="pbBtnIniciarGuerra">🚩 INICIAR GUERRA (5 vs 5 · COM HEALERS)</button>
+        </div>
+
+        <!-- 3. CONVOCAÇÃO AVULSA DE BOTS -->
+        <div class="pb-secao-titulo">Convocação Avulsa de Bots</div>
+
+        <!-- ESCOLHA DE CLASSE INDIVIDUAL -->
+        <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:4px 0;text-transform:uppercase;">Classe do Bot:</div>
+        <div class="pb-grid-opcoes pb-grid-opcoes-5">
+          <button type="button" class="pb-btn-opcao ativo" data-botclasse="">🎲 Todas</button>
+          <button type="button" class="pb-btn-opcao" data-botclasse="guerreiro">⚔️ Guerreiro</button>
+          <button type="button" class="pb-btn-opcao" data-botclasse="guardiao">🛡️ Guardião</button>
+          <button type="button" class="pb-btn-opcao" data-botclasse="mago">🧙 Mago</button>
+          <button type="button" class="pb-btn-opcao" data-botclasse="clerigo">✨ Healer</button>
+        </div>
+
+        <!-- ESCOLHA DE TIME DO BOT -->
+        <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:6px 0 4px;text-transform:uppercase;">Time do Bot:</div>
+        <div class="pb-grid-opcoes">
+          <button type="button" class="pb-btn-opcao ativo" data-bottime="">⚪ FFA / Neutro</button>
+          <button type="button" class="pb-btn-opcao pb-btn-time-a" data-bottime="A">🔵 Time Azul</button>
+          <button type="button" class="pb-btn-opcao pb-btn-time-b" data-bottime="B">🔴 Time Vermelho</button>
         </div>
 
         <!-- SELEÇÃO DE QUANTIDADE -->
@@ -547,10 +713,12 @@
 
         <div class="pb-guia">
           <b>Comandos de Chat:</b><br>
-          <code>/bot 10</code> · 10 bots com seu nível<br>
-          <code>/bot 10 76</code> · 10 bots Nv 76 (Grau S / Imperial Crusader +16)<br>
+          <code>/bot times 5 40</code> · Guerra 5v5 (Time Azul vs Vermelho com Healer)<br>
+          <code>/bot time azul healer 1 40</code> · 1 Healer no Time Azul<br>
+          <code>/bot classe mago 5 40</code> · 5 Magos Nv 40<br>
+          <code>/bot healer 2 40</code> · 2 Healers Nv 40<br>
+          <code>/time azul</code> · Entra no Time Azul (ou <code>/time vermelho</code> / <code>/time neutro</code>)<br>
           <code>/bot arena 10 40</code> · 10 bots Nv 40 na Arena PvP<br>
-          <code>/bot campo 10 20</code> · 10 bots Nv 20 fora da muralha<br>
           <code>/bot limpar</code> · Deleta todos os bots<br>
           <code>/bot matar</code> · Abate todos os bots ativos<br>
           <code>/painel</code> ou <code>/bot painel</code> · Abre este painel
@@ -561,6 +729,69 @@
 
     // Eventos da Janela
     document.getElementById('pbBtnFechar').onclick = function(){ toggle(false); };
+
+    // --- GUERRA DE TIMES (BLUE VS RED) ---
+    // Seleção de Time do Jogador
+    elModal.querySelectorAll('[data-meutime]').forEach(function(btn){
+      btn.onclick = function(){
+        elModal.querySelectorAll('[data-meutime]').forEach(function(b){ b.classList.remove('ativo'); });
+        btn.classList.add('ativo');
+        var tm = btn.getAttribute('data-meutime');
+        estado.meuTime = tm;
+        if(window.Net && Net.setTeam) Net.setTeam(tm);
+      };
+    });
+
+    // Tamanho da Guerra (Qtd por Time)
+    elModal.querySelectorAll('[data-guerraqtd]').forEach(function(btn){
+      btn.onclick = function(){
+        elModal.querySelectorAll('[data-guerraqtd]').forEach(function(b){ b.classList.remove('ativo'); });
+        btn.classList.add('ativo');
+        estado.guerraQtd = parseInt(btn.getAttribute('data-guerraqtd'), 10) || 5;
+        atualizaBotaoGuerra();
+      };
+    });
+
+    // Checkbox Healer
+    var chkH = document.getElementById('pbCheckGuerraHealer');
+    if(chkH){
+      chkH.onchange = function(){
+        estado.guerraHealer = chkH.checked;
+        atualizaBotaoGuerra();
+      };
+    }
+
+    // Selects Classes dos Times
+    var selA = document.getElementById('pbSelectClasseA');
+    if(selA) selA.onchange = function(){ estado.guerraClasseA = selA.value; };
+    var selB = document.getElementById('pbSelectClasseB');
+    if(selB) selB.onchange = function(){ estado.guerraClasseB = selB.value; };
+
+    // Botão Iniciar Guerra de Times
+    document.getElementById('pbBtnIniciarGuerra').onclick = function(){
+      executarGuerra();
+    };
+
+    // --- CONVOCAÇÃO AVULSA ---
+    // Classe do Bot
+    elModal.querySelectorAll('[data-botclasse]').forEach(function(btn){
+      btn.onclick = function(){
+        elModal.querySelectorAll('[data-botclasse]').forEach(function(b){ b.classList.remove('ativo'); });
+        btn.classList.add('ativo');
+        estado.classe = btn.getAttribute('data-botclasse');
+        atualizaBotaoPrincipal();
+      };
+    });
+
+    // Time do Bot
+    elModal.querySelectorAll('[data-bottime]').forEach(function(btn){
+      btn.onclick = function(){
+        elModal.querySelectorAll('[data-bottime]').forEach(function(b){ b.classList.remove('ativo'); });
+        btn.classList.add('ativo');
+        estado.team = btn.getAttribute('data-bottime');
+        atualizaBotaoPrincipal();
+      };
+    });
 
     // Botoes de Presets de Nível
     elModal.querySelectorAll('[data-lv]').forEach(function(btn){
@@ -625,7 +856,7 @@
 
     // Botao Principal: Spawn
     document.getElementById('pbBtnSpawn').onclick = function(){
-      executarSpawn(estado.qtd, estado.lv, estado.local, estado.modo);
+      executarSpawn(estado.qtd, estado.lv, estado.local, estado.modo, estado.team, estado.classe);
     };
 
     // Botao Limpar
@@ -651,7 +882,7 @@
       if(window.Net && Net.on){
         Net.botCmd({ acao: 'limpar', tudo: true });
         setTimeout(function(){
-          Net.botCmd({ acao: 'spawn', qtd: 10, lv: estado.lv, local: estado.local, modo: estado.modo });
+          Net.botCmd({ acao: 'spawn', qtd: 10, lv: estado.lv, local: estado.local, modo: estado.modo, comHealer: true });
         }, 150);
       } else {
         avisar('Servidor offline.');
@@ -661,7 +892,7 @@
     // Fechar com Escape / Atalhos de Teclado (F8 ou B)
     window.addEventListener('keydown', function(e){
       var t = e.target && e.target.tagName;
-      if(t === 'INPUT' || t === 'TEXTAREA') return;
+      if(t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
       if(e.key === 'Escape' && estado.aberto){
         toggle(false);
       } else if(e.key === 'F8' || (e.key === 'b' && !e.ctrlKey && !e.altKey && !e.metaKey)){
@@ -672,6 +903,7 @@
 
     setLv(estado.lv);
     setQtd(estado.qtd);
+    atualizaBotaoGuerra();
 
     if(window.Net && Net.on){
       Net.botCmd({ acao: 'status' });
@@ -704,6 +936,7 @@
       });
     }
     atualizaBotaoPrincipal();
+    atualizaBotaoGuerra();
   }
 
   function setQtd(q){
@@ -720,14 +953,40 @@
     atualizaBotaoPrincipal();
   }
 
+  function atualizaBotaoGuerra(){
+    var btnG = document.getElementById('pbBtnIniciarGuerra');
+    if(!btnG) return;
+    var info = grauDeNivel(estado.lv);
+    var healerTxt = estado.guerraHealer ? 'COM HEALER' : 'SEM HEALER';
+    btnG.textContent = '🚩 INICIAR GUERRA (' + estado.guerraQtd + ' vs ' + estado.guerraQtd + ' · ' + healerTxt + ' · ' + info.g + ')';
+  }
+
   function atualizaBotaoPrincipal(){
     var btnP = document.getElementById('pbBtnSpawn');
     if(!btnP) return;
     var info = grauDeNivel(estado.lv);
-    btnP.textContent = '⚔️ CONVOCAR ' + estado.qtd + (estado.qtd === 1 ? ' BOT' : ' BOTS') + ' (NV ' + estado.lv + ' · GRAU ' + info.g + ')';
+    var clsTxt = estado.classe ? ' · ' + estado.classe.toUpperCase() : '';
+    var tmTxt = estado.team ? ' [' + (estado.team === 'A' ? 'TIME AZUL' : 'TIME VERMELHO') + ']' : '';
+    btnP.textContent = '⚔️ CONVOCAR ' + estado.qtd + (estado.qtd === 1 ? ' BOT' : ' BOTS') + clsTxt + tmTxt + ' (NV ' + estado.lv + ' · ' + info.g + ')';
   }
 
-  function executarSpawn(qtd, lv, local, modo){
+  function executarGuerra(){
+    if(!window.Net || !Net.on){
+      avisar('Conectando ao servidor...');
+      return;
+    }
+    Net.botCmd({
+      acao: 'spawn_times',
+      qtdPorTime: estado.guerraQtd,
+      lv: estado.lv,
+      local: estado.local,
+      comHealer: estado.guerraHealer,
+      classeA: estado.guerraClasseA,
+      classeB: estado.guerraClasseB
+    });
+  }
+
+  function executarSpawn(qtd, lv, local, modo, team, classe){
     if(!window.Net || !Net.on){
       avisar('Conectando ao servidor...');
       return;
@@ -737,7 +996,10 @@
       qtd: qtd,
       lv: lv,
       local: local,
-      modo: modo
+      modo: modo,
+      team: team || '',
+      classe: classe || '',
+      comHealer: true
     });
   }
 
@@ -803,6 +1065,7 @@
     setQtd: setQtd,
     setLv: setLv,
     spawn: executarSpawn,
+    iniciarGuerra: executarGuerra,
     atualizaInfo: atualizaInfo,
     get estado(){ return estado; }
   };

@@ -4476,3 +4476,35 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Efeitos (`js/guardiao_fx.js` feixeCarga/feixeLeque, no pre-aquecimento): flare anamorfico na face do escudo em 3 degraus (estrela de 8 pontas no 3o) + lascas convergindo; leque de 16 graus (veu de filamentos correndo, miolo suave, 11 raios), clarao na boca, lascas; texturas assets/fx/guardiao_s1_*.png.
 - Testado no navegador (servidor local isolado): toque -> mc 0,62 (dano 65->40); segurar -> soltou sozinho aos 3 s, mc 2,0 (74->148); cone/alcance/folga aplicados; sem erro de JS. Efeitos renderizados isolados sem erro de shader. NAO visto em tempo real (sem placa de video no teste). Versoes: guardiao.js?v=22, guardiao_fx.js?v=10, net.js?v=50.
 - [Claude] 16/11: skill 1 seguia a direcao do inicio do cast (o dono mirava e o feixe ia para onde estava no comeco). Agora ctx.getAim (aimAngle, arena e cidade) e o Guardiao vira para a mira durante a carga e ate o feixe sair. Testado: forcei +1,5 rad na carga e voltou para a mira. guardiao.js?v=23. Dono relatou efeitos sumindo em algumas skills: no teste local as 6 criam efeitos (16 a 59 objetos aditivos), sem erro - investigando (cache ou visibilidade no jogo dele).
+
+### [Claude/Antigravity] 16/11 - Sistema de Guerra de Times de Bots PvP (Blue vs Red) com IA de Healer e Escolha de Classes
+
+- **Guerra de Times (Azul vs Vermelho) no Servidor (`servidor/server.js` & `servidor/fakes.js`)**:
+  - Implementação de regras de combate entre times (`team: 'A'` para Azul e `team: 'B'` para Vermelho):
+    * `aliadoDe(c, A, V, t)`: integrantes do mesmo time são considerados aliados em qualquer mapa (cidade, arena PvP e campo aberto), garantindo ausência total de fogo amigo e permitindo que curas, buffs em área (`Prece`) e escudos (`Escudo Astral`) alcancem aliados de equipe e o próprio jogador se estiver no time.
+    * `podeFerir(c, A, V, t)`: bloqueia dano entre integrantes do mesmo time e libera combate irrestrito entre times rivais (`A.team !== V.team`).
+    * Comando de Chat `/time [azul|vermelho|neutro]` e mensagem WebSocket `set_team`: o jogador humano pode alternar entre Time Azul, Time Vermelho ou FFA/Neutro a qualquer instante.
+    * Broadcast de status `team_st` atualizando o time dos jogadores remotos e do jogador local com sincronização de HUD.
+- **Inteligência Artificial & Classe Clérigo / Healer (`servidor/fakes.js`)**:
+  - Nova classe e arquétipo `clerigo` / `healer` com Livro Astral (`arma: 'book'`, `cls: 'clerigo'`) configurada com armaduras autênticas de Grau S a No-Grade (Tallum, Doom, Full Plate, Brigandine) e encantamentos correspondentes.
+  - IA tática de suporte do Healer:
+    * **Ressurreição Prioritária**: detecta aliados caídos do mesmo time em até 12m e canaliza `Ressurreição` (skill 5) para levantá-los no local com vida e imunidade temporária.
+    * **Autopreservação**: se o Healer estiver com pouco HP (<65%), conjura `Escudo Astral` (skill 2) em si mesmo e executa auto-cura imediata.
+    * **Cura de Emergência de Aliados**: varre aliados feridos (<85% HP) no raio de ação; se o aliado estiver em perigo grave (<50%), concede `Escudo Astral` (skill 2) e dispara `Cura Mirada` (skill 0) ou `Glifo de Cura` (skill 1) no solo para grupos feridos.
+    * **Buff em Área (`Prece`)**: ao identificar 2 ou mais companheiros de equipe agrupados a até 5m, ativa `Prece` (skill 4) aumentando ataque e defesa de todos por 20 segundos.
+    * **Combate à Distância**: quando o time está saudável, o Healer atua na retaguarda disparando `Lâmina de Luz` à distância (10m).
+  - IA de Foco de Times no `buscaAlvo`: bots integrados a uma equipe nunca atacam aliados e priorizam agressivamente os membros do time rival.
+  - Função `spawnTimes({ canal, x, z, qtdPorTime, lv, comHealer, classeA, classeB })`: spawna Time Azul a oeste e Time Vermelho a leste, posicionados frente a frente com Healers garantidos em cada flanco.
+- **Identificação Visual de Times no Cliente (`prototipo/js/net.js`)**:
+  - Placa de nome no Canvas 3D renderiza cores e prefixos de time com alta prioridade: `[Time Azul] Nome` em azul (#6fb4ff) e `[Time Vermelho] Nome` em vermelho (#ff7b6b).
+  - `aplicaArma(e)`: visibilidade ativada para cajados (`staff`) e livros astrais (`book` via `livroRemoto`).
+- **Painel de Controle Visual de Bots (`prototipo/js/painel_bots.js`)**:
+  - Nova seção dedicada **🚩 GUERRA DE TIMES (BLUE vs RED)**:
+    * Seletor de time do jogador: `🔵 Time Azul`, `🔴 Time Vermelho` ou `⚪ Neutro / FFA`.
+    * Predefinições de combate rápido: `⚔️ 3 vs 3 (Trio)`, `🛡️ 5 vs 5 (Padrão)` e `💥 10 vs 10 (Total)`.
+    * Configuração de classes independentes para cada time (`Equilibrada com Healer`, `Só Guerreiros`, `Só Guardiões`, `Só Magos`, `Só Clérigos`).
+    * Checkbox de Clérigo/Healer obrigatório em cada lado.
+    * Botão com gradiente temático: `🚩 INICIAR GUERRA (5 vs 5 · COM HEALERS)`.
+  - Convocação Avulsa atualizada com seletor de classe individual (`🎲 Todas`, `⚔️ Guerreiro`, `🛡️ Guardião`, `🧙 Mago`, `✨ Healer`) e seletor de time do bot (`⚪ Livre`, `🔵 Time Azul`, `🔴 Time Vermelho`).
+- **Painel de Administração GM (`prototipo/js/painel_admin.js`)**:
+  - Novos botões de atalho: `🚩 Guerra 5v5 (com Healers)`, `🔵 Time Azul`, `🔴 Time Vermelho`, `⚪ Neutro` e atalho para o Painel de Bots.

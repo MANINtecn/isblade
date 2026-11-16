@@ -124,8 +124,12 @@ const FORA_MURALHA = 96;
 const abertoAqui = (c, J) => !!MAPAS[c.mapa].aberto || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA);
 const emDuelo = (A, V, t) => { const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim); };
 /* [clerigo] quem pode receber cura/buff (como no L2: qualquer jogador; na arena PvP so o proprio grupo; nunca o adversario do duelo). Ajudar quem esta em PvP flaga (ajudaFlag). */
-const aliadoDe = (c, A, V, t) => V === A || (c.mapa === 'pvp' ? !!(A.party && A.party === V.party) : !emDuelo(A, V, t));
+const aliadoDe = (c, A, V, t) => V === A || (A.team && V.team ? A.team === V.team : (c.mapa === 'pvp' ? !!(A.party && A.party === V.party) : !emDuelo(A, V, t)));
 function podeFerir(c, A, V, t){
+  if(A.team && V.team){
+    if(A.team === V.team) return false;      /* mesmo time: sem fogo amigo */
+    return true;                             /* times opostos (Azul vs Vermelho): combate liberado */
+  }
   if(c.mapa === 'pvp') return !(A.party && A.party === V.party);          /* PvP livre: todos contra todos; so o mesmo grupo nao se fere */
   if((A.isBot || V.isBot) && (A.modoPvp || V.modoPvp || c.mapa === 'pvp' || abertoAqui(c, A) || abertoAqui(c, V))){
     if(A.party && A.party === V.party) return false;
@@ -347,7 +351,7 @@ function ataque(c, A, m){
     fere(c, A, V, d.dmg, t, 0);
   }
 }
-Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir });
+Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir, aliadoDe, curaJog });
 Admin.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, Contas, Prog, Inv, Fakes, pmaxMax });
 
 /* ---- HTTP estatico ---- */
@@ -546,9 +550,27 @@ wss.on('connection', ws => {
       }
     }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
+    else if(m.t === 'set_team'){                                    /* [times] definir Time Azul ('A'), Vermelho ('B') ou Neutro ('') */
+      const team = (m.team === 'A' || m.team === 'B') ? m.team : '';
+      J.team = team;
+      difunde(c, { t: 'team_st', id: J.id, team: J.team });
+      const nomeTime = team === 'A' ? 'Time Azul' : (team === 'B' ? 'Time Vermelho' : 'Neutro (Sem Time)');
+      envia(J, { t: 'chat', n: 'Sistema', m: `Você agora faz parte do ${nomeTime}.`, c: 's' });
+    }
     else if(m.t === 'bot_cmd'){ Fakes.executa(c, J, m); }
     else if(m.t === 'admin_cmd'){ Admin.executa(c, J, m); }
     else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .3){ J.ultChat = t; const txt = String(m.m || '').slice(0, 120).trim();      /* chat: geral = canal; c:'g' = grupo (em qualquer mapa) */
+      if(txt && (txt.startsWith('/time') || txt.startsWith('/team'))){
+        const partes = txt.split(/\s+/), arg = (partes[1] || '').toLowerCase();
+        let team = '';
+        if(arg === 'azul' || arg === 'blue' || arg === 'a' || arg === '1') team = 'A';
+        else if(arg === 'vermelho' || arg === 'red' || arg === 'b' || arg === '2') team = 'B';
+        else if(arg === 'neutro' || arg === 'nenhum' || arg === 'none' || arg === '0' || arg === 'sair') team = '';
+        else { envia(J, { t: 'chat', n: 'Sistema', m: 'Use: /time azul | /time vermelho | /time neutro', c: 's' }); return; }
+        J.team = team; difunde(c, { t: 'team_st', id: J.id, team: J.team });
+        const nomeTime = team === 'A' ? 'Time Azul' : (team === 'B' ? 'Time Vermelho' : 'Neutro (Sem Time)');
+        envia(J, { t: 'chat', n: 'Sistema', m: `Você agora faz parte do ${nomeTime}.`, c: 's' }); return;
+      }
       if(txt && Admin.ehComando(txt)){ Admin.comando(c, J, txt); return; }
       if(txt && (txt.startsWith('/bot') || txt.startsWith('/fake') || txt === '/painel')){ Fakes.comando(c, J, txt); return; }
       if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }

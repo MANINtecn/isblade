@@ -351,12 +351,20 @@
           </div>
         </div>
 
-        <!-- 6. ATALHO BOTS PVP -->
+        <!-- 6. ATALHO BOTS PVP & GUERRA DE TIMES -->
         <div class="pa-section">
-          <div class="pa-sec-title">🤖 Convocação de Bots PvP</div>
+          <div class="pa-sec-title">🤖 Guerra de Times & Bots PvP</div>
           <div class="pa-grid-btns">
-            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-spawn">⚔️ Convocar 10 Bots (Nv Atual)</button>
-            <button class="pa-btn pa-btn-kill" id="pa-btn-bots-limpar">🛑 Limpar Todos os Bots</button>
+            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-times">🚩 Guerra 5v5 (com Healers)</button>
+            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-spawn">⚔️ Spawn 10 Bots (Nv Atual)</button>
+            <button class="pa-btn pa-btn-kill" id="pa-btn-bots-limpar">🛑 Limpar Bots</button>
+            <button class="pa-btn" id="pa-btn-bots-painel">⚙️ Painel de Bots (F8)</button>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:6px 0 4px;text-transform:uppercase;">Time do GM / Jogador:</div>
+          <div class="pa-grid-btns">
+            <button class="pa-btn" id="pa-btn-gm-time-a" style="border-color:#3b82f6;color:#93c5fd;">🔵 Time Azul</button>
+            <button class="pa-btn" id="pa-btn-gm-time-b" style="border-color:#ef4444;color:#fca5a5;">🔴 Time Vermelho</button>
+            <button class="pa-btn" id="pa-btn-gm-time-0">⚪ Neutro</button>
           </div>
         </div>
       </div>
@@ -459,12 +467,19 @@
       };
     });
 
-    // Bots PvP
+    // Bots PvP & Guerra de Times
+    document.getElementById('pa-btn-bots-times').onclick = function(){
+      som('click');
+      var lv = parseInt(slider.value, 10) || 40;
+      if(window.Net && Net.botCmd){
+        Net.botCmd({ acao: 'spawn_times', qtdPorTime: 5, lv: lv, comHealer: true });
+      }
+    };
     document.getElementById('pa-btn-bots-spawn').onclick = function(){
       som('click');
       var lv = parseInt(slider.value, 10) || 40;
       if(window.Net && Net.botCmd){
-        Net.botCmd({ acao: 'spawn', qtd: 10, lv: lv, modo: 'pvp' });
+        Net.botCmd({ acao: 'spawn', qtd: 10, lv: lv, modo: 'pvp', comHealer: true });
       }
     };
     document.getElementById('pa-btn-bots-limpar').onclick = function(){
@@ -472,6 +487,22 @@
       if(window.Net && Net.botCmd){
         Net.botCmd({ acao: 'limpar', tudo: true });
       }
+    };
+    document.getElementById('pa-btn-bots-painel').onclick = function(){
+      som('click');
+      if(window.PainelBots && PainelBots.toggle) PainelBots.toggle(true);
+    };
+    document.getElementById('pa-btn-gm-time-a').onclick = function(){
+      som('click');
+      if(window.Net && Net.setTeam) Net.setTeam('A');
+    };
+    document.getElementById('pa-btn-gm-time-b').onclick = function(){
+      som('click');
+      if(window.Net && Net.setTeam) Net.setTeam('B');
+    };
+    document.getElementById('pa-btn-gm-time-0').onclick = function(){
+      som('click');
+      if(window.Net && Net.setTeam) Net.setTeam('');
     };
 
     // Draggable
