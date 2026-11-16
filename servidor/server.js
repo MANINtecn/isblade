@@ -45,7 +45,7 @@ const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirnam
 const Fakes = require('./fakes');                                                                     /* [fakes] bots de PvP (comandos /bot e painel) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 const XP_SALAS = { shade: 1, caster: 1, brute: 1, mini_boss: 1, boss: 1 };      /* [auditoria 13/11] tipos da DG antiga por salas: os unicos aceitos na mensagem xp */
 function ganhaXp(J, v){
-  if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
+  if(!J || J.isBot || !J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
   J.lv = J.pers.level; Contas.grava(); envia(J, Object.assign({ t: 'prog', subiu: subiu ? 1 : 0, ganhou: v }, Prog.info(J.pers)));
 }
 function premia(J, tipo, dif, xp){                                   /* adena (e itens do chefe) no abate: o servidor sorteia, guarda e avisa */
@@ -91,7 +91,7 @@ ANUNCIO = leAnuncio();
 setInterval(() => { const s = leAnuncio(); if(s === ANUNCIO) return; ANUNCIO = s; if(!s) return; const o = JSON.stringify({ t: 'anuncio', txt: s, novo: 1 }); for(const c of todosCanais()) for(const J of c.jog.values()) if(J.ws.readyState === 1) J.ws.send(o); }, 10e3);
 function envia(J, o){ if(J.ws.readyState === 1) J.ws.send(JSON.stringify(o)); }
 function difunde(c, o, exceto){ const s = JSON.stringify(o); for(const J of c.jog.values()) if(J !== exceto && J.ws.readyState === 1) J.ws.send(s); }
-const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '', cla: Clas.sigla(J.pers), wb: Inv.armaBase(J.pers) });
+const info = J => ({ id: J.id, sid: J.sid, lv: J.lv || 1, nome: J.nome, raca: J.raca, cls: J.cls, arma: J.arma, en: J.en !== undefined ? (J.en | 0) : Inv.encArma(J.pers), x: r2(J.x), z: r2(J.z), f: r2(J.f), hp: J.hp, pmax: J.pmax, team: J.team || '', cla: Clas.sigla(J.pers), wb: J.wb || Inv.armaBase(J.pers) });
 
 /* ---- grupo (party): ligado a SESSAO do jogador (sid, guardado no navegador), nao a conexao: sobrevive a troca de pagina (cidade <-> arena) ---- */
 const grupos = new Map(); let proxGrupo = 1;                       /* gid -> { id, lider (sid), membros: Map(sid -> { nome, J, ausente }) } */
@@ -195,10 +195,13 @@ function fere(c, A, V, base, t, pid){
   if(V.isBot) V.atacante = A.id;                                                  /* [fakes] bot revida quem o atacou */
   difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0, p: pid || 0 });
   if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
-  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; V.mortoPorJog = t;
-    if(aberto) fimPk(c, A, V, inocente);                                 /* [pk] karma / vitoria / item do PK */
-    else { if(A.pers){ A.pers.pvp = (A.pers.pvp | 0) + 1; }      /* [ranking] vitorias no PvP (persistem) */
-    ganhaXp(A, Math.round(Prog.xpMob(V.lv || 1) * 3)); } difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
+  else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates = (A.abates || 0) + 1; V.mortes = (V.mortes || 0) + 1; V.mortoPorJog = t;
+    if(aberto && !A.isBot && !V.isBot) fimPk(c, A, V, inocente);                                 /* [pk] karma / vitoria / item do PK */
+    else if(A.pers && !A.isBot){
+      A.pers.pvp = (A.pers.pvp | 0) + 1;
+      ganhaXp(A, Math.round(Prog.xpMob(V.lv || 1) * 3));
+    }
+    difunde(c, { t: 'die', v: V.id, a: A.id, nv: V.nome, na: A.nome, tv: V.team, ta: A.team }); }
 }
 
 /* ---- projeteis: o servidor faz o projetil VOAR na velocidade da skill e so acerta quem estiver no caminho; esquiva (imune) e guarda valem ---- */
@@ -294,7 +297,7 @@ function suporteSkill(c, A, d, m, t){
     difunde(c, { t: 'sup', k: S.tipo === 'prece' ? 'prece' : S.tipo, de: A.id, x: r2(A.x), z: r2(A.z), l: L, dur: S.dur || 20, atk: S.atk || .15, def: S.def || .15 });
   }
 }
-function tiro(J){ const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
+function tiro(J){ if(!J) return 0; if(J.isBot) return (J.en || 0) >= 4 ? 0.35 : 0; const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
 /* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
 function ataqueMira(c, A, m, t){
   const mb = BASICO[A.arma], nv = mb.niveis[m.id]; if(!nv || t - A.ultB < .22) return; A.ultB = t; const dmgM = Math.round(nv.dmg * (1 + tiro(A)));
@@ -315,6 +318,7 @@ function ataqueMira(c, A, m, t){
 /* ---- ataque: o servidor resolve ---- */
 function ataque(c, A, m){
   if(A.morto) return; const t = agora(); let d, parte2 = false;
+  if(!A.cd) A.cd = {};
   if(m.k === 'b' && BASICO[A.arma] && BASICO[A.arma].proj){                  /* [clerigo] ataque basico de projetil (Lamina de Luz): voa de verdade, cura aliado e fere inimigo */
     const mb = BASICO[A.arma]; if(!mb.niveis[m.id] || t - A.ultB < .22) return; A.ultB = t; if(typeof m.f === 'number') A.f = m.f;
     criaProj(c, A, { dmg: Math.round(mb.dmg * (1 + tiro(A))), range: mb.range, proj: mb.proj, cura: mb.cura }, -1); return;

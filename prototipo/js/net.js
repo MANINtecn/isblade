@@ -5,15 +5,36 @@
 export const Net = (function(){
   var N = { hist: [], on: false, tentando: false, mapa: 'cidade', canal: 0, id: 0, eu: null, duelo: null }, ctx = null, THREE = null, ws = null, remotos = new Map();
   var tEnv = 0, tVis = 0, tHud = 0, reconectar = 0, desligado = false, pedido = null, hudEl = null, MAXV = 30, jaAvisou = false;
-  var HERO = { human_fighter: 'human_fighter.glb?v=7', fighter: 'human_fighter.glb?v=7', starter: 'human_fighter.glb?v=7', imperial: 'human_fighter_imperial.glb?v=7', human_fighter_female: 'human_fighter_female.glb?v=7',
-    magic_m: 'magic_m.glb?v=7', magic_f: 'magic_f.glb?v=7', elf_m: 'elf_m.glb?v=7', elf_f: 'elf_f.glb?v=7', orc_m: 'orc_m.glb?v=7', orc_f: 'orc_f.glb?v=7',
-    dwarf_m: 'dwarf_m.glb?v=7', dwarf_f: 'dwarf_f.glb?v=7', darkelf_m: 'darkelf_m.glb?v=5', darkelf_f: 'darkelf_f.glb?v=5', darkelf: 'darkelf_f.glb?v=5' };
+  var HERO = {
+    human_fighter: 'human_fighter.glb?v=7', fighter: 'human_fighter.glb?v=7', starter: 'human_fighter.glb?v=7',
+    human_m: 'human_fighter_nograde.glb?v=2', human_f: 'human_fighter_female_nograde.glb?v=2',
+    imperial: 'human_fighter_imperial.glb?v=7', human_fighter_imperial: 'human_fighter_imperial.glb?v=7',
+    human_fighter_brigandine: 'human_fighter_brigandine.glb?v=2', human_fighter_fullplate: 'human_fighter_fullplate.glb?v=2',
+    human_fighter_doom: 'human_fighter_doom.glb?v=2', human_fighter_nograde: 'human_fighter_nograde.glb?v=2',
+    human_fighter_female: 'human_fighter_female.glb?v=7', human_fighter_female_nograde: 'human_fighter_female_nograde.glb?v=2',
+    elf_f: 'elf_f_nograde.glb?v=2', elf_f_nograde: 'elf_f_nograde.glb?v=2', elf_f_brigandine: 'elf_f_brigandine.glb?v=2',
+    elf_f_fullplate: 'elf_f_fullplate.glb?v=2', elf_f_doom: 'elf_f_doom.glb?v=2', elf_f_tallum: 'elf_f_tallum.glb?v=2',
+    dwarf_f: 'dwarf_f_nograde.glb?v=2', dwarf_f_nograde: 'dwarf_f_nograde.glb?v=2', dwarf_f_brigandine: 'dwarf_f_brigandine.glb?v=2',
+    dwarf_f_fullplate: 'dwarf_f_fullplate.glb?v=2', dwarf_f_doom: 'dwarf_f_doom.glb?v=2', dwarf_f_tallum: 'dwarf_f_tallum.glb?v=2',
+    magic_m: 'magic_m_nograde.glb?v=2', magic_m_nograde: 'magic_m_nograde.glb?v=2',
+    magic_f: 'magic_f_nograde.glb?v=2', magic_f_nograde: 'magic_f_nograde.glb?v=2',
+    elf_m: 'elf_m_nograde.glb?v=2', elf_m_nograde: 'elf_m_nograde.glb?v=2',
+    orc_m: 'orc_m_nograde.glb?v=2', orc_m_nograde: 'orc_m_nograde.glb?v=2',
+    orc_f: 'orc_f_nograde.glb?v=2', orc_f_nograde: 'orc_f_nograde.glb?v=2',
+    dwarf_m: 'dwarf_m_nograde.glb?v=2', dwarf_m_nograde: 'dwarf_m_nograde.glb?v=2',
+    darkelf_m: 'darkelf_m.glb?v=5', darkelf_f: 'darkelf_f.glb?v=5', darkelf: 'darkelf_f.glb?v=5'
+  };
   var ONCE = /^(m_cast|g_atk|g_skill|slash|punch|roll|g_roll|hit_|block_hit|parry|death|skill_|staff_|boss_)/;
   var BASICOS = { sweep: 1, thrust: 1, spin: 1, up: 1, down: 1, wedge: 1 };
   var COR_TIME = { A: '#6fb4ff', B: '#ff7b6b' };
   function r2(v){ return Math.round(v * 100) / 100; }
   function sessao(){ var k = 'isblade.sid', v = null; try { v = localStorage.getItem(k); if(!v){ v = 'p' + Math.random().toString(36).slice(2, 12); localStorage.setItem(k, v); } } catch(e){} N.sid = v || ('p' + Math.random().toString(36).slice(2, 12)); return N.sid; }
-  function heroUrl(t){ return 'assets/personagens/' + (HERO[t] || HERO.fighter); }
+  function heroUrl(t){
+    if(!t) return 'assets/personagens/' + HERO.fighter;
+    if(HERO[t]) return 'assets/personagens/' + HERO[t];
+    if(t.indexOf('.glb') >= 0) return t.startsWith('assets/') ? t : 'assets/personagens/' + t;
+    return 'assets/personagens/' + (HERO[t] || (t + '.glb?v=2') || HERO.fighter);
+  }
   var SRV_PADRAO = 'wss://play.isblade.tecx.pro/ws';                                              /* endereco do servidor de jogo quando o cliente roda em outro lugar (ex.: Vercel): 'wss://play.seudominio.com/ws'. Vazio = mesmo endereco da pagina */
   function urlServidor(){
     try {
@@ -246,7 +267,17 @@ export const Net = (function(){
   var RANK = null, rankK = 'nivel', claConf = '';
   function carregaRank(){ var m = /^(wss?):\/\/([^\/]+)/.exec(urlServidor() || ''); if(!m) return; var u = (m[1] === 'wss' ? 'https://' : 'http://') + m[2]; fetch(u + '/api/ranking').then(function(r){ return r.json(); }).then(function(j){ RANK = j; renderMenu(); }).catch(function(){}); }
   function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function bonito(r){ return String(r || '').replace(/_/g, ' '); }
+  function bonito(r){
+    if(!r) return 'Humano';
+    var s = String(r).replace(/_/g, ' ');
+    if(s.indexOf('brigandine') >= 0) return s.replace('brigandine', '[Brigandine]');
+    if(s.indexOf('fullplate') >= 0) return s.replace('fullplate', '[Full Plate]');
+    if(s.indexOf('doom') >= 0) return s.replace('doom', '[Doom]');
+    if(s.indexOf('tallum') >= 0) return s.replace('tallum', '[Tallum]');
+    if(s.indexOf('imperial') >= 0) return s.replace('imperial', '[Imperial Crusader]');
+    if(s.indexOf('nograde') >= 0) return s.replace('nograde', '');
+    return s;
+  }
   function injetaCss(){
     var st = document.createElement('style'); st.textContent =
       '#netBtn{position:fixed;left:12px;top:52px;z-index:62;padding:9px 14px;border-radius:8px;border:1px solid #f5c24a;background:rgba(8,10,20,.9);color:#f5c24a;font:700 12px system-ui,sans-serif;letter-spacing:.06em;cursor:pointer}' +

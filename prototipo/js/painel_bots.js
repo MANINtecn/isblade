@@ -2,10 +2,16 @@
    PAINEL DE CONTROLE DE BOTS PVP - IS BLADE (16/11/2026)
    Interface visual completa e comandos nativos para gerenciar jogadores fakes
    no Lineage 2 Web (Cidade, Campo Aberto e Arena PvP).
-   - Suporta spawn de 1 a 30 bots (preset padrao de 10).
+   - Suporta escolha de Nível (1 a 85) e Grau correspondente do L2:
+     * Nv 1-19 (No-Grade): Sets No-Grade nativos, armas básicas (+0).
+     * Nv 20-39 (Grau D): Set Brigandine, armas D (+4 glow azul).
+     * Nv 40-51 (Grau C): Set Full Plate Armor, armas C (+7 glow azul vívido).
+     * Nv 52-60 (Grau B): Set Doom Plate Armor, armas B (+10 glow púrpura).
+     * Nv 61-75 (Grau A): Set Tallum / Imperial, armas A (+13 glow avermelhado).
+     * Nv 76-85 (Grau S): Set Imperial Crusader / Tallum, Dragon Slayer (+16 glow vermelho lendário).
+   - Skills desbloqueadas progressivamente conforme o nível.
    - Modos: PvP Livre (todos x todos), Focar Player (inimigo) e Treino (passivo).
    - Locais: Ao redor (aqui), Arena PvP e Campo Aberto (fora da muralha).
-   - Atalhos de chat: /bot [qtd], /bot arena [qtd], /bot limpar, /bot matar, /painel
    ========================================================================== */
 
 (function(){
@@ -14,6 +20,7 @@
   var estado = {
     aberto: false,
     qtd: 10,
+    lv: 40,
     local: 'aqui', // 'aqui', 'arena', 'campo'
     modo: 'pvp',   // 'pvp', 'inimigo', 'treino'
     totalBots: 0,
@@ -23,6 +30,15 @@
   var elBtn = null;
   var elModal = null;
   var elBadge = null;
+
+  function grauDeNivel(lv){
+    if(lv >= 76) return { g: 'S', set: 'Imperial Crusader / Tallum', en: '+16 Glow Lendário', sk: '7 de 7 Skills', cor: '#ef4444' };
+    if(lv >= 61) return { g: 'A', set: 'Set Tallum / Imperial', en: '+13 Glow Fúria', sk: '5 de 7 Skills', cor: '#f97316' };
+    if(lv >= 52) return { g: 'B', set: 'Set Doom Plate Armor', en: '+10 Glow Púrpura', sk: '4 de 7 Skills', cor: '#a855f7' };
+    if(lv >= 40) return { g: 'C', set: 'Set Full Plate Armor', en: '+7 Glow Azul Vívido', sk: '3 de 7 Skills', cor: '#38bdf8' };
+    if(lv >= 20) return { g: 'D', set: 'Set Brigandine', en: '+4 Glow Azul Suave', sk: '2 de 7 Skills', cor: '#4ade80' };
+    return { g: 'No-Grade', set: 'Roupas No-Grade', en: '+0 Sem Glow', sk: '1 de 7 Skills', cor: '#94a3b8' };
+  }
 
   function injetarEstilos(){
     if(document.getElementById('painelBotsCss')) return;
@@ -81,8 +97,8 @@
         top: 50%;
         transform: translate(-50%, -50%);
         z-index: 99999;
-        width: min(94vw, 440px);
-        max-height: calc(100vh - 40px);
+        width: min(94vw, 470px);
+        max-height: calc(100vh - 30px);
         overflow-y: auto;
         display: none;
         background: linear-gradient(180deg, rgba(20, 26, 38, 0.98) 0%, rgba(10, 14, 22, 0.99) 100%);
@@ -159,7 +175,7 @@
         border-radius: 5px;
         background: rgba(14, 18, 28, 0.8);
         border: 1px solid #2d374d;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
       .pb-status-info {
         display: flex;
@@ -202,7 +218,7 @@
         color: #f5c451;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        margin: 12px 0 6px;
+        margin: 10px 0 6px;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -214,18 +230,58 @@
         background: #3a2e18;
       }
 
-      /* GRUPOS DE BOTOES SELETORES */
+      /* CARD DE EQUIPAMENTO / GRAU */
+      .pb-gear-preview {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 12px;
+        border-radius: 5px;
+        background: linear-gradient(180deg, rgba(28, 22, 12, 0.7) 0%, rgba(14, 11, 6, 0.8) 100%);
+        border: 1px solid #6b5323;
+        margin-bottom: 12px;
+      }
+      .pb-gear-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .pb-gear-titulo {
+        font-size: 12px;
+        font-weight: 800;
+        color: #fcd34d;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .pb-gear-detalhes {
+        font-size: 10px;
+        color: #94a3b8;
+      }
+      .pb-gear-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 900;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid #6b5323;
+      }
+
+      /* GRUPOS DE BOTÕES SELETORES */
       .pb-grid-opcoes {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 6px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
       .pb-grid-opcoes-4 {
         grid-template-columns: repeat(4, 1fr);
       }
+      .pb-grid-opcoes-5 {
+        grid-template-columns: repeat(5, 1fr);
+      }
       .pb-btn-opcao {
-        padding: 8px 4px;
+        padding: 7px 4px;
         border-radius: 4px;
         border: 1px solid #2e394e;
         background: #141a29;
@@ -247,12 +303,12 @@
         box-shadow: inset 0 0 8px rgba(245, 196, 81, 0.25);
       }
 
-      /* QUANTIDADE COM BOTOES +/- */
-      .pb-qtd-row {
+      /* QUANTIDADE / NÍVEL COM BOTOES +/- */
+      .pb-step-row {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
       .pb-btn-step {
         width: 32px;
@@ -273,7 +329,7 @@
         border-color: #ffd166;
         color: #fff;
       }
-      .pb-input-qtd {
+      .pb-input-num {
         flex: 1;
         height: 32px;
         border-radius: 4px;
@@ -391,7 +447,7 @@
   function criarInterface(){
     injetarEstilos();
 
-    // 1. Botao Flutuante no HUD
+    // 1. Botão Flutuante no HUD
     elBtn = document.createElement('button');
     elBtn.type = 'button';
     elBtn.id = 'painelBotsBtn';
@@ -419,12 +475,38 @@
       <div class="pb-corpo">
         <div class="pb-status-card">
           <div class="pb-status-info">
-            <span class="pb-status-label">Bots no Servidor</span>
+            <span class="pb-status-label">Bots Ativos no Servidor</span>
             <span class="pb-status-val" id="pbStatusBots">0 Ativos</span>
           </div>
           <span class="pb-status-badge pb-badge-verde" id="pbStatusCon">ONLINE</span>
         </div>
 
+        <!-- SELEÇÃO DE NÍVEL / GRAU -->
+        <div class="pb-secao-titulo">Nível & Grau dos Bots</div>
+        <div class="pb-grid-opcoes pb-grid-opcoes-5">
+          <button type="button" class="pb-btn-opcao" data-lv="20">Nv 20 (D)</button>
+          <button type="button" class="pb-btn-opcao ativo" data-lv="40">Nv 40 (C)</button>
+          <button type="button" class="pb-btn-opcao" data-lv="52">Nv 52 (B)</button>
+          <button type="button" class="pb-btn-opcao" data-lv="61">Nv 61 (A)</button>
+          <button type="button" class="pb-btn-opcao" data-lv="76">Nv 76 (S)</button>
+        </div>
+
+        <div class="pb-step-row">
+          <button type="button" class="pb-btn-step" id="pbLvMenos">-</button>
+          <input type="number" class="pb-input-num" id="pbInputLv" value="40" min="1" max="85">
+          <button type="button" class="pb-btn-step" id="pbLvMais">+</button>
+        </div>
+
+        <!-- PREVIEW DO EQUIPAMENTO / SKILLS CONFORME NÍVEL -->
+        <div class="pb-gear-preview" id="pbGearPreview">
+          <div class="pb-gear-info">
+            <div class="pb-gear-titulo" id="pbGearNome">Grau C · Set Full Plate Armor</div>
+            <div class="pb-gear-detalhes" id="pbGearDetalhes">Armas Grau C (+7) · 3 de 7 Skills Desbloqueadas</div>
+          </div>
+          <span class="pb-gear-badge" id="pbGearBadge" style="color:#38bdf8">GRAU C</span>
+        </div>
+
+        <!-- SELEÇÃO DE QUANTIDADE -->
         <div class="pb-secao-titulo">Quantidade de Bots</div>
         <div class="pb-grid-opcoes pb-grid-opcoes-4">
           <button type="button" class="pb-btn-opcao" data-qtd="1">1</button>
@@ -433,12 +515,13 @@
           <button type="button" class="pb-btn-opcao" data-qtd="20">20</button>
         </div>
 
-        <div class="pb-qtd-row">
+        <div class="pb-step-row">
           <button type="button" class="pb-btn-step" id="pbQtdMenos">-</button>
-          <input type="number" class="pb-input-qtd" id="pbInputQtd" value="10" min="1" max="30">
+          <input type="number" class="pb-input-num" id="pbInputQtd" value="10" min="1" max="30">
           <button type="button" class="pb-btn-step" id="pbQtdMais">+</button>
         </div>
 
+        <!-- LOCAL DE INVOCAÇÃO -->
         <div class="pb-secao-titulo">Local de Invocação</div>
         <div class="pb-grid-opcoes">
           <button type="button" class="pb-btn-opcao ativo" data-local="aqui">📍 Aqui (Perto)</button>
@@ -446,6 +529,7 @@
           <button type="button" class="pb-btn-opcao" data-local="campo">🌲 Campo Aberto</button>
         </div>
 
+        <!-- MODO DE COMBATE -->
         <div class="pb-secao-titulo">Modo de Combate</div>
         <div class="pb-grid-opcoes">
           <button type="button" class="pb-btn-opcao ativo" data-modo="pvp">⚔️ PvP Livre</button>
@@ -453,7 +537,7 @@
           <button type="button" class="pb-btn-opcao" data-modo="treino">🛡️ Treino</button>
         </div>
 
-        <button type="button" class="pb-btn-principal" id="pbBtnSpawn">⚔️ CONVOCAR 10 BOTS</button>
+        <button type="button" class="pb-btn-principal" id="pbBtnSpawn">⚔️ CONVOCAR 10 BOTS (NV 40 · GRAU C)</button>
 
         <div class="pb-acoes-grid">
           <button type="button" class="pb-btn-sec pb-btn-limpar" id="pbBtnLimpar">🛑 REMOVER TODOS</button>
@@ -463,11 +547,12 @@
 
         <div class="pb-guia">
           <b>Comandos de Chat:</b><br>
-          <code>/bot 10</code> · Cria 10 bots aqui<br>
-          <code>/bot arena 10</code> · Cria 10 bots na Arena<br>
-          <code>/bot campo 10</code> · Cria 10 bots fora da muralha<br>
+          <code>/bot 10</code> · 10 bots com seu nível<br>
+          <code>/bot 10 76</code> · 10 bots Nv 76 (Grau S / Imperial Crusader +16)<br>
+          <code>/bot arena 10 40</code> · 10 bots Nv 40 na Arena PvP<br>
+          <code>/bot campo 10 20</code> · 10 bots Nv 20 fora da muralha<br>
           <code>/bot limpar</code> · Deleta todos os bots<br>
-          <code>/bot matar</code> · Abate os bots ativos<br>
+          <code>/bot matar</code> · Abate todos os bots ativos<br>
           <code>/painel</code> ou <code>/bot painel</code> · Abre este painel
         </div>
       </div>
@@ -476,6 +561,26 @@
 
     // Eventos da Janela
     document.getElementById('pbBtnFechar').onclick = function(){ toggle(false); };
+
+    // Botoes de Presets de Nível
+    elModal.querySelectorAll('[data-lv]').forEach(function(btn){
+      btn.onclick = function(){
+        var lv = parseInt(btn.getAttribute('data-lv'), 10) || 40;
+        setLv(lv);
+      };
+    });
+
+    // Inputs +/- de Nível
+    document.getElementById('pbLvMenos').onclick = function(){
+      setLv(estado.lv - 1);
+    };
+    document.getElementById('pbLvMais').onclick = function(){
+      setLv(estado.lv + 1);
+    };
+    var inpLv = document.getElementById('pbInputLv');
+    inpLv.onchange = function(){
+      setLv(parseInt(inpLv.value, 10) || 40);
+    };
 
     // Botoes de Presets de Quantidade
     elModal.querySelectorAll('[data-qtd]').forEach(function(btn){
@@ -520,7 +625,7 @@
 
     // Botao Principal: Spawn
     document.getElementById('pbBtnSpawn').onclick = function(){
-      executarSpawn(estado.qtd, estado.local, estado.modo);
+      executarSpawn(estado.qtd, estado.lv, estado.local, estado.modo);
     };
 
     // Botao Limpar
@@ -546,7 +651,7 @@
       if(window.Net && Net.on){
         Net.botCmd({ acao: 'limpar', tudo: true });
         setTimeout(function(){
-          Net.botCmd({ acao: 'spawn', qtd: 10, local: estado.local, modo: estado.modo });
+          Net.botCmd({ acao: 'spawn', qtd: 10, lv: estado.lv, local: estado.local, modo: estado.modo });
         }, 150);
       } else {
         avisar('Servidor offline.');
@@ -565,10 +670,40 @@
       }
     });
 
-    // Pede status inicial
+    setLv(estado.lv);
+    setQtd(estado.qtd);
+
     if(window.Net && Net.on){
       Net.botCmd({ acao: 'status' });
     }
+  }
+
+  function setLv(lv){
+    lv = Math.max(1, Math.min(85, lv));
+    estado.lv = lv;
+    var inp = document.getElementById('pbInputLv');
+    if(inp) inp.value = lv;
+
+    var info = grauDeNivel(lv);
+
+    var gNome = document.getElementById('pbGearNome');
+    if(gNome) gNome.textContent = 'Grau ' + info.g + ' · ' + info.set;
+
+    var gDet = document.getElementById('pbGearDetalhes');
+    if(gDet) gDet.textContent = info.en + ' · ' + info.sk + ' Desbloqueadas';
+
+    var gBadge = document.getElementById('pbGearBadge');
+    if(gBadge){
+      gBadge.textContent = 'GRAU ' + info.g;
+      gBadge.style.color = info.cor;
+    }
+
+    if(elModal){
+      elModal.querySelectorAll('[data-lv]').forEach(function(b){
+        b.classList.toggle('ativo', parseInt(b.getAttribute('data-lv'), 10) === lv);
+      });
+    }
+    atualizaBotaoPrincipal();
   }
 
   function setQtd(q){
@@ -577,17 +712,22 @@
     var inp = document.getElementById('pbInputQtd');
     if(inp) inp.value = q;
 
-    var btnP = document.getElementById('pbBtnSpawn');
-    if(btnP) btnP.textContent = '⚔️ CONVOCAR ' + q + (q === 1 ? ' BOT' : ' BOTS');
-
     if(elModal){
       elModal.querySelectorAll('[data-qtd]').forEach(function(b){
         b.classList.toggle('ativo', parseInt(b.getAttribute('data-qtd'), 10) === q);
       });
     }
+    atualizaBotaoPrincipal();
   }
 
-  function executarSpawn(qtd, local, modo){
+  function atualizaBotaoPrincipal(){
+    var btnP = document.getElementById('pbBtnSpawn');
+    if(!btnP) return;
+    var info = grauDeNivel(estado.lv);
+    btnP.textContent = '⚔️ CONVOCAR ' + estado.qtd + (estado.qtd === 1 ? ' BOT' : ' BOTS') + ' (NV ' + estado.lv + ' · GRAU ' + info.g + ')';
+  }
+
+  function executarSpawn(qtd, lv, local, modo){
     if(!window.Net || !Net.on){
       avisar('Conectando ao servidor...');
       return;
@@ -595,6 +735,7 @@
     Net.botCmd({
       acao: 'spawn',
       qtd: qtd,
+      lv: lv,
       local: local,
       modo: modo
     });
@@ -647,7 +788,7 @@
     atualizarEstadoConexao();
   }
 
-  // Inicializacao automatica ao carregar o script
+  // Inicialização automática ao carregar o script
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', criarInterface);
   } else {
@@ -660,6 +801,7 @@
     abrir: function(){ toggle(true); },
     fechar: function(){ toggle(false); },
     setQtd: setQtd,
+    setLv: setLv,
     spawn: executarSpawn,
     atualizaInfo: atualizaInfo,
     get estado(){ return estado; }

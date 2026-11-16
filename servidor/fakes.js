@@ -2,10 +2,16 @@
 /* ==========================================================================
    FAKES / BOTS PVP - IS BLADE (16/11/2026)
    Gerenciador de jogadores falsos (bots) para PvP na Arena e no Mundo Aberto.
-   - Spawna via comando de chat (/bot 10, /bot arena 10, /bot limpar) ou painel.
-   - Luta de verdade usando a fisica e os pacotes nativos do servidor.
-   - Variedade de racas, armas e nomes classicos do Lineage 2.
-   - Inteligencia artificial de combate: perseguir, esquivar (roll), guarda e combos.
+   - Níveis configuráveis (1 a 85) com equipamentos e armaduras 3D fiéis ao Grau:
+     * Nv 1-19 (No-Grade): Sets No-Grade nativos, armas básicas (+0).
+     * Nv 20-39 (Grau D): Set Brigandine, armas D (+4 glow azul).
+     * Nv 40-51 (Grau C): Set Full Plate Armor, armas C (+7 glow azul vívido).
+     * Nv 52-60 (Grau B): Set Doom Plate Armor, armas B (+10 glow púrpura).
+     * Nv 61-75 (Grau A): Set Tallum / Imperial, armas A (+13 glow avermelhado).
+     * Nv 76-85 (Grau S): Set Imperial Crusader / Tallum, Dragon Slayer (+16 glow vermelho lendário).
+   - Skills desbloqueadas progressivamente conforme o nível.
+   - Inteligência tática por classe: Mago à distância, Guardião defensivo, Espadachim agressivo.
+   - Proteções completas contra crash no servidor.
    ========================================================================== */
 
 const NOMES_BOTS = [
@@ -14,16 +20,20 @@ const NOMES_BOTS = [
   'BladeDancer', 'AbyssWalker', 'SpellSinger', 'Titan', 'Destroyer',
   'GhostSentinel', 'Hawkeye', 'SilverRanger', 'Paladin', 'DarkAvenger',
   'TreasureHunter', 'PlainsWalker', 'SoulBreaker', 'Warlock', 'PhantomSummoner',
-  'Dreadnought', 'GrandKhavatari', 'Doomcryer', 'Hierophant', 'EvaSaint'
+  'Dreadnought', 'GrandKhavatari', 'Doomcryer', 'Hierophant', 'EvaSaint',
+  'Aries', 'Kronos', 'Artemis', 'Balthazar', 'Mordred'
 ];
 
-const RACAS_CONFIG = [
+const RACAS_BASE = [
   { raca: 'human_m', cls: 'fighter', arma: 'sword' },
   { raca: 'human_f', cls: 'fighter', arma: 'sword' },
   { raca: 'elf_f', cls: 'fighter', arma: 'sword' },
+  { raca: 'dwarf_f', cls: 'fighter', arma: 'shield' },
+  { raca: 'human_m', cls: 'fighter', arma: 'shield' },
+  { raca: 'magic_m', cls: 'magic', arma: 'staff' },
+  { raca: 'magic_f', cls: 'magic', arma: 'staff' },
   { raca: 'darkelf_f', cls: 'fighter', arma: 'sword' },
-  { raca: 'orc_m', cls: 'fighter', arma: 'sword' },
-  { raca: 'dwarf_f', cls: 'fighter', arma: 'sword' }
+  { raca: 'orc_m', cls: 'fighter', arma: 'sword' }
 ];
 
 const COMBOS_BASICOS = ['sweep', 'thrust', 'spin'];
@@ -62,7 +72,102 @@ function nomeDisponivel(){
   return sorteio(NOMES_BOTS) + '_' + Math.floor(10 + Math.random() * 89);
 }
 
-/* Cria bots em torno de uma coordenada (x, z) */
+/* Identifica o Grau Lineage 2 pelo Nível */
+function grauPorNivel(lv){
+  if(lv >= 76) return 'S';
+  if(lv >= 61) return 'A';
+  if(lv >= 52) return 'B';
+  if(lv >= 40) return 'C';
+  if(lv >= 20) return 'D';
+  return 'sem';
+}
+
+/* Configura Modelo 3D (armadura), Arma, Encantamento e Skills conforme Nível */
+function setupPorNivel(racaBase, armaTipo, lv){
+  const grau = grauPorNivel(lv);
+
+  // 1. Armaduras 3D autênticas (sem vir pelado)
+  let raca = racaBase;
+  if(racaBase === 'human_m' || racaBase === 'human_fighter'){
+    if(grau === 'S' || grau === 'A') raca = 'human_fighter_imperial';
+    else if(grau === 'B') raca = 'human_fighter_doom';
+    else if(grau === 'C') raca = 'human_fighter_fullplate';
+    else if(grau === 'D') raca = 'human_fighter_brigandine';
+    else raca = 'human_fighter_nograde';
+  } else if(racaBase === 'elf_f'){
+    if(grau === 'S' || grau === 'A') raca = 'elf_f_tallum';
+    else if(grau === 'B') raca = 'elf_f_doom';
+    else if(grau === 'C') raca = 'elf_f_fullplate';
+    else if(grau === 'D') raca = 'elf_f_brigandine';
+    else raca = 'elf_f_nograde';
+  } else if(racaBase === 'dwarf_f'){
+    if(grau === 'S' || grau === 'A') raca = 'dwarf_f_tallum';
+    else if(grau === 'B') raca = 'dwarf_f_doom';
+    else if(grau === 'C') raca = 'dwarf_f_fullplate';
+    else if(grau === 'D') raca = 'dwarf_f_brigandine';
+    else raca = 'dwarf_f_nograde';
+  } else if(racaBase === 'human_f'){
+    raca = (grau === 'D' || grau === 'C') ? 'human_fighter_brigandine' : 'human_fighter_female_nograde';
+  } else if(racaBase === 'magic_m'){
+    raca = 'magic_m_nograde';
+  } else if(racaBase === 'magic_f'){
+    raca = 'magic_f_nograde';
+  } else if(racaBase === 'orc_m'){
+    raca = 'orc_m_nograde';
+  } else if(racaBase === 'orc_f'){
+    raca = 'orc_f_nograde';
+  } else if(racaBase === 'elf_m'){
+    raca = 'elf_m_nograde';
+  } else if(racaBase === 'dwarf_m'){
+    raca = 'dwarf_m_nograde';
+  } else if(racaBase === 'darkelf_f'){
+    raca = 'darkelf_f';
+  } else if(racaBase === 'darkelf_m'){
+    raca = 'darkelf_m';
+  }
+
+  // 2. Armas e Encantamentos por Grau
+  let wb = 'sword_long';
+  let en = 0;
+
+  if(armaTipo === 'shield'){
+    // Guardião (Espada 1H + Escudo)
+    if(grau === 'S'){ wb = 'samurai_longsword'; en = 16; }
+    else if(grau === 'A'){ wb = 'gladius'; en = 13; }
+    else if(grau === 'B'){ wb = 'samurai_longsword'; en = 10; }
+    else if(grau === 'C'){ wb = 'samurai_longsword'; en = 7; }
+    else if(grau === 'D'){ wb = 'bastard_sword'; en = 4; }
+    else { wb = 'gladius'; en = 0; }
+  } else if(armaTipo === 'staff'){
+    // Mago (Cajado Arcano)
+    if(grau === 'S'){ wb = 'ghouls_staff'; en = 16; }
+    else if(grau === 'A'){ wb = 'sword_of_miracles'; en = 13; }
+    else if(grau === 'B'){ wb = 'valhalla'; en = 10; }
+    else if(grau === 'C'){ wb = 'ghouls_staff'; en = 7; }
+    else if(grau === 'D'){ wb = 'ghost_staff'; en = 4; }
+    else { wb = 'staff_arcane'; en = 0; }
+  } else {
+    // Espadachim (Espada 2H)
+    if(grau === 'S'){ wb = 'dragon_slayer'; en = 16; }
+    else if(grau === 'A'){ wb = 'dragon_slayer'; en = 13; }
+    else if(grau === 'B'){ wb = 'great_sword'; en = 10; }
+    else if(grau === 'C'){ wb = 'berserker_blade'; en = 7; }
+    else if(grau === 'D'){ wb = 'claymore'; en = 4; }
+    else { wb = 'sword_long'; en = 0; }
+  }
+
+  // 3. Skills liberadas conforme o nível (0 a 6)
+  const maxSkillIdx = lv >= 76 ? 6 : (lv >= 61 ? 4 : (lv >= 52 ? 3 : (lv >= 40 ? 2 : (lv >= 20 ? 1 : 0))));
+  const skills = [];
+  for(let i = 0; i <= maxSkillIdx; i++) skills.push(i);
+
+  // 4. HP proporcional ao nível e conjunto
+  const hpBase = Math.round(300 + Math.pow(lv, 1.46) * 11);
+
+  return { raca, wb, en, grau, skills, hpBase };
+}
+
+/* Cria bots com configuração completa por nível e equipamento */
 function spawnBots(opts){
   if(!CTX) return 0;
   const canal = opts.canal || canalCidade();
@@ -72,15 +177,16 @@ function spawnBots(opts){
   const qtd = Math.max(1, Math.min(30, opts.qtd || 10));
   const cx = typeof opts.x === 'number' ? opts.x : 0;
   const cz = typeof opts.z === 'number' ? opts.z : 0;
-  const modo = opts.modo || 'pvp'; // 'pvp' (todos contra todos), 'inimigo' (foca player), 'treino' (passivo)
-  const lv = Math.max(1, opts.lv || 25);
-  const hpBase = Math.max(100, opts.hp || (350 + lv * 22));
+  const modo = opts.modo || 'pvp'; // 'pvp', 'inimigo', 'treino'
+  const lv = Math.max(1, Math.min(85, opts.lv || 40));
 
   let criados = 0;
   for(let i = 0; i < qtd; i++){
     const id = proxBotId++;
-    const persona = sorteio(RACAS_CONFIG);
+    const persona = sorteio(RACAS_BASE);
+    const setup = setupPorNivel(persona.raca, persona.arma, lv);
     const nome = nomeDisponivel();
+
     const ang = (i / qtd) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
     const raio = 3.5 + Math.random() * 8.5;
     const bx = r2(cx + Math.sin(ang) * raio);
@@ -88,13 +194,33 @@ function spawnBots(opts){
 
     const bot = {
       id,
-      ws: { readyState: 1, send: () => {} }, // mock socket
+      ws: { readyState: 1, send: () => {} }, // mock socket seguro
       nome,
-      raca: persona.raca,
+      raca: setup.raca,
       cls: persona.cls,
       arma: persona.arma,
+      wb: setup.wb,
+      en: setup.en,
+      grau: setup.grau,
+      skills: setup.skills,
       sid: 'bot_' + id,
-      pers: { id: 'bot_' + id, name: nome, level: lv, charType: persona.raca, karma: 0, pk: 0, pvp: 0, inv: { items: [], equip: {} } },
+      pers: {
+        id: 'bot_' + id,
+        name: nome,
+        level: lv,
+        charType: setup.raca,
+        karma: 0,
+        pk: 0,
+        pvp: 0,
+        inv: {
+          items: [
+            { uid: 'bot_wpn_' + id, base: setup.wb, en: setup.en }
+          ],
+          equip: {
+            weapon: 'bot_wpn_' + id
+          }
+        }
+      },
       lv,
       cid: '',
       party: 0,
@@ -107,8 +233,8 @@ function spawnBots(opts){
       a: 'idle',
       ts: 1,
       guarda: false,
-      pmax: hpBase,
-      hp: hpBase,
+      pmax: setup.hpBase,
+      hp: setup.hpBase,
       morto: false,
       tMorte: 0,
       imune: t + 1.0,
@@ -120,14 +246,30 @@ function spawnBots(opts){
       modo, // 'pvp', 'inimigo', 'treino'
       respawn: opts.respawn !== false,
       alvoId: 0,
-      tAtk: t + 0.5 + Math.random() * 1.5,
-      tSkill: t + 3.0 + Math.random() * 4.0,
+      tAtk: t + 0.4 + Math.random() * 1.0,
+      tSkill: t + 2.0 + Math.random() * 3.0,
       combo: 0,
       tStrafe: t + Math.random() * 2,
       strafeDir: Math.random() < 0.5 ? 1 : -1,
       tMudouAlvo: 0,
       rumo: null,
-      atacante: 0
+      atacante: 0,
+      // Propriedades fundamentais para compatibilidade 100% com o servidor
+      cd: {},
+      ultSk: '',
+      ultSkT: 0,
+      ultB: 0,
+      ssUlt: 0,
+      abates: 0,
+      mortes: 0,
+      pvpHitT: 0,
+      stPk: 1,
+      kPk: 0,
+      duelo: null,
+      preceAte: 0,
+      escudo: null,
+      ultChat: 0,
+      ultSt: t
     };
 
     canal.jog.set(bot.id, bot);
@@ -136,11 +278,13 @@ function spawnBots(opts){
     criados++;
   }
 
-  // Notifica o canal sobre os novos bots
+  // Notifica o canal sobre os novos bots com info de nível e grau
+  const grauTxt = grauPorNivel(lv);
+  const setNome = grauTxt === 'S' ? 'Imperial/Tallum (+16)' : (grauTxt === 'A' ? 'Tallum (+13)' : (grauTxt === 'B' ? 'Doom (+10)' : (grauTxt === 'C' ? 'Full Plate (+7)' : (grauTxt === 'D' ? 'Brigandine (+4)' : 'No-Grade'))));
   CTX.difunde(canal, {
     t: 'chat',
     n: 'Sistema',
-    m: `⚔️ ${criados} bots foram convocados para combate (${modo === 'treino' ? 'Treino Passivo' : 'Modo PvP'})!`,
+    m: `⚔️ ${criados} bots Nv ${lv} (Grau ${grauTxt} · ${setNome}) entraram na partida!`,
     c: 's'
   });
 
@@ -197,20 +341,19 @@ function matarBots(canalAlvo){
 /* Encontra alvo adequado para o bot */
 function buscaAlvo(bot, c, t){
   let melhor = null;
-  let melhorDist = 38; // alcance maximo de visao
+  let melhorDist = 42;
 
   for(const cand of c.jog.values()){
     if(cand === bot || cand.morto || cand.hp <= 0) continue;
     if(t < cand.imune) continue;
 
-    // Se o bot estiver em modo 'inimigo', foca jogadores reais!
+    // Se o bot estiver em modo 'inimigo', foca jogadores humanos
     if(bot.modo === 'inimigo' && cand.isBot) continue;
 
-    // Se este candidato atacou o bot recentemente, ganha prioridade maxima!
     const atacouEsseBot = bot.atacante && bot.atacante === cand.id;
     const d = Math.hypot(cand.x - bot.x, cand.z - bot.z);
 
-    if(atacouEsseBot && d < 45){
+    if(atacouEsseBot && d < 48){
       return cand;
     }
 
@@ -223,135 +366,164 @@ function buscaAlvo(bot, c, t){
   return melhor;
 }
 
-/* Laco de IA dos bots (chamado no tick do server.js) */
+/* Laço de IA dos bots (chamado no tick do server.js) */
 function tick(t, dt){
   if(!CTX || bots.size === 0) return;
 
   for(const [id, bot] of bots.entries()){
-    const c = bot.canalRef;
-    if(!c || !c.jog.has(id)){
-      bots.delete(id);
-      continue;
-    }
+    try {
+      const c = bot.canalRef;
+      if(!c || !c.jog.has(id)){
+        bots.delete(id);
+        continue;
+      }
 
-    // Bot morto: aguarda tempo de respawn ou permanece caido
-    if(bot.morto){
-      if(bot.respawn && t - bot.tMorte > 5.5){
-        bot.morto = false;
-        bot.hp = bot.pmax;
-        bot.imune = t + 2.0;
-        bot.alvoId = 0;
-        bot.atacante = 0;
+      // Bot morto: aguarda respawn
+      if(bot.morto){
+        if(bot.respawn && t - bot.tMorte > 5.5){
+          bot.morto = false;
+          bot.hp = bot.pmax;
+          bot.imune = t + 2.0;
+          bot.alvoId = 0;
+          bot.atacante = 0;
+          bot.a = 'idle';
+          const ang = Math.random() * 6.28;
+          const dist = 2 + Math.random() * 6;
+          bot.x = r2(bot.spawnX + Math.sin(ang) * dist);
+          bot.z = r2(bot.spawnZ + Math.cos(ang) * dist);
+          CTX.difunde(c, { t: 'resp', id: bot.id, x: bot.x, z: bot.z, hp: bot.hp });
+        }
+        continue;
+      }
+
+      // Modo treino: passivo
+      if(bot.modo === 'treino'){
         bot.a = 'idle';
-        // Respawn proximo do ponto inicial
-        const ang = Math.random() * 6.28;
-        const dist = 2 + Math.random() * 6;
-        bot.x = r2(bot.spawnX + Math.sin(ang) * dist);
-        bot.z = r2(bot.spawnZ + Math.cos(ang) * dist);
-        CTX.difunde(c, { t: 'resp', id: bot.id, x: bot.x, z: bot.z, hp: bot.hp });
+        bot.guarda = false;
+        continue;
       }
-      continue;
-    }
 
-    // Modo treino: passivo, so fica parado ou respirando
-    if(bot.modo === 'treino'){
-      bot.a = 'idle';
-      bot.guarda = false;
-      continue;
-    }
-
-    // Busca ou valida alvo
-    let alvo = bot.alvoId ? c.jog.get(bot.alvoId) : null;
-    if(!alvo || alvo.morto || alvo.hp <= 0 || Math.hypot(alvo.x - bot.x, alvo.z - bot.z) > 42){
-      alvo = buscaAlvo(bot, c, t);
-      bot.alvoId = alvo ? alvo.id : 0;
-      bot.tMudouAlvo = t;
-    }
-
-    if(!alvo){
-      // Sem alvos por perto: caminha suavemente ou fica em idle
-      bot.guarda = false;
-      bot.a = 'idle';
-      continue;
-    }
-
-    const dx = alvo.x - bot.x;
-    const dz = alvo.z - bot.z;
-    const dist = Math.hypot(dx, dz);
-    bot.f = r2(Math.atan2(dx, dz));
-
-    // Distancia de ataque (espada ~2.2 m)
-    if(dist > 2.2){
-      // Persegue o alvo
-      bot.guarda = false;
-      bot.a = 'run';
-      const vel = 4.8;
-      const k = Math.min(dist - 1.8, vel * dt);
-      bot.x = r2(bot.x + (dx / dist) * k);
-      bot.z = r2(bot.z + (dz / dist) * k);
-    } else {
-      // Em alcance de combate corpo a corpo:
-      bot.guarda = false;
-
-      // Movimentacao de strafe lateral para nao ficar estatico
-      if(t > bot.tStrafe){
-        bot.tStrafe = t + 0.8 + Math.random() * 1.2;
-        bot.strafeDir = Math.random() < 0.5 ? 1 : -1;
+      // Atualiza / busca alvo
+      let alvo = bot.alvoId ? c.jog.get(bot.alvoId) : null;
+      if(!alvo || alvo.morto || alvo.hp <= 0 || Math.hypot(alvo.x - bot.x, alvo.z - bot.z) > 46){
+        alvo = buscaAlvo(bot, c, t);
+        bot.alvoId = alvo ? alvo.id : 0;
       }
-      const sideX = -Math.cos(bot.f) * bot.strafeDir;
-      const sideZ = Math.sin(bot.f) * bot.strafeDir;
-      bot.x = r2(bot.x + sideX * 1.6 * dt);
-      bot.z = r2(bot.z + sideZ * 1.6 * dt);
 
-      // Reacao defensiva ocasional (guarda ou esquiva)
-      if(alvo.a && (alvo.a.startsWith('slash') || alvo.a.startsWith('atk')) && Math.random() < 0.28){
-        if(t > bot.imune + 2.0 && Math.random() < 0.5){
-          // Rola para esquivar
-          bot.a = 'roll';
-          bot.imune = t + 0.45;
-          bot.x = r2(bot.x - Math.sin(bot.f) * 2.5);
-          bot.z = r2(bot.z - Math.cos(bot.f) * 2.5);
-          continue;
+      // Sem alvo: patrulha suave próximo ao ponto de spawn
+      if(!alvo){
+        bot.guarda = false;
+        const dSpawn = Math.hypot(bot.spawnX - bot.x, bot.spawnZ - bot.z);
+        if(dSpawn > 18){
+          const angVolta = Math.atan2(bot.spawnX - bot.x, bot.spawnZ - bot.z);
+          bot.f = r2(angVolta);
+          bot.x = r2(bot.x + Math.sin(angVolta) * 3.5 * dt);
+          bot.z = r2(bot.z + Math.cos(angVolta) * 3.5 * dt);
+          bot.a = 'run';
         } else {
-          // Ergue a guarda
+          bot.a = 'idle';
+        }
+        continue;
+      }
+
+      // Movimentação & Combate com alvo
+      const dx = alvo.x - bot.x;
+      const dz = alvo.z - bot.z;
+      const dist = Math.hypot(dx, dz) || 0.001;
+      const angAlvo = Math.atan2(dx, dz);
+      bot.f = r2(angAlvo);
+
+      const isMago = bot.arma === 'staff';
+      const isGuardiao = bot.arma === 'shield';
+      const distIdeal = isMago ? 10.0 : 2.1;
+
+      // Distância de combate
+      if(dist > distIdeal + 0.5){
+        // Aproximação
+        bot.guarda = false;
+        bot.a = 'run';
+        const vel = 4.8;
+        const k = Math.min(dist - distIdeal, vel * dt);
+        bot.x = r2(bot.x + (dx / dist) * k);
+        bot.z = r2(bot.z + (dz / dist) * k);
+      } else if(isMago && dist < 4.5){
+        // Mago recua se alvo encostar
+        bot.guarda = false;
+        bot.a = 'run';
+        const k = 4.2 * dt;
+        bot.x = r2(bot.x - (dx / dist) * k);
+        bot.z = r2(bot.z - (dz / dist) * k);
+      } else {
+        // Alcance de golpe
+        if(t > bot.tStrafe){
+          bot.tStrafe = t + 1.2 + Math.random() * 1.8;
+          bot.strafeDir = Math.random() < 0.5 ? 1 : -1;
+        }
+
+        // Movimento orbital lateral sutil
+        const lateralAng = angAlvo + Math.PI / 2 * bot.strafeDir;
+        bot.x = r2(bot.x + Math.sin(lateralAng) * 1.5 * dt);
+        bot.z = r2(bot.z + Math.cos(lateralAng) * 1.5 * dt);
+
+        // Guardião: ativa postura de guarda com frequência
+        if(isGuardiao && Math.random() < 0.28 && !bot.guarda){
           bot.guarda = true;
           bot.a = 'guard';
+          setTimeout(() => { if(bot) bot.guarda = false; }, 850);
+        }
+
+        // Esquiva defensiva (roll) quando sob ataque
+        if(bot.atacante && Math.random() < 0.08 && t > bot.tAtk){
+          bot.a = 'roll';
+          bot.imune = t + 0.35;
+          const kRoll = 3.6;
+          bot.x = r2(bot.x + Math.sin(lateralAng) * kRoll);
+          bot.z = r2(bot.z + Math.cos(lateralAng) * kRoll);
+          bot.tAtk = t + 0.6;
+          continue;
+        }
+
+        // Execução de ataque / skills
+        if(t > bot.tAtk && !bot.guarda){
+          bot.tAtk = t + 0.7 + Math.random() * 0.35;
+          const temSkills = bot.skills && bot.skills.length > 0;
+          const usaSkill = temSkills && t > bot.tSkill && Math.random() < 0.45;
+
+          if(usaSkill){
+            bot.tSkill = t + 3.2 + Math.random() * 2.5;
+            const skIdx = sorteio(bot.skills);
+            const anims = ['slash1', 'slash2', 'slash3', 'slash4', 'thrust', 'spin'];
+            bot.a = anims[skIdx % anims.length];
+            bot.tAtk = t + 1.0;
+            CTX.ataque(c, bot, { k: 's', i: skIdx, f: bot.f, p: 1 });
+          } else {
+            const golpe = COMBOS_BASICOS[(bot.combo++) % COMBOS_BASICOS.length];
+            bot.a = bot.combo % 2 ? 'slash1' : 'slash2';
+            CTX.ataque(c, bot, { k: 'b', id: golpe, f: bot.f });
+          }
         }
       }
-
-      // Ataque ofensivo
-      if(t > bot.tAtk && !bot.guarda){
-        bot.tAtk = t + 0.75 + Math.random() * 0.35;
-        const usaSkill = t > bot.tSkill && Math.random() < 0.35;
-
-        if(usaSkill){
-          bot.tSkill = t + 4.5 + Math.random() * 3.0;
-          bot.a = 'slash4';
-          bot.tAtk = t + 1.1;
-          CTX.ataque(c, bot, { k: 's', i: 1, f: bot.f, p: 1 });
-        } else {
-          const golpe = COMBOS_BASICOS[(bot.combo++) % COMBOS_BASICOS.length];
-          bot.a = bot.combo % 2 ? 'slash1' : 'slash2';
-          CTX.ataque(c, bot, { k: 'b', id: golpe, f: bot.f });
-        }
-      }
+    } catch(err){
+      // Protege contra qualquer exceção isolada de um bot
+      console.warn('[Fakes tick erro]', err && err.message);
     }
   }
 }
 
-/* Processa comandos de chat como /bot 10, /bot arena, /bot limpar */
+/* Processa comandos de chat: /bot [qtd] [lv], /bot arena, /bot limpar, /bot matar */
 function comando(c, J, txt){
   if(!CTX || !J) return;
   const partes = txt.trim().split(/\s+/);
   const cmd = (partes[0] || '').toLowerCase();
   const sub = (partes[1] || '').toLowerCase();
-  const arg = partes[2];
+  const arg2 = partes[2];
+  const arg3 = partes[3];
 
   const sis = msg => CTX.envia(J, { t: 'chat', n: 'Sistema', m: msg, c: 's' });
 
   // /painel ou /bot painel
   if(cmd === '/painel' || sub === 'painel'){
-    CTX.envia(J, { t: 'bot_painel', on: true });
+    CTX.envia(J, { t: 'bot_painel', open: true, total: bots.size });
     sis('Painel de Bots PvP aberto.');
     return;
   }
@@ -377,33 +549,34 @@ function comando(c, J, txt){
     return;
   }
 
-  // /bot arena [qtd]
+  // /bot arena [qtd] [lv]
   if(sub === 'arena'){
-    const qtd = Math.min(30, Math.max(1, parseInt(arg, 10) || 10));
+    const qtd = Math.min(30, Math.max(1, parseInt(arg2, 10) || 10));
+    const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
     const cArena = canalArenaPvp();
     const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
-    const sp = spawnBots({ canal: cArena, x: are.x, z: are.z, qtd, modo: 'pvp' });
-    sis(`⚔️ ${sp} bots foram criados na Arena PvP! Vá até a Arena para lutar.`);
+    const sp = spawnBots({ canal: cArena, x: are.x, z: are.z, qtd, modo: 'pvp', lv });
+    sis(`⚔️ ${sp} bots Nv ${lv} foram criados na Arena PvP! Vá até a Arena para lutar.`);
     return;
   }
 
-  // /bot campo [qtd]
+  // /bot campo [qtd] [lv]
   if(sub === 'campo'){
-    const qtd = Math.min(30, Math.max(1, parseInt(arg, 10) || 10));
+    const qtd = Math.min(30, Math.max(1, parseInt(arg2, 10) || 10));
+    const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
     const cCid = canalCidade();
-    // Fora da muralha (x: 0, z: 105) ou na posicao do jogador se ja estiver fora
     const cx = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
     const cz = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
-    const sp = spawnBots({ canal: cCid, x: cx, z: cz, qtd, modo: 'pvp' });
-    sis(`⚔️ ${sp} bots criados no campo aberto fora da muralha!`);
+    const sp = spawnBots({ canal: cCid, x: cx, z: cz, qtd, modo: 'pvp', lv });
+    sis(`⚔️ ${sp} bots Nv ${lv} criados no campo aberto fora da muralha!`);
     return;
   }
 
   // /bot modo [pvp|inimigo|treino]
   if(sub === 'modo'){
-    const modo = (arg || 'pvp').toLowerCase();
+    const modo = (arg2 || 'pvp').toLowerCase();
     if(!['pvp', 'inimigo', 'treino'].includes(modo)){
-      sis('Modos validos: /bot modo pvp | /bot modo inimigo | /bot modo treino');
+      sis('Modos válidos: /bot modo pvp | /bot modo inimigo | /bot modo treino');
       return;
     }
     let n = 0;
@@ -425,28 +598,33 @@ function comando(c, J, txt){
   // /bot ajuda | /bot help
   if(sub === 'ajuda' || sub === 'help'){
     sis('--- COMANDOS DE BOTS PVP ---');
-    sis('/bot 10  -> Cria 10 bots PvP ao seu redor');
-    sis('/bot arena 10 -> Cria 10 bots na Arena PvP');
-    sis('/bot campo 10 -> Cria 10 bots fora da muralha');
-    sis('/bot limpar  -> Deleta todos os bots');
-    sis('/bot matar   -> Abate todos os bots');
-    sis('/bot modo [pvp|inimigo|treino] -> Muda comportamento');
-    sis('/bot painel  -> Abre o Painel Visual de Controle');
+    sis('/bot 10           -> Cria 10 bots com seu nível');
+    sis('/bot 10 76        -> Cria 10 bots Nv 76 (Grau S)');
+    sis('/bot arena 10 40  -> Cria 10 bots Nv 40 na Arena PvP');
+    sis('/bot campo 10 20  -> Cria 10 bots Nv 20 fora da muralha');
+    sis('/bot limpar       -> Deleta todos os bots');
+    sis('/bot matar        -> Abate todos os bots ativos');
+    sis('/bot modo pvp     -> Muda comportamento (pvp|inimigo|treino)');
+    sis('/painel           -> Abre o Painel Visual');
     return;
   }
 
-  // /bot [numero] (ex: /bot ou /bot 10 ou /bot 5)
+  // /bot [numero] [lv] (ex: /bot 10 ou /bot 10 76 ou /bot 5 20)
   const qtdNum = parseInt(sub, 10);
   const qtd = isNaN(qtdNum) ? 10 : Math.min(30, Math.max(1, qtdNum));
-  const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, modo: 'pvp', lv: J.lv || 25 });
-  sis(`⚔️ ${sp} bots criados ao seu redor! Boa luta!`);
+  const lvNum = parseInt(arg2, 10);
+  const lv = isNaN(lvNum) ? (J.lv || 40) : Math.min(85, Math.max(1, lvNum));
+
+  const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, modo: 'pvp', lv });
+  sis(`⚔️ ${sp} bots Nv ${lv} criados ao seu redor! Boa luta!`);
 }
 
-/* Executa acoes vindas do Painel de Controle (m.t === 'bot_cmd') */
+/* Executa ações vindas do Painel de Controle (m.t === 'bot_cmd') */
 function executa(c, J, m){
   if(!CTX || !J) return;
   const acao = String(m.acao || '').toLowerCase();
   const qtd = Math.min(30, Math.max(1, parseInt(m.qtd, 10) || 10));
+  const lv = Math.min(85, Math.max(1, parseInt(m.lv, 10) || J.lv || 40));
   const modo = ['pvp', 'inimigo', 'treino'].includes(m.modo) ? m.modo : 'pvp';
 
   if(acao === 'spawn'){
@@ -463,9 +641,9 @@ function executa(c, J, m){
       z = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
     }
 
-    const criados = spawnBots({ canal, x, z, qtd, modo, lv: J.lv || 25 });
+    const criados = spawnBots({ canal, x, z, qtd, modo, lv });
     CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });
-    CTX.envia(J, { t: 'chat', n: 'Sistema', m: `⚔️ Painel: ${criados} bots spawnados com sucesso!`, c: 's' });
+    CTX.envia(J, { t: 'chat', n: 'Sistema', m: `⚔️ Painel: ${criados} bots Nv ${lv} spawnados com sucesso!`, c: 's' });
   } else if(acao === 'limpar'){
     const removidos = limparBots(m.tudo ? null : c);
     CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });
@@ -492,5 +670,7 @@ module.exports = {
   tick,
   comando,
   executa,
+  setupPorNivel,
+  grauPorNivel,
   get total(){ return bots.size; }
 };

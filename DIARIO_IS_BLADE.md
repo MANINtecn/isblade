@@ -4390,3 +4390,28 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   - Exposto metodo Net.botCmd(o) para comunicacao direta via WebSocket com o pacote ot_cmd.
   - Adicionado listener para ot_painel (abertura remota) e ot_info (atualizacao do contador em tempo real).
   - Incluido script js/painel_bots.js nas paginas principais prototipo/cidade.html e prototipo/arena.html.
+- [Claude] 16/11 (rev. dono): escudo da carga corrigido para mirar reto a frente (rotacao do Bip01_L_Hand nas chaves 10 e 98); soltura virou LEQUE de luz de 45 graus em 3D (cone de veu + miolo suave + 11 raios finos em direcoes do cone + 3 frentes em losango + lascas), alcance 10 m. Decidido pelo dono: toque rapido solta na hora (sem esperar 3 s) e o feixe sai no instante em que soltar; dano pela carga 60% (na hora) / 100% (1 s) / 150% (2 s) / 200% (3 s, solta sozinho). No jogo o acerto vira cone de 45 graus x 10 m (port pendente).
+- [Claude] 16/11 (rev. dono 2-4): leque fechado 45 -> 25 -> 16 graus no total (meia abertura 8), boca no escudo mais estreita (raio 3); veu preenchido (sem buracos entre filamentos, base 0.45), frentes em losango removidas (contorno duro), queda explicita ao longo do comprimento (t^2) para as pontas se dissolverem sem corte reto. Dono: 'perfeito demais'. No jogo o acerto vira cone de 16 graus x 10 m.
+
+
+### [Claude] 16/11 - Bots PvP com Nivel, Graus, Armaduras 3D, Armas e Skills (Correcao do Disconnect)
+
+- **Correcao Critica de Disconnect**:
+  - Identificada e corrigida causa do disconnect/crash: a entidade bot no servidor nao continha os objetos de estado de recarga (cd: {}, ultSk, ultB), fazendo com que no instante em que o bot disparava sua primeira skill de combate (ataque), A.cd[A.arma + i] lancasse TypeError: Cannot read properties of undefined no laco do server.js, fechando a conexao WebSocket.
+  - Adicionado cd: {} e todos os campos nativos do jogador nos bots, alem de trava defensiva if(!A.cd) A.cd = {}; no server.js.
+  - Tratamento de ganhaXp, fimPk e tiro (soulshots) para ignorar bots e nao tentar salvar em Contas.grava() ou descarregar itens/karma.
+- **Visual dos Bots Nao Mais Pelados (Sets de Armaduras 3D)**:
+  - O cliente carregava os modelos basicos human_fighter.glb e elf_f.glb (modelos starter sem armadura) devido a falta de mapeamento no dicionario HERO do net.js.
+  - Mapeadas todas as armaduras 3D no HERO (human_fighter_brigandine, human_fighter_fullplate, human_fighter_doom, human_fighter_imperial, human_fighter_nograde, elf_f_brigandine, elf_f_fullplate, elf_f_doom, elf_f_tallum, elf_f_nograde, dwarf_f_*, etc.).
+  - Fallbacks nativos configurados para que nenhum personagem remoto ou bot jamais apareca pelado.
+- **Configuracao Completa por Nivel e Grau Lineage 2**:
+  - **Nv 1-19 (No-Grade)**: Sets No-Grade nativos, armas basicas (sword_long, gladius, staff_arcane), encanto +0, 1 skill desbloqueada, ~600 HP.
+  - **Nv 20-39 (Grau D)**: Set Brigandine, armas D (claymore, bastard_sword, ghost_staff), encanto +4 (glow azul), 2 skills desbloqueadas, ~1500 HP.
+  - **Nv 40-51 (Grau C)**: Set Full Plate Armor, armas C (berserker_blade, samurai_longsword, ghouls_staff), encanto +7 (glow azul vivido), 3 skills desbloqueadas, ~3150 HP.
+  - **Nv 52-60 (Grau B)**: Set Doom Plate Armor, armas B (great_sword, samurai_longsword, valhalla), encanto +10 (glow purpura), 4 skills desbloqueadas, ~4100 HP.
+  - **Nv 61-75 (Grau A)**: Set Tallum / Imperial, armas A (dragon_slayer, berserker_blade, sword_of_miracles), encanto +13 (glow avermelhado), 5 skills desbloqueadas, ~5150 HP.
+  - **Nv 76-85 (Grau S)**: Set Imperial Crusader / Tallum, Dragon Slayer lendaria, encanto +16 (glow vermelho lendario de heroi do L2), 7 de 7 skills desbloqueadas, ~6900 HP.
+- **Painel de Controle Visual e Comandos de Chat**:
+  - Painel atualizado com seletor de Nivel e Grau (Nv 20 D, Nv 40 C, Nv 52 B, Nv 61 A, Nv 76 S + ajuste fino de 1 a 85).
+  - Preview dinamico de equipamento, armas, glow e skills no painel antes de invocar.
+  - Comandos no chat expandidos: /bot 10 76 (10 bots Nv 76 Grau S), /bot arena 10 40 (na arena), /bot campo 10 20 (fora da muralha).
