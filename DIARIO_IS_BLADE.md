@@ -4246,3 +4246,23 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - Ícone do livro de habilidades posicionado no dock inferior do L2 (`#l2-menu-wnd`), visível e acessível no mobile ao lado da barra inferior, eliminando ícones flutuantes soltos no topo direito da tela.
   5. **Pipeline de Entrega Web (Meshopt + WebP)**:
      - Executado `node tools/assets_web/otimizar.mjs`, atualizando 22 modelos GLB modificados para o diretório `assets_web/` com compressão meshopt e texturas WebP (tamanho global reduzido em 58%), e sincronizados os hashes em `assets_manifesto.js`.
+
+
+### [Antigravity] 16/11/2026 - Aumento de Velocidade de Movimento Base e Corrida (Opção 2: Ágil / MMO Moderno)
+
+- **Diretriz Atendida**:
+  - *"preciso aumentar a velocidade de movimento dos personagems, e quando em corrida tambem, traz pra mim os numeros antes"*
+  - *"2"* (Escolha da Opção 2 - Perfil Ágil e Dinâmico)
+
+- **Valores Configurados**:
+  - **Velocidade Base (Andar/Run normal)**: Aumentada de `4.3 m/s` (~15.5 km/h) para `6.2 m/s` (~22.3 km/h).
+  - **Multiplicador de Corrida (Sprint / Shift)**: Ajustado de `1.8x` para `1.855x`, resultando em `11.5 m/s` (~41.4 km/h).
+  - **Andar em Guarda (Bloqueio / Escudo)**: Ajustado de `2.2 m/s` para `3.0 m/s`.
+  - **Sincronia de Animação de Passada**: `timeScale` máximo da animação ajustado dinamicamente para até `2.05x` no sprint para manter passos precisos sem deslizar.
+  - **Limite Anti-Cheat no Servidor (`server.js`)**: `VMAX` elevado de `14 m/s` para `17 m/s` para dar margem segura de latência de rede no sprint e rolamentos.
+
+- **Arquivos Atualizados**:
+  - `prototipo/data/combate.json`: `player.run` atualizado para `6.2`.
+  - `prototipo/arena.html`: `SPRINT_MULT = 1.855`, guarda `3.0`, `d.cur.timeScale` clamp expandido.
+  - `prototipo/cidade.html`: `SPRINT_MULT = 1.855`, guarda `3.0`, `d.cur.timeScale` clamp expandido.
+  - `servidor/server.js`: `VMAX = 17`.

@@ -17,7 +17,7 @@ const origemOk = o => !ORIGINS.length || ORIGINS.some(p => casa(p, o));
 const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), origemOk });      /* cadastro rapido + salvamento na nuvem (contas.js) */
 const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
-const VMAX = 14;                                                   /* m/s: corrida ~4,3, esquiva 4,6 m em 0,4 s = 11,5; folga de latencia */
+const VMAX = 17;                                                   /* m/s: base 6.2 m/s, sprint 11.5 m/s, esquiva 4.6 m em 0.4 s; folga de latencia */
 const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } }, curuma: { aberto: 1 }, fortress: { aberto: 1 }, pantano: { aberto: 1 } };
 /* [mapas-multi] 08/11/2026 (dono: todos os mapas multijogador): Cruma, Fortaleza e Pantano tem canais como a cidade (50 por canal); o jogador entra onde o
    jogo o coloca (posicao inicial vem do cliente) e manda a altura (y) para os outros o desenharem no relevo. Ninguem fere ninguem la (PvP com flag vem depois);

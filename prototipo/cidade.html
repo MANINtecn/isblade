@@ -6586,7 +6586,7 @@ function playerLoco(){
 
   if((want==='run'||want==='run_hand'||want==='Run_1HS_MFighter'||want==='Run_1HS'||want==='g_run_rest')&&d.cur){
 
-    d.cur.timeScale = clamp(Math.hypot(S.vx,S.vz)/RUN, 0.75, S.sprint?1.9:1.08);
+    d.cur.timeScale = clamp(Math.hypot(S.vx,S.vz)/RUN, 0.75, S.sprint?2.05:1.15);
 
   }
 
@@ -10171,7 +10171,7 @@ function doAct(type,arg){
 /* >>> CLAUDE [pulo] Espaco pula; a guarda virou a skill universal 'C' (segurar). Igual a arena.html. */
 var JUMP_V=12,JUMP_G=34,JUMP_COST=5;
 /* >>> CLAUDE [corrida] Shift: esquiva NA HORA ao apertar; continuar segurando (> SPRINT_HOLD s) = correr; segurar (> SPRINT_HOLD s) = correr mais rapido, gastando estamina aos poucos. Ajustar aqui. */
-var SPRINT_HOLD=.35,SPRINT_MULT=1.8,SPRINT_DRAIN=7,SPRINT_MIN=12;
+var SPRINT_HOLD=.35,SPRINT_MULT=1.855,SPRINT_DRAIN=7,SPRINT_MIN=12;
 /* <<< CLAUDE [corrida] */
 function jumpH(){return S.jy||0;}
 function doJump(){
@@ -15927,7 +15927,7 @@ function frame2(dt,T){
     /* [corrida] segurou Shift: corre se ha estamina, nao esta guardando nem usando skill; so volta a correr soltando e apertando de novo */
     var segurando=S.shiftDown&&(performance.now()-S.shiftT)>=SPRINT_HOLD*1000;
     if(segurando&&!S.guard&&!an0&&S.st>(S.sprint?0:SPRINT_MIN)){S.sprint=true;S.st=Math.max(0,S.st-SPRINT_DRAIN*dt);S.stDelay=Math.max(S.stDelay,.5);if(S.st<=0){S.shiftDown=false;S.sprint=false;}}else S.sprint=false;
-    var spd=(S.guard?2.2:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1);
+    var spd=(S.guard?3.0:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1);
 
 
 
