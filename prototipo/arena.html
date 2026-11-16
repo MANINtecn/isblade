@@ -11,7 +11,7 @@
 
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
-<link rel="stylesheet" href="css/l2_hud.css?v=44">
+<link rel="stylesheet" href="css/l2_hud.css?v=45">
 <link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
@@ -6953,6 +6953,7 @@ function invDoServidor(m){
 /* [loja] consumiveis e loja (js/loja.js + data/loja.json): o servidor gasta e devolve o efeito */
 function lojaEstado(){var R=ITM.rarities;return {srv:INV_SRV,adena:ADENA,consum:CONSUM,todos:INV.items.map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,en:i.en|0,slot:b?b.slot:'',equip:Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;})};}),bolsa:INV.items.filter(function(i){return !Object.keys(INV.equip).some(function(s){return INV.equip[s]===i.uid;});}).map(function(i){var b=baseOf(i.base),r=R[i.rar]||{};return {uid:i.uid,nome:b?b.name:i.base,rar:i.rar,cor:r.css,raridade:r.name,vm:(ArmaGrau.info(ITM,b).venda||1),ico:window.InvUI?InvUI.icone(b,{tam:30}):''};})};}
 function usarConsumivel(id){if(!INV_SRV){gestMsg('Disponível só conectado ao servidor.');return;}if(S.pdead)return;Net.usar(id);}
+window.usarConsumivel = usarConsumivel;/* [barra-l2] a barra de atalhos (l2_hud.js) chama por window */
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
   if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');if(!som('pocao'))try{SFX.play('ui');}catch(_){}renderHud();}

@@ -4300,3 +4300,51 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - Adicionados aliases de raça direta em `RACE_CONFIG` (`darkelf`, `elf`, `orc`, `dwarf`, `magic`, `human`).
   - `prototipo/js/net.js`:
     - Adicionado `darkelf: 'darkelf_f.glb?v=5'` em `HERO` para multiplayer.
+
+### [Claude] 16/11 - Home nova do l2ikarus.com (L2 Ikarus Web) no branch l2ikarus-web do site
+
+- Plano do dono: l2ikarus.com vira a central do L2 Ikarus Web (este jogo), destaque total, PC e celular; "Jogar" carrega o jogo; nada de 300x/VPS/L2 classico (so um "L2 Classico (PC) - em breve" discreto no rodape). Pagamento PIX/Ikoin do site e reaproveitado. Venda = skins compradas com Ikoin (catalogo ainda a definir). Etapa final: renomear o jogo para l2ikarus.tecx.pro.
+- Repo do site (`L2 IKARUS INTERCROW/site`): branch local `l2ikarus-web` criado a partir do main (main = versao no ar, intocada). SEM commit e SEM push.
+- Arquivos novos: `src/assets/components/PaginaIkarusWeb.jsx/.css`, `src/config/ikarusWeb.js` (URL do jogo e textos: trocar so ali na renomeacao), `public/media/web/` (capa e templo em webp, vindos do prototipo).
+- `src/App.jsx`: `/` abre a home nova; o Sandbox continua em `/sandbox` (sem link). Login, cadastro, painel do jogador (compra de Ikoin no PIX) e admin sao os mesmos de antes.
+- `index.html`: titulo/descricao/og do hack and slash, lang pt-BR.
+- Conferido no navegador (Edge headless, 1440 e 390 px): sem erro de JS, sem rolagem lateral.
+- Pendente: catalogo de skins e entrega da skin no jogo; ligar a conta do site a conta do jogo; trocar o endereco do jogo na renomeacao final.
+
+### [Claude] 16/11 - Barra de atalhos L2: tecla visivel no slot e pocao voltando a funcionar
+
+- Ordem dos 12 slots (ja era o padrao em `js/l2_hud.js`): Q, E, R, F, T, G = 6 skills da build; 1 a 6 = consumiveis (shot, pocao HP/MP/CP, pergaminhos).
+- Tecla agora aparece no canto do slot sem passar o mouse: `css/l2_hud.css` tinha `.l2-sc-key { display:none !important }`; virou etiqueta pequena no canto superior esquerdo. Cache do CSS subiu para `?v=45` em cidade.html e arena.html.
+- Pocao no slot nao curava nem gastava: `usarConsumivel` vive dentro do `<script type="module">`, entao `window.usarConsumivel` era undefined e o clique/tecla nao fazia nada. Exposto com `window.usarConsumivel = usarConsumivel` em cidade.html e arena.html. Continua exigindo estar conectado ao servidor (o servidor gasta e devolve a cura).
+- Nao mexido: clique no Soulshot chama `window.usarSoulshot`, que nao existe; o shot ja e automatico no servidor (gasta 1 por ataque). Botao direito so liga/desliga o brilho de auto.
+
+### [Antigravity] 16/11 - IA Jogador SextaFeira: Autonomia Solo, Assist de Combate e Entrada em Dungeon com Grupo
+
+- **Diagnostico e Correcoes das Causas Raizes**:
+  1. *Na Cidade (`tickCidade`)*: A IA ignorava o lider da party, apenas circulando aleatoriamente no chafariz e depois de 40-100s partia sozinha para o portal de Cruma. Corrigido: implementado `achaLider()`, seguindo o lider ativamente na cidade (passo firme a 3.8 m/s e corrida a 6.2 m/s se a distancia for maior que 7m), parando ao lado e olhando para o lider (`idle`) a 2.8m. Cancelada a saida solitaria da cidade enquanto estiver em grupo.
+  2. *Suporte e Entrada na Dungeon (`masmorra`)*:
+     - Adicionado suporte completo ao mapa `masmorra` no dicionario `ABERTO` e em `Jogador.entra('masmorra')` (removido mapa hardcoded `'cidade'` no handshake de join).
+     - Adicionada escuta e tratamento dos eventos de grupo e dungeon do servidor: `t: 'party'`, `t: 'dgconvite'`, `t: 'recanal'`, `t: 'dg'` e `t: 'dgs'`.
+     - Ao detectar que o lider entrou na masmorra (`L.mapa === 'masmorra'` ou `dgconvite`), a IA conecta automaticamente na mesma instancia da dungeon pelo sistema de party do servidor (`canalMasmorra`).
+     - Criado `tickMasmorra`: a IA segue o lider pelas salas da masmorra, prioriza o Baium caso esteja ativo (`bsnap`) atacando com `dg: { k: 'bhit' }`, ou ataca os mobs da masmorra (`snap`) com `dg: { k: 'hit' }`, tocando as animacoes de golpe e espada na rede.
+     - Quando a DG termina (`dg: { k: 'end' }` ou lider sai da masmorra), a IA limpa os mobs e retorna a cidade junto com o lider.
+  3. *Assist de Combate no Mundo Aberto (`tickCaca`)*:
+     - Em grupo, a IA mantem tethering com o lider.
+     - Prioridade 1 de combate: proteger o lider alvejando imediatamente qualquer mob que esteja atacando o lider (`m[11] === L.id`).
+     - Prioridade 2: focar o mob mais proximo do lider ou atacado pela party.
+  4. *Autonomia Solo Completa (Evolucao Sozinha)*:
+     - Na cidade sem grupo: tempo de descanso reduzido para 12-18s (suficiente para curar, comprar pocoes com Galladucci, equipar itens do inventario e distribuir atributos 70% FOR / 30% VIT).
+     - Rota de caca inteligente: caminha ao portal do mapa ideal (`mapaIdeal()`: Cruma ate Nv 15, Fortaleza ate Nv 30, Pantano Nv 30+) e, caso encontre obstaculos ou ultrapasse 16s de deslocamento na vila, transpoe automaticamente para o mapa de caca sem travar.
+     - Ciclo de sustentabilidade: volta a cidade quando acabam as pocoes ou sobe para uma nova faixa de nivel, reabastece e retoma o farm.
+  5. *Comunicacao e Comandos no Chat*:
+     - Responde prontamente no chat de grupo a comandos do lider (ex: "vem", "segue", "espera", "fica").
+     - Comemora no chat de grupo ao limpar salas da DG ou derrotar chefes.
+
+### [Claude] 16/11 - Painel do jogador e login novos no l2ikarus.com (branch l2ikarus-web)
+
+- Dono aprovou a home; progressao no site corrigida para nivel 99 e 5 pontos por nivel (status reais do L2 virao depois).
+- Painel novo `PainelIkarusWeb.jsx/.css` (so na home nova): abas Carteira (saldo, Comprar Ikoin no PIX, resgatar codigo, historico via /api/player/wallet), Loja de skins (em breve), Personagens (em breve + Jogar), Indicacao (componente antigo). Login novo no mesmo estilo. Ikoin em losango (`IkoinEmblema.jsx`).
+- Mesmas APIs de antes, nada mudou em `api/`. O PlayerPanel antigo continua em /sandbox e /jogos.
+- Removido do painel novo: Community Board (Alt+B), Troca de Classe, PvP total, personagens do banco do L2 classico.
+- Commits locais no branch (c48f895 home, + painel). Sem push. Hook do repo do site tenta avisar no Discord e falha (webhook inexistente) sem impedir o commit.
+- Pendente (etapa 2, mexe em servidor/banco, esperando o dono): unificar conta do site com a do jogo, personagens do jogo no painel, skin comprada chegar no jogo. Tela de cadastro (RegisterModal) ainda com a cara antiga.

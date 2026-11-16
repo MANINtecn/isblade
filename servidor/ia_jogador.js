@@ -25,7 +25,8 @@ const PORTAIS = JSON.parse(fs.readFileSync(path.join(RAIZ, 'assets', 'talking_is
 const ABERTO = {                                                /* mapa do servidor -> entrada (mesma do jogo) e portal da cidade */
   curuma: { spawn: [-50, 12], portal: 'curuma', nome: 'Torre de Cruma' },
   fortress: { spawn: [0, 27], portal: 'fortress', nome: 'Fortaleza' },
-  pantano: { spawn: [14.9, -43.9], portal: 'blazing', nome: 'Pantano Flamejante' }
+  pantano: { spawn: [14.9, -43.9], portal: 'blazing', nome: 'Pantano Flamejante' },
+  masmorra: { spawn: [0, 6], portal: 'toi', nome: 'Torre da Insolencia' }
 };
 const PERSONAS = [
   { nome: 'SextaFeira', user: 'ia_sextafeira', raca: 'human_m', classe: 'guerreiro', jeito: 'animado, competitivo, gosta de upar rapido e de ajudar iniciante' },
@@ -79,8 +80,8 @@ async function falaClaude(b, pedido){
   if(!claude || !podeFalarClaude()) return null;
   FALAS_USADAS.push(agora());
   const chat = b.chat.slice(-14).map(l => l.n + ': ' + l.m).join('\n') || '(chat vazio)';
-  const ctx = 'Seu estado agora: Nivel ' + b.lvl + ', ' + (b.mapa === 'cidade' ? 'na cidade Talking Island' : 'caçando em ' + (ABERTO[b.mapa] || {}).nome) +
-    ', vida ' + Math.round(b.hp / b.pmax * 100) + '%, ' + b.fazendo + '.' + (b.lider ? ' Voce esta numa party com ' + (b.liderNome || 'alguem') + '.' : '') +
+  const ctx = 'Seu estado agora: Nivel ' + b.lvl + ', ' + (b.mapa === 'cidade' ? 'na cidade Talking Island' : (b.mapa === 'masmorra' ? 'na masmorra da Torre da Insolencia' : 'caçando em ' + (ABERTO[b.mapa] || {}).nome)) +
+    ', vida ' + Math.round(b.hp / b.pmax * 100) + '%, ' + b.fazendo + '.' + (b.liderNome ? ' Voce esta numa party com ' + b.liderNome + '.' : '') +
     '\n\nChat recente:\n' + chat + '\n\n' + pedido;
   try {
     const req = { model: MODELO, max_tokens: 2000, output_config: { effort: 'low' }, system: sistema(b.p), messages: [{ role: 'user', content: ctx }] };
@@ -95,7 +96,9 @@ const PRONTAS = {
   oi: ['opa, salve', 'eae', 'fala tu', 'salve salve'], bot: ['sou um jogador IA do servidor kkk, mas to upando de verdade'],
   ajuda: ['vai na cruma primeiro, os sapos perto da entrada sao tranquilos', 'compra pocao com o galladucci antes de sair', 'no nv 20 o mammon vende grau D'],
   sobe: ['upei!! nv ', 'mais um nivel, nv '], morte: ['morri kkk vacilo meu', 'aff, morri', 'esses mobs bateram forte'],
-  drop: ['dropou um item aqui', 'olha o drop kkk'], pk: ['ta de sacanagem? kkk', 'pk safado', 'vem entao'], solto: ['alguem upando na cruma?', 'bora party?', 'que mapa bonito esse', 'to farmando aqui']
+  drop: ['dropou um item aqui', 'olha o drop kkk'], pk: ['ta de sacanagem? kkk', 'pk safado', 'vem entao'], solto: ['alguem upando na cruma?', 'bora party?', 'que mapa bonito esse', 'to farmando aqui'],
+  party: ['opa, tamo junto!', 'bora upar!', 'partiu!', 'so me puxar que eu ajudo!'],
+  dg: ['bora, to pronto pra dg!', 'partiu masmorra!', 'boa, sala limpa!']
 };
 async function fala(b, motivo, pedido){
   if(agora() - b.ultFala < 6) return;
@@ -104,6 +107,7 @@ async function fala(b, motivo, pedido){
     if(motivo === 'oi') txt = sorteio(PRONTAS.oi); else if(motivo === 'bot') txt = sorteio(PRONTAS.bot); else if(motivo === 'ajuda') txt = sorteio(PRONTAS.ajuda);
     else if(motivo === 'sobe') txt = sorteio(PRONTAS.sobe) + b.lvl; else if(motivo === 'morte') txt = sorteio(PRONTAS.morte); else if(motivo === 'drop') txt = sorteio(PRONTAS.drop);
     else if(motivo === 'pk') txt = sorteio(PRONTAS.pk); else if(motivo === 'solto') txt = sorteio(PRONTAS.solto);
+    else if(motivo === 'party') txt = sorteio(PRONTAS.party); else if(motivo === 'dg') txt = sorteio(PRONTAS.dg);
   }
   if(!txt) return;
   b.ultFala = agora(); setTimeout(() => { b.send({ t: 'chat', m: txt, c: motivo === 'party' ? 'g' : undefined }); log(b, 'fala:', txt); }, 900 + txt.length * 70);   /* tempo de "digitar" */
@@ -113,30 +117,144 @@ async function fala(b, motivo, pedido){
 class Jogador {
   constructor(p){ Object.assign(this, { p, ws: null, id: 0, mapa: 'cidade', x: 0, z: 6, y: 0, f: 0, hp: 100, pmax: 100, lvl: 1, xp: 0, pontos: 0, attr: {}, inv: null, adena: 0, pocoes: 0,
     mobs: [], alvo: 0, tAtk: 0, combo: 0, tSkill: 0, imune: 0, tMorte: 0, morto: false, chat: [], ultFala: 0, tSolto: agora() + 120 + Math.random() * 240, fazendo: 'chegando',
-    rumo: null, tRumo: 0, lider: 0, liderNome: '', jog: new Map(), pkAlvo: 0, pkAte: 0, tPocao: 0, tCidade: 0, anim: 'idle', entrando: false, tUltHit: 0, eqT: {}, tLog: 0, abates: 0, ignora: {}, desvio: null }); }
+    rumo: null, tRumo: 0, lider: 0, liderNome: '', liderSid: '', liderId: 0, liderMapa: '', grupo: null, dgMobs: new Map(), dgBoss: null, tEspera: 0,
+    jog: new Map(), pkAlvo: 0, pkAte: 0, tPocao: 0, tCidade: 0, anim: 'idle', entrando: false, tUltHit: 0, eqT: {}, tLog: 0, abates: 0, ignora: {}, desvio: null }); }
   send(o){ if(this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(o)); }
   async inicia(){ const c = await contaDe(this.p); this.tk = c.tk; this.cid = c.ch.id; this.nome = c.ch.name; this.lvl = c.ch.level || 1; log(this, 'conta pronta, personagem', this.nome); this.entra('cidade'); setInterval(() => this.tick(), 100); }
+  achaLider(){
+    if(!this.liderNome && !this.liderId && !this.liderSid) return null;
+    if(this.liderId && this.jog.has(this.liderId)){ const j = this.jog.get(this.liderId); if(!j.morto) return j; }
+    for(const [id, j] of this.jog.entries()){
+      if((this.liderNome && j.nome && j.nome.toLowerCase() === this.liderNome.toLowerCase()) || (this.liderSid && j.sid === this.liderSid)){
+        this.liderId = id; if(!j.morto) return j;
+      }
+    }
+    return null;
+  }
   /* [pagina-unica] 09/11/2026: o mundo aberto e um canal so (o da cidade), em coordenadas do mundo. A IA continua pensando nas coordenadas do mapa
      onde caca (spots, walkgrid) e converte so na rede: manda posicao do mundo, recebe mobs/jogadores do mundo. */
-  xf(){ return this.mapa === 'cidade' ? null : Mobs.xfDe(this.mapa); }
+  xf(){ return (this.mapa === 'cidade' || this.mapa === 'masmorra') ? null : Mobs.xfDe(this.mapa); }
   praRede(x, z){ const X = this.xf(); return X ? Mobs.praMundo(X, x, z) : [x, z]; }
   daRede(x, z){ const X = this.xf(); return X ? Mobs.praLocal(X, x, z) : [x, z]; }
   entra(mapa){
     if(this.ws){ try { this.ws.removeAllListeners(); this.ws.close(); } catch(e){} }
     this.mapa = mapa; this.mobs = []; this.jog.clear(); this.alvo = 0; this.entrando = true; this.morto = false;
-    if(mapa === 'cidade'){ const a = Math.random() * 6.28; this.x = Math.sin(a) * 4; this.z = 6 + Math.cos(a) * 4; this.y = 0; this.tCidade = agora() + 40 + Math.random() * 60; this.fazendo = 'na cidade'; }
-    else { const A = ABERTO[mapa]; this.x = A.spawn[0] + (Math.random() - .5) * 4; this.z = A.spawn[1] + (Math.random() - .5) * 4; const G = Mobs.grade(mapa), h0 = SPOTS[Mobs.CFG[mapa].spots].spots[0].h; this.y = (G && G.chao(this.x, this.z, h0)) || h0; this.fazendo = 'caçando'; }
+    this.dgMobs.clear(); this.dgBoss = null;
+    if(mapa === 'cidade'){
+      const a = Math.random() * 6.28; this.x = Math.sin(a) * 4; this.z = 6 + Math.cos(a) * 4; this.y = 0;
+      this.tCidade = agora() + (this.liderNome ? 999999 : (12 + Math.random() * 15));
+      this.fazendo = 'na cidade';
+    } else if(mapa === 'masmorra'){
+      this.x = (Math.random() - .5) * 3; this.z = 6 + (Math.random() - .5) * 3; this.y = 0;
+      this.fazendo = 'na masmorra';
+    } else {
+      const A = ABERTO[mapa] || ABERTO.curuma;
+      this.x = A.spawn[0] + (Math.random() - .5) * 4; this.z = A.spawn[1] + (Math.random() - .5) * 4;
+      const G = Mobs.grade(mapa), h0 = (SPOTS[Mobs.CFG[mapa].spots] && SPOTS[Mobs.CFG[mapa].spots].spots[0].h) || 0;
+      this.y = (G && G.chao(this.x, this.z, h0)) || h0; this.fazendo = 'caçando';
+    }
     const ws = this.ws = new WebSocket(WSURL, { headers: { 'x-ia': process.env.IA_SEGREDO || '' } });      /* segredo: o servidor que me ligou aceita sem Origin */
-    ws.on('open', () => this.send({ t: 'join', tk: this.tk, cid: this.cid, sid: 'ia_' + this.cid, nome: this.nome, raca: this.p.raca, cls: 'fighter', arma: 'sword', pmax: this.pmax, mapa: 'cidade', canal: 1, x: r2(this.praRede(this.x, this.z)[0]), z: r2(this.praRede(this.x, this.z)[1]) }));
+    ws.on('open', () => this.send({
+      t: 'join', tk: this.tk, cid: this.cid, sid: 'ia_' + this.cid, nome: this.nome, raca: this.p.raca, cls: 'fighter',
+      arma: 'sword', pmax: this.pmax, mapa: mapa === 'masmorra' ? 'masmorra' : 'cidade', canal: 1,
+      x: r2(this.praRede(this.x, this.z)[0]), z: r2(this.praRede(this.x, this.z)[1])
+    }));
     ws.on('message', d => { let m; try { m = JSON.parse(d); } catch(e){ return; } this.msg(m); });
     ws.on('close', () => { if(this.ws === ws){ this.ws = null; setTimeout(() => { if(!this.ws) this.entra(this.mapa); }, 5000); } });
     ws.on('error', () => {});
   }
+  trataGrupo(grp){
+    if(!grp || !Array.isArray(grp.m)) return;
+    this.grupo = grp;
+    const L = grp.m.find(x => x.sid === grp.lider);
+    if(L){
+      this.liderNome = L.nome;
+      this.liderSid = L.sid;
+      this.liderId = L.id || this.liderId;
+      this.lider = L.id || this.lider;
+      const mapaAntigo = this.liderMapa;
+      this.liderMapa = L.mapa;
+
+      if(L.mapa === 'masmorra' && this.mapa !== 'masmorra'){
+        log(this, 'Lider entrou na masmorra! Entrando junto...');
+        this.entra('masmorra');
+      } else if(L.mapa !== 'masmorra' && this.mapa === 'masmorra'){
+        log(this, 'Lider saiu da masmorra! Voltando a cidade...');
+        this.entra('cidade');
+      } else if(mapaAntigo && L.mapa && L.mapa !== mapaAntigo && L.mapa !== this.mapa && this.mapa !== 'cidade'){
+        log(this, 'Lider mudou de area para', L.mapa);
+        if(L.mapa === 'cidade') this.entra('cidade');
+        else if(ABERTO[L.mapa]) this.entra(L.mapa);
+      }
+    }
+  }
   msg(m){
-    if(m.t === 'w'){ this.id = m.id; this.entrando = false; if(m.prog) this.prog(m.prog, true); (m.jog || []).forEach(o => this.jog.set(o.id, { id: o.id, nome: o.nome, x: o.x, z: o.z })); log(this, 'entrou em', this.mapa, 'canal', m.canal, 'Nv', this.lvl); if(this.mapa === 'cidade') this.cidade(); }
-    else if(m.t === 's'){ const vis = new Set(); for(const p of m.p){ vis.add(p[0]); const o = this.jog.get(p[0]) || { id: p[0] }; const q = this.daRede(p[1], p[2]); o.x = q[0]; o.z = q[1]; o.morto = !!p[7]; o.pk = p[10] | 0; this.jog.set(p[0], o); } }
-    else if(m.t === 'j' || m.t === 'entrou'){ if(m.e || m.j){ const e = m.e || m.j; this.jog.set(e.id, Object.assign(this.jog.get(e.id) || {}, { id: e.id, nome: e.nome })); } }
-    else if(m.t === 'ms'){ const X = this.xf(); this.mobs = !X ? m.m : m.m.map(a => { const q = Mobs.praLocal(X, a[2], a[3]); const o = a.slice(); o[2] = q[0]; o[3] = q[1]; o[4] = a[4] - X.y; return o; }); }
+    if(m.t === 'w'){
+      this.id = m.id; this.entrando = false; if(m.prog) this.prog(m.prog, true);
+      (m.jog || []).forEach(o => this.jog.set(o.id, { id: o.id, sid: o.sid || '', nome: o.nome, x: o.x, z: o.z }));
+      log(this, 'entrou em', this.mapa, 'canal', m.canal, 'Nv', this.lvl);
+      if(m.grp) this.trataGrupo(m.grp);
+      if(this.mapa === 'cidade') this.cidade();
+    }
+    else if(m.t === 's'){
+      const vis = new Set();
+      for(const p of m.p){
+        vis.add(p[0]); const o = this.jog.get(p[0]) || { id: p[0] }; const q = this.daRede(p[1], p[2]);
+        o.x = q[0]; o.z = q[1]; o.morto = !!p[7]; o.pk = p[10] | 0; this.jog.set(p[0], o);
+      }
+    }
+    else if(m.t === 'j' || m.t === 'entrou'){
+      const e = m.e || m.j || m.p;
+      if(e) this.jog.set(e.id, Object.assign(this.jog.get(e.id) || {}, { id: e.id, sid: e.sid || '', nome: e.nome, x: e.x, z: e.z }));
+    }
+    else if(m.t === 'l'){ this.jog.delete(m.id); }
+    else if(m.t === 'ms'){
+      const X = this.xf();
+      this.mobs = !X ? m.m : m.m.map(a => { const q = Mobs.praLocal(X, a[2], a[3]); const o = a.slice(); o[2] = q[0]; o[3] = q[1]; o[4] = a[4] - X.y; return o; });
+    }
+    else if(m.t === 'party'){ this.trataGrupo(m); }
+    else if(m.t === 'partyfim'){
+      log(this, 'saiu do grupo ou grupo desfeito:', m.m);
+      this.grupo = null; this.lider = 0; this.liderSid = ''; this.liderNome = ''; this.liderId = 0; this.liderMapa = '';
+      if(this.mapa === 'masmorra'){ log(this, 'Sem grupo na masmorra, voltando para a cidade...'); this.entra('cidade'); }
+    }
+    else if(m.t === 'dgconvite'){
+      log(this, 'Convite de DG de', m.nome, 'para', m.key);
+      if(this.mapa !== 'masmorra') this.entra('masmorra');
+    }
+    else if(m.t === 'recanal'){
+      if(this.mapa === 'masmorra') this.entra('masmorra');
+    }
+    else if(m.t === 'dg'){
+      if(m.k === 'start'){
+        if(this.mapa !== 'masmorra') this.entra('masmorra');
+      } else if(m.k === 'snap' && Array.isArray(m.m)){
+        m.m.forEach(a => {
+          if(!a[8]) this.dgMobs.set(a[0], { id: a[0], tipo: a[1], x: a[2], z: a[3], hp: a[5], max: a[6], dead: false });
+          else this.dgMobs.delete(a[0]);
+        });
+      } else if(m.k === 'bsnap'){
+        this.dgBoss = { id: 'boss', x: m.ex, z: m.ez, hp: m.hp, max: m.mx, dead: !!m.dead };
+      } else if(m.k === 'clear'){
+        this.dgMobs.clear(); log(this, 'Andar da DG limpo com sucesso!');
+        if(Math.random() < .7) fala(this, 'dg', 'Boa, limpamos a sala!');
+      } else if(m.k === 'boss'){
+        if(Math.random() < .8) fala(this, 'dg', 'O Baium acordou, bora nele!');
+      } else if(m.k === 'end'){
+        this.dgMobs.clear(); this.dgBoss = null; log(this, 'DG encerrada, retornando a cidade.');
+        this.entra('cidade');
+      }
+    }
+    else if(m.t === 'dgs'){
+      if(m.m && Array.isArray(m.m)){
+        m.m.forEach(a => {
+          if(!a[9]) this.dgMobs.set(a[0], { id: a[0], tipo: a[1], x: a[2], z: a[3], hp: a[5], max: a[6], dead: false });
+          else this.dgMobs.delete(a[0]);
+        });
+      }
+      if(m.k === 'clear'){ this.dgMobs.clear(); if(Math.random() < .7) fala(this, 'dg', 'Sala limpa!'); }
+      else if(m.k === 'fim'){ this.dgMobs.clear(); this.entra('cidade'); }
+    }
     else if(m.t === 'mdmg') this.levaGolpe(m.dmg);
     else if(m.t === 'prog') this.prog(m, false);
     else if(m.t === 'inv') this.invDe(m.inv);
@@ -144,7 +262,12 @@ class Jogador {
     else if(m.t === 'drop'){ if((m.itens || []).some(i => i.rar !== 'normal') && Math.random() < .6) fala(this, 'drop', 'Voce acabou de pegar um item ' + m.itens.map(i => i.rar).join(', ') + ' de um monstro. Comente no chat, curto.'); }
     else if(m.t === 'hit' && m.v === this.id){ this.hp = Math.max(0, m.hp); if(m.a && m.a !== this.id){ if(this.pkAlvo !== m.a){ fala(this, 'pk', 'Um jogador acabou de te atacar do nada (PK). Reaja no chat, curto.'); } this.pkAlvo = m.a; this.pkAte = agora() + 20; } if(this.hp <= 0) this.morre(); }
     else if(m.t === 'die' && m.v === this.id) this.morre();
-    else if(m.t === 'preq'){ setTimeout(() => { this.send({ t: 'pok' }); this.lider = m.de; this.liderNome = m.nome; log(this, 'aceitou party de', m.nome); fala(this, 'party', m.nome + ' te chamou para a party e voce aceitou. Diga algo curto no chat da party.'); }, 1500 + Math.random() * 2000); }
+    else if(m.t === 'preq'){
+      setTimeout(() => {
+        this.send({ t: 'pok' }); this.lider = m.de; this.liderNome = m.nome; log(this, 'aceitou party de', m.nome);
+        fala(this, 'party', m.nome + ' te chamou para a party e voce aceitou. Diga algo curto no chat da party.');
+      }, 1200 + Math.random() * 1500);
+    }
     else if(m.t === 'duelreq'){ setTimeout(() => { this.send({ t: 'duelno' }); fala(this, 'duelo', m.nome + ' te desafiou para um duelo, mas voce vai recusar porque esta focado em upar. Responda curto e simpatico.'); }, 1500); }
     else if(m.t === 'chat'){ if(!m.n || m.n === this.nome) return; this.chat.push({ n: m.n, m: m.m }); if(this.chat.length > 30) this.chat.shift(); this.ouve(m); }
   }
@@ -174,6 +297,20 @@ class Jogador {
   mapaIdeal(){ return this.lvl < 15 ? 'curuma' : (this.lvl < 30 ? 'fortress' : 'pantano'); }
   ouve(m){
     const txt = String(m.m || '').toLowerCase(), meu = txt.includes(this.nome.toLowerCase()), party = m.c === 'g';
+    const souLiderDoChat = this.liderNome && m.n.toLowerCase() === this.liderNome.toLowerCase();
+    if((party || meu) && souLiderDoChat){
+      if(/\b(vem|segue|aqui|cola|bora)\b/.test(txt)){
+        const L = this.achaLider();
+        if(L){ this.rumo = [L.x, L.z]; this.tRumo = agora() + 10; }
+        setTimeout(() => this.send({ t: 'chat', m: sorteio(['to contigo!', 'indo!', 'bora!', 'colando']), c: 'g' }), 800);
+        return;
+      }
+      if(/\b(espera|fica|para|calma)\b/.test(txt)){
+        this.tEspera = agora() + 25;
+        setTimeout(() => this.send({ t: 'chat', m: sorteio(['blz, esperando aqui', 'tranquilo, no aguardo']), c: 'g' }), 800);
+        return;
+      }
+    }
     const perguntaBot = /\b(bot|ia|robo|robô|inteligencia artificial)\b/.test(txt) && (meu || party);
     const perto = [...this.jog.values()].filter(o => Math.hypot(o.x - this.x, o.z - this.z) < 40).length;
     if(!(meu || party || perguntaBot || (perto <= 4 && Math.random() < .35) || /\b(oi|ola|olá|salve|eae|e ai|bom dia|boa noite|boa tarde)\b/.test(txt) && Math.random() < .5)) return;
@@ -193,7 +330,11 @@ class Jogador {
   anda(tx, tz, vel, dt){
     const dx = tx - this.x, dz = tz - this.z, d = Math.hypot(dx, dz); if(d < .2) return true;
     const k = Math.min(d, vel * dt), nx = this.x + dx / d * k, nz = this.z + dz / d * k;
-    if(this.mapa !== 'cidade'){ const G = Mobs.grade(this.mapa); const h = G && G.chao(nx, nz, this.y); if(h === null || Math.abs(h - this.y) > 1.04){ this.rumo = null; return false; } this.y = h; }
+    if(this.mapa !== 'cidade' && this.mapa !== 'masmorra'){
+      const G = Mobs.grade(this.mapa); const h = G && G.chao(nx, nz, this.y);
+      if(h === null || Math.abs(h - this.y) > 1.04){ this.rumo = null; return false; }
+      this.y = h;
+    }
     this.x = nx; this.z = nz; this.f = Math.atan2(dx, dz); this.anim = 'run'; return d - k < .3;
   }
   tick(){
@@ -202,45 +343,135 @@ class Jogador {
     if(!this.morto){
       if(t - this.tUltHit > 5 && this.hp < this.pmax) this.hp = Math.min(this.pmax, this.hp + this.pmax * .015 * dt * 10 / 10);        /* descansa */
       if(this.hp < this.pmax * .4 && this.pocoes > 0 && t > this.tPocao){ this.tPocao = t + 10.5; this.send({ t: 'usar', id: 'pocao_vida' }); }
-      if(this.mapa === 'cidade') this.tickCidade(t, dt); else this.tickCaca(t, dt);
+      if(this.mapa === 'cidade') this.tickCidade(t, dt);
+      else if(this.mapa === 'masmorra') this.tickMasmorra(t, dt);
+      else this.tickCaca(t, dt);
     }
-    const W = this.praRede(this.x, this.z), X = this.xf(); this.send({ t: 'st', x: r2(W[0]), z: r2(W[1]), f: r2(this.f), h: Math.max(0, Math.round(this.hp)), a: this.anim, ts: 1, g: 0, w: 'sword', y: X ? r2(this.y + X.y) : 0 });
-    if(process.env.IA_LOG && t > this.tLog){ this.tLog = t + 20; const a = this.mobs.find(m => m[0] === this.alvo); log(this, this.mapa, 'pos', this.x.toFixed(1), this.z.toFixed(1), 'y', this.y.toFixed(1), 'vida', Math.round(this.hp) + '/' + this.pmax, 'Nv', this.lvl, 'xp', this.xp, 'abates', this.abates, 'mobs vistos', this.mobs.length, 'alvo', a ? a[1] + ' a ' + Math.hypot(a[2] - this.x, a[3] - this.z).toFixed(1) + ' m' : '-', '|', this.fazendo); }
+    const W = this.praRede(this.x, this.z), X = this.xf();
+    this.send({ t: 'st', x: r2(W[0]), z: r2(W[1]), f: r2(this.f), h: Math.max(0, Math.round(this.hp)), a: this.anim, ts: 1, g: 0, w: 'sword', y: X ? r2(this.y + X.y) : 0 });
+    if(process.env.IA_LOG && t > this.tLog){
+      this.tLog = t + 20; const a = this.mobs.find(m => m[0] === this.alvo);
+      log(this, this.mapa, 'pos', this.x.toFixed(1), this.z.toFixed(1), 'vida', Math.round(this.hp) + '/' + this.pmax, 'Nv', this.lvl, 'xp', this.xp, 'abates', this.abates, '|', this.fazendo);
+    }
     if(t > this.tSolto){ this.tSolto = t + 300 + Math.random() * 420; if(Math.random() < .5) fala(this, 'solto', 'Diga algo espontaneo e curto no chat geral, sobre o que voce esta fazendo agora no jogo (ou responda - se nao quiser falar).'); }
   }
   tickCidade(t, dt){
+    if(this.tEspera > t){ this.anim = 'idle'; return; }
+    if(this.liderNome){
+      const L = this.achaLider();
+      if(L){
+        const d = Math.hypot(L.x - this.x, L.z - this.z);
+        this.fazendo = 'seguindo ' + this.liderNome + ' na cidade';
+        if(d > 7) this.anda(L.x, L.z, 6.2, dt);
+        else if(d > 2.8) this.anda(L.x, L.z, 3.8, dt);
+        else { this.f = Math.atan2(L.x - this.x, L.z - this.z); this.anim = 'idle'; }
+        return;
+      }
+    }
     if(t > this.tCidade){                                          /* hora de ir upar: anda ate o portal do mapa certo */
-      const alvo = this.mapaIdeal(), P = PORTAIS.find(q => q.id === ABERTO[alvo].portal); this.fazendo = 'indo para ' + ABERTO[alvo].nome;
-      if(P && this.anda(P.x, P.z, 4.3, dt)){ log(this, 'atravessou o portal para', alvo); this.entra(alvo); }
+      const alvo = this.mapaIdeal(), P = PORTAIS.find(q => q.id === (ABERTO[alvo] && ABERTO[alvo].portal));
+      this.fazendo = 'indo para ' + (ABERTO[alvo] ? ABERTO[alvo].nome : alvo);
+      if((P && this.anda(P.x, P.z, 4.3, dt)) || t > this.tCidade + 16){
+        log(this, 'atravessou o portal para', alvo);
+        this.entra(alvo);
+      }
       return;
     }
-    if(!this.rumo || t > this.tRumo){ const a = Math.random() * 6.28, r = 3 + Math.random() * 14; this.rumo = [Math.sin(a) * r, Math.cos(a) * r]; this.tRumo = t + 6 + Math.random() * 10; }
+    if(!this.rumo || t > this.tRumo){ const a = Math.random() * 6.28, r = 3 + Math.random() * 8; this.rumo = [Math.sin(a) * r, 6 + Math.cos(a) * r]; this.tRumo = t + 5 + Math.random() * 6; }
     if(Math.hypot(this.rumo[0] - this.x, this.rumo[1] - this.z) > .5) this.anda(this.rumo[0], this.rumo[1], 2.2, dt);
   }
+  tickMasmorra(t, dt){
+    if(this.tEspera > t){ this.anim = 'idle'; return; }
+    const L = this.achaLider();
+    const bossVivo = this.dgBoss && !this.dgBoss.dead && (this.dgBoss.hp === undefined || this.dgBoss.hp > 0);
+    const mobsVivos = [...this.dgMobs.values()].filter(m => !m.dead && (m.hp === undefined || m.hp > 0));
+
+    if(bossVivo){
+      const bx = this.dgBoss.x, bz = this.dgBoss.z;
+      const d = Math.hypot(bx - this.x, bz - this.z);
+      this.fazendo = 'lutando contra o Baium';
+      if(d > 3.0) this.anda(bx, bz, 5.0, dt);
+      else this.golpeia(t, bx, bz, 'boss', true);
+      return;
+    }
+
+    if(mobsVivos.length > 0){
+      let melhor = null, bd = 1e9;
+      for(const m of mobsVivos){
+        let d = Math.hypot(m.x - this.x, m.z - this.z);
+        if(L) d = d * .3 + Math.hypot(m.x - L.x, m.z - L.z) * .7;
+        if(d < bd){ bd = d; melhor = m; }
+      }
+      if(melhor){
+        const d = Math.hypot(melhor.x - this.x, melhor.z - this.z);
+        this.fazendo = 'lutando com mob na DG';
+        if(d > 2.3) this.anda(melhor.x, melhor.z, 4.5, dt);
+        else this.golpeia(t, melhor.x, melhor.z, melhor.id, false);
+        return;
+      }
+    }
+
+    if(L){
+      const d = Math.hypot(L.x - this.x, L.z - this.z);
+      this.fazendo = 'seguindo ' + (this.liderNome || 'lider') + ' na DG';
+      if(d > 8) this.anda(L.x, L.z, 6.5, dt);
+      else if(d > 2.6) this.anda(L.x, L.z, 4.0, dt);
+      else { this.f = Math.atan2(L.x - this.x, L.z - this.z); this.anim = 'idle'; }
+    } else {
+      this.fazendo = 'aguardando na masmorra';
+      this.anim = 'idle';
+    }
+  }
   tickCaca(t, dt){
-    if(this.mapaIdeal() !== this.mapa && !this.lider && this.hp > this.pmax * .6){ log(this, 'nivel novo, voltando para a cidade para trocar de mapa'); this.entra('cidade'); return; }
-    if(this.pocoes === 0 && this.adena >= 600 && this.hp < this.pmax * .5){ log(this, 'sem pocao, voltando para comprar'); this.entra('cidade'); return; }
+    if(this.tEspera > t){ this.anim = 'idle'; return; }
+    if(!this.liderNome && this.mapaIdeal() !== this.mapa && this.hp > this.pmax * .6){ log(this, 'nivel novo, voltando para a cidade para trocar de mapa'); this.entra('cidade'); return; }
+    if(!this.liderNome && this.pocoes === 0 && this.adena >= 600 && this.hp < this.pmax * .5){ log(this, 'sem pocao, voltando para comprar'); this.entra('cidade'); return; }
     /* revida PK */
-    if(this.pkAlvo && t < this.pkAte){ const o = this.jog.get(this.pkAlvo); if(o && !o.morto){ const d = Math.hypot(o.x - this.x, o.z - this.z); if(d > 2.2) this.anda(o.x, o.z, 4.3, dt); else this.golpeia(t, o.x, o.z, 0); return; } }
+    if(this.pkAlvo && t < this.pkAte){ const o = this.jog.get(this.pkAlvo); if(o && !o.morto){ const d = Math.hypot(o.x - this.x, o.z - this.z); if(d > 2.2) this.anda(o.x, o.z, 5.0, dt); else this.golpeia(t, o.x, o.z, 0, false); return; } }
+
+    const L = this.achaLider();
+    if(L){
+      const dL = Math.hypot(L.x - this.x, L.z - this.z);
+      if(dL > 16){ this.fazendo = 'correndo para alcançar ' + this.liderNome; this.anda(L.x, L.z, 6.5, dt); return; }
+    }
+
     const vivos = this.mobs.filter(m => !m[9]);
     let alvo = vivos.find(m => m[0] === this.alvo);
     if(!alvo || Math.hypot(alvo[2] - this.x, alvo[3] - this.z) > 45){
-      const dif = SPOTS[Mobs.CFG[this.mapa].spots].dif, niv = (PROG.mobsNivel[dif] || {});
       let melhor = null, bd = 1e9;
-      for(const m of vivos){
-        const n = (niv[m[1]] || [1])[0]; if(n > this.lvl + 2) continue;                                  /* nao arrisca mob muito mais forte */
-        if(m[11] && m[11] !== this.id && m[11] !== this.lider) continue;
-        if((this.ignora[m[0]] || 0) > t) continue;
-        if(Math.abs(m[4] - this.y) > 2) continue;                                                        /* em outro andar do relevo */                                                       /* nao deu para chegar nele */                                 /* nao rouba mob dos outros (ksing) */
-        let d = Math.hypot(m[2] - this.x, m[3] - this.z); if(this.lider){ const L = this.jog.get(this.lider); if(L) d = Math.hypot(m[2] - L.x, m[3] - L.z) * .7 + d * .3; }
-        if(d < bd){ bd = d; melhor = m; }
+      if(L){
+        const mobNoLider = vivos.find(m => m[11] === L.id && Math.hypot(m[2] - L.x, m[3] - L.z) < 14);
+        if(mobNoLider){ melhor = mobNoLider; bd = 0; }
+      }
+      if(!melhor){
+        const cfg = Mobs.CFG[this.mapa];
+        const dif = (cfg && SPOTS[cfg.spots] && SPOTS[cfg.spots].dif) || this.mapa;
+        const niv = (PROG.mobsNivel && PROG.mobsNivel[dif]) || {};
+        for(const m of vivos){
+          const n = (niv[m[1]] || [1])[0];
+          if(!L && n > this.lvl + 3) continue;                                  /* nao arrisca mob muito mais forte */
+          if(m[11] && m[11] !== this.id && (!L || m[11] !== L.id)) continue;
+          if((this.ignora[m[0]] || 0) > t) continue;
+          if(Math.abs(m[4] - this.y) > 2.5) continue;
+          let d = Math.hypot(m[2] - this.x, m[3] - this.z);
+          if(L) d = Math.hypot(m[2] - L.x, m[3] - L.z) * .7 + d * .3;
+          if(d < bd){ bd = d; melhor = m; }
+        }
       }
       alvo = melhor; this.alvo = alvo ? alvo[0] : 0;
     }
     if(!alvo){                                                     /* sem mob: segue o lider ou explora */
-      const L = this.lider && this.jog.get(this.lider);
-      if(L && Math.hypot(L.x - this.x, L.z - this.z) > 6){ this.anda(L.x, L.z, 4.3, dt); return; }
-      if(!this.rumo || t > this.tRumo){ const s = sorteio(SPOTS[Mobs.CFG[this.mapa].spots].spots.filter(q => !q.chefe)); this.rumo = [s.x, s.z]; this.tRumo = t + 25; }
+      if(L){
+        const dL = Math.hypot(L.x - this.x, L.z - this.z);
+        if(dL > 2.8) this.anda(L.x, L.z, dL > 7 ? 6.0 : 3.8, dt);
+        else { this.f = Math.atan2(L.x - this.x, L.z - this.z); this.anim = 'idle'; }
+        this.fazendo = 'acompanhando ' + this.liderNome; return;
+      }
+      if(!this.rumo || t > this.tRumo){
+        const cfg = Mobs.CFG[this.mapa];
+        const spLista = (cfg && SPOTS[cfg.spots] && SPOTS[cfg.spots].spots.filter(q => !q.chefe)) || [{ x: this.x, z: this.z }];
+        const s = sorteio(spLista); this.rumo = [s.x, s.z]; this.tRumo = t + 25;
+      }
       if(!this.anda(this.rumo[0], this.rumo[1], 4.3, dt)) this.rumo = null; this.fazendo = 'procurando monstros'; return;
     }
     const d = Math.hypot(alvo[2] - this.x, alvo[3] - this.z); this.fazendo = 'lutando com um monstro';
@@ -254,15 +485,25 @@ class Jogador {
       } else this.trava = 0;
       return;
     }
-    this.golpeia(t, alvo[2], alvo[3], alvo[0]);
+    this.golpeia(t, alvo[2], alvo[3], alvo[0], false);
   }
-  golpeia(t, ax, az, mobId){
+  golpeia(t, ax, az, mobId, isBoss){
     this.f = Math.atan2(ax - this.x, az - this.z);
     if(t < this.tAtk) { this.anim = 'guard'; return; }
     const skill = t > this.tSkill && Math.random() < .35, base = (14 + this.lvl * 1.5) * (.85 + Math.random() * .3) * (skill ? 2.4 : 1);
     if(skill){ this.tSkill = t + 6 + Math.random() * 4; this.send({ t: 'atk', k: 's', i: 1, f: r2(this.f), p: 1 }); this.anim = 'slash4'; this.tAtk = t + 1.1; }
     else { const ids = ['sweep', 'thrust', 'spin']; this.send({ t: 'atk', k: 'b', id: ids[this.combo++ % 3], f: r2(this.f) }); this.anim = this.combo % 2 ? 'slash1' : 'slash2'; this.tAtk = t + .8 + Math.random() * .25; }
-    if(mobId) setTimeout(() => this.send({ t: 'mhit', id: mobId, d: Math.round(base) }), 280);
+    if(mobId){
+      const dano = Math.round(base);
+      setTimeout(() => {
+        if(this.mapa === 'masmorra'){
+          if(isBoss) this.send({ t: 'dg', k: 'bhit', d: dano });
+          else this.send({ t: 'dg', k: 'hit', id: mobId, d: dano });
+        } else {
+          this.send({ t: 'mhit', id: mobId, d: dano });
+        }
+      }, 280);
+    }
   }
 }
 

@@ -200,8 +200,17 @@
   pointer-events: none;
 }
 
+/* Tecla do atalho sempre visivel (canto superior esquerdo do slot, estilo L2) */
 #l2-shortcut-wnd .l2-sc-key {
-  display: none !important;
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  z-index: 3;
+  font: 700 10px Tahoma, Arial, sans-serif;
+  line-height: 1;
+  color: #f2e6c4;
+  text-shadow: 0 0 2px #000, 1px 1px 1px #000, -1px -1px 1px #000;
+  pointer-events: none;
 }
 
 /* Cooldown Fill Overlay (Escurecimento vindo de cima para baixo ou radial) */
