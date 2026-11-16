@@ -4317,3 +4317,29 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
   - Testado (servidor local, Chrome com WebGL por software, `tools/teste_guerreiro_kit_novo.py`): arena duelo com o Humano: 7 clipes anexam, as 7 skills saem sem erro de pagina, golpes enviados 1/1/5/1/10/1/5, chefe 1800 -> 0; Tufao andou 1,8 m segurando W; cidade (conectado): mesmas partes, Tufao andou 4,5 m, Modo de Batalha chegou do servidor (+30% por 15 s). Achado no teste: o chefe do duelo interrompe skills longas se acertar o jogador (o teste deixa o jogador invulneravel para medir).
   - NAO testado: PvP com 2 jogadores (dano das partes no servidor, stun, roubo de vida no PvP: hoje o roubo so vale no PvE), o aparo do Contra-Golpe contra um golpe real (a janela e por invulnerabilidade no cliente; o servidor nao tem invulnerabilidade no PvP), mapas abertos e DG, celular, qualidade alta, sons nao ouvidos, Humano feminino e outras racas so com reserva generica (o Elfo M foi testado: ver abaixo). Bonus de Execucao por vida baixa nao foi feito (so os 5 cortes).
   - Elfo M (sem os clipes do Blender: reserva generica w_n* nas tabelas CM/POSE): skills 0 a 5 castaram e terminaram sem erro de pagina; o teste estourou o tempo (15 min, navegador lento) durante a Execucao, que ficou sem conferir nessa raca.
+
+
+### [Antigravity] 16/11/2026 - Correção Visual do Lobby, Postura Canônica da Staff e Botão de Skills no MenuWnd Inferior
+
+- **Demandas do Usuário**:
+  1. *"o lobby do mobile ainda tem coisas sem textura"*: colunas e braseiros procedurais azuis/amarelos sem textura no saguão de seleção.
+  2. *"o personagem tá segurando a staff parecendo uma sword 2hand? veja na foto"*: o mago no lobby e no jogo empunhava o cajado com as duas mãos virado para o chão como se fosse uma espada de 2 mãos.
+  3. *"e os ícones no topo direito devem aparecer apenas dentro do game" / "você colocou esses 4 ícones novos em cima pra termos o ícone das skill, mas precisamos apenas do ícone do livro e você coloca embaixo junto com os que já tinha"*: remover os botões duplicados do topo e integrar o botão do Livro / Grimório de Habilidades diretamente no dock inferior (`#l2-menu-wnd`), junto dos botões nativos existentes do Lineage 2.
+
+- **Diagnóstico e Correções Implementadas**:
+  1. **Remoção dos Primitivos Sem Textura e Texturização do Altar (`prototipo/selecao.html`)**:
+     - Removidos os cilindros azuis e esferas amarelas procedurais sem textura que bloqueavam o campo de visão no celular.
+     - Preservada a iluminação dinâmica pontual quente com cintilação viva (`brazierLights`).
+     - Aplicadas texturas reais de pedra gótica (`assets/cathedral_stone_floor.jpg`) com mapeamento UV refinado no altar inferior (`lowerDais`), altar central do herói (`midDais`) e anel de lajes (`slabRing`).
+     - Substituído o disco azul simples da runa por um selo mágico detalhado de alta resolução (`assets/fx/portal_floor_seal.png`) com blending aditivo transparente no chão do altar principal e sob os pés dos personagens do fundo.
+  2. **Postura Canônica do Cajado / Magos e Conjuradores**:
+     - Identificada a causa raiz: `selecao.html`, `criacao.html`, `cidade.html` e `arena.html` forçavam a animação `idle` (`Wait_2HS` - postura bimanual de espada pesada) quando qualquer arma estava equipada.
+     - Ajustado o seletor de animações para identificar classes místicas / cajado (`staff`, `book`, `mago`, `clerico`) e armas de 1 mão (`shield`, `guardiao`): agora utilizam `idle_hand` (`Wait_Hand`), mantendo a postura ereta e elegante do Lineage 2, segurando o cajado com uma mão ao lado do corpo com a ponta voltada para cima, e o braço esquerdo livre.
+  3. **Ícone do Livro Integrado no Dock Inferior Oficial (`l2_hud.js`, `l2_hud.css`, `mobile.js`)**:
+     - Removidos os 4 botões do topo do mobile em `mobile.js`, deixando o topo limpo.
+     - Expandido o dock inferior do L2 (`#l2-menu-wnd`) de 173px para 212px de largura com a textura de moldura reajustada (`l2_menu_wnd_bg.png`).
+     - Adicionado o botão oficial do Livro / Grimório de Magias (`#l2BtnSkill` com `menubutton_skill.png`) no dock inferior, posicionado entre Status e Inventário:
+       `Status (15px) | Skills/Livro (52px) | Inventário (89px) | Mapa (126px) | Sistema (163px)`.
+     - Vinculado clique/toque direto a `toggleSk()`, abrindo a janela oficial `MagicSkillWnd` tanto no mobile quanto no PC.
+  4. **Atualização de Cache e Tags**:
+     - Atualizadas as versões de scripts e estilos para `v=44` em `cidade.html`, `arena.html`, `selecao.html` e `mu_hud.js`.

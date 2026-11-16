@@ -28,19 +28,11 @@
     '#mb .sk svg{width:72%;height:72%}#mb .sk .k{display:none}' +
     '#mb .sk .cd{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.6);height:0}#mb .sk .ct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;text-shadow:0 1px 3px #000}' +
     'body.mb-edit #mb .b{outline:2px dashed rgba(255,214,102,.9);outline-offset:2px;opacity:1}' +
-    '#mbfs,#mbmap,#mbskill,#mbinv,#mbsys,#mbedit{position:fixed;z-index:75;padding:0;width:36px;height:36px;border:0;border-radius:4px;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:36px 36px;box-shadow:0 3px 8px rgba(0,0,0,.6);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
-    '#mbfs{left:12px;top:96px;width:auto;padding:0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45);color:#cfe8ff;font-family:system-ui,sans-serif}' +
-    '#mbmap{right:10px;top:8px;background-image:url("assets/ui/menubutton3.png?v=43")}' +
-    '#mbmap:active{background-image:url("assets/ui/menubutton3_over.png?v=43");transform:scale(.94)}' +
-    '#mbskill{right:52px;top:8px;background-image:url("assets/ui/menubutton_skill.png?v=43")}' +
-    '#mbskill:active{background-image:url("assets/ui/menubutton_skill_over.png?v=43");transform:scale(.94)}' +
-    '#mbinv{right:94px;top:8px;background-image:url("assets/ui/menubutton2.png?v=43")}' +
-    '#mbinv:active{background-image:url("assets/ui/menubutton2_over.png?v=43");transform:scale(.94)}' +
-    '#mbsys{right:136px;top:8px;background-image:url("assets/ui/menubutton4.png?v=43")}' +
-    '#mbsys:active{background-image:url("assets/ui/menubutton4_over.png?v=43");transform:scale(.94)}' +
-    '#mbedit{right:178px;top:8px;border-radius:7px;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45);color:#cfe8ff;font:600 15px system-ui,sans-serif;display:none;align-items:center;justify-content:center}' +
-    '#mbedit:active{background:rgba(92,200,255,.35);transform:scale(.93)}' +
-    'body.is-touch #mbmap,body.is-touch #mbskill,body.is-touch #mbinv,body.is-touch #mbsys,body.is-touch #mbedit{display:flex!important}body.is-touch #mbfs{display:flex}' +
+    '#mbfs,#mbedit{position:fixed;z-index:75;padding:0;width:36px;height:36px;border:0;border-radius:7px;background:rgba(7,12,24,.65);box-shadow:inset 0 0 0 1px rgba(120,196,255,.45),0 3px 8px rgba(0,0,0,.6);color:#cfe8ff;font:600 15px system-ui,sans-serif;display:none;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+    '#mbfs{left:12px;top:96px;width:auto;padding:0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-family:system-ui,sans-serif}' +
+    '#mbedit{right:10px;top:8px}' +
+    '#mbfs:active,#mbedit:active{background:rgba(92,200,255,.35);transform:scale(.93)}' +
+    'body.is-touch #mbedit{display:flex!important}body.is-touch #mbfs{display:flex}' +
     '#mbbar{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;display:none;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(7,12,24,.82);box-shadow:inset 0 0 0 1px rgba(255,214,102,.7);color:#ffe9b0;font:600 12px system-ui,sans-serif}' +
     '#mbbar button{font:700 12px system-ui,sans-serif;padding:6px 10px;border-radius:7px;border:0;background:rgba(120,196,255,.25);color:#fff}body.mb-edit #mbbar{display:flex}' +
     /* HUD no toque: so as barras; os botoes I C S Q O abrem pela engrenagem; minimapa recolhido */
@@ -98,25 +90,6 @@
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible'){ travaGiro(); mantemTelaLigada(); } });
     window.addEventListener('orientationchange', travaGiro);
     try { history.pushState({ g: 1 }, '', location.href); window.addEventListener('popstate', function(){ try { history.pushState({ g: 1 }, '', location.href); } catch(e){} }); } catch(e){}      /* gesto/botao voltar sem querer nao fecha o jogo */
-    var bm = document.createElement('button'); bm.id = 'mbmap'; bm.type = 'button'; bm.title = 'Mapa'; bm.onclick = function(){ document.body.classList.toggle('mapa-aberto'); }; document.body.appendChild(bm);
-
-    var bsk = document.createElement('button'); bsk.id = 'mbskill'; bsk.type = 'button';
-    bsk.title = 'Habilidades (K)';
-    bsk.onclick = function(){
-      if(typeof window.toggleSk === 'function') window.toggleSk();
-      else { var skBtn = document.getElementById('skBtn'); if(skBtn) skBtn.click(); }
-    };
-    document.body.appendChild(bsk);
-
-    var binv = document.createElement('button'); binv.id = 'mbinv'; binv.type = 'button';
-    binv.title = 'Inventário (I)';
-    binv.onclick = function(){
-      if(typeof window.toggleInv === 'function') window.toggleInv();
-      else { var invBtn = document.getElementById('invBtn'); if(invBtn) invBtn.click(); }
-    };
-    document.body.appendChild(binv);
-
-    var bs = document.createElement('button'); bs.id = 'mbsys'; bs.type = 'button'; bs.title = 'Menu'; bs.onclick = function(){ document.body.classList.toggle('sys-aberto'); }; document.body.appendChild(bs);
     if(pagina !== 'outra'){
       var be = document.createElement('button'); be.id = 'mbedit'; be.type = 'button'; be.textContent = '✎'; be.title = 'Editar botoes'; be.onclick = function(){ editar(true); }; document.body.appendChild(be);
       var bar = document.createElement('div'); bar.id = 'mbbar'; bar.innerHTML = 'Arraste os botões &nbsp;<button type="button" id="mbsalva">Salvar</button><button type="button" id="mbpadrao">Padrão</button>'; document.body.appendChild(bar);

@@ -121,13 +121,14 @@ export const L2Hud = {
       document.body.appendChild(scWnd);
     }
 
-    // 3. MenuWnd (Rodapé Direito - 173 x 46 px)
+    // 3. MenuWnd (Rodapé Direito - 212 x 46 px)
     if (!document.getElementById('l2-menu-wnd')) {
       var mnWnd = document.createElement('div');
       mnWnd.id = 'l2-menu-wnd';
       mnWnd.className = 'ui';
       mnWnd.innerHTML = `
         <button type="button" class="l2-mn-btn status" id="l2BtnStatus" title="Status do Personagem (C)"></button>
+        <button type="button" class="l2-mn-btn skill" id="l2BtnSkill" title="Habilidades & Magias (K)"></button>
         <button type="button" class="l2-mn-btn inv" id="l2BtnInv" title="Inventário (I)"></button>
         <button type="button" class="l2-mn-btn map" id="l2BtnMap" title="Menu de Ações / Party (X)"></button>
         <button type="button" class="l2-mn-btn sys" id="l2BtnSys" title="Opções e Configurações (O)"></button>
@@ -142,6 +143,14 @@ export const L2Hud = {
     // Botões do MenuWnd
     var bStatus = document.getElementById('l2BtnStatus');
     if (bStatus) bStatus.onclick = function() { if (window.Status && Status.toggle) Status.toggle(); };
+    var bSkill = document.getElementById('l2BtnSkill');
+    if (bSkill) bSkill.onclick = function() {
+      if (typeof window.toggleSk === 'function') window.toggleSk();
+      else {
+        var skBtn = document.getElementById('skBtn');
+        if (skBtn) skBtn.click();
+      }
+    };
     var bInv = document.getElementById('l2BtnInv');
     if (bInv) bInv.onclick = function() {
       var invBtn = document.getElementById('invBtn');

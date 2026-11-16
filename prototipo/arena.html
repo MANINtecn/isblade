@@ -11,7 +11,7 @@
 
 <title>IS BLADE - Arena (Three.js moderno)</title>
 
-<link rel="stylesheet" href="css/l2_hud.css?v=43">
+<link rel="stylesheet" href="css/l2_hud.css?v=44">
 <link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
@@ -464,7 +464,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=43"></script>
+<script src="js/mobile.js?v=44"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=1"></script>
 <script src="js/mago_fx.js?v=4"></script>
@@ -731,7 +731,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 import { Torre } from './js/torre.js?v=10';
 var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
-import { MuHud } from './js/mu_hud.js?v=42';
+import { MuHud } from './js/mu_hud.js?v=44';
 
 window.THREE = THREE;
 
@@ -2098,14 +2098,11 @@ var CLIPFILES=['idle','run','guard','block_hit','slash1','slash2','slash3','slas
 function getPlayerIdleClip(){
 
   if(vrm&&vrm.isL2){
-
-    if(WPN==='none')return (vrm.clips['idle_hand'] ? 'idle_hand' : 'idle');
-
+    if(WPN==='none'||WPN==='staff'||WPN==='book')return (vrm.clips['idle_hand'] ? 'idle_hand' : 'idle');
     /* >>> CLAUDE [guardiao] 2026-10-27 — parado do Guardiao: descanso (escudo de lado) ou guarda de combate */
     if(WPN==='shield'){var _gc=Guardiao.clipeLoco(WPN,vrm,'idle');if(_gc&&vrm.clips[_gc])return _gc;return 'idle';}
     /* <<< CLAUDE [guardiao] */
-return 'idle';
-
+    return 'idle';
   }
 
   if(WPN==='sword'&&MX.clips.sword2h_idle)return 'sword2h_idle';

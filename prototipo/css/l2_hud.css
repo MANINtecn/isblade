@@ -245,18 +245,18 @@
 }
 
 /* --------------------------------------------------------------------------
-   3. MENU WND — DOCK DO MENU DE SISTEMA (173 x 46 px)
+   3. MENU WND — DOCK DO MENU DE SISTEMA (212 x 46 px)
    Coordenadas de 0064_MenuWnd.xml: Rodapé Direito (bottom: 12px, right: 14px)
-   Botões: Status (x:20), Inv (x:57), Mapa (x:94), Sistema (x:131)
+   Botões: Status (x:15), Skills/Livro (x:52), Inv (x:89), Mapa (x:126), Sistema (x:163)
    -------------------------------------------------------------------------- */
 #l2-menu-wnd {
   position: fixed !important;
   right: 14px !important;
   bottom: 12px !important;
-  width: 173px !important;
+  width: 212px !important;
   height: 46px !important;
   box-sizing: border-box !important;
-  background: transparent url("../assets/ui/l2_menu_wnd_bg.png") no-repeat 0 0 / 173px 46px !important;
+  background: transparent url("../assets/ui/l2_menu_wnd_bg.png?v=44") no-repeat 0 0 / 212px 46px !important;
   z-index: 8500 !important;
   pointer-events: all !important;
   user-select: none !important;
@@ -288,23 +288,31 @@
 }
 
 #l2-menu-wnd .l2-mn-btn.status {
-  left: 20px;
-  background-image: url("../assets/ui/menubutton1.png?v=37");
+  left: 15px;
+  background-image: url("../assets/ui/menubutton1.png?v=44");
+}
+
+#l2-menu-wnd .l2-mn-btn.skill {
+  left: 52px;
+  background-image: url("../assets/ui/menubutton_skill.png?v=44");
+}
+#l2-menu-wnd .l2-mn-btn.skill:active {
+  background-image: url("../assets/ui/menubutton_skill_over.png?v=44");
 }
 
 #l2-menu-wnd .l2-mn-btn.inv {
-  left: 57px;
-  background-image: url("../assets/ui/menubutton2.png?v=37");
+  left: 89px;
+  background-image: url("../assets/ui/menubutton2.png?v=44");
 }
 
 #l2-menu-wnd .l2-mn-btn.map {
-  left: 94px;
-  background-image: url("../assets/ui/menubutton3.png?v=37");
+  left: 126px;
+  background-image: url("../assets/ui/menubutton3.png?v=44");
 }
 
 #l2-menu-wnd .l2-mn-btn.sys {
-  left: 131px;
-  background-image: url("../assets/ui/menubutton4.png?v=37");
+  left: 163px;
+  background-image: url("../assets/ui/menubutton4.png?v=44");
 }
 
 /* --------------------------------------------------------------------------

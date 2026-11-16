@@ -22,7 +22,7 @@
 
 
 
-<link rel="stylesheet" href="css/l2_hud.css?v=43">
+<link rel="stylesheet" href="css/l2_hud.css?v=44">
 <link rel="stylesheet" href="css/mu_hud.css?v=35">
 <link rel="stylesheet" href="css/hud_clean.css?v=7">
 
@@ -776,7 +776,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
-<script src="js/mobile.js?v=43"></script>
+<script src="js/mobile.js?v=44"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=1"></script>
 <script src="js/mago_fx.js?v=4"></script>
@@ -1292,7 +1292,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 
 /* <<< CLAUDE [guardiao] */
 
-import { MuHud } from './js/mu_hud.js?v=42';
+import { MuHud } from './js/mu_hud.js?v=44';
 
 
 
@@ -5165,23 +5165,11 @@ function getPlayerIdleClip(){
 
 
   if(vrm&&vrm.isL2){
-
-
-
-    if(WPN==='none')return (vrm.clips['idle_hand'] ? 'idle_hand' : 'idle');
-
-
-
+    if(WPN==='none'||WPN==='staff'||WPN==='book')return (vrm.clips['idle_hand'] ? 'idle_hand' : 'idle');
     /* >>> CLAUDE [guardiao] 2026-10-27 — parado do Guardiao: descanso (escudo de lado) ou guarda de combate */
-
     if(WPN==='shield'){var _gc=Guardiao.clipeLoco(WPN,vrm,'idle');if(_gc&&vrm.clips[_gc])return _gc;return 'idle';}
-
     /* <<< CLAUDE [guardiao] */
-
-return 'idle';
-
-
-
+    return 'idle';
   }
 
 

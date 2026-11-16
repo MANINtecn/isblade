@@ -556,7 +556,9 @@ function loadModel(url){
     clips['run_hand'] = clips['run_hand'] || clips['Run_Hand_MFighter'] || clips['run'];
     clips['walk_hand'] = clips['walk_hand'] || clips['Walk_Hand_MFighter'] || clips['walk'];
     clips['punch'] = clips['punch'] || clips['Atk01_Hand_MFighter'] || clips['slash1'];
-    playAction(currentWeapon === 'none' ? 'idle_hand' : 'idle');
+    var isCaster = (currentWeapon === 'staff' || currentClasse === 'mago' || currentClasse === 'clerico');
+    var is1H = (currentWeapon === 'shield' || currentWeapon === 'swordshield' || currentClasse === 'guardiao');
+    playAction((currentWeapon === 'none' || isCaster || is1H) ? 'idle_hand' : 'idle');
   });
 }
 
@@ -696,11 +698,13 @@ function makeBook(){
 }
 var currentAction = null;
 window.playAction = function(name){
-  if(currentWeapon === 'none'){
+  var isCaster = (currentWeapon === 'staff' || currentClasse === 'mago' || currentClasse === 'clerico');
+  var is1H = (currentWeapon === 'shield' || currentWeapon === 'swordshield' || currentClasse === 'guardiao');
+  if(currentWeapon === 'none' || isCaster || is1H){
     if(name === 'idle') name = 'idle_hand';
     else if(name === 'run') name = 'run_hand';
     else if(name === 'walk') name = 'walk_hand';
-    else if(name === 'slash1' || name === 'slash2' || name === 'slash4') name = 'punch';
+    else if(name === 'slash1' || name === 'slash2' || name === 'slash4') name = (isCaster ? 'punch' : name);
   }
   if(!mixer || !clips[name]) return;
   var clip = clips[name];

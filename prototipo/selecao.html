@@ -667,7 +667,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); 
   <script src="js/pwa.js" defer></script>
   <!-- <<< CLAUDE [pwa] -->
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script><script>Conta.exigir();</script>
-<script src="js/mobile.js?v=7"></script>
+<script src="js/mobile.js?v=44"></script>
 <script src="js/musica.js?v=1"></script><script>Musica.init({lugar:function(){return 'lobby';}});</script>
 </head>
 <body>
@@ -1431,12 +1431,22 @@ function buildCathedralEnvironment(){
   floor.receiveShadow = true;
   templeFloorGroup.add(floor);
 
+  // Texturas de pedra para o Altar / Dais de Einhasad
+  var daisTex = new THREE.TextureLoader().load('assets/cathedral_stone_floor.jpg');
+  daisTex.wrapS = daisTex.wrapT = THREE.RepeatWrapping;
+  daisTex.repeat.set(4, 4);
+
+  var midDaisTex = new THREE.TextureLoader().load('assets/cathedral_stone_floor.jpg');
+  midDaisTex.wrapS = midDaisTex.wrapT = THREE.RepeatWrapping;
+  midDaisTex.repeat.set(2, 2);
+
   // Anel decorativo de lajes polidas
   var slabRingGeo = new THREE.RingGeometry(3.6, 6.2, 48);
   var slabRingMat = new THREE.MeshStandardMaterial({
-    color: 0x1a2336,
-    roughness: 0.7,
-    metalness: 0.4
+    map: floorTex,
+    color: 0x242e40,
+    roughness: 0.72,
+    metalness: 0.3
   });
   var slabRing = new THREE.Mesh(slabRingGeo, slabRingMat);
   slabRing.rotation.x = -Math.PI / 2;
@@ -1447,9 +1457,10 @@ function buildCathedralEnvironment(){
   // 2. Grande Altar/Dais Inferior
   var lowerDaisGeo = new THREE.CylinderGeometry(3.6, 3.85, 0.22, 64);
   var lowerDaisMat = new THREE.MeshStandardMaterial({
-    color: 0x151d2c,
-    roughness: 0.7,
-    metalness: 0.35
+    map: daisTex,
+    color: 0x323e52,
+    roughness: 0.75,
+    metalness: 0.25
   });
   var lowerDais = new THREE.Mesh(lowerDaisGeo, lowerDaisMat);
   lowerDais.position.y = -0.11;
@@ -1467,9 +1478,10 @@ function buildCathedralEnvironment(){
   // 3. Dais Central do Herói Ativo (gira suavemente no grupo ativo)
   var midDaisGeo = new THREE.CylinderGeometry(1.65, 1.85, 0.12, 48);
   var midDaisMat = new THREE.MeshStandardMaterial({
-    color: 0x1f2b42,
+    map: midDaisTex,
+    color: 0x3b4a62,
     roughness: 0.65,
-    metalness: 0.45
+    metalness: 0.35
   });
   var midDais = new THREE.Mesh(midDaisGeo, midDaisMat);
   midDais.position.y = 0.06;
@@ -1482,63 +1494,37 @@ function buildCathedralEnvironment(){
   midRim.position.y = 0.122;
   activeHeroGroup.add(midRim);
 
-  // Glifo central emissivo azul místico
-  var runicGeo = new THREE.RingGeometry(0.35, 1.5, 48);
+  // Glifo central emissivo da Runa Sagrada de Einhasad
+  var sealTex = new THREE.TextureLoader().load('assets/fx/portal_floor_seal.png');
+  var runicGeo = new THREE.PlaneGeometry(3.1, 3.1);
   var runicMat = new THREE.MeshBasicMaterial({
+    map: sealTex,
     color: 0x5aa9ff,
     transparent: true,
-    opacity: 0.65,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
     side: THREE.DoubleSide
   });
   var runic = new THREE.Mesh(runicGeo, runicMat);
-  runic.rotation.x = Math.PI / 2;
+  runic.rotation.x = -Math.PI / 2;
   runic.position.y = 0.125;
   activeHeroGroup.add(runic);
 
-  // 4. Braseiros em Colunas de Pedra Gótica
-  var pillarCoords = [
-    { x: -3.2, z:  0.6 },
-    { x:  3.2, z:  0.6 },
-    { x: -4.4, z: -2.6 },
-    { x:  4.4, z: -2.6 }
+  // 4. Luzes Atmosféricas e Tochas Góticas do Templo
+  var torchCoords = [
+    { x: -3.6, y: 1.5, z:  0.8 },
+    { x:  3.6, y: 1.5, z:  0.8 },
+    { x: -4.8, y: 1.8, z: -2.4 },
+    { x:  4.8, y: 1.8, z: -2.4 }
   ];
 
   brazierLights = [];
-  pillarCoords.forEach(function(pt){
-    var pGroup = new THREE.Group();
-    pGroup.position.set(pt.x, -0.22, pt.z);
-
-    // Coluna de pedra gótica
-    var colGeo = new THREE.CylinderGeometry(0.24, 0.32, 1.5, 16);
-    var colMat = new THREE.MeshStandardMaterial({ color: 0x1c2538, roughness: 0.8, metalness: 0.2 });
-    var col = new THREE.Mesh(colGeo, colMat);
-    col.position.y = 0.75;
-    col.castShadow = true;
-    col.receiveShadow = true;
-    pGroup.add(col);
-
-    // Taça / Caldeirão de Bronze
-    var cupGeo = new THREE.CylinderGeometry(0.36, 0.2, 0.3, 16);
-    var bronzeMat = new THREE.MeshStandardMaterial({ color: 0xc88232, metalness: 0.85, roughness: 0.35 });
-    var cup = new THREE.Mesh(cupGeo, bronzeMat);
-    cup.position.y = 1.6;
-    cup.castShadow = true;
-    pGroup.add(cup);
-
-    // Chama / Núcleo do Fogo Emissivo
-    var flameGeo = new THREE.SphereGeometry(0.12, 12, 12);
-    var flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa33 });
-    var flame = new THREE.Mesh(flameGeo, flameMat);
-    flame.position.y = 1.78;
-    pGroup.add(flame);
-
-    // Luz dinâmica da tocha (com flicker no loop animate)
-    var torchLight = new THREE.PointLight(0xff9433, 2.5, 7.5);
-    torchLight.position.set(0, 1.82, 0);
-    pGroup.add(torchLight);
+  torchCoords.forEach(function(pt){
+    var torchLight = new THREE.PointLight(0xff9433, 2.2, 7.5);
+    torchLight.position.set(pt.x, pt.y, pt.z);
+    templeFloorGroup.add(torchLight);
     brazierLights.push(torchLight);
-
-    templeFloorGroup.add(pGroup);
   });
 
   scene.add(templeFloorGroup);
@@ -1737,7 +1723,11 @@ function loadCharacter3D(){
 
     var mainIdleClip = clips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle'; });
     var mainHandClip = clips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand'; });
-    var clipToPlay = (c.weapon === 'none' ? (mainHandClip || mainIdleClip) : (mainIdleClip || mainHandClip)) || gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
+    var isCaster = (c.weapon === 'staff' || c.weapon === 'book' || c.classe === 'mago' || c.classe === 'clerico');
+    var is1H = (c.weapon === 'shield' || c.weapon === 'swordshield' || c.classe === 'guardiao');
+    // Mago (staff), Clerigo (livro), Guardiao (1H+escudo) e desarmados usam postura ereta natural (idle_hand), segurando a arma com uma mao ao lado do corpo, em vez de espada 2 maos (Wait_2HS)
+    var clipToPlay = (c.weapon === 'none' || isCaster || is1H) ? (mainHandClip || mainIdleClip) : (mainIdleClip || mainHandClip);
+    if(!clipToPlay) clipToPlay = gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
     if(clipToPlay){
       currentAction = mixer.clipAction(clipToPlay);
       currentAction.reset().play();
@@ -1801,10 +1791,18 @@ function loadBackgroundCharacters3D(){
       }
 
       // Runa no chão sob os pés do personagem
-      var runePedGeo = new THREE.RingGeometry(0.35, 0.65, 32);
-      var runePedMat = new THREE.MeshBasicMaterial({ color: 0xf5c451, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+      var runePedGeo = new THREE.PlaneGeometry(1.3, 1.3);
+      var runePedMat = new THREE.MeshBasicMaterial({
+        map: new THREE.TextureLoader().load('assets/fx/portal_floor_seal.png'),
+        color: 0xf5c451,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
       var runePed = new THREE.Mesh(runePedGeo, runePedMat);
-      runePed.rotation.x = Math.PI / 2;
+      runePed.rotation.x = -Math.PI / 2;
       runePed.position.set(offset.pos[0], offset.pos[1] + 0.005, offset.pos[2]);
       bgCharactersGroup.add(runePed);
 
@@ -1823,7 +1821,10 @@ function loadBackgroundCharacters3D(){
       });
       var bIdleClip = bClips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle'; });
       var bHandClip = bClips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand'; });
-      var bClip = (c.weapon === 'none' ? (bHandClip || bIdleClip) : (bIdleClip || bHandClip)) || gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
+      var isBgCaster = (c.weapon === 'staff' || c.weapon === 'book' || c.classe === 'mago' || c.classe === 'clerico');
+      var isBg1H = (c.weapon === 'shield' || c.weapon === 'swordshield' || c.classe === 'guardiao');
+      var bClip = (c.weapon === 'none' || isBgCaster || isBg1H) ? (bHandClip || bIdleClip) : (bIdleClip || bHandClip);
+      if(!bClip) bClip = gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
       if(bClip){
         var bAct = bMixer.clipAction(bClip);
         bAct.time = (idx * 0.75) % (bClip.duration || 2.0); // Desloca suavemente para parecerem vivos
