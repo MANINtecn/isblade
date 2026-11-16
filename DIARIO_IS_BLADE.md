@@ -4278,3 +4278,25 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
     - Removido o valor pré-definido `value="&Iacute;caro"` do elemento `<input id="charName">`, iniciando agora completamente limpo (`value=""`) com o placeholder `"Digite seu nome..."`.
     - Em `setupNameValidation()`, desativada a injeção automática de nome padrão no campo, mantendo o input limpo para digitação direta do jogador.
     - Mensagem de orientação ajustada para `"Digite o nome do seu herói."` com foco automático caso o jogador tente prosseguir sem nomear seu personagem.
+
+
+### [Antigravity] 16/11/2026 - Correção de Resolução da Raça Elfo Negro (Dark Elf vs Elf)
+
+- **Diretriz Atendida**:
+  - *"e eu crio dark elf e vem elf normal"*
+
+- **Causa Raiz Identificada**:
+  - Em `arma_grau.js`, `cidade.html` e `arena.html`, a resolução de modelos e armaduras (`obterModelo3D`, `detectRace` e `atualizaModeloArmadura3D`) realizava checagens de substring sequenciais (`if(r.indexOf('elf_f') >= 0)`).
+  - Como a chave `'darkelf_f'` e `'darkelf_m'` contém a substring `'elf_f'` / `'elf_m'`, a validação do elfo branco era disparada logo em seguida, sobrescrevendo a raça de Elfo Negro para Elfo Branco nativo (`elf_f_nograde.glb`), além da ausência do alias direto `'darkelf'` nos dicionários `heroGlbMap` e `RACE_CONFIG`.
+
+- **Modificações Realizadas**:
+  - `prototipo/js/arma_grau.js`:
+    - Em `obterModelo3D` e `detectRace`: cadeia reestruturada para `if ... else if` com prioridade estrita para `darkelf_f`, `darkelf_m` e `darkelf` no topo, impedindo qualquer captura indevida pelas regras de elfo branco.
+    - Adicionado alias `A.SET_3D_MODELS.darkelf = A.SET_3D_MODELS.darkelf_f`.
+  - `prototipo/cidade.html` e `prototipo/arena.html`:
+    - Adicionado alias `'darkelf': 'assets/personagens/darkelf_f.glb?v=6'` em `heroGlbMap`.
+    - Em `atualizaModeloArmadura3D`, aplicada a mesma cadeia estrita `if ... else if` priorizando o Elfo Negro.
+  - `prototipo/selecao.html`:
+    - Adicionados aliases de raça direta em `RACE_CONFIG` (`darkelf`, `elf`, `orc`, `dwarf`, `magic`, `human`).
+  - `prototipo/js/net.js`:
+    - Adicionado `darkelf: 'darkelf_f.glb?v=5'` em `HERO` para multiplayer.

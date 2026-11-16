@@ -415,10 +415,11 @@
   function detectRace(rig){
     var s = (rig && (rig.charType || rig.race || rig.modelUrl || rig._currentGlbUrl)) || '';
     s = s.toLowerCase();
-    if(s.indexOf('elf_f') >= 0 || s.indexOf('felf') >= 0) return 'elf_f';
-    if(s.indexOf('elf_m') >= 0 || s.indexOf('melf') >= 0) return 'elf_m';
     if(s.indexOf('darkelf_f') >= 0 || s.indexOf('fdarkelf') >= 0) return 'darkelf_f';
     if(s.indexOf('darkelf_m') >= 0 || s.indexOf('mdarkelf') >= 0) return 'darkelf_m';
+    if(s.indexOf('darkelf') >= 0) return 'darkelf_f';
+    if(s.indexOf('elf_f') >= 0 || s.indexOf('felf') >= 0) return 'elf_f';
+    if(s.indexOf('elf_m') >= 0 || s.indexOf('melf') >= 0) return 'elf_m';
     if(s.indexOf('dwarf_f') >= 0 || s.indexOf('fdwarf') >= 0) return 'dwarf_f';
     if(s.indexOf('dwarf_m') >= 0 || s.indexOf('mdwarf') >= 0) return 'dwarf_m';
     if(s.indexOf('orc_f') >= 0 || s.indexOf('forc') >= 0) return 'orc_f';
@@ -439,10 +440,11 @@
         }
         for(var i = 0; i < names.length; i++){
           var nl = names[i].toLowerCase();
-          if(nl.indexOf('felf') >= 0 || nl.indexOf('elf_f') >= 0){ detected = 'elf_f'; break; }
-          if(nl.indexOf('melf') >= 0 || nl.indexOf('elf_m') >= 0){ detected = 'elf_m'; break; }
           if(nl.indexOf('fdarkelf') >= 0 || nl.indexOf('darkelf_f') >= 0){ detected = 'darkelf_f'; break; }
           if(nl.indexOf('mdarkelf') >= 0 || nl.indexOf('darkelf_m') >= 0){ detected = 'darkelf_m'; break; }
+          if(nl.indexOf('darkelf') >= 0){ detected = 'darkelf_f'; break; }
+          if(nl.indexOf('felf') >= 0 || nl.indexOf('elf_f') >= 0){ detected = 'elf_f'; break; }
+          if(nl.indexOf('melf') >= 0 || nl.indexOf('elf_m') >= 0){ detected = 'elf_m'; break; }
           if(nl.indexOf('fdwarf') >= 0 || nl.indexOf('dwarf_f') >= 0){ detected = 'dwarf_f'; break; }
           if(nl.indexOf('mdwarf') >= 0 || nl.indexOf('dwarf_m') >= 0){ detected = 'dwarf_m'; break; }
           if(nl.indexOf('forc') >= 0 || nl.indexOf('orc_f') >= 0){ detected = 'orc_f'; break; }
@@ -458,10 +460,11 @@
 
     try {
       var ct = (localStorage.getItem('isblade.char_type') || '').toLowerCase();
-      if(ct.indexOf('elf_f') >= 0) return 'elf_f';
-      if(ct.indexOf('elf_m') >= 0) return 'elf_m';
       if(ct.indexOf('darkelf_f') >= 0) return 'darkelf_f';
       if(ct.indexOf('darkelf_m') >= 0) return 'darkelf_m';
+      if(ct.indexOf('darkelf') >= 0) return 'darkelf_f';
+      if(ct.indexOf('elf_f') >= 0) return 'elf_f';
+      if(ct.indexOf('elf_m') >= 0) return 'elf_m';
       if(ct.indexOf('dwarf_f') >= 0) return 'dwarf_f';
       if(ct.indexOf('dwarf_m') >= 0) return 'dwarf_m';
       if(ct.indexOf('orc_f') >= 0) return 'orc_f';
@@ -472,7 +475,7 @@
       if(ct && RACE_TEXTURES[ct]) return ct;
     } catch(e){}
 
-    return 'elf_f';
+    return 'human_fighter';
   }
 
   function filhoGrau(holder, attach, url){
@@ -777,21 +780,23 @@
       sem:   'assets/personagens/darkelf_f.glb?v=6'
     }
   };
+  A.SET_3D_MODELS.darkelf = A.SET_3D_MODELS.darkelf_f;
 
   A.obterModelo3D = function(race, grau, hasChest){
     var r = (race || 'human_fighter').toLowerCase();
-    if(r === 'fighter' || r === 'starter' || r === 'human_m') r = 'human_fighter';
-    if(r.indexOf('female') >= 0 || r.indexOf('ffighter') >= 0) r = 'human_fighter_female';
     if(r.indexOf('darkelf_f') >= 0 || r.indexOf('fdarkelf') >= 0) r = 'darkelf_f';
-    if(r.indexOf('darkelf_m') >= 0 || r.indexOf('mdarkelf') >= 0) r = 'darkelf_m';
-    if(r.indexOf('dwarf_f') >= 0 || r.indexOf('fdwarf') >= 0) r = 'dwarf_f';
-    if(r.indexOf('dwarf_m') >= 0 || r.indexOf('mdwarf') >= 0) r = 'dwarf_m';
-    if(r.indexOf('orc_f') >= 0 || r.indexOf('forc') >= 0) r = 'orc_f';
-    if(r.indexOf('orc_m') >= 0 || r.indexOf('morc') >= 0) r = 'orc_m';
-    if(r.indexOf('magic_f') >= 0 || r.indexOf('fmagic') >= 0) r = 'magic_f';
-    if(r.indexOf('magic_m') >= 0 || r.indexOf('mmagic') >= 0) r = 'magic_m';
-    if(r.indexOf('elf_f') >= 0 || r.indexOf('felf') >= 0) r = 'elf_f';
-    if(r.indexOf('elf_m') >= 0 || r.indexOf('melf') >= 0) r = 'elf_m';
+    else if(r.indexOf('darkelf_m') >= 0 || r.indexOf('mdarkelf') >= 0) r = 'darkelf_m';
+    else if(r.indexOf('darkelf') >= 0) r = 'darkelf_f';
+    else if(r === 'fighter' || r === 'starter' || r === 'human_m') r = 'human_fighter';
+    else if(r.indexOf('female') >= 0 || r.indexOf('ffighter') >= 0) r = 'human_fighter_female';
+    else if(r.indexOf('dwarf_f') >= 0 || r.indexOf('fdwarf') >= 0) r = 'dwarf_f';
+    else if(r.indexOf('dwarf_m') >= 0 || r.indexOf('mdwarf') >= 0) r = 'dwarf_m';
+    else if(r.indexOf('orc_f') >= 0 || r.indexOf('forc') >= 0) r = 'orc_f';
+    else if(r.indexOf('orc_m') >= 0 || r.indexOf('morc') >= 0) r = 'orc_m';
+    else if(r.indexOf('magic_f') >= 0 || r.indexOf('fmagic') >= 0) r = 'magic_f';
+    else if(r.indexOf('magic_m') >= 0 || r.indexOf('mmagic') >= 0) r = 'magic_m';
+    else if(r.indexOf('elf_f') >= 0 || r.indexOf('felf') >= 0) r = 'elf_f';
+    else if(r.indexOf('elf_m') >= 0 || r.indexOf('melf') >= 0) r = 'elf_m';
 
     var table = A.SET_3D_MODELS[r];
     if(!table) table = A.SET_3D_MODELS['human_fighter'];

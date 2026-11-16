@@ -9299,7 +9299,8 @@ function switchCharacter(type){
     'dwarf_m': 'assets/personagens/dwarf_m_nograde.glb?v=2',
     'dwarf_f': 'assets/personagens/dwarf_f_nograde.glb?v=2',
     'darkelf_m': 'assets/personagens/darkelf_m.glb?v=6',
-    'darkelf_f': 'assets/personagens/darkelf_f.glb?v=6'
+    'darkelf_f': 'assets/personagens/darkelf_f.glb?v=6',
+    'darkelf': 'assets/personagens/darkelf_f.glb?v=6'
   };
 
   var curGrau = 'sem';
@@ -9323,18 +9324,19 @@ function switchCharacter(type){
 window.atualizaModeloArmadura3D = function(onFinish){
   if(!vrm || !vrm.root) return;
   var charType = (localStorage.getItem('isblade.char_type') || 'human_fighter').toLowerCase();
-  if(charType === 'fighter' || charType === 'starter' || charType === 'human_m') charType = 'human_fighter';
-  if(charType.indexOf('female') >= 0 || charType.indexOf('ffighter') >= 0) charType = 'human_fighter_female';
   if(charType.indexOf('darkelf_f') >= 0 || charType.indexOf('fdarkelf') >= 0) charType = 'darkelf_f';
-  if(charType.indexOf('darkelf_m') >= 0 || charType.indexOf('mdarkelf') >= 0) charType = 'darkelf_m';
-  if(charType.indexOf('dwarf_f') >= 0 || charType.indexOf('fdwarf') >= 0) charType = 'dwarf_f';
-  if(charType.indexOf('dwarf_m') >= 0 || charType.indexOf('mdwarf') >= 0) charType = 'dwarf_m';
-  if(charType.indexOf('orc_f') >= 0 || charType.indexOf('forc') >= 0) charType = 'orc_f';
-  if(charType.indexOf('orc_m') >= 0 || charType.indexOf('morc') >= 0) charType = 'orc_m';
-  if(charType.indexOf('magic_f') >= 0 || charType.indexOf('fmagic') >= 0) charType = 'magic_f';
-  if(charType.indexOf('magic_m') >= 0 || charType.indexOf('mmagic') >= 0) charType = 'magic_m';
-  if(charType.indexOf('elf_f') >= 0 || charType.indexOf('felf') >= 0) charType = 'elf_f';
-  if(charType.indexOf('elf_m') >= 0 || charType.indexOf('melf') >= 0) charType = 'elf_m';
+  else if(charType.indexOf('darkelf_m') >= 0 || charType.indexOf('mdarkelf') >= 0) charType = 'darkelf_m';
+  else if(charType.indexOf('darkelf') >= 0) charType = 'darkelf_f';
+  else if(charType === 'fighter' || charType === 'starter' || charType === 'human_m') charType = 'human_fighter';
+  else if(charType.indexOf('female') >= 0 || charType.indexOf('ffighter') >= 0) charType = 'human_fighter_female';
+  else if(charType.indexOf('dwarf_f') >= 0 || charType.indexOf('fdwarf') >= 0) charType = 'dwarf_f';
+  else if(charType.indexOf('dwarf_m') >= 0 || charType.indexOf('mdwarf') >= 0) charType = 'dwarf_m';
+  else if(charType.indexOf('orc_f') >= 0 || charType.indexOf('forc') >= 0) charType = 'orc_f';
+  else if(charType.indexOf('orc_m') >= 0 || charType.indexOf('morc') >= 0) charType = 'orc_m';
+  else if(charType.indexOf('magic_f') >= 0 || charType.indexOf('fmagic') >= 0) charType = 'magic_f';
+  else if(charType.indexOf('magic_m') >= 0 || charType.indexOf('mmagic') >= 0) charType = 'magic_m';
+  else if(charType.indexOf('elf_f') >= 0 || charType.indexOf('felf') >= 0) charType = 'elf_f';
+  else if(charType.indexOf('elf_m') >= 0 || charType.indexOf('melf') >= 0) charType = 'elf_m';
 
   var inv = window.INV || INV;
   var hasChest = true;

@@ -972,6 +972,12 @@ var RACE_CONFIG = {
     lore: 'Graça mortal e lâminas velozes como a noite. Executa seus alvos com precisão cirúrgica e postura predatória.'
   }
 };
+RACE_CONFIG.darkelf = RACE_CONFIG.darkelf_f;
+RACE_CONFIG.elf = RACE_CONFIG.elf_f;
+RACE_CONFIG.orc = RACE_CONFIG.orc_m;
+RACE_CONFIG.dwarf = RACE_CONFIG.dwarf_f;
+RACE_CONFIG.magic = RACE_CONFIG.magic_m;
+RACE_CONFIG.human = RACE_CONFIG.human_fighter;
 
 // Gerenciador de Personagens em localStorage
 var PROG = null; try { fetch('data/progressao.json?v=1').then(function(r){ return r.json(); }).then(function(j){ PROG = j; if(typeof updateHeroCard === 'function' && characters && characters.length) updateHeroCard(); }); } catch(e){}
