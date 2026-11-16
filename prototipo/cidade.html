@@ -1278,7 +1278,7 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader);      /* [assets-
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=22';
+import { Guardiao } from './js/guardiao.js?v=23';
 import { Net } from './js/net.js?v=50';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
@@ -18260,7 +18260,7 @@ Guardiao.init({
 
   getScene:function(){return GCENA;},getCamera:function(){return camera;},compile:function(){try{if(BLOOM.on){bloomInit();renderer.setRenderTarget(BLOOM.rt);}renderer.compile(scene,camera);}catch(_){}try{renderer.setRenderTarget(null);}catch(_){}},/* compila para o alvo do bloom (o jogo desenha a cena nele): para a tela os shaders sairiam diferentes e recompilariam na 1a skill */
 
-  getWPN:function(){return WPN;},getVrm:function(){return vrm;},getS:function(){return S;},playClip:playClip,gestMsg:gestMsg,
+  getWPN:function(){return WPN;},getVrm:function(){return vrm;},getS:function(){return S;},playClip:playClip,gestMsg:gestMsg,getAim:function(){return aimAngle();},/* [feixe-escudo] a carga acompanha a mira */
 
   shake:function(v){S.shake=Math.max(S.shake,v);},domoDano:function(x,z,r,d){domoDano(x,z,r,d);},getFoes:function(){var a=[];if(BOSS_ON&&!S.dead)a.push({x:S.ex,z:S.ez});MOBS.forEach(function(m){if(!m.dead)a.push({x:m.x,z:m.z});});return a;},
 

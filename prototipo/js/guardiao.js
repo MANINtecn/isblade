@@ -263,9 +263,11 @@ export const Guardiao = (function(){
   /* chamado a cada frame pelo tick da animacao da skill; devolve true enquanto a animacao deve ficar congelada na pose de carga */
   G.canalTick = function(an, dt){
     if(!ctx || !an || !an.skill || an.skill.pose !== 'g_s1' || ctx.getWPN() !== 'shield' || !FX) return false;
+    if(canal.ph === 3 && !an.hit && ctx.getAim){ try { var am3 = ctx.getAim(); if(typeof am3 === 'number' && isFinite(am3)) ctx.getS().face = am3; } catch(e){} }   /* [feixe-escudo] soltou: segue a mira ate o feixe sair */
     if(canal.ph !== 2 || !canal.ctrl) return false;
     var S = ctx.getS(), cfg = CM.g_s1, rig = ctx.getVrm(), act = rig && rig.drv && rig.drv.cur, idx = G.dados.armas.shield.skills.indexOf(an.skill);
     canal.t += dt; S.stun = 0; canal.ctrl.tempo(canal.t);
+    if(ctx.getAim){ try { var am = ctx.getAim(); if(typeof am === 'number' && isFinite(am)) S.face = am; } catch(e){} }   /* [feixe-escudo] durante a carga o Guardiao vira para a mira: o feixe sai para onde o jogador mira ao soltar */
     if(S.skHeld === idx && canal.t < CANAL_T){                          /* segurando: o flare cresce no escudo; a animacao congela na pose de carga */
       if(an.tt >= (cfg.fz ? cfg.fz / cfg.sp : sec(CANAL_FRAME, cfg.sp))){ if(act) act.paused = true; return true; }
       return false;
