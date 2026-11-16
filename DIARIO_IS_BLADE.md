@@ -4508,3 +4508,41 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   - Convocação Avulsa atualizada com seletor de classe individual (`🎲 Todas`, `⚔️ Guerreiro`, `🛡️ Guardião`, `🧙 Mago`, `✨ Healer`) e seletor de time do bot (`⚪ Livre`, `🔵 Time Azul`, `🔴 Time Vermelho`).
 - **Painel de Administração GM (`prototipo/js/painel_admin.js`)**:
   - Novos botões de atalho: `🚩 Guerra 5v5 (com Healers)`, `🔵 Time Azul`, `🔴 Time Vermelho`, `⚪ Neutro` e atalho para o Painel de Bots.
+
+
+### Sessão 16/11/2026 - Nitidez HD de Tags de Times, Resolução da Câmera Lenta (F10) e Formação Tática TvT nos Cantos da Arena
+
+- **Nitidez de Alta Resolução nas Tags de Times (`prototipo/js/net.js`)**:
+  - Resolução do canvas 3D dobrada de `256x72` para `512x144` e escala aumentada para `sp.scale.set(3.4, 0.96, 1)` com filtragem linear, eliminando borrões, cortes de texto e perda de nitidez a qualquer distância.
+  - **Badge / Pill Luminoso de Time no Topo da Tag**:
+    * Time Azul: pill arredondado neon com fundo `#082f49` / `#0369a1`, borda brilhante `#38bdf8` e título `🛡️ TIME AZUL`.
+    * Time Vermelho: pill arredondado neon com fundo `#450a0a` / `#991b1b`, borda brilhante `#f87171` e título `⚔️ TIME VERMELHO`.
+    * Limpeza visual: nomes com prefixos técnicos (`Azul_` ou `Verm_`) são exibidos de forma limpa, sem redundância no texto.
+  - **Identificação Nítida de Nível e Nome**:
+    * Tipografia ampliada para 28px/30px com contorno preto nítido de 6px e cores de alto contraste (`#7dd3fc` para Time Azul e `#fca5a5` para Time Vermelho).
+  - **Barra de Vida (HP) com Gradiente de Equipe**:
+    * Barra estilizada de 320px com caixa de fundo escura, gradiente vibrante nas cores do time (azul neon `#38bdf8`/`#0284c7` ou vermelho vibrante `#f87171`/`#b91c1c`), brilho gloss superior e texto nítido de HP atual / máximo no centro.
+  - **Anel de Chão Neon Colorido sob os Pés (`THREE.RingGeometry`)**:
+    * Anel emissivo de 0.85m a 1.05m sob os pés dos personagens com time (`0x38bdf8` para Time Azul e `0xff4d4d` para Time Vermelho).
+    * O jogador local (`N.eu.team`) também recebe o anel colorido sob seus pés enquanto pertencer a uma equipe, proporcionando leitura espacial imediata mesmo em meio a batalhas caóticas.
+- **Eliminação Completa da Câmera Lenta (`prototipo/js/modo_camera.js`, `prototipo/js/painel_admin.js`, `prototipo/arena.html`, `prototipo/cidade.html`)**:
+  - Descoberta e correção da causa raiz: `modo_camera.js` interceptava a tecla `F10` e alterava a velocidade do loop do jogo para 0.5x ou 0.25x (`ModoCamera.escala`). Como o Painel GM também abria no `F10`, o jogo entrava em câmera lenta acidental.
+  - O atalho de gravação de câmera lenta foi transferido com exclusividade para `Shift+F9`, reservando `F10` apenas para o Painel Admin GM.
+  - O loop de renderização e física de `arena.html` e `cidade.html` agora calcula velocidade com base em `window._adminSpeedMult`.
+  - Ao abrir ou alterar a velocidade no Painel Admin, `ModoCamera.escala` é forçado para 1.0x (normal).
+  - Velocidade de movimentação e combate dos bots em `servidor/fakes.js` aumentada de 4.8 m/s para 6.4 m/s (rush de 7.2 m/s, recuo de 5.2 m/s), eliminando sensação de lentidão e igualando à velocidade de corrida do jogador (`RUN = 6.2`).
+- **Formação Tática e Spawn em Cantos Opostos em TvT (`servidor/fakes.js`)**:
+  - Reestruturação completa de `spawnTimes`:
+    * Na Arena PvP (Baium): centro `(-28.4, -53.85)`. Time Azul spawna no Canto Oeste (`cx - 21m`) e Time Vermelho no Canto Leste (`cx + 21m`), a 42 metros de distância entre si.
+    * No Campo Aberto da Cidade: Time Azul a oeste (`-24m`) e Time Vermelho a leste (`+24m`), a 48 metros de distância.
+  - **Formação Militar de Batalha (`formacao: true`)**:
+    * Em vez de círculos aleatórios sobrepostos, os bots agora nascem organizados em fileiras militares perfiladas de frente para a equipe rival.
+    * **Linha de Frente**: Tanques/Guardiões (Escudo) e Guerreiros (Espada) avançam +1.8m na frente, dispostos lado a lado com espaçamento de 2.2m.
+    * **Retaguarda**: Clérigos/Healers (Livro) e Magos (Cajado) resguardados a -2.4m atrás da linha de frente.
+    * Direção inicial de olhar (`fRot`): Time Azul olhando para Leste (`Math.PI / 2`) e Time Vermelho olhando para Oeste (`-Math.PI / 2`).
+    * Ponto de respawn (`spawnX`, `spawnZ`) fixado na formação da própria base, impedindo que bots renasçam misturados com o inimigo.
+  - **Filtro de Cooldown em Skills dos Bots**:
+    * Bots verificam se a skill já saiu do tempo de recarga (`!bot.cd[cdKey] || t >= bot.cd[cdKey]`) antes de castar, evitando tentativas falhas e garantindo execução contínua de golpes e magias.
+- **Correção de Flutuação dos Bots na Arena (`prototipo/arena.html` & `prototipo/js/guardiao.js`)**:
+  - Em `arena.html`, `chaoRemoto` corrigido para retornar sempre `0` (piso nivelado da arena Baium), impedindo que o salto do jogador local (`Torre.altura`) elevasse os bots remotos no ar.
+  - Em `guardiao.js`, `bocaEscudo()` desacoplado do escudo do jogador local quando `window.REMOTEFX` estiver ativo.

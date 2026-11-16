@@ -266,11 +266,30 @@ function spawnBots(opts){
     const nomeBase = nomeDisponivel();
     const nome = team ? (team === 'A' ? 'Azul_' : 'Verm_') + nomeBase : nomeBase;
 
-    const ang = (i / qtd) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-    const raio = 3.5 + Math.random() * 8.5;
-    const bx = r2(cx + Math.sin(ang) * raio);
-    const bz = r2(cz + Math.cos(ang) * raio);
-    const fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : r2(Math.random() * 6.28);
+    let bx, bz;
+    if(opts.formacao){
+      // Formação militar tática de batalha: linha de frente avançada, retaguarda protegida
+      const isBackline = (persona.arma === 'book' || persona.arma === 'staff' || persona.cls === 'clerigo' || persona.cls === 'magic');
+      const dir = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : (team === 'A' ? Math.PI / 2 : -Math.PI / 2);
+      const fwdX = Math.sin(dir);
+      const fwdZ = Math.cos(dir);
+      const latX = Math.cos(dir);
+      const latZ = -Math.sin(dir);
+
+      const distLinha = isBackline ? -2.4 : 1.8;
+      const slotIndex = Math.floor(i / 2);
+      const lado = (i % 2 === 0) ? 1 : -1;
+      const distLat = slotIndex === 0 ? 0 : (lado * slotIndex * 2.2);
+
+      bx = r2(cx + fwdX * distLinha + latX * distLat);
+      bz = r2(cz + fwdZ * distLinha + latZ * distLat);
+    } else {
+      const ang = (i / qtd) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const raio = 3.5 + Math.random() * 8.5;
+      bx = r2(cx + Math.sin(ang) * raio);
+      bz = r2(cz + Math.cos(ang) * raio);
+    }
+    const fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : (opts.formacao ? (team === 'A' ? Math.PI / 2 : -Math.PI / 2) : r2(Math.random() * 6.28));
 
     const bot = {
       id,
@@ -375,7 +394,7 @@ function spawnBots(opts){
   return criados;
 }
 
-/* Cria duas equipes rivais (Time Azul vs Time Vermelho) com posições opostas e Healers em cada lado */
+/* Cria duas equipes rivais (Time Azul vs Time Vermelho) com posições em cantos opostos e formação de batalha */
 function spawnTimes(opts){
   if(!CTX) return { timeA: 0, timeB: 0 };
   const canal = opts.canal || canalArenaPvp() || canalCidade();
@@ -388,13 +407,29 @@ function spawnTimes(opts){
   const classeB = opts.classeB || opts.classe || '';
 
   const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
-  const cx = typeof opts.x === 'number' ? opts.x : (canal.mapa === 'pvp' ? are.x : 0);
-  const cz = typeof opts.z === 'number' ? opts.z : (canal.mapa === 'pvp' ? are.z : 105);
+  let cx, cz, distBase;
 
-  // Time Azul (A): nasce a Oeste (cx - 16) olhando para o Leste (direcaoOlhar: Math.PI / 2)
+  if(canal.mapa === 'pvp'){
+    // Salão de Baium (Arena PvP): centro (-28.4, -53.85).
+    // Bases nos cantos Oeste e Leste do salão (21 metros de afastamento, 42m de distância entre as equipes!)
+    cx = are.x;
+    cz = are.z;
+    distBase = 21.0;
+  } else if(canal.mapa === 'cidade'){
+    // Campo aberto ao sul de Talking Island
+    cx = (typeof opts.x === 'number' && Math.abs(opts.x) > 40) ? opts.x : 0;
+    cz = (typeof opts.z === 'number' && opts.z > 70) ? opts.z : 105;
+    distBase = 24.0;
+  } else {
+    cx = typeof opts.x === 'number' ? opts.x : 0;
+    cz = typeof opts.z === 'number' ? opts.z : 0;
+    distBase = 18.0;
+  }
+
+  // Time Azul (A): nasce no Canto Oeste (cx - distBase) perfilado em formação olhando para Leste
   const spA = spawnBots({
     canal,
-    x: cx - 16,
+    x: cx - distBase,
     z: cz,
     qtd: qtdPorTime,
     lv,
@@ -403,13 +438,14 @@ function spawnTimes(opts){
     comHealer,
     classe: classeA,
     direcaoOlhar: Math.PI / 2,
+    formacao: true,
     silencioso: true
   });
 
-  // Time Vermelho (B): nasce a Leste (cx + 16) olhando para o Oeste (direcaoOlhar: -Math.PI / 2)
+  // Time Vermelho (B): nasce no Canto Leste (cx + distBase) perfilado em formação olhando para Oeste
   const spB = spawnBots({
     canal,
-    x: cx + 16,
+    x: cx + distBase,
     z: cz,
     qtd: qtdPorTime,
     lv,
@@ -418,6 +454,7 @@ function spawnTimes(opts){
     comHealer,
     classe: classeB,
     direcaoOlhar: -Math.PI / 2,
+    formacao: true,
     silencioso: true
   });
 
@@ -425,7 +462,7 @@ function spawnTimes(opts){
   CTX.difunde(canal, {
     t: 'chat',
     n: 'Sistema',
-    m: `🚩 GUERRA DE TIMES: 🔵 Time Azul (${spA}) vs 🔴 Time Vermelho (${spB}) · Nv ${lv} (Grau ${grauTxt})! Healers ativos em cada lado!`,
+    m: `🚩 GUERRA DE TIMES: 🔵 Time Azul (${spA}) vs 🔴 Time Vermelho (${spB}) · Nv ${lv} (Grau ${grauTxt})! Cantos opostos em formação de batalha!`,
     c: 's'
   });
 
@@ -505,8 +542,12 @@ function buscaAlvo(bot, c, t){
       return cand;
     }
 
-    // Se o candidato for do time rival, prioriza o alvo
-    const pesoDist = timeRival ? (d * 0.6) : d;
+    // Se o bot tem time, ele busca preferencialmente o time rival pelo mapa
+    let pesoDist = d;
+    if(bot.team){
+      if(timeRival) pesoDist = d * 0.25;
+      else pesoDist = d * 2.5;
+    }
 
     if(pesoDist < melhorDist){
       melhorDist = pesoDist;
@@ -575,7 +616,7 @@ function tick(t, dt){
           bot.f = r2(Math.atan2(dx, dz));
           if(dist > 9){
             bot.a = 'run';
-            const k = Math.min(dist - 8, 4.6 * dt);
+            const k = Math.min(dist - 8, 6.2 * dt);
             bot.x = r2(bot.x + (dx / dist) * k);
             bot.z = r2(bot.z + (dz / dist) * k);
           } else {
@@ -636,7 +677,7 @@ function tick(t, dt){
 
           if(dist > 12){
             bot.a = 'run';
-            const k = Math.min(dist - 8, 4.8 * dt);
+            const k = Math.min(dist - 8, 6.2 * dt);
             bot.x = r2(bot.x + (dx / dist) * k);
             bot.z = r2(bot.z + (dz / dist) * k);
           } else {
@@ -678,8 +719,8 @@ function tick(t, dt){
         if(dSpawn > 18){
           const angVolta = Math.atan2(bot.spawnX - bot.x, bot.spawnZ - bot.z);
           bot.f = r2(angVolta);
-          bot.x = r2(bot.x + Math.sin(angVolta) * 3.5 * dt);
-          bot.z = r2(bot.z + Math.cos(angVolta) * 3.5 * dt);
+          bot.x = r2(bot.x + Math.sin(angVolta) * 5.2 * dt);
+          bot.z = r2(bot.z + Math.cos(angVolta) * 5.2 * dt);
           bot.a = 'run';
         } else {
           bot.a = 'idle';
@@ -701,10 +742,10 @@ function tick(t, dt){
 
       // Distância de combate
       if(dist > distIdeal + 0.5){
-        // Aproximação
+        // Aproximação ágil (rush)
         bot.guarda = false;
         bot.a = 'run';
-        const vel = 4.8;
+        const vel = 6.4;
         const k = Math.min(dist - distIdeal, vel * dt);
         bot.x = r2(bot.x + (dx / dist) * k);
         bot.z = r2(bot.z + (dz / dist) * k);
@@ -712,7 +753,7 @@ function tick(t, dt){
         // Mago / Healer recua se alvo encostar
         bot.guarda = false;
         bot.a = 'run';
-        const k = 4.2 * dt;
+        const k = 5.2 * dt;
         bot.x = r2(bot.x - (dx / dist) * k);
         bot.z = r2(bot.z - (dz / dist) * k);
       } else {
@@ -749,19 +790,31 @@ function tick(t, dt){
         if(t > bot.tAtk && !bot.guarda){
           bot.tAtk = t + 0.7 + Math.random() * 0.35;
           const temSkills = bot.skills && bot.skills.length > 0;
-          const usaSkill = temSkills && t > bot.tSkill && Math.random() < 0.45;
+          const usaSkill = temSkills && t > bot.tSkill && Math.random() < 0.55;
 
           if(isHealerCombat){
             // Ataque de luz do clérigo
             bot.a = 'c_s1';
             CTX.ataque(c, bot, { k: 'b', id: 'thrust', f: bot.f });
           } else if(usaSkill){
-            bot.tSkill = t + 3.2 + Math.random() * 2.5;
-            const skIdx = sorteio(bot.skills);
-            const anims = ['slash1', 'slash2', 'slash3', 'slash4', 'thrust', 'spin'];
-            bot.a = anims[skIdx % anims.length];
-            bot.tAtk = t + 1.0;
-            CTX.ataque(c, bot, { k: 's', i: skIdx, f: bot.f, p: 1 });
+            // Filtra skills que não estão em cooldown no servidor
+            const skillsProntas = bot.skills.filter(i => {
+              const cdKey = bot.arma + i;
+              return !bot.cd[cdKey] || t >= bot.cd[cdKey];
+            });
+
+            if(skillsProntas.length > 0){
+              bot.tSkill = t + 2.8 + Math.random() * 2.0;
+              const skIdx = sorteio(skillsProntas);
+              const anims = isMago ? ['m_s1', 'm_s2', 'm_s3', 'm_s4'] : ['slash1', 'slash2', 'slash3', 'slash4', 'thrust', 'spin'];
+              bot.a = anims[skIdx % anims.length];
+              bot.tAtk = t + 0.95;
+              CTX.ataque(c, bot, { k: 's', i: skIdx, f: bot.f, p: 1 });
+            } else {
+              const golpe = COMBOS_BASICOS[(bot.combo++) % COMBOS_BASICOS.length];
+              bot.a = bot.combo % 2 ? 'slash1' : 'slash2';
+              CTX.ataque(c, bot, { k: 'b', id: golpe, f: bot.f });
+            }
           } else {
             const golpe = COMBOS_BASICOS[(bot.combo++) % COMBOS_BASICOS.length];
             bot.a = bot.combo % 2 ? 'slash1' : 'slash2';
@@ -938,12 +991,12 @@ function executa(c, J, m){
     let canal = c;
     let x = J.x, z = J.z;
 
-    if(m.local === 'arena'){
-      canal = canalArenaPvp();
+    if(m.local === 'arena' || c.mapa === 'pvp'){
+      canal = canalArenaPvp() || c;
       const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
       x = are.x; z = are.z;
-    } else if(m.local === 'campo'){
-      canal = canalCidade();
+    } else if(m.local === 'campo' || c.mapa === 'cidade'){
+      canal = canalCidade() || c;
       x = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
       z = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
     }

@@ -15930,7 +15930,7 @@ function frame2(dt,T){
     /* [corrida] segurou Shift: corre se ha estamina, nao esta guardando nem usando skill; so volta a correr soltando e apertando de novo */
     var segurando=S.shiftDown&&(performance.now()-S.shiftT)>=SPRINT_HOLD*1000;
     if(segurando&&!S.guard&&!an0&&S.st>(S.sprint?0:SPRINT_MIN)){S.sprint=true;S.st=Math.max(0,S.st-SPRINT_DRAIN*dt);S.stDelay=Math.max(S.stDelay,.5);if(S.st<=0){S.shiftDown=false;S.sprint=false;}}else S.sprint=false;
-    var spd=(S.guard?3.0:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1);
+    var spd=(S.guard?3.0:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1)*(window._adminSpeedMult||1);
 
 
 

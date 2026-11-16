@@ -8319,7 +8319,7 @@ function frame2(dt,T){
     /* [corrida] segurou Shift: corre se ha estamina, nao esta guardando nem usando skill; so volta a correr soltando e apertando de novo */
     var segurando=S.shiftDown&&(performance.now()-S.shiftT)>=SPRINT_HOLD*1000;
     if(segurando&&!S.guard&&!an0&&S.st>(S.sprint?0:SPRINT_MIN)){S.sprint=true;S.st=Math.max(0,S.st-SPRINT_DRAIN*dt);S.stDelay=Math.max(S.stDelay,.5);if(S.st<=0){S.shiftDown=false;S.sprint=false;}}else S.sprint=false;
-    var spd=(S.guard?3.0:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1);
+    var spd=(S.guard?3.0:RUN)*mv.m*(an0?MOVE_CAST:1)*(S.sprint?SPRINT_MULT:1)*(window._adminSpeedMult||1);
 
     tvx=mv.x*spd;tvz=mv.z*spd;
 
@@ -9678,7 +9678,7 @@ Net.init({
   curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,on);},/* [clerigo] */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */
   ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,dgs:dgsRecebe,/* [mobs-servidor] [dg-servidor] */
-  getY:function(){return Torre.on?Torre.y:undefined;},alturaRemota:function(y){return Torre.on?y-Torre.baseY:0;},chaoRemoto:function(x,z){return Torre.on?Torre.altura:0;},/* [mapas-multi] altura no relevo (mapas abertos e torre) */
+  getY:function(){return Torre.on?Torre.y:undefined;},alturaRemota:function(y){return Torre.on?y-Torre.baseY:0;},chaoRemoto:function(x,z){return 0;},/* [mapas-multi] arena baium chao fixo em 0 */
   inv:invDoServidor,drop:dropRecebido,usou:usouRecebido,curaSrv:curaDoServidor,enc:encRecebido,ss:ssRecebido,arm:function(m){try{Loja.armazem(m);}catch(_){}},/* [inventario-servidor] */
   THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},getVrm:function(){return vrm;},getWPN:function(){return WPN;},
   nome:function(){return localStorage.getItem('isblade.player_name')||'Heroi';},tipo:function(){return localStorage.getItem('isblade.char_type')||'fighter';},

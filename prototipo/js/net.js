@@ -85,17 +85,189 @@ export const Net = (function(){
     hudEl.innerHTML = nome + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online' + t + duelo + ajuda + pk; pkBotao();
   }
 
-  /* ---------- plaquinha: nome + barra de vida ---------- */
+  /* ---------- plaquinha: nome + barra de vida + badge de time ---------- */
+  function desenhaPill(g, x, y, w, h, r, corBg1, corBg2, corBorda){
+    g.save();
+    g.beginPath();
+    g.moveTo(x + r, y);
+    g.lineTo(x + w - r, y);
+    g.quadraticCurveTo(x + w, y, x + w, y + r);
+    g.lineTo(x + w, y + h - r);
+    g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    g.lineTo(x + r, y + h);
+    g.quadraticCurveTo(x, y + h, x, y + h - r);
+    g.lineTo(x, y + r);
+    g.quadraticCurveTo(x, y, x + r, y);
+    g.closePath();
+    var grad = g.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, corBg2);
+    grad.addColorStop(1, corBg1);
+    g.fillStyle = grad;
+    g.fill();
+    g.strokeStyle = corBorda;
+    g.lineWidth = 2.2;
+    g.stroke();
+    g.restore();
+  }
+
+  function atualizaTeamRing(e){
+    var tm = e.team || (e.nome && e.nome.indexOf('Azul_') === 0 ? 'A' : (e.nome && e.nome.indexOf('Verm_') === 0 ? 'B' : ''));
+    if(!tm){
+      if(e.teamRing){ e.grp.remove(e.teamRing); e.teamRing = null; }
+      return;
+    }
+    var corHex = tm === 'A' ? 0x38bdf8 : 0xff4d4d;
+    if(!e.teamRing){
+      var geo = new THREE.RingGeometry(0.85, 1.05, 32);
+      geo.rotateX(-Math.PI / 2);
+      var mat = new THREE.MeshBasicMaterial({ color: corHex, transparent: true, opacity: 0.88, side: THREE.DoubleSide, depthWrite: false });
+      var msh = new THREE.Mesh(geo, mat);
+      msh.position.y = 0.04;
+      e.grp.add(msh);
+      e.teamRing = msh;
+    } else {
+      if(e.teamRing.material.color.getHex() !== corHex){
+        e.teamRing.material.color.setHex(corHex);
+      }
+    }
+  }
+
+  var euTeamRing = null;
+  function atualizaEuTeamRing(){
+    var tm = (N.eu && N.eu.team) || '';
+    if(!tm){
+      if(euTeamRing){ ctx.scene.remove(euTeamRing); euTeamRing = null; }
+      return;
+    }
+    var corHex = tm === 'A' ? 0x38bdf8 : 0xff4d4d;
+    if(!euTeamRing){
+      var geo = new THREE.RingGeometry(0.85, 1.05, 32);
+      geo.rotateX(-Math.PI / 2);
+      var mat = new THREE.MeshBasicMaterial({ color: corHex, transparent: true, opacity: 0.88, side: THREE.DoubleSide, depthWrite: false });
+      euTeamRing = new THREE.Mesh(geo, mat);
+      ctx.scene.add(euTeamRing);
+    } else {
+      if(euTeamRing.material.color.getHex() !== corHex){
+        euTeamRing.material.color.setHex(corHex);
+      }
+    }
+    var S = ctx.getS();
+    if(euTeamRing) euTeamRing.position.set(S.px, (ctx.chaoRemoto ? ctx.chaoRemoto(S.px, S.pz) : 0) + 0.04, S.pz);
+  }
+
   function desenhaTag(e){
-    if(!e.tag) return; var c = e.tag.cv, g = c.getContext('2d'); g.clearRect(0, 0, 256, 72);
-    g.font = '700 26px system-ui,Arial,sans-serif'; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = 'rgba(0,0,0,.85)';
-    var prefixoTime = e.team === 'A' ? '[Time Azul] ' : (e.team === 'B' ? '[Time Vermelho] ' : '');
-    var cor = e.morto ? '#9aa3b5' : (noGrupo(e.id) ? '#7fe08a' : (e.team && COR_TIME[e.team] ? COR_TIME[e.team] : (e.pk === 2 ? '#ff3b3b' : e.pk === 1 ? '#a77bff' : (N.mapa === 'pvp' ? '#ffb3a8' : '#f4fbff'))));
-    var nm = (e.cla ? '[' + e.cla + '] ' : '') + prefixoTime + e.nome;
-    g.strokeText(nm, 128, 28); g.fillStyle = cor; g.fillText(nm, 128, 28);      /* [cla] sigla antes do nome */
-    var w = 150, x = 53, y = 42, k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
-    g.fillStyle = 'rgba(0,0,0,.7)'; g.fillRect(x - 2, y - 2, w + 4, 14); g.fillStyle = e.morto ? '#555' : (k > .5 ? '#5cd65c' : (k > .25 ? '#e6b422' : '#e54b4b')); g.fillRect(x, y, w * k, 10);
-    e.tag.tex.needsUpdate = true; e.hpDes = e.hp;
+    if(!e.tag) return;
+    var c = e.tag.cv, g = c.getContext('2d');
+    g.clearRect(0, 0, 512, 144);
+
+    var tm = e.team || '';
+    if(!tm && e.nome){
+      if(e.nome.indexOf('Azul_') === 0) tm = 'A';
+      else if(e.nome.indexOf('Verm_') === 0) tm = 'B';
+    }
+
+    // 1. Badge Luminoso de Time no topo (Pill HD)
+    if(tm === 'A'){
+      desenhaPill(g, 156, 6, 200, 28, 14, '#082f49', '#0369a1', '#38bdf8');
+      g.font = '900 15px system-ui,Arial,sans-serif';
+      g.textAlign = 'center';
+      g.lineWidth = 3;
+      g.strokeStyle = '#021827';
+      g.strokeText('🛡️ TIME AZUL', 256, 25);
+      g.fillStyle = '#e0f2fe';
+      g.fillText('🛡️ TIME AZUL', 256, 25);
+    } else if(tm === 'B'){
+      desenhaPill(g, 146, 6, 220, 28, 14, '#450a0a', '#991b1b', '#f87171');
+      g.font = '900 15px system-ui,Arial,sans-serif';
+      g.textAlign = 'center';
+      g.lineWidth = 3;
+      g.strokeStyle = '#230404';
+      g.strokeText('⚔️ TIME VERMELHO', 256, 25);
+      g.fillStyle = '#fee2e2';
+      g.fillText('⚔️ TIME VERMELHO', 256, 25);
+    } else if(e.cla){
+      desenhaPill(g, 206, 6, 100, 26, 13, '#1e1b4b', '#4338ca', '#818cf8');
+      g.font = '800 14px system-ui,Arial,sans-serif';
+      g.textAlign = 'center';
+      g.fillStyle = '#c7d2fe';
+      g.fillText('[' + e.cla + ']', 256, 24);
+    }
+
+    // 2. Nome + Nível Nítido (Linha do meio)
+    var nmLimpo = e.nome ? e.nome.replace(/^(Azul_|Verm_)/, '') : 'Heroi';
+    var textoNome = (e.cla && tm ? '[' + e.cla + '] ' : '') + 'Lv ' + (e.lv || 1) + '  ' + nmLimpo;
+    var yNome = (tm || e.cla) ? 68 : 50;
+
+    g.font = '800 28px system-ui,Arial,sans-serif';
+    g.textAlign = 'center';
+    g.lineWidth = 6;
+    g.strokeStyle = 'rgba(0,0,0,0.95)';
+    g.lineJoin = 'round';
+    g.strokeText(textoNome, 256, yNome);
+
+    var corNome = e.morto ? '#94a3b8' : (noGrupo(e.id) ? '#4ade80' : (tm === 'A' ? '#7dd3fc' : (tm === 'B' ? '#fca5a5' : (e.pk === 2 ? '#ef4444' : (e.pk === 1 ? '#c084fc' : (N.mapa === 'pvp' ? '#fdba74' : '#f8fafc'))))));
+    g.fillStyle = corNome;
+    g.fillText(textoNome, 256, yNome);
+
+    // 3. Barra de HP Estilizada (Linha inferior)
+    var yBar = (tm || e.cla) ? 88 : 70;
+    var barW = 320, barH = 18, barX = 96;
+    var k = Math.max(0, Math.min(1, (e.hp || 0) / (e.pmax || 100)));
+
+    // Caixa de fundo
+    desenhaPill(g, barX - 2, yBar - 2, barW + 4, barH + 4, 8, 'rgba(10,15,28,0.92)', 'rgba(15,23,42,0.96)', tm === 'A' ? '#0369a1' : (tm === 'B' ? '#991b1b' : '#334155'));
+
+    // Miolo de vida preenchido
+    if(k > 0 && !e.morto){
+      var curW = Math.max(6, (barW - 2) * k);
+      g.save();
+      g.beginPath();
+      var rB = 6;
+      g.moveTo(barX + rB, yBar);
+      g.lineTo(barX + curW - rB, yBar);
+      g.quadraticCurveTo(barX + curW, yBar, barX + curW, yBar + rB);
+      g.lineTo(barX + curW, yBar + barH - rB);
+      g.quadraticCurveTo(barX + curW, yBar + barH, barX + curW - rB, yBar + barH);
+      g.lineTo(barX + rB, yBar + barH);
+      g.quadraticCurveTo(barX, yBar + barH, barX, yBar + barH - rB);
+      g.lineTo(barX, yBar + rB);
+      g.quadraticCurveTo(barX, yBar, barX + rB, yBar);
+      g.closePath();
+
+      var gradHp = g.createLinearGradient(barX, yBar, barX, yBar + barH);
+      if(tm === 'A'){
+        gradHp.addColorStop(0, '#38bdf8');
+        gradHp.addColorStop(1, '#0284c7');
+      } else if(tm === 'B'){
+        gradHp.addColorStop(0, '#f87171');
+        gradHp.addColorStop(1, '#b91c1c');
+      } else {
+        if(k > 0.5){ gradHp.addColorStop(0, '#4ade80'); gradHp.addColorStop(1, '#16a34a'); }
+        else if(k > 0.25){ gradHp.addColorStop(0, '#facc15'); gradHp.addColorStop(1, '#ca8a04'); }
+        else { gradHp.addColorStop(0, '#f87171'); gradHp.addColorStop(1, '#dc2626'); }
+      }
+      g.fillStyle = gradHp;
+      g.fill();
+
+      // Linha de brilho superior (gloss)
+      g.fillStyle = 'rgba(255,255,255,0.35)';
+      g.fillRect(barX + 2, yBar + 1, curW - 4, 3);
+      g.restore();
+    }
+
+    // Texto de HP centralizado sobre a barra
+    g.font = '700 12px system-ui,Arial,sans-serif';
+    g.textAlign = 'center';
+    var hpTxt = Math.max(0, Math.round(e.hp || 0)) + ' / ' + (e.pmax || 100);
+    g.lineWidth = 3;
+    g.strokeStyle = 'rgba(0,0,0,0.95)';
+    g.strokeText(hpTxt, 256, yBar + 13);
+    g.fillStyle = '#ffffff';
+    g.fillText(hpTxt, 256, yBar + 13);
+
+    e.tag.tex.needsUpdate = true;
+    e.hpDes = e.hp;
+    atualizaTeamRing(e);
   }
   /* coroa dourada em cima do lider do grupo (sprite desenhado em canvas) */
   var coroaTex = null, coroaEu = null;
@@ -130,9 +302,9 @@ export const Net = (function(){
   }
   function noGrupo(id){ return !!(N.grupo && N.grupo.m && N.grupo.m.some(function(m){ return m.id === id; })); }
   function criaTag(e){
-    var cv = document.createElement('canvas'); cv.width = 256; cv.height = 72;
+    var cv = document.createElement('canvas'); cv.width = 512; cv.height = 144;
     var tex = new THREE.CanvasTexture(cv), sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
-    sp.scale.set(2.5, .7, 1); sp.position.y = 3.05; sp.renderOrder = 999; e.grp.add(sp); e.tag = { cv: cv, tex: tex, sp: sp }; desenhaTag(e);
+    sp.scale.set(3.4, 0.96, 1); sp.position.y = 3.25; sp.renderOrder = 999; e.grp.add(sp); e.tag = { cv: cv, tex: tex, sp: sp }; desenhaTag(e);
   }
 
   /* ---------- jogadores remotos ---------- */
@@ -155,6 +327,7 @@ export const Net = (function(){
   function brilho(e){ if(window.Brilho) Brilho.aplica('r' + e.id, function(){ return e.rig; }, e.en | 0); }      /* arma encantada +4: brilha para todos */
   function removeRemoto(id){
     var e = remotos.get(id); if(!e) return; ctx.scene.remove(e.grp); if(window.Brilho) Brilho.tira('r' + id);
+    if(e.teamRing){ e.grp.remove(e.teamRing); if(e.teamRing.geometry) e.teamRing.geometry.dispose(); if(e.teamRing.material) e.teamRing.material.dispose(); e.teamRing = null; }
     e.grp.traverse(function(o){ if(o.material && o.material.map && o === (e.tag && e.tag.sp)) { o.material.map.dispose(); o.material.dispose(); } });
     remotos.delete(id);
   }
@@ -188,6 +361,7 @@ export const Net = (function(){
       tocar(e, e.morto ? 'death' : e.a); if(e.rig.drv.cur && e.rig.drv.cur.timeScale !== (e.ts || 1)) e.rig.drv.cur.timeScale = e.ts || 1;
       e.rig.drv.mixer.update(dt); ctx.ajusteRemoto(e.rig, e.arma, e.morto ? 'idle' : e.a, e.raca, dt);
     });
+    atualizaEuTeamRing();
   }
   function maisProximo(maxD){
     var S = ctx.getS(), best = null, bd = maxD;

@@ -560,11 +560,12 @@
   }
 
   function aplicarSpeed(mult){
-    window._adminSpeedMult = mult;
+    window._adminSpeedMult = Math.max(0.5, Math.min(5, mult || 1));
+    if(window.ModoCamera) window.ModoCamera.escala = 1;
     try {
       if(typeof window.RUN !== 'undefined' && typeof window.P !== 'undefined' && window.P.run){
         var atBonus = (typeof window.AT !== 'undefined' && window.AT && window.AT.run) ? window.AT.run : 0;
-        window.RUN = window.P.run * (1 + atBonus) * mult;
+        window.RUN = window.P.run * (1 + atBonus) * window._adminSpeedMult;
       }
     } catch(e){}
   }

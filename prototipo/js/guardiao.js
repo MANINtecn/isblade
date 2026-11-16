@@ -359,6 +359,10 @@ export const Guardiao = (function(){
      paleta: aco/branco quente + faiscas douradas + poeira de pedra. aoAtacar roda quando o golpe comeca (rastro, poeira); fxBasico roda no impacto. */
   function posEscudo(){ var o = shieldObj(); return o ? o.getWorldPosition(new window.THREE.Vector3()) : null; }
   function bocaEscudo(){                                            /* [feixe-escudo] ponto ~30 cm a frente da face do escudo (de onde sai o feixe) */
+    if(window.REMOTEFX && window.REMOTEFX.pos){
+      var rP = window.REMOTEFX.pos, rF = ctx.fx.fwd(rP.face !== undefined ? rP.face : 0);
+      return { x: rP.x + rF[0] * .3, y: (rP.y !== undefined ? rP.y : 1.25), z: rP.z + rF[1] * .3 };
+    }
     var S = ctx.getS(), f = ctx.fx.fwd(S.face), p = posEscudo() || { x: S.px, y: 1.25, z: S.pz };
     return { x: p.x + f[0] * .3, y: p.y, z: p.z + f[1] * .3 };
   }
