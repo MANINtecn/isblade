@@ -20,6 +20,11 @@ for dp, dn, fn in os.walk('assets'):
         ms = list(re.finditer(re.escape(n) + r'(\?[A-Za-z0-9=._&-]+)?', codigo)); m = next((x for x in ms if x.group(1)), ms[0] if ms else None)      # prefere a citacao com ?v=
         if not m: continue
         itens.append({'u': u + (m.group(1) or ''), 'b': os.path.getsize(u)})
+try: WEB = json.load(open('tools/assets_web/manifesto.json', encoding='utf-8'))['arquivos']      # [assets-web] baixa a versao de ENTREGA (a mesma URL que o jogo pede)
+except Exception: WEB = {}
+for i in itens:
+    w = WEB.get(i['u'].split('?')[0])
+    if w and not w.get('manter') and os.path.exists('assets_web/' + i['u'].split('?')[0][7:]): i['u'] = 'assets_web/' + i['u'].split('?')[0][7:] + '?h=' + w['h']; i['b'] = w['para']
 for i in itens: i['e'] = 0 if ('/baium/' in i['u'] or 'Talibrac' in i['u']) else 1      # e=1: essencial (lobby e cidade); e=0: so a dungeon/arena, baixa na hora
 itens.sort(key=lambda x: (-x['e'], x['b']))                                                  # essenciais primeiro, os menores antes (a barra anda logo)
 tot = sum(i['b'] for i in itens if i['e'])

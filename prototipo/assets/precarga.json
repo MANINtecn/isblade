@@ -1,5 +1,5 @@
 {
-"total": 66562047,
+"total": 31264271,
 "itens": [
 {
 "u": "assets/audio/heavy_swing.wav",
@@ -12,8 +12,8 @@
 "e": 1
 },
 {
-"u": "assets/personagens/bastard_sword.glb",
-"b": 17304,
+"u": "assets_web/personagens/bastard_sword.glb?h=1e9d6b370e",
+"b": 76648,
 "e": 1
 },
 {
@@ -47,8 +47,8 @@
 "e": 1
 },
 {
-"u": "assets/cenario/env_banner_pole_01.glb",
-"b": 35552,
+"u": "assets_web/cenario/env_banner_pole_01.glb?h=8057288c36",
+"b": 11860,
 "e": 1
 },
 {
@@ -77,8 +77,8 @@
 "e": 1
 },
 {
-"u": "assets/personagens/composite_shield.glb",
-"b": 41628,
+"u": "assets_web/personagens/composite_shield.glb?h=54540e8d79",
+"b": 76360,
 "e": 1
 },
 {
@@ -152,8 +152,8 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_port_dock.glb",
-"b": 194384,
+"u": "assets_web/talking_island/assembled_glb/ti_port_dock.glb?h=beab155a6a",
+"b": 65408,
 "e": 1
 },
 {
@@ -182,8 +182,8 @@
 "e": 1
 },
 {
-"u": "assets/cenario/env_arena_wall_01.glb",
-"b": 278504,
+"u": "assets_web/cenario/env_arena_wall_01.glb?h=e87af23c03",
+"b": 93044,
 "e": 1
 },
 {
@@ -192,8 +192,8 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_tree_02.glb",
-"b": 316020,
+"u": "assets_web/talking_island/assembled_glb/ti_tree_02.glb?h=07fb2bb03a",
+"b": 88832,
 "e": 1
 },
 {
@@ -202,8 +202,8 @@
 "e": 1
 },
 {
-"u": "assets/cenario/env_arena_floor_01.glb",
-"b": 328460,
+"u": "assets_web/cenario/env_arena_floor_01.glb?h=354137577f",
+"b": 107240,
 "e": 1
 },
 {
@@ -227,13 +227,13 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_tree_01.glb",
-"b": 448600,
+"u": "assets_web/talking_island/assembled_glb/ti_tree_01.glb?h=f93ae9ff1a",
+"b": 110732,
 "e": 1
 },
 {
-"u": "assets/personagens/scarecrow.glb",
-"b": 449792,
+"u": "assets_web/personagens/scarecrow.glb?h=f03a4a492d",
+"b": 124380,
 "e": 1
 },
 {
@@ -247,18 +247,18 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_tree_legend.glb",
-"b": 560424,
+"u": "assets_web/talking_island/assembled_glb/ti_tree_legend.glb?h=af484a56c9",
+"b": 174296,
 "e": 1
 },
 {
-"u": "assets/personagens/shield_is.glb?v=4",
-"b": 675248,
+"u": "assets_web/personagens/shield_is.glb?h=3df1a69c59",
+"b": 219284,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_centertop.glb",
-"b": 691664,
+"u": "assets_web/talking_island/assembled_glb/ti_centertop.glb?h=a71e9766af",
+"b": 165432,
 "e": 1
 },
 {
@@ -267,28 +267,28 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_gate.glb",
-"b": 715724,
+"u": "assets_web/talking_island/assembled_glb/ti_gate.glb?h=45b18210d8",
+"b": 164408,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_wall_b.glb",
-"b": 763088,
+"u": "assets_web/talking_island/assembled_glb/ti_wall_b.glb?h=d6f8b0b758",
+"b": 140264,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_wall_d.glb",
-"b": 763756,
+"u": "assets_web/talking_island/assembled_glb/ti_wall_d.glb?h=27edfdc753",
+"b": 140516,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_wall_c.glb",
-"b": 764440,
+"u": "assets_web/talking_island/assembled_glb/ti_wall_c.glb?h=a0e6cdcf95",
+"b": 141308,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_wall_a.glb",
-"b": 764600,
+"u": "assets_web/talking_island/assembled_glb/ti_wall_a.glb?h=28986b0d6f",
+"b": 141144,
 "e": 1
 },
 {
@@ -297,8 +297,8 @@
 "e": 1
 },
 {
-"u": "assets/personagens/weapon_sword_is_0.glb",
-"b": 911860,
+"u": "assets_web/personagens/weapon_sword_is_0.glb?h=74f860ad6e",
+"b": 496404,
 "e": 1
 },
 {
@@ -317,13 +317,13 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_house_02.glb",
-"b": 1084020,
+"u": "assets_web/talking_island/assembled_glb/ti_house_02.glb?h=77f2510b01",
+"b": 247152,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_church.glb",
-"b": 1172372,
+"u": "assets_web/talking_island/assembled_glb/ti_church.glb?h=316bf7a67f",
+"b": 292760,
 "e": 1
 },
 {
@@ -332,123 +332,123 @@
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_shop_03.glb",
-"b": 1210644,
+"u": "assets_web/talking_island/assembled_glb/ti_shop_03.glb?h=53c2997f19",
+"b": 251124,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_lighthouse.glb",
-"b": 1236572,
+"u": "assets_web/talking_island/assembled_glb/ti_lighthouse.glb?h=135b1ab58b",
+"b": 305504,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_house_03.glb",
-"b": 1359804,
+"u": "assets_web/talking_island/assembled_glb/ti_house_03.glb?h=2ca0a3aa8f",
+"b": 317372,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_house_01.glb",
-"b": 1371060,
+"u": "assets_web/talking_island/assembled_glb/ti_house_01.glb?h=b934be363b",
+"b": 299132,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_house_04.glb",
-"b": 1387256,
+"u": "assets_web/talking_island/assembled_glb/ti_house_04.glb?h=e9d708b106",
+"b": 314172,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_shop_01.glb",
-"b": 1452112,
+"u": "assets_web/talking_island/assembled_glb/ti_shop_01.glb?h=6d25ff9e27",
+"b": 306868,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_agit.glb",
-"b": 1524252,
+"u": "assets_web/talking_island/assembled_glb/ti_agit.glb?h=aeea14fc32",
+"b": 328232,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_shop_02.glb",
-"b": 1621496,
+"u": "assets_web/talking_island/assembled_glb/ti_shop_02.glb?h=4d6342ef33",
+"b": 347028,
 "e": 1
 },
 {
-"u": "assets/personagens/elf_m.glb?v=7",
-"b": 1686672,
+"u": "assets_web/personagens/elf_m.glb?h=2d004097d5",
+"b": 746864,
 "e": 1
 },
 {
-"u": "assets/personagens/orc_m.glb?v=7",
-"b": 1833180,
+"u": "assets_web/personagens/orc_m.glb?h=2aba6bbbc0",
+"b": 838448,
 "e": 1
 },
 {
-"u": "assets/personagens/dragon_slayer.glb",
-"b": 1834544,
+"u": "assets_web/personagens/dragon_slayer.glb?h=a61135b47c",
+"b": 202976,
 "e": 1
 },
 {
-"u": "assets/personagens/dwarf_m.glb?v=7",
-"b": 1875896,
+"u": "assets_web/personagens/dwarf_m.glb?h=3fe7ec73b3",
+"b": 849704,
 "e": 1
 },
 {
-"u": "assets/personagens/human_fighter.glb?v=7",
-"b": 1903040,
+"u": "assets_web/personagens/human_fighter.glb?h=afe6b65fce",
+"b": 812912,
 "e": 1
 },
 {
-"u": "assets/personagens/human_fighter_female.glb?v=7",
-"b": 1905372,
+"u": "assets_web/personagens/human_fighter_female.glb?h=2a553afb6d",
+"b": 864104,
 "e": 1
 },
 {
-"u": "assets/personagens/orc_f.glb?v=7",
-"b": 1921892,
+"u": "assets_web/personagens/orc_f.glb?h=2821770889",
+"b": 865048,
 "e": 1
 },
 {
-"u": "assets/personagens/elf_f.glb?v=7",
-"b": 1931328,
+"u": "assets_web/personagens/elf_f.glb?h=c946b89b89",
+"b": 837124,
 "e": 1
 },
 {
-"u": "assets/talking_island/assembled_glb/ti_fighter_hall.glb",
-"b": 1958112,
+"u": "assets_web/talking_island/assembled_glb/ti_fighter_hall.glb?h=1cc3391221",
+"b": 480288,
 "e": 1
 },
 {
-"u": "assets/personagens/magic_m.glb?v=7",
-"b": 2159908,
+"u": "assets_web/personagens/magic_m.glb?h=a413445ae6",
+"b": 975632,
 "e": 1
 },
 {
-"u": "assets/personagens/guardian_anims.glb?v=5",
-"b": 2181508,
+"u": "assets_web/personagens/guardian_anims.glb?h=522149545e",
+"b": 1175572,
 "e": 1
 },
 {
-"u": "assets/personagens/dwarf_f.glb?v=7",
-"b": 2192016,
+"u": "assets_web/personagens/dwarf_f.glb?h=a34a480712",
+"b": 976476,
 "e": 1
 },
 {
-"u": "assets/personagens/magic_f.glb?v=7",
-"b": 2192284,
+"u": "assets_web/personagens/magic_f.glb?h=3d70bf68db",
+"b": 1009256,
 "e": 1
 },
 {
-"u": "assets/personagens/darkelf_m.glb?v=5",
-"b": 2263236,
+"u": "assets_web/personagens/darkelf_m.glb?h=9132a32d92",
+"b": 949188,
 "e": 1
 },
 {
-"u": "assets/personagens/human_fighter_imperial.glb?v=7",
-"b": 2291880,
+"u": "assets_web/personagens/human_fighter_imperial.glb?h=8fd2c3e013",
+"b": 903276,
 "e": 1
 },
 {
-"u": "assets/personagens/darkelf_f.glb?v=5",
-"b": 2343372,
+"u": "assets_web/personagens/darkelf_f.glb?h=7df484b555",
+"b": 991464,
 "e": 1
 },
 {
@@ -507,8 +507,8 @@
 "e": 0
 },
 {
-"u": "assets/baium/baium_boss.glb",
-"b": 13522856,
+"u": "assets_web/baium/baium_boss.glb?h=d6023914ed",
+"b": 3333380,
 "e": 0
 },
 {

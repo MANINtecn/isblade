@@ -1,0 +1,740 @@
+{
+ "versao": 2,
+ "arquivos": {
+  "assets/armaduras/armor_chest_01.glb": {
+   "h": "8afa38dd49",
+   "de": 37552,
+   "para": 15240
+  },
+  "assets/armaduras/armor_helmet_01.glb": {
+   "h": "10e238d92a",
+   "de": 56024,
+   "para": 22140
+  },
+  "assets/armas/bastard_sword.glb": {
+   "h": "1e9d6b370e",
+   "de": 462340,
+   "para": 76648
+  },
+  "assets/armas/berserker_blade.glb": {
+   "h": "78d683dce0",
+   "de": 603000,
+   "para": 67716
+  },
+  "assets/armas/cedar_staff.glb": {
+   "h": "ca6036bace",
+   "de": 340024,
+   "para": 47176
+  },
+  "assets/armas/claymore.glb": {
+   "h": "1663caab23",
+   "de": 411516,
+   "para": 76588
+  },
+  "assets/armas/composite_shield.glb": {
+   "h": "54540e8d79",
+   "de": 787036,
+   "para": 76360
+  },
+  "assets/armas/full_plate_shield.glb": {
+   "h": "293010b9fb",
+   "de": 1432908,
+   "para": 128352
+  },
+  "assets/armas/ghost_staff.glb": {
+   "h": "c26d6408a8",
+   "de": 520508,
+   "para": 57988
+  },
+  "assets/armas/ghouls_staff.glb": {
+   "h": "6c4b2fc22c",
+   "de": 464604,
+   "para": 82296
+  },
+  "assets/armas/gladius.glb": {
+   "h": "32ef591b1d",
+   "de": 401696,
+   "para": 52472
+  },
+  "assets/armas/round_shield.glb": {
+   "h": "dc6b47155a",
+   "de": 1156692,
+   "para": 105688
+  },
+  "assets/armas/samurai_longsword.glb": {
+   "h": "953d05bb70",
+   "de": 805924,
+   "para": 86672
+  },
+  "assets/armas/twohanded_sword.glb": {
+   "h": "e1cc2a3317",
+   "de": 408964,
+   "para": 72344
+  },
+  "assets/armas/weapon_sword_01.glb": {
+   "h": "f894caa267",
+   "de": 666828,
+   "para": 330472
+  },
+  "assets/baium/baium_boss.glb": {
+   "h": "d6023914ed",
+   "de": 13522856,
+   "para": 3333380
+  },
+  "assets/cenario/env_arena_floor_01.glb": {
+   "h": "354137577f",
+   "de": 328460,
+   "para": 107240
+  },
+  "assets/cenario/env_arena_ring_01.glb": {
+   "h": "b129e89487",
+   "de": 2482092,
+   "para": 1188540
+  },
+  "assets/cenario/env_arena_wall_01.glb": {
+   "h": "e87af23c03",
+   "de": 278504,
+   "para": 93044
+  },
+  "assets/cenario/env_banner_pole_01.glb": {
+   "h": "8057288c36",
+   "de": 35552,
+   "para": 11860
+  },
+  "assets/fx/shuriken_vento.glb": {
+   "h": "d04ddfc4f4",
+   "de": 162800,
+   "para": 68944
+  },
+  "assets/horizonte/blazing.glb": {
+   "h": "314883c77a",
+   "de": 324704,
+   "para": 127336
+  },
+  "assets/horizonte/curuma.glb": {
+   "h": "89a2282c67",
+   "de": 214792,
+   "para": 107372
+  },
+  "assets/horizonte/fortress.glb": {
+   "h": "3cdd000fc7",
+   "de": 604016,
+   "para": 208396
+  },
+  "assets/horizonte/toi.glb": {
+   "h": "4da5717211",
+   "de": 448532,
+   "para": 197744
+  },
+  "assets/maps/baium_house/mini_toi.glb": {
+   "h": "a98602cdc0",
+   "de": 16734584,
+   "para": 4247504
+  },
+  "assets/maps/blazing_swamp/blazing_swamp.glb": {
+   "h": "89c4dc15d7",
+   "de": 2907188,
+   "para": 1792052
+  },
+  "assets/maps/curuma/curuma.glb": {
+   "h": "53c3ce32ca",
+   "de": 3731088,
+   "para": 2559392
+  },
+  "assets/maps/fortress/fortress.glb": {
+   "h": "73779dd603",
+   "de": 8060156,
+   "para": 5273464
+  },
+  "assets/mobs/modelos/anjo.glb": {
+   "h": "2b6a983976",
+   "de": 1358608,
+   "para": 497856
+  },
+  "assets/mobs/modelos/aranha_curuma.glb": {
+   "h": "bd55e41a76",
+   "de": 652516,
+   "para": 373004
+  },
+  "assets/mobs/modelos/arcanjo.glb": {
+   "h": "fd7da45c91",
+   "de": 2259500,
+   "para": 1141016
+  },
+  "assets/mobs/modelos/basilisco_fort.glb": {
+   "h": "0a20ebcace",
+   "de": 1296632,
+   "para": 427652
+  },
+  "assets/mobs/modelos/cao.glb": {
+   "h": "43d340a444",
+   "de": 525488,
+   "para": 278856
+  },
+  "assets/mobs/modelos/cavaleiro.glb": {
+   "h": "087b8951b5",
+   "de": 1370464,
+   "para": 566088
+  },
+  "assets/mobs/modelos/chefe_blazing.glb": {
+   "h": "07a50615ac",
+   "de": 1928116,
+   "para": 851564
+  },
+  "assets/mobs/modelos/chefe_curuma.glb": {
+   "h": "e8144fe690",
+   "de": 1155532,
+   "para": 397628
+  },
+  "assets/mobs/modelos/chefe_fort.glb": {
+   "h": "04b87812f6",
+   "de": 1518816,
+   "para": 584288
+  },
+  "assets/mobs/modelos/comandante.glb": {
+   "h": "24a16e222c",
+   "de": 1366540,
+   "para": 564220
+  },
+  "assets/mobs/modelos/erinia.glb": {
+   "h": "9c5b4a8916",
+   "de": 1259392,
+   "para": 562016
+  },
+  "assets/mobs/modelos/esqueleto.glb": {
+   "h": "9cb2921d5b",
+   "de": 1273272,
+   "para": 551868
+  },
+  "assets/mobs/modelos/fantasma.glb": {
+   "h": "e911d188f7",
+   "de": 633028,
+   "para": 339540
+  },
+  "assets/mobs/modelos/formiga_fort.glb": {
+   "h": "b98d4e6a80",
+   "de": 583236,
+   "para": 315136
+  },
+  "assets/mobs/modelos/golem_lava.glb": {
+   "h": "802d5e328d",
+   "de": 913068,
+   "para": 262860
+  },
+  "assets/mobs/modelos/guarda_real.glb": {
+   "h": "9509a030cd",
+   "de": 843476,
+   "para": 352528
+  },
+  "assets/mobs/modelos/lamina.glb": {
+   "h": "3fda36eea4",
+   "de": 1592856,
+   "para": 561956
+  },
+  "assets/mobs/modelos/magmagoil.glb": {
+   "h": "199d40eae4",
+   "de": 624512,
+   "para": 143168
+  },
+  "assets/mobs/modelos/ol_mahum_fort.glb": {
+   "h": "7ced03b512",
+   "de": 661176,
+   "para": 324712
+  },
+  "assets/mobs/modelos/olho_fort.glb": {
+   "h": "ab7f6aa59e",
+   "de": 535096,
+   "para": 183672
+  },
+  "assets/mobs/modelos/overlord.glb": {
+   "h": "0054a7e45b",
+   "de": 1095288,
+   "para": 385792
+  },
+  "assets/mobs/modelos/salamandra_fogo.glb": {
+   "h": "6a563523c8",
+   "de": 479224,
+   "para": 263912
+  },
+  "assets/mobs/modelos/sapo_curuma.glb": {
+   "h": "04ddc57421",
+   "de": 372756,
+   "para": 182520
+  },
+  "assets/mobs/modelos/stakato_curuma.glb": {
+   "h": "f357e92744",
+   "de": 716948,
+   "para": 355944
+  },
+  "assets/mobs/modelos/stalker_curuma.glb": {
+   "h": "c17eefc475",
+   "de": 1182932,
+   "para": 383472
+  },
+  "assets/mobs/modelos/vidente.glb": {
+   "h": "fe91b595a4",
+   "de": 1406664,
+   "para": 475912
+  },
+  "assets/mobs/modelos/wyrm_fogo.glb": {
+   "h": "dd93c28c12",
+   "de": 1564120,
+   "para": 593564
+  },
+  "assets/mobs/modelos/xama.glb": {
+   "h": "f5d826b413",
+   "de": 747256,
+   "para": 385928
+  },
+  "assets/personagens/bastard_sword.glb": {
+   "h": "1e9d6b370e",
+   "de": 462340,
+   "para": 76648
+  },
+  "assets/personagens/berserker_blade.glb": {
+   "h": "78d683dce0",
+   "de": 603000,
+   "para": 67716
+  },
+  "assets/personagens/cedar_staff.glb": {
+   "h": "ca6036bace",
+   "de": 340024,
+   "para": 47176
+  },
+  "assets/personagens/claymore.glb": {
+   "h": "1663caab23",
+   "de": 411516,
+   "para": 76588
+  },
+  "assets/personagens/composite_shield.glb": {
+   "h": "54540e8d79",
+   "de": 787036,
+   "para": 76360
+  },
+  "assets/personagens/darkelf_f.glb": {
+   "h": "7df484b555",
+   "de": 2343372,
+   "para": 991464
+  },
+  "assets/personagens/darkelf_m.glb": {
+   "h": "9132a32d92",
+   "de": 2263236,
+   "para": 949188
+  },
+  "assets/personagens/dragon_slayer.glb": {
+   "h": "a61135b47c",
+   "de": 1834544,
+   "para": 202976
+  },
+  "assets/personagens/dwarf_f.glb": {
+   "h": "a34a480712",
+   "de": 2192016,
+   "para": 976476
+  },
+  "assets/personagens/dwarf_f_brigandine.glb": {
+   "h": "508212d2c6",
+   "de": 2248912,
+   "para": 1005396
+  },
+  "assets/personagens/dwarf_f_doom.glb": {
+   "h": "bf0c5985e7",
+   "de": 1914244,
+   "para": 1002192
+  },
+  "assets/personagens/dwarf_f_fullplate.glb": {
+   "h": "af4ef788d2",
+   "de": 2211052,
+   "para": 1020724
+  },
+  "assets/personagens/dwarf_f_nograde.glb": {
+   "h": "9764a853fb",
+   "de": 2194136,
+   "para": 999720
+  },
+  "assets/personagens/dwarf_f_tallum.glb": {
+   "h": "db490bc5de",
+   "de": 2309232,
+   "para": 1035536
+  },
+  "assets/personagens/dwarf_m.glb": {
+   "h": "3fe7ec73b3",
+   "de": 1875896,
+   "para": 849704
+  },
+  "assets/personagens/dwarf_m_nograde.glb": {
+   "h": "f093520aec",
+   "de": 1948396,
+   "para": 863824
+  },
+  "assets/personagens/elf_f.glb": {
+   "h": "c946b89b89",
+   "de": 1931328,
+   "para": 837124
+  },
+  "assets/personagens/elf_f_brigandine.glb": {
+   "h": "0297b20867",
+   "de": 2122964,
+   "para": 849260
+  },
+  "assets/personagens/elf_f_doom.glb": {
+   "h": "792c8c3905",
+   "de": 2077524,
+   "para": 954220
+  },
+  "assets/personagens/elf_f_fullplate.glb": {
+   "h": "b4b8c78f83",
+   "de": 2310592,
+   "para": 958108
+  },
+  "assets/personagens/elf_f_nograde.glb": {
+   "h": "24f5c36e85",
+   "de": 2147636,
+   "para": 868004
+  },
+  "assets/personagens/elf_f_tallum.glb": {
+   "h": "f1baca8e58",
+   "de": 1879864,
+   "para": 912208
+  },
+  "assets/personagens/elf_m.glb": {
+   "h": "2d004097d5",
+   "de": 1686672,
+   "para": 746864
+  },
+  "assets/personagens/elf_m_nograde.glb": {
+   "h": "ec79791847",
+   "de": 1894972,
+   "para": 767072
+  },
+  "assets/personagens/full_plate_shield.glb": {
+   "h": "293010b9fb",
+   "de": 1432908,
+   "para": 128352
+  },
+  "assets/personagens/ghost_staff.glb": {
+   "h": "c26d6408a8",
+   "de": 520508,
+   "para": 57988
+  },
+  "assets/personagens/ghouls_staff.glb": {
+   "h": "6c4b2fc22c",
+   "de": 464604,
+   "para": 82296
+  },
+  "assets/personagens/gladius.glb": {
+   "h": "32ef591b1d",
+   "de": 401696,
+   "para": 52472
+  },
+  "assets/personagens/guardian_anims.glb": {
+   "h": "522149545e",
+   "de": 2181508,
+   "para": 1175572
+  },
+  "assets/personagens/guerreiro_clips/MFighter.glb": {
+   "h": "440dcce3c0",
+   "de": 1647352,
+   "para": 498324
+  },
+  "assets/personagens/human_fighter.glb": {
+   "h": "afe6b65fce",
+   "de": 1903040,
+   "para": 812912
+  },
+  "assets/personagens/human_fighter_brigandine.glb": {
+   "h": "67facfc881",
+   "de": 10031592,
+   "para": 6449820
+  },
+  "assets/personagens/human_fighter_doom.glb": {
+   "h": "6ed1cabae7",
+   "de": 9546172,
+   "para": 6440892
+  },
+  "assets/personagens/human_fighter_female.glb": {
+   "h": "2a553afb6d",
+   "de": 1905372,
+   "para": 864104
+  },
+  "assets/personagens/human_fighter_female_nograde.glb": {
+   "h": "9c25b0a49d",
+   "de": 1705104,
+   "para": 861776
+  },
+  "assets/personagens/human_fighter_fullplate.glb": {
+   "h": "05d91a2bde",
+   "de": 10007740,
+   "para": 6433364
+  },
+  "assets/personagens/human_fighter_imperial.glb": {
+   "h": "8fd2c3e013",
+   "de": 2291880,
+   "para": 903276
+  },
+  "assets/personagens/human_fighter_nograde.glb": {
+   "h": "6f6cf5721a",
+   "de": 9960256,
+   "para": 6400024
+  },
+  "assets/personagens/magic_f.glb": {
+   "h": "3d70bf68db",
+   "de": 2192284,
+   "para": 1009256
+  },
+  "assets/personagens/magic_f_nograde.glb": {
+   "h": "ff350dd47d",
+   "de": 2287856,
+   "para": 1025364
+  },
+  "assets/personagens/magic_m.glb": {
+   "h": "a413445ae6",
+   "de": 2159908,
+   "para": 975632
+  },
+  "assets/personagens/magic_m_nograde.glb": {
+   "h": "16cf15acca",
+   "de": 2266944,
+   "para": 1008956
+  },
+  "assets/personagens/mago_cast/FDarkElf.glb": {
+   "h": "f086cca918",
+   "de": 123284,
+   "para": 83900
+  },
+  "assets/personagens/mago_cast/FDwarf.glb": {
+   "h": "dcd40b36c7",
+   "de": 121096,
+   "para": 85692
+  },
+  "assets/personagens/mago_cast/FElf.glb": {
+   "h": "a3927d2bed",
+   "de": 107908,
+   "para": 70696
+  },
+  "assets/personagens/mago_cast/FFighter.glb": {
+   "h": "d4428e5e56",
+   "de": 106164,
+   "para": 74488
+  },
+  "assets/personagens/mago_cast/FMagic.glb": {
+   "h": "7b0e694c39",
+   "de": 131364,
+   "para": 86056
+  },
+  "assets/personagens/mago_cast/FOrc.glb": {
+   "h": "a3de549dab",
+   "de": 97612,
+   "para": 74596
+  },
+  "assets/personagens/mago_cast/MDarkElf.glb": {
+   "h": "59cfa24a0b",
+   "de": 115300,
+   "para": 80940
+  },
+  "assets/personagens/mago_cast/MDwarf.glb": {
+   "h": "58b5650d1f",
+   "de": 102244,
+   "para": 73460
+  },
+  "assets/personagens/mago_cast/MElf.glb": {
+   "h": "ca7d5d7e65",
+   "de": 91824,
+   "para": 65956
+  },
+  "assets/personagens/mago_cast/MFighter.glb": {
+   "h": "ef0e3c2fc3",
+   "de": 93296,
+   "para": 68032
+  },
+  "assets/personagens/mago_cast/MMagic.glb": {
+   "h": "f67e67ae25",
+   "de": 120784,
+   "para": 83432
+  },
+  "assets/personagens/mago_cast/MOrc.glb": {
+   "h": "4b65e5e259",
+   "de": 101092,
+   "para": 73920
+  },
+  "assets/personagens/npc_altran.glb": {
+   "h": "02d7c1d37e",
+   "de": 1287472,
+   "para": 364308
+  },
+  "assets/personagens/npc_clarissa.glb": {
+   "h": "ef90269b13",
+   "de": 2225072,
+   "para": 1045252
+  },
+  "assets/personagens/npc_galladucci.glb": {
+   "h": "486a375468",
+   "de": 1864312,
+   "para": 796776
+  },
+  "assets/personagens/npc_mammon.glb": {
+   "h": "c50eaabe16",
+   "de": 1689460,
+   "para": 446324
+  },
+  "assets/personagens/npc_wilford.glb": {
+   "h": "716c67f763",
+   "de": 1763736,
+   "para": 745556
+  },
+  "assets/personagens/orc_f.glb": {
+   "h": "2821770889",
+   "de": 1921892,
+   "para": 865048
+  },
+  "assets/personagens/orc_f_nograde.glb": {
+   "h": "bb55961f3d",
+   "de": 1954228,
+   "para": 898868
+  },
+  "assets/personagens/orc_m.glb": {
+   "h": "2aba6bbbc0",
+   "de": 1833180,
+   "para": 838448
+  },
+  "assets/personagens/orc_m_nograde.glb": {
+   "h": "5cea159b04",
+   "de": 1954092,
+   "para": 877252
+  },
+  "assets/personagens/round_shield.glb": {
+   "h": "dc6b47155a",
+   "de": 1156692,
+   "para": 105688
+  },
+  "assets/personagens/samurai_longsword.glb": {
+   "h": "953d05bb70",
+   "de": 805924,
+   "para": 86672
+  },
+  "assets/personagens/scarecrow.glb": {
+   "h": "f03a4a492d",
+   "de": 449792,
+   "para": 124380
+  },
+  "assets/personagens/shield_is.glb": {
+   "h": "3df1a69c59",
+   "de": 675248,
+   "para": 219284
+  },
+  "assets/personagens/twohanded_sword.glb": {
+   "h": "e1cc2a3317",
+   "de": 408964,
+   "para": 72344
+  },
+  "assets/personagens/weapon_sword_is_0.glb": {
+   "h": "74f860ad6e",
+   "de": 911860,
+   "para": 496404
+  },
+  "assets/talking_island/assembled_glb/ti_agit.glb": {
+   "h": "aeea14fc32",
+   "de": 1524252,
+   "para": 328232
+  },
+  "assets/talking_island/assembled_glb/ti_centertop.glb": {
+   "h": "a71e9766af",
+   "de": 691664,
+   "para": 165432
+  },
+  "assets/talking_island/assembled_glb/ti_church.glb": {
+   "h": "316bf7a67f",
+   "de": 1172372,
+   "para": 292760
+  },
+  "assets/talking_island/assembled_glb/ti_fighter_hall.glb": {
+   "h": "1cc3391221",
+   "de": 1958112,
+   "para": 480288
+  },
+  "assets/talking_island/assembled_glb/ti_gate.glb": {
+   "h": "45b18210d8",
+   "de": 715724,
+   "para": 164408
+  },
+  "assets/talking_island/assembled_glb/ti_house_01.glb": {
+   "h": "b934be363b",
+   "de": 1371060,
+   "para": 299132
+  },
+  "assets/talking_island/assembled_glb/ti_house_02.glb": {
+   "h": "77f2510b01",
+   "de": 1084020,
+   "para": 247152
+  },
+  "assets/talking_island/assembled_glb/ti_house_03.glb": {
+   "h": "2ca0a3aa8f",
+   "de": 1359804,
+   "para": 317372
+  },
+  "assets/talking_island/assembled_glb/ti_house_04.glb": {
+   "h": "e9d708b106",
+   "de": 1387256,
+   "para": 314172
+  },
+  "assets/talking_island/assembled_glb/ti_lighthouse.glb": {
+   "h": "135b1ab58b",
+   "de": 1236572,
+   "para": 305504
+  },
+  "assets/talking_island/assembled_glb/ti_port_dock.glb": {
+   "h": "beab155a6a",
+   "de": 194384,
+   "para": 65408
+  },
+  "assets/talking_island/assembled_glb/ti_shop_01.glb": {
+   "h": "6d25ff9e27",
+   "de": 1452112,
+   "para": 306868
+  },
+  "assets/talking_island/assembled_glb/ti_shop_02.glb": {
+   "h": "4d6342ef33",
+   "de": 1621496,
+   "para": 347028
+  },
+  "assets/talking_island/assembled_glb/ti_shop_03.glb": {
+   "h": "53c2997f19",
+   "de": 1210644,
+   "para": 251124
+  },
+  "assets/talking_island/assembled_glb/ti_tree_01.glb": {
+   "h": "f93ae9ff1a",
+   "de": 448600,
+   "para": 110732
+  },
+  "assets/talking_island/assembled_glb/ti_tree_02.glb": {
+   "h": "07fb2bb03a",
+   "de": 316020,
+   "para": 88832
+  },
+  "assets/talking_island/assembled_glb/ti_tree_legend.glb": {
+   "h": "af484a56c9",
+   "de": 560424,
+   "para": 174296
+  },
+  "assets/talking_island/assembled_glb/ti_wall_a.glb": {
+   "h": "28986b0d6f",
+   "de": 764600,
+   "para": 141144
+  },
+  "assets/talking_island/assembled_glb/ti_wall_b.glb": {
+   "h": "d6f8b0b758",
+   "de": 763088,
+   "para": 140264
+  },
+  "assets/talking_island/assembled_glb/ti_wall_c.glb": {
+   "h": "a0e6cdcf95",
+   "de": 764440,
+   "para": 141308
+  },
+  "assets/talking_island/assembled_glb/ti_wall_d.glb": {
+   "h": "27edfdc753",
+   "de": 763756,
+   "para": 140516
+  }
+ }
+}

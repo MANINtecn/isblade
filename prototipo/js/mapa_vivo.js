@@ -78,7 +78,7 @@ window.MapaVivo = (function(){
     var base = 'assets/maps/' + M.C.pasta + '/', C = M.C, t0 = performance.now(), tk = M.tok;
     M.bpend = fetch(base + C.grid + '.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
       var v = '?v=' + (j.versao || 0), op = { priority: 'low' };
-      return Promise.all([fetch(base + C.grid + '.bin' + v, op).then(ab), fetch(base + C.glb + v, op).then(ab)]).then(function(q){
+      return Promise.all([fetch(base + C.grid + '.bin' + v, op).then(ab), (window.AssetsWeb ? window.AssetsWeb.busca(base + C.glb + v, op) : fetch(base + C.glb + v, op)).then(ab)]).then(function(q){
         M.bpend = null; if(M.tok !== tk) return null;
         M.bytes = { j: j, bin: q[0], glb: q[1], v: v }; lg(M, 'baixou ' + Math.round(q[1].byteLength / 1e5) / 10 + ' MB em ' + Math.round(performance.now() - t0) + ' ms'); return M.bytes;
       });

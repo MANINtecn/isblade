@@ -4162,3 +4162,30 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - `prototipo/assets/precarga.json` atualizado para pré-carregar `assets/l2_native_lobby_bg.jpg`.
 
 
+### [Claude] 16/11 - Entrega de assets (meshopt + WebP), verificador e regras universais
+
+- **Pedido**: comparar com o cliente web do concorrente (l2royale) e reestruturar o nosso pelo mesmo caminho, com regras para nao sair da linha.
+- **Concorrente (so o observavel de fora)**: three.js + three-mesh-bvh, Vite, ~55 arquivos de codigo (11 workers), codigo com hash e cache de 1 ano, assets em CDN proprio, WebSocket. O site proibe agentes de IA no robots.txt: nao baixar mais nada de la; so analisar HAR gravado pelo dono (metadados). O 1o HAR veio com 1 requisicao (faltou F5 com a aba Rede aberta): refazer.
+- **Medido no nosso**: 147 GLB do jogo = 225,8 MB sem compressao nenhuma; pre-carga essencial = 51,1 MB no fio (o Vercel ja aplica Brotli nos GLB).
+- **Feito**: `tools/assets_web/otimizar.mjs` gera `assets_web/` (meshopt + texturas WebP, teto 2048) a partir de `assets/`; `js/assets_web.js` troca a URL em todo `GLTFLoader` (load/parse) e cai na origem se falhar; `AssetsWeb.busca` no `mapa_vivo.js` (v=14); tags + `instala` em arena, cidade, criacao e selecao; `lib/meshopt_decoder.js`; cache de 1 ano para `/assets_web/` no `vercel.json`; a pre-carga aponta para a entrega (mesma lista de 103 itens).
+- **Resultado**: GLB 225,8 -> 94,4 MB; pre-carga essencial 51,1 -> 19,1 MB no fio (GLB essenciais 40,4 -> 8,5).
+- **Verificado**: `tools/assets_web/verificar.mjs` (Chrome sem janela, three do jogo) = 147 de 147 iguais a origem no r182 (vendor.js) e 69 de 69 personagens no r128 (selecao); maior diferenca de animacao 0,0005. `resample()` foi testado e retirado (piorava a precisao sem reduzir).
+- **NAO verificado**: jogo rodando de verdade (login, cidade, arena, celular). Sem commit e sem push ate o dono testar. `?brutos=1` na URL volta aos arquivos de origem.
+- **Regras**: `REGRAS_ASSETS_WEB.md` (raiz). Proximos: animacoes compartilhadas por raca, KTX2 (precisa KTX2Loader no vendor.js), WAV->OGG, workers.
+- **Combate pesa?** Sem medida ainda. Suspeita a conferir com o LOG DE DESEMPENHO: os efeitos criam geometria/material a cada uso (guardiao_fx: 29 criacoes de geometria e 2 `dispose`). Nao mexi em combate.
+
+
+### [Claude] 16/11 - Analise do HAR do concorrente (l2royale): o que eles fazem de verdade
+
+- **Fonte**: HAR e prints gravados pelo dono na propria sessao (`analize_concorrente/`, fora do git). Li so metadados e o cabecalho de formato dos pacotes; nao abri nem copiei codigo.
+- **O que o HAR cobre**: 477 s, 38 requisicoes, SEM o carregamento inicial (nao houve F5 dentro da gravacao). Mostra uma chegada de regiao/mapa em t=249-253 s. O download ate entrar no jogo continua sem medida.
+- **Chegada de regiao**: 13 pacotes, 10,7 MB no fio (22,2 MB descomprimidos), tudo em ~4 s, em paralelo, prioridade alta, espera de ~20 ms por pacote (Cloudflare com cache HIT).
+- **Enderecamento por conteudo**: cada arquivo e `cdn/packs/<sha256>`, `immutable` 1 ano, Brotli, `application/octet-stream`. Nunca precisa invalidar cache: mudou o arquivo, mudou o nome.
+- **Formato dos pacotes (a surpresa)**: 6 GLB SEM compressao nenhuma (sem meshopt, sem Draco, numeros float, PNG embutido; gerador "UE Viewer (umodel)" e um "asset-devkit BSP" deles); 2 texturas KTX2 256x256 com 9 mips em formato de placa de PC (vkFormat 146, sem supercompressao); 1 PNG 512x512; 1 JSON de tiles (2,4 MB -> 96 KB com Brotli); 1 binario de grade (908 KB -> 111 KB); 1 OGG (musica, chega 25 s depois); 1 binario proprio de 4,7 MB.
+- **Conclusao**: o segredo deles NAO e recomprimir modelo. E (1) mundo cortado em pecas pequenas (1 objeto = 1 pacote de 0,5 a 2 MB), (2) baixar so a regiao onde o jogador esta, (3) CDN com Brotli e cache eterno por hash, (4) trabalho pesado em workers. Minha hipotese inicial ("recomprimem tudo") estava errada nesse ponto. Os nossos GLB de entrega (meshopt + WebP) ja estao MAIS comprimidos que os deles.
+- **Workers**: um script de 2,5 KB carregado 10 vezes durante a chegada da regiao e outro de 137 KB 2 vezes (padrao de fila de workers por tarefa; inferencia pelo padrao de carga, nao li o codigo). Print da aba Memoria: 254 MB de heap JS na thread principal.
+- **Versao ao vivo**: `build.json` (366 B) consultado a cada 15-60 s para saber se saiu build novo.
+- **Rede do jogo**: WebSocket binario (99%), mensagens minusculas: mediana 15 B enviadas e 37 B recebidas, maior 6,8 KB. 911 mensagens em 1897 s (jogador quase parado, entao nao da a taxa em combate).
+- **Armazenamento (prints)**: Cache Storage so tem a casca do cliente (`royale-client-shell-v10`); IndexedDB `royale-release-store` guarda metadados da versao. Os pacotes do jogo nao aparecem no Cache Storage.
+- **Para o IS BLADE**: a ordem de prioridade muda. Antes de KTX2: (1) animacoes compartilhadas (nosso maior peso por arquivo), (2) cortar mapa/cidade em pecas e carregar por distancia (o `mapa_vivo.js` ja faz por mapa inteiro), (3) nome por hash + cache eterno, (4) workers. Registrado em `REGRAS_ASSETS_WEB.md`.
+- **Falta**: HAR com F5 dentro da gravacao (aba Rede aberta, Desativar cache marcado) para medir o download ate entrar no jogo; LOG DE DESEMPENHO nosso em combate.

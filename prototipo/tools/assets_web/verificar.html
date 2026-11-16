@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><base href="/"><title>verificar assets_web</title></head>
+<body style="background:#111;color:#ddd;font:13px monospace"><pre id="out">carregando...</pre>
+<script src="lib/meshopt_decoder.js"></script>
+<script src="js/assets_manifesto.js"></script>
+<script src="js/assets_web.js"></script>
+<script type="module">
+/* Compara cada GLB de origem com o de entrega, usando o MESMO three e o MESMO gancho do jogo. Aberto por tools/assets_web/verificar.mjs. */
+const Q = new URLSearchParams(location.search);
+const script = u => new Promise((ok, er) => { const e = document.createElement('script'); e.src = u; e.onload = ok; e.onerror = er; document.head.appendChild(e); });
+let THREE;                                                            // ?three=128 testa o three global antigo (selecao.html); sem isso, o vendor.js (arena/cidade/criacao)
+if (Q.get('three') === '128') { await script('/lib/three.min.js'); await script('/lib/GLTFLoader.js'); THREE = window.THREE; } else THREE = await import('/lib/vendor.js');
+const bruto = THREE.GLTFLoader.prototype.load;                       // carga sem troca de URL
+AssetsWeb.instala(THREE.GLTFLoader);
+const out = document.getElementById('out'), M = window.ASSETS_WEB.m, soh = Q.get('so');
+const nomes = Object.keys(M).filter(k => !soh || k.includes(soh));
+const carrega = (fn, u) => new Promise((ok, er) => fn.call(new THREE.GLTFLoader(), u, ok, undefined, er));
+
+function resumo(g) {
+  const r = { malhas: 0, skinned: 0, vert: 0, tri: 0, nos: [], ossos: 0, mats: 0, tex: [], anims: g.animations.length };
+  const mats = new Set(), tex = new Map();
+  g.scene.updateMatrixWorld(true);
+  g.scene.traverse(o => {
+    r.nos.push(o.name);
+    if (o.isBone) r.ossos++;
+    if (o.isMesh) {
+      r.malhas++; if (o.isSkinnedMesh) r.skinned++;
+      const p = o.geometry.attributes.position; r.vert += p.count; r.tri += (o.geometry.index ? o.geometry.index.count : p.count) / 3;
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { mats.add(m.uuid);
+        ['map', 'normalMap', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'alphaMap'].forEach(k => { const t = m[k]; if (t && t.image) tex.set(t.uuid, k + ':' + t.image.width + 'x' + t.image.height); }); });
+    }
+  });
+  r.mats = mats.size; r.tex = [...tex.values()].sort(); r.nos.sort();
+  const b = new THREE.Box3().setFromObject(g.scene); r.caixa = [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z];
+  r.tam = b.getSize(new THREE.Vector3()).length() || 1;
+  return r;
+}
+function difAnim(a, b) {                                             // maior diferenca de valor entre as trilhas, em alguns instantes de cada clipe
+  let pior = 0, faltam = 0, dur = 0;
+  for (let i = 0; i < a.length; i++) {
+    const ca = a[i], cb = b.find(x => x.name === ca.name); if (!cb) { faltam++; continue; }
+    dur = Math.max(dur, Math.abs(ca.duration - cb.duration));
+    const tb = new Map(cb.tracks.map(t => [t.name, t]));
+    for (const ta of ca.tracks) {
+      const t2 = tb.get(ta.name); if (!t2) { faltam++; continue; }
+      const ia = ta.createInterpolant(), ib = t2.createInterpolant(), quat = ta.name.endsWith('.quaternion');
+      for (const f of [0, 0.23, 0.5, 0.81, 1]) {
+        const t = ca.duration * f, va = Array.from(ia.evaluate(t)), vb = Array.from(ib.evaluate(t));
+        let d = 0, d2 = 0, mag = 1;
+        for (let k = 0; k < va.length; k++) { d = Math.max(d, Math.abs(va[k] - vb[k])); d2 = Math.max(d2, Math.abs(va[k] + vb[k])); mag = Math.max(mag, Math.abs(va[k])); }
+        pior = Math.max(pior, quat ? Math.min(d, d2) : d / mag);     // q e -q sao a mesma rotacao; posicao/escala: erro relativo ao tamanho do valor
+      }
+    }
+  }
+  return { pior, faltam, dur };
+}
+function libera(g) { g.scene.traverse(o => { if (o.isMesh) { o.geometry.dispose(); (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { for (const k in m) if (m[k] && m[k].isTexture) m[k].dispose(); m.dispose(); }); } }); }
+
+const res = { total: nomes.length, ok: 0, problemas: [], three: THREE.REVISION };
+for (let i = 0; i < nomes.length; i++) {
+  const u = nomes[i]; out.textContent = (i + 1) + '/' + nomes.length + ' ' + u; const p = [];
+  try {
+    const a = await carrega(bruto, u), fa = AssetsWeb.falhas.length, b = await carrega(THREE.GLTFLoader.prototype.load, u);
+    if (AssetsWeb.falhas.length !== fa) p.push('a entrega nao abriu (caiu na origem)');
+    const ra = resumo(a), rb = resumo(b);
+    for (const k of ['malhas', 'skinned', 'vert', 'tri', 'ossos', 'mats', 'anims']) if (ra[k] !== rb[k]) p.push(k + ' ' + ra[k] + ' -> ' + rb[k]);
+    if (ra.nos.join('|') !== rb.nos.join('|')) p.push('nomes dos nos mudaram');
+    if ([...new Set(ra.tex)].join('|') !== [...new Set(rb.tex)].join('|') || rb.tex.length > ra.tex.length) p.push('texturas mudaram: ' + ra.tex.length + ' -> ' + rb.tex.length);   // menos texturas = imagens repetidas foram unidas (ok)
+    const dc = ra.malhas ? Math.max(...ra.caixa.map((v, j) => Math.abs(v - rb.caixa[j]))) / ra.tam : 0; if (!(dc < 1e-3)) p.push('caixa mudou ' + dc.toExponential(2));
+    const da = difAnim(a.animations, b.animations);
+    if (da.faltam) p.push(da.faltam + ' trilhas/clipes faltando'); if (da.dur > 1e-3) p.push('duracao mudou ' + da.dur.toFixed(4));
+    if (da.pior > 1e-3) p.push('animacao difere ' + da.pior.toExponential(2));
+    res.piorAnim = Math.max(res.piorAnim || 0, da.pior);
+    libera(a); libera(b);
+  } catch (e) { p.push('erro: ' + (e && e.message || e)); }
+  if (p.length) res.problemas.push({ u, p }); else res.ok++;
+}
+out.textContent = JSON.stringify(res, null, 1);
+fetch('/__resultado', { method: 'POST', body: JSON.stringify(res) }).catch(() => {});
+</script></body></html>

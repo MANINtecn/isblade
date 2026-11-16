@@ -42,3 +42,8 @@ prototipo/assets/maps/baium_house/*.json.bak
 servidor/dados/
 servidor/*.antes_*
 trabalho_l2fx/
+
+# --- gravacoes de rede (HAR) e prints de analise: podem conter sessao/cookies; repo publico ---
+analize_concorrente/
+analise_concorrente/
+*.har

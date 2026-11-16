@@ -1,0 +1,13 @@
+{
+  "name": "isblade-assets-web",
+  "private": true,
+  "type": "module",
+  "description": "Pipeline de assets do IS BLADE: gera assets_web/ (GLB com meshopt + texturas WebP) a partir de assets/.",
+  "dependencies": {
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/extensions": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "meshoptimizer": "^0.22.0",
+    "sharp": "^0.35.5"
+  }
+}
