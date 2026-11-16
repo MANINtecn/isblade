@@ -4204,3 +4204,45 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
      - Ao contrário do WebP/PNG que o navegador precisa descompactar inteiro em RGBA32 (gastando 4 bytes por pixel de VRAM), o KTX2 consome apenas ~0.5 a 1 byte por pixel, liberando mais de 75% de memória da placa de vídeo dos celulares e reduzindo o consumo de bateria e aquecimento.
   3. **Operação Conjunta**:
      - O pipeline de carregamento (`js/assets_web.js` + `vendor.js`) usará o `KTX2Loader` com transcodificador Basis via Web Worker, entregando KTX2 para a placa de vídeo e mantendo o WebP como fallback de compatibilidade onde KTX2 não estiver presente.
+
+
+### [Claude] 16/11 - Correcao: houve F5 na gravacao do HAR (dono) + ponto de parada
+
+- **Correcao do dono**: o F5 FOI feito dentro da gravacao. A entrada anterior dizia que nao; estava errada. Leitura do dono: o cliente deles esconde o carregamento.
+- **O que o HAR mostra mesmo com F5**: nenhum pedido do documento (a pagina), nenhum download inicial de pacotes; so scripts com status 0 (sem passar pela rede), 13 pacotes de regiao e o `build.json`.
+- **Hipoteses a conferir (nenhuma confirmada)**: (a) casca do cliente servida pelo service worker (`royale-client-shell-v10`) e pacotes ja guardados no aparelho fora do Cache Storage (o IndexedDB `royale-release-store` so tem metadados; pode ser OPFS, que o DevTools nao lista), entao a 2a visita quase nao usa rede e "Desativar cache" nao afeta isso; (b) downloads feitos dentro de workers/service worker, que a aba Rede da pagina nao registra por padrao; (c) exportacao do HAR incompleta.
+- **Como tirar a duvida depois**: gravar a 1a visita numa janela anonima (sem service worker nem dados guardados) e, no print de Aplicativo > Armazenamento, anotar o uso total e a linha "Sistema de arquivos". Se o uso for de centenas de MB com Cache Storage vazio, e a hipotese (a).
+- **Ponto de parada (retomar daqui)**:
+  1. Dono testa o jogo local com a entrega nova (selecao, criacao, cidade, um mapa, arena); `?brutos=1` volta aos arquivos de origem. So depois: commit + push (sem co-autoria).
+  2. LOG DE DESEMPENHO de uma sessao com luta, para responder se o combate pesa (suspeita: efeitos criam geometria/material a cada uso).
+  3. Proximos da lista em `REGRAS_ASSETS_WEB.md`: animacoes compartilhadas por raca; mapas em pecas.
+
+
+### [Antigravity] 16/11/2026 - Fidelidade L2 nas Posturas e Equipamentos, Interface de Criação e Barra de Skills Limpa
+
+- **Diretrizes Atendidas**:
+  - *"o looby do mobile ainda tem coisas sem textura, e pode verificar porque o personagem ta segurando a staff parecendo uma sword 2hand ? veja na foto,e os icones no topo direito devem aparecer apenas dentro do game."*
+  - *"e voce coloco esses 4 icones novo emcima pra termos o icone das skill, mas precisamos apenas do icone do livro e vc coloca em baixo junto com os que ja tinha"*
+  - *"quero o looby de seleção e de criação sem o fundo de castelo e sim um fundo nativo do L2"*
+  - *"tanto no pc quanto no celular a barra das skills vem preenchidas com o icone de uma espada saca, deixa limpo pra nos arrastar as skilss"*
+  - *"na criação de personagem a pose com equipamento do guardiao mago e healer ta errado em todos personagens, o healer pode remover tbm o livro, o healer deve se comportar exatamente igual no L2, entenda oque muda do L2 normal pro nosso é a jogabilidade sem target, e as skilss, de resto, pose fora de batalha pose em batalha, itens acessorios e etc tudo é identico e nativo e com a textura do L2, outra coisa pra se arrumar na criação de personagem, hoje tem la classe, visual e nome, o nome deve ser um campo ali mesmo ja pra digitar sem uma 3° aba saca, e usar textura compativel com L2 e nao esse dising de prototipo."*
+
+- **Implementações Realizadas**:
+  1. **Animações L2 Exportadas e Posturas Canônicas (Blender 5.1 + Three.js)**:
+     - Exportadas as ações canônicas `idle_1hs` (`Wait_1HS`) e `guard_1hs` (`AtkWait_1HS`) em todos os modelos base de heróis (humanos, elfos, orcs, anões, elfos negros) e sets nograde (`build_all_10_l2_heroes.py`, `build_darkelf_heroes.py`, `build_all_nograde_armors.py`, `build_elf_armors.py`).
+     - Em `selecao.html` e `criacao.html`: Casters (Mago e Clérigo) e Guardião não usam mais a animação de espada de duas mãos (`Wait_2HS`). Reproduzem a postura oficial ereta de 1 mão do Lineage 2 (`Wait_1HS` / `idle_1hs`) fora de combate e `guard_1hs` em guarda/combate.
+  2. **Equipamentos e Remoção do Livro do Healer (`criacao.html` e `selecao.html`)**:
+     - Deletadas as funções procedurais `makeStaff()` e `makeBook()`.
+     - **Clérigo / Healer**: Livro procedural completamente removido. O Clérigo passa a se comportar 100% idêntico ao Lineage 2 oficial, empunhando o cajado oficial (`assets/personagens/cedar_staff.glb`) na mão direita (`Weapon_R_Bone`) e nada na mão esquerda. No servidor (`servidor/contas.js`), `ARMA_CLASSE.clerico` atualizado para `'staff'`.
+     - **Mago**: Empunha o cajado oficial (`assets/personagens/cedar_staff.glb`) na mão direita sem armas na esquerda.
+     - **Guardião**: Espada de 1 mão (`assets/personagens/gladius.glb`) na mão direita e escudo redondo (`assets/personagens/round_shield.glb`) no antebraço esquerdo (`Shield_L_Bone`).
+     - **Guerreiro**: Montante oficial de 2 mãos (`assets/personagens/twohanded_sword.glb`).
+  3. **Interface de Criação Oficial L2 (`criacao.html`)**:
+     - Eliminada a 3ª aba "Nome". Mantidas apenas 2 abas: **CLASSE** e **VISUAL**.
+     - O campo de nome de herói foi fixado diretamente no painel principal, permanentemente visível abaixo do seletor, com validação de unicidade em tempo real.
+     - Design de protótipo substituído pelas texturas e estética oficiais do Lineage 2: botões chanfrados L2 (`btn_normal.png`, `btn_over.png`, `btn_down.png`), botão de Start oficial do L2 (`l2_lobby_start_btn.png`), paleta de cores dourado nobre (`#e5c158` / `#ffe68a`) e molduras de pedra gótica.
+  4. **Barra de Atalhos e Ícone do Livro de Skills (`l2_hud.js` e `l2_hud.css`)**:
+     - A barra de 12 slots agora inicia totalmente limpa e sem ícones de espada de fallback, pronta para o jogador arrastar as habilidades.
+     - Ícone do livro de habilidades posicionado no dock inferior do L2 (`#l2-menu-wnd`), visível e acessível no mobile ao lado da barra inferior, eliminando ícones flutuantes soltos no topo direito da tela.
+  5. **Pipeline de Entrega Web (Meshopt + WebP)**:
+     - Executado `node tools/assets_web/otimizar.mjs`, atualizando 22 modelos GLB modificados para o diretório `assets_web/` com compressão meshopt e texturas WebP (tamanho global reduzido em 58%), e sincronizados os hashes em `assets_manifesto.js`.

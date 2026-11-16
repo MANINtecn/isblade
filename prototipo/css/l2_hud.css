@@ -759,6 +759,22 @@ body.l2-body-dragging {
   }
 }
 
+body.is-touch #l2-menu-wnd {
+  transform: scale(0.72) !important;
+  transform-origin: bottom left !important;
+  left: calc(50% + 182px) !important;
+  right: auto !important;
+  bottom: 4px !important;
+  z-index: 8500 !important;
+}
+
+@media (max-height: 520px) and (max-width: 820px) {
+  body.is-touch #l2-menu-wnd {
+    transform: scale(0.68) !important;
+    left: calc(50% + 178px) !important;
+  }
+}
+
 @media (max-height: 420px) {
   #skp, #skp.open {
     transform: translate(-50%, -50%) scale(0.92) !important;

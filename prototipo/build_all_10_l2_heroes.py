@@ -323,6 +323,7 @@ for cfg in ROSTER_CONFIGS:
     # Canonical actions map using race suffix
     action_map = {
         f'Wait_2HS{sfx}': 'idle',
+        f'Wait_1HS{sfx}': 'idle_1hs',
         f'Run_2HS{sfx}': 'run',
         f'Walk_2HS{sfx}': 'walk',
         f'Death{sfx}': 'death',
@@ -330,6 +331,7 @@ for cfg in ROSTER_CONFIGS:
         f'Atk02_2HS{sfx}': 'slash2',
         f'SpAtk01_2HS{sfx}': 'slash4',
         f'AtkWait_2HS{sfx}': 'guard',
+        f'AtkWait_1HS{sfx}': 'guard_1hs',
         f'Wait_Hand{sfx}': 'idle_hand',
         f'Run_Hand{sfx}': 'run_hand',
         f'Walk_Hand{sfx}': 'walk_hand',

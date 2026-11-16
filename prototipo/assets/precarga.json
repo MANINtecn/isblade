@@ -1,5 +1,5 @@
 {
-"total": 31264271,
+"total": 32506307,
 "itens": [
 {
 "u": "assets/audio/heavy_swing.wav",
@@ -372,13 +372,13 @@
 "e": 1
 },
 {
-"u": "assets_web/personagens/elf_m.glb?h=2d004097d5",
-"b": 746864,
+"u": "assets_web/personagens/elf_m.glb?h=08b3438a80",
+"b": 831188,
 "e": 1
 },
 {
-"u": "assets_web/personagens/orc_m.glb?h=2aba6bbbc0",
-"b": 838448,
+"u": "assets_web/personagens/orc_m.glb?h=e0b04e397b",
+"b": 949948,
 "e": 1
 },
 {
@@ -392,23 +392,23 @@
 "e": 1
 },
 {
-"u": "assets_web/personagens/human_fighter.glb?h=afe6b65fce",
-"b": 812912,
+"u": "assets_web/personagens/human_fighter.glb?h=31121611d6",
+"b": 915392,
 "e": 1
 },
 {
-"u": "assets_web/personagens/human_fighter_female.glb?h=2a553afb6d",
-"b": 864104,
+"u": "assets_web/personagens/human_fighter_female.glb?h=3469b3e2aa",
+"b": 968604,
 "e": 1
 },
 {
-"u": "assets_web/personagens/orc_f.glb?h=2821770889",
-"b": 865048,
+"u": "assets_web/personagens/orc_f.glb?h=5d0af569ab",
+"b": 982176,
 "e": 1
 },
 {
-"u": "assets_web/personagens/elf_f.glb?h=c946b89b89",
-"b": 837124,
+"u": "assets_web/personagens/elf_f.glb?h=51abff23b7",
+"b": 940180,
 "e": 1
 },
 {
@@ -417,8 +417,8 @@
 "e": 1
 },
 {
-"u": "assets_web/personagens/magic_m.glb?h=a413445ae6",
-"b": 975632,
+"u": "assets_web/personagens/magic_m.glb?h=31b10b0530",
+"b": 1103676,
 "e": 1
 },
 {
@@ -427,18 +427,18 @@
 "e": 1
 },
 {
-"u": "assets_web/personagens/dwarf_f.glb?h=a34a480712",
-"b": 976476,
+"u": "assets_web/personagens/dwarf_f.glb?h=330f5ca163",
+"b": 1093820,
 "e": 1
 },
 {
-"u": "assets_web/personagens/magic_f.glb?h=3d70bf68db",
-"b": 1009256,
+"u": "assets_web/personagens/magic_f.glb?h=6557a5d768",
+"b": 1144576,
 "e": 1
 },
 {
-"u": "assets_web/personagens/darkelf_m.glb?h=9132a32d92",
-"b": 949188,
+"u": "assets_web/personagens/darkelf_m.glb?h=80617a4f09",
+"b": 1063588,
 "e": 1
 },
 {
@@ -447,8 +447,8 @@
 "e": 1
 },
 {
-"u": "assets_web/personagens/darkelf_f.glb?h=7df484b555",
-"b": 991464,
+"u": "assets_web/personagens/darkelf_f.glb?h=737fcc2714",
+"b": 1115404,
 "e": 1
 },
 {

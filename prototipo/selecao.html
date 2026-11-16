@@ -1720,16 +1720,24 @@ function loadCharacter3D(){
     clips = {};
     gltf.animations.forEach(function(anim){
       clips[anim.name] = anim;
-      var clean = anim.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
+      var clean = anim.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter|_MDwarf|_MElf|_FOrc|_FDarkElf|_MDarkElf/g, '');
       if(!clips[clean]) clips[clean] = anim;
     });
 
-    var mainIdleClip = clips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle'; });
-    var mainHandClip = clips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand'; });
+    var clip1H = clips['idle_1hs'] || clips['Wait_1HS'] || gltf.animations.find(function(a){ return /Wait_1HS/i.test(a.name); });
+    var mainIdleClip = clips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle' || /Wait_2HS/i.test(a.name); });
+    var mainHandClip = clips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand' || /Wait_Hand/i.test(a.name); });
     var isCaster = (c.weapon === 'staff' || c.weapon === 'book' || c.classe === 'mago' || c.classe === 'clerico');
     var is1H = (c.weapon === 'shield' || c.weapon === 'swordshield' || c.classe === 'guardiao');
-    // Mago (staff), Clerigo (livro), Guardiao (1H+escudo) e desarmados usam postura ereta natural (idle_hand), segurando a arma com uma mao ao lado do corpo, em vez de espada 2 maos (Wait_2HS)
-    var clipToPlay = (c.weapon === 'none' || isCaster || is1H) ? (mainHandClip || mainIdleClip) : (mainIdleClip || mainHandClip);
+    // Mago (staff), Clérigo (staff) e Guardião (1H+escudo) usam a postura oficial de 1 mão do Lineage 2 (Wait_1HS / idle_1hs), nunca a de espada 2 mãos (Wait_2HS)
+    var clipToPlay = null;
+    if(c.weapon === 'none'){
+      clipToPlay = mainHandClip || clip1H || mainIdleClip;
+    } else if(isCaster || is1H){
+      clipToPlay = clip1H || mainHandClip || mainIdleClip;
+    } else {
+      clipToPlay = mainIdleClip || clip1H || mainHandClip;
+    }
     if(!clipToPlay) clipToPlay = gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
     if(clipToPlay){
       currentAction = mixer.clipAction(clipToPlay);
@@ -1819,14 +1827,22 @@ function loadBackgroundCharacters3D(){
       var bClips = {};
       gltf.animations.forEach(function(anim){
         bClips[anim.name] = anim;
-        var clean = anim.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
+        var clean = anim.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter|_MDwarf|_MElf|_FOrc|_FDarkElf|_MDarkElf/g, '');
         if(!bClips[clean]) bClips[clean] = anim;
       });
-      var bIdleClip = bClips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle'; });
-      var bHandClip = bClips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand'; });
+      var bClip1H = bClips['idle_1hs'] || bClips['Wait_1HS'] || gltf.animations.find(function(a){ return /Wait_1HS/i.test(a.name); });
+      var bIdleClip = bClips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle' || /Wait_2HS/i.test(a.name); });
+      var bHandClip = bClips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand' || /Wait_Hand/i.test(a.name); });
       var isBgCaster = (c.weapon === 'staff' || c.weapon === 'book' || c.classe === 'mago' || c.classe === 'clerico');
       var isBg1H = (c.weapon === 'shield' || c.weapon === 'swordshield' || c.classe === 'guardiao');
-      var bClip = (c.weapon === 'none' || isBgCaster || isBg1H) ? (bHandClip || bIdleClip) : (bIdleClip || bHandClip);
+      var bClip = null;
+      if(c.weapon === 'none'){
+        bClip = bHandClip || bClip1H || bIdleClip;
+      } else if(isBgCaster || isBg1H){
+        bClip = bClip1H || bHandClip || bIdleClip;
+      } else {
+        bClip = bIdleClip || bClip1H || bHandClip;
+      }
       if(!bClip) bClip = gltf.animations.find(function(a){ return a.name.indexOf('Wait') !== -1; }) || gltf.animations[0];
       if(bClip){
         var bAct = bMixer.clipAction(bClip);

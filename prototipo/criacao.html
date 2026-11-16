@@ -9,136 +9,355 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #030611;
-  --panel: rgba(8, 14, 28, 0.88);
-  --panel-border: rgba(245, 196, 81, 0.35);
-  --gold: #f5c451;
-  --gold-glow: rgba(245, 196, 81, 0.45);
+  --l2-bg: #05070c;
+  --l2-panel-bg: rgba(14, 14, 14, 0.94);
+  --l2-gold: #e5c158;
+  --l2-gold-bright: #ffe68a;
+  --l2-gold-dim: #b39750;
+  --l2-gold-glow: rgba(229, 193, 88, 0.45);
+  --l2-blue: #5aa9ff;
+  --l2-blue-glow: rgba(90, 169, 255, 0.35);
+  --l2-text: #c2baa8;
+  --l2-dim: #7f786b;
+  --l2-border: rgba(130, 115, 90, 0.5);
+  /* Variaveis legadas */
+  --bg: #05070c;
+  --panel: rgba(14, 14, 14, 0.94);
+  --panel-border: rgba(130, 115, 90, 0.5);
+  --gold: #e5c158;
+  --gold-glow: rgba(229, 193, 88, 0.45);
   --cyan: #5aa9ff;
-  --cyan-glow: rgba(90, 169, 255, 0.4);
-  --text: #eaf1fb;
-  --dim: #8b9bb4;
+  --cyan-glow: rgba(90, 169, 255, 0.35);
+  --text: #c2baa8;
+  --dim: #7f786b;
 }
 * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
-html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Outfit', sans-serif; color:var(--text); }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--l2-bg); font-family:'Tahoma', Arial, sans-serif; color:var(--l2-text); }
 #canvas-wrap { position:absolute; inset:0; z-index:1; }
 #webgl { width:100%; height:100%; display:block; }
 
 /* Overlay UI */
-.ui-layer { position:absolute; inset:0; z-index:10; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; padding:14px 24px 18px; }
+.ui-layer { position:absolute; inset:0; z-index:10; pointer-events:none; }
+.ui-layer > * { position:absolute; pointer-events:auto; }
 
 /* Header */
-.header { display:flex; justify-content:space-between; align-items:center; }
-.logo-box { display:flex; flex-direction:column; }
-.logo-title { font-family:'Cinzel', serif; font-size:24px; font-weight:900; letter-spacing:0.12em; color:#fff; text-shadow:0 0 20px var(--cyan-glow); }
-.logo-title span { color:var(--gold); }
-.logo-sub { font-size:10.5px; font-weight:600; letter-spacing:0.2em; color:var(--dim); text-transform:uppercase; margin-top:2px; }
+.logo-box { left:18px; top:12px; pointer-events:none; display:flex; flex-direction:column; }
+.logo-title { font-family:'Cinzel', 'Tahoma', serif; font-size:20px; font-weight:900; letter-spacing:0.12em; color:#ffffff; text-shadow:0 0 16px rgba(229, 193, 88, 0.5), 0 2px 4px #000; display:flex; align-items:center; }
+.logo-title span { color:var(--l2-gold); margin-left:6px; font-size:14px; font-weight:700; }
+.logo-img { height:30px; width:auto; vertical-align:middle; margin-right:8px; }
+.logo-sub { font-size:10px; font-weight:600; letter-spacing:0.06em; color:var(--l2-dim); margin-top:2px; }
 
-.top-actions { display:flex; gap:12px; pointer-events:auto; }
-.top-btn { background:var(--panel); border:1px solid var(--panel-border); color:var(--gold); padding:6px 14px; border-radius:6px; font-size:11.5px; font-weight:700; text-decoration:none; cursor:pointer; transition:all .2s; backdrop-filter:blur(8px); display:inline-flex; align-items:center; gap:6px; }
-.top-btn:hover { background:rgba(245, 196, 81, 0.2); border-color:var(--gold); transform:translateY(-1px); box-shadow:0 0 15px var(--gold-glow); }
+.top-btn.back {
+  right: 18px;
+  top: 12px;
+  background: url('assets/ui/exported/L2UI_CH3/Texture/btn_normal.png') no-repeat center / 100% 100%;
+  border: none;
+  border-radius: 0;
+  color: #c8bead;
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  height: 25px;
+  min-width: 80px;
+  padding: 0 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-shadow: 0 1px 1px #000;
+  transition: filter 0.12s;
+  pointer-events: auto;
+}
+.top-btn.back:hover {
+  background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_over.png');
+  color: #ffffff;
+}
+.top-btn.back:active {
+  background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_down.png');
+  color: #ffd875;
+}
 
-/* Left Customization Panel */
-.main-content { display:flex; justify-content:space-between; align-items:center; flex:1; pointer-events:none; min-height:0; margin:6px 0; }
-.side-panel { width:330px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 150px); overflow-y:auto; }
-.side-panel::-webkit-scrollbar { width:4px; }
-.side-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
+/* Painel Principal de Criação (Lineage 2 Style) */
+.panel {
+  left: 18px;
+  top: 56px;
+  width: min(320px, 48vw);
+  max-height: calc(100% - 72px);
+  overflow: auto;
+  background: var(--l2-panel-bg);
+  border: 1px solid var(--l2-border);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.85), inset 0 0 16px rgba(0,0,0,0.6);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.panel::-webkit-scrollbar, .atr-box::-webkit-scrollbar { width: 5px; }
+.panel::-webkit-scrollbar-thumb, .atr-box::-webkit-scrollbar-thumb { background: #3b3528; border-radius: 2px; }
 
-/* Right Attributes & Lore Panel */
-.right-panel { width:270px; background:var(--panel); border:1px solid var(--panel-border); border-radius:12px; padding:16px; backdrop-filter:blur(14px); box-shadow:0 10px 40px rgba(0,0,0,0.85); pointer-events:auto; display:flex; flex-direction:column; gap:10px; max-height:calc(100vh - 150px); overflow-y:auto; }
-.right-panel::-webkit-scrollbar { width:4px; }
-.right-panel::-webkit-scrollbar-thumb { background:var(--panel-border); border-radius:2px; }
-.stat-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; margin-bottom:3px; }
-.stat-label { font-weight:700; color:var(--text); }
-.stat-val { font-weight:800; color:var(--gold); }
-.stat-bar { height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-bottom:8px; border:1px solid rgba(255,255,255,0.05); }
-.stat-fill { height:100%; background:linear-gradient(90deg, #5aa9ff, var(--gold)); border-radius:3px; }
-.lore-text { font-size:11px; line-height:1.55; color:var(--dim); font-style:italic; border-left:2px solid var(--gold); padding-left:10px; margin:2px 0 6px; }
-.feature-badge { display:inline-flex; align-items:center; gap:6px; font-size:10.5px; color:#d2e5ff; background:rgba(90, 169, 255, 0.1); border:1px solid rgba(90, 169, 255, 0.25); border-radius:4px; padding:4px 8px; }
+/* Abas L2 (Classe e Visual) */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px 6px;
+  background: rgba(8, 10, 16, 0.95);
+  border-bottom: 1px solid var(--l2-border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.tab {
+  flex: 1;
+  background: url('assets/ui/exported/L2UI_CH3/Texture/btn_normal.png') no-repeat center / 100% 100%;
+  border: none;
+  border-radius: 0;
+  color: #c8bead;
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  height: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 1px #000;
+  transition: filter 0.12s;
+}
+.tab:hover {
+  background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_over.png');
+  color: #ffffff;
+}
+.tab.on {
+  background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_down.png');
+  color: #ffd875;
+}
 
-.section-title { font-family:'Cinzel', serif; font-size:12px; font-weight:800; letter-spacing:0.15em; color:var(--gold); text-transform:uppercase; border-bottom:1px solid rgba(245, 196, 81, 0.2); padding-bottom:6px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; }
-.section-title small { font-family:'Outfit', sans-serif; font-size:10px; color:var(--dim); letter-spacing:0; font-weight:400; }
+.pane { display: none; padding: 12px; }
+.pane.on { display: block; }
 
-/* Grid Buttons */
-.opt-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.opt-card { background:rgba(15, 23, 42, 0.7); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:10px 8px; cursor:pointer; text-align:center; transition:all .18s; position:relative; overflow:hidden; }
-.opt-card:hover { border-color:rgba(90, 169, 255, 0.5); background:rgba(90, 169, 255, 0.12); }
-.opt-card.active { border-color:var(--gold); background:rgba(245, 196, 81, 0.16); box-shadow:0 0 12px var(--gold-glow); }
-.opt-card.disabled { opacity:0.35; cursor:not-allowed; }
-.opt-name { font-size:12px; font-weight:700; color:#fff; display:block; }
-.opt-card.active .opt-name { color:var(--gold); }
-.opt-sub { font-size:9.5px; color:var(--dim); margin-top:2px; display:block; }
-.opt-badge { position:absolute; top:3px; right:4px; font-size:8px; font-weight:800; background:rgba(255,255,255,0.12); padding:1px 4px; border-radius:3px; color:#aaa; text-transform:uppercase; }
+.cls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opt-card {
+  background: rgba(18, 22, 32, 0.85);
+  border: 1px solid rgba(130, 115, 90, 0.4);
+  border-radius: 4px;
+  padding: 9px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.opt-card:hover {
+  border-color: var(--l2-gold);
+  background: rgba(229, 193, 88, 0.12);
+}
+.opt-card.active {
+  border-color: #ffd875;
+  background: rgba(229, 193, 88, 0.22);
+  box-shadow: 0 0 12px rgba(229, 193, 88, 0.35);
+}
+.opt-name { font-size: 12px; font-weight: bold; color: #dfd8c8; display: block; }
+.opt-card.active .opt-name { color: #ffe68a; }
+.opt-sub { font-size: 9.5px; color: var(--l2-dim); margin-top: 3px; display: block; }
 
-/* Name Input */
-.name-input-wrap { display:flex; flex-direction:column; gap:6px; }
-.name-input { width:100%; height:38px; background:rgba(5, 10, 20, 0.85); border:1.5px solid var(--panel-border); border-radius:6px; padding:0 12px; font-family:'Cinzel', serif; font-size:14px; font-weight:700; color:var(--gold); outline:none; transition:all .2s; }
-.name-input:focus { border-color:var(--gold); box-shadow:0 0 16px var(--gold-glow); }
+.info {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--l2-text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(130, 115, 90, 0.3);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
 
-/* Animation Action Demo Buttons */
-.anim-row { display:flex; gap:6px; flex-wrap:wrap; }
-.anim-btn { flex:1 1 30%; background:rgba(15, 23, 42, 0.8); border:1px solid rgba(255,255,255,0.1); border-radius:4px; padding:6px 4px; font-size:10px; font-weight:700; color:var(--dim); cursor:pointer; text-align:center; transition:all .15s; }
-.anim-btn:hover { background:rgba(90, 169, 255, 0.2); color:#fff; border-color:var(--cyan); }
-.anim-btn.active { background:var(--cyan); color:#030611; border-color:var(--cyan); font-weight:800; }
+.lbl {
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 10.5px;
+  font-weight: bold;
+  color: var(--l2-gold);
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.lbl small { color: var(--l2-dim); font-weight: normal; letter-spacing: 0; }
 
-/* Footer / Enter Button */
-.footer-bar { display:flex; justify-content:center; align-items:center; pointer-events:auto; padding-top:12px; }
-.enter-btn { background:linear-gradient(135deg, #f5c451, #e5a720); border:none; border-radius:30px; padding:16px 48px; font-family:'Cinzel', serif; font-size:15px; font-weight:900; letter-spacing:0.18em; color:#060a14; cursor:pointer; box-shadow:0 0 30px var(--gold-glow), 0 8px 24px rgba(0,0,0,0.6); transition:all .22s; display:inline-flex; align-items:center; gap:12px; text-transform:uppercase; }
-.enter-btn:hover { transform:scale(1.04) translateY(-2px); box-shadow:0 0 45px var(--gold-glow), 0 12px 30px rgba(0,0,0,0.8); filter:brightness(1.1); }
-.enter-btn:active { transform:scale(0.98); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: url('assets/ui/exported/L2UI_CH3/Texture/btn_normal.png') no-repeat center / 100% 100%;
+  border: none;
+  border-radius: 0;
+  color: #c8bead;
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 10.5px;
+  font-weight: bold;
+  height: 24px;
+  padding: 0 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 1px #000;
+  transition: filter 0.12s;
+}
+.chip:hover {
+  background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_over.png');
+  color: #ffffff;
+}
+.chip.active, .chip.on {
+  background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_down.png');
+  color: #ffd875;
+}
 
-/* Hint */
-.drag-hint { position:absolute; bottom:30px; left:36px; font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); display:flex; align-items:center; gap:6px; pointer-events:none; }
-.drag-hint span { display:inline-block; border:1px solid rgba(255,255,255,0.25); border-radius:12px; padding:2px 8px; font-size:9.5px; }
+.gen button {
+  background: url('assets/ui/exported/L2UI_CH3/Texture/btn_normal.png') no-repeat center / 100% 100%;
+  border: none;
+  color: #c8bead;
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  width: 30px;
+  height: 24px;
+  cursor: pointer;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.gen button:hover { background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_over.png'); color: #fff; }
+.gen button.on { background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_down.png'); color: #ffd875; }
 
-/* Color Palette for Hair */
-.color-palette { display:flex; gap:8px; align-items:center; }
-.color-swatch { width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); cursor:pointer; transition:all .2s; }
-.color-swatch:hover { transform:scale(1.15); border-color:#fff; }
-.color-swatch.active { border-color:var(--gold); box-shadow:0 0 10px var(--gold-glow); transform:scale(1.18); }
+/* Color Palette */
+.color-palette { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.color-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); cursor: pointer; transition: all .15s; }
+.color-swatch:hover { transform: scale(1.15); border-color: #fff; }
+.color-swatch.active { border-color: var(--l2-gold); box-shadow: 0 0 10px var(--l2-gold-glow); transform: scale(1.18); }
 
-/* Flash transition */
+/* Campo de Nome (Nativo L2, Fixo, sem 3ª aba) */
+.l2-name-pane {
+  padding: 10px 12px 14px;
+  background: rgba(8, 10, 16, 0.75);
+  border-top: 1px solid var(--l2-border);
+  margin-top: auto;
+}
+.name-input {
+  width: 100%;
+  height: 32px;
+  background: #090c14;
+  border: 1px solid var(--l2-border);
+  border-radius: 4px;
+  padding: 0 10px;
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffe68a;
+  outline: none;
+  transition: all 0.15s ease;
+}
+.name-input:focus {
+  border-color: var(--l2-gold);
+  box-shadow: 0 0 8px rgba(229, 193, 88, 0.4);
+}
+.fb {
+  font-size: 10.5px;
+  margin-top: 5px;
+  min-height: 15px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Painel de Atributos */
+.atr-btn {
+  right: 18px;
+  top: 48px;
+  background: url('assets/ui/exported/L2UI_CH3/Texture/btn_normal.png') no-repeat center / 100% 100%;
+  border: none;
+  border-radius: 0;
+  color: #c8bead;
+  font-family: 'Tahoma', Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  height: 25px;
+  padding: 0 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 1px #000;
+  pointer-events: auto;
+}
+.atr-btn:hover { background-image: url('assets/ui/exported/L2UI_CH3/Texture/btn_over.png'); color: #fff; }
+.atr-box {
+  right: 18px;
+  top: 82px;
+  width: min(260px, 44vw);
+  max-height: calc(100% - 150px);
+  overflow: auto;
+  background: var(--l2-panel-bg);
+  border: 1px solid var(--l2-border);
+  border-radius: 6px;
+  padding: 12px;
+  display: none;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.85), inset 0 0 16px rgba(0,0,0,0.6);
+  pointer-events: auto;
+}
+.ui-layer > .atr-box.on { display: block; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+.stat-grid .stat-label { font-size: 10.5px; font-weight: bold; color: var(--l2-text); margin-right: 6px; }
+.stat-grid .stat-val { font-size: 11px; font-weight: bold; color: var(--l2-gold); }
+.stat-grid .stat-bar { height: 4px; background: #12141a; border-radius: 2px; overflow: hidden; margin: 2px 0 4px; border: 1px solid rgba(255,255,255,0.06); }
+.stat-fill { height: 100%; background: linear-gradient(90deg, #3a6ea5, var(--l2-gold)); }
+.lore-text { font-size: 10.5px; line-height: 1.45; color: var(--l2-dim); font-style: italic; border-left: 2px solid var(--l2-gold); padding-left: 8px; margin: 6px 0; }
+.feature-badge { display: block; margin-top: 4px; font-size: 10px; color: #d2e5ff; background: rgba(90, 169, 255, 0.1); border: 1px solid rgba(90, 169, 255, 0.25); border-radius: 3px; padding: 3px 6px; }
+
+/* Botão START L2 Oficial */
+.enter-btn {
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  width: 180px;
+  height: 48px;
+  background: url('assets/ui/exported/L2UI_CH3/Texture/l2_lobby_start_btn.png') no-repeat center / contain;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff0b3;
+  font-family: 'Cinzel', 'Tahoma', serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(229, 193, 88, 0.6), 0 2px 4px #000;
+  transition: transform 0.12s, filter 0.12s;
+  pointer-events: auto;
+}
+.enter-btn:hover {
+  transform: scale(1.03);
+  filter: brightness(1.15) drop-shadow(0 0 8px rgba(229, 193, 88, 0.5));
+}
+.enter-btn:active {
+  transform: scale(0.98);
+}
+
+.drag-hint { position:absolute; left:50%; bottom:8px; transform:translateX(-50%); font-size:11px; font-weight:600; color:rgba(255,255,255,0.4); pointer-events:none; white-space:nowrap; }
+#canvas-wrap, #webgl { touch-action:none; }
 #transition-overlay { position:fixed; inset:0; background:#fff; z-index:9999; opacity:0; pointer-events:none; transition:opacity .5s ease; }
 
-/* >>> CLAUDE [criacao-abas] layout limpo: painel de abas a esquerda, personagem livre, atributos recolhidos, teclado nao cobre nada */
-.ui-layer { display:block; padding:0; }
-.ui-layer > * { position:absolute; pointer-events:auto; }
-.logo-box { left:14px; top:8px; pointer-events:none; }
-.logo-img { height:30px; width:auto; vertical-align:middle; margin-right:8px; }
-.logo-title { font-size:18px; display:flex; align-items:center; }
-.back { right:12px; top:8px; padding:6px 12px; }
-.panel { left:12px; top:52px; width:min(290px,46vw); max-height:calc(100% - 64px); overflow:auto; background:var(--panel); border:1px solid var(--panel-border); border-radius:10px; backdrop-filter:blur(10px); box-shadow:0 8px 30px rgba(0,0,0,.8); }
-.tabs { display:flex; gap:4px; padding:6px 6px 0; position:sticky; top:0; background:var(--panel); z-index:2; }
-.tab { flex:1; padding:7px 0; border:0; border-radius:7px 7px 0 0; background:rgba(255,255,255,.06); color:var(--dim); font:700 12px 'Outfit',sans-serif; cursor:pointer; }
-.tab.on { background:rgba(245,196,81,.18); color:var(--gold); }
-.pane { display:none; padding:10px; } .pane.on { display:block; }
-.cls-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.opt-card { padding:9px 6px; }
-.opt-card.off { opacity:.4; cursor:not-allowed; }
-.info { margin-top:8px; font-size:11.5px; line-height:1.4; color:var(--dim); }
-.lbl { font:700 10px 'Outfit',sans-serif; letter-spacing:.1em; color:var(--cyan); text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; }
-.lbl small { color:var(--dim); letter-spacing:0; font-weight:400; text-transform:none; }
-.gen button { border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.06); color:#fff; border-radius:6px; width:34px; height:28px; font-size:15px; cursor:pointer; margin-left:4px; }
-.gen button.on { border-color:var(--gold); background:rgba(245,196,81,.2); color:var(--gold); }
-.chips { display:flex; flex-wrap:wrap; gap:5px; }
-.chip { padding:8px 10px; border-radius:7px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font:700 11.5px 'Outfit',sans-serif; cursor:pointer; }
-.chip.on, .chip.active { border-color:var(--gold); background:rgba(245,196,81,.2); color:var(--gold); }
-.color-palette { margin-top:8px; flex-wrap:wrap; }
-.name-input { height:42px; font-size:16px; }
-.fb { font-size:11px; margin-top:6px; min-height:16px; font-weight:600; color:#94a3b8; }
-.atr-btn { right:12px; top:48px; background:var(--panel); border:1px solid rgba(255,255,255,.25); color:#cfe0f5; border-radius:8px; padding:7px 10px; font:600 11px 'Outfit',sans-serif; cursor:pointer; }
-.atr-box { right:12px; top:84px; width:min(250px,44vw); max-height:calc(100% - 150px); overflow:auto; background:var(--panel); border:1px solid var(--panel-border); border-radius:10px; padding:10px; display:none; box-shadow:0 8px 30px rgba(0,0,0,.8); }
-.ui-layer > .atr-box.on { display:block; }
-.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; }
-.stat-grid .stat-label { font-size:10px; margin-right:6px; } .stat-grid .stat-val { font-size:12px; } .stat-grid .stat-bar { margin:2px 0 4px; }
-.feature-badge { display:block; margin-top:4px; }
-.enter-btn { right:12px; bottom:12px; padding:12px 22px; font-size:13px; letter-spacing:.08em; }
-.enter-btn:hover { transform:none; }
-.drag-hint { left:50%; bottom:6px; transform:translateX(-50%); pointer-events:none; white-space:nowrap; }
-#canvas-wrap, #webgl { touch-action:none; }
-/* tela baixa (celular deitado) */
-@media (max-height:520px){ .logo-sub{display:none} .logo-title{font-size:15px} .logo-img{height:24px} .panel{top:44px;max-height:calc(100% - 54px)} .atr-btn{top:44px} .atr-box{top:78px} .opt-card{padding:7px 5px} .opt-name{font-size:12px} .pane{padding:8px} }
-/* <<< CLAUDE [criacao-abas] */
+@media (max-height:520px){
+  .logo-sub{display:none}
+  .logo-title{font-size:16px}
+  .logo-img{height:24px}
+  .panel{top:44px;max-height:calc(100% - 52px)}
+  .atr-btn{top:44px}
+  .atr-box{top:76px}
+  .opt-card{padding:7px 5px}
+  .opt-name{font-size:11px}
+  .pane{padding:8px}
+  .enter-btn{width:150px;height:40px;font-size:13px;right:16px;bottom:12px}
+}
 </style>
   <!-- >>> CLAUDE [pwa] 2026-10-28 -->
   <link rel="manifest" href="manifest.json">
@@ -167,15 +386,14 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
     <div class="tabs" role="tablist">
       <button class="tab on" data-t="classe" type="button">Classe</button>
       <button class="tab" data-t="visual" type="button">Visual</button>
-      <button class="tab" data-t="nome" type="button">Nome</button>
     </div>
 
     <div class="pane on" id="t-classe">
       <div class="cls-grid">
-        <div class="opt-card" id="cls-guerreiro" onclick="selectClasse('guerreiro')"><span class="opt-name">Guerreiro</span><span class="opt-sub">Espada longa &middot; dano</span></div>
-        <div class="opt-card" id="cls-guardiao" onclick="selectClasse('guardiao')"><span class="opt-name">Guardi&atilde;o</span><span class="opt-sub">Escudo &middot; defesa</span></div>
+        <div class="opt-card" id="cls-guerreiro" onclick="selectClasse('guerreiro')"><span class="opt-name">Guerreiro</span><span class="opt-sub">Espada 2M &middot; dano</span></div>
+        <div class="opt-card" id="cls-guardiao" onclick="selectClasse('guardiao')"><span class="opt-name">Guardi&atilde;o</span><span class="opt-sub">Espada & Escudo</span></div>
         <div class="opt-card" id="cls-mago" onclick="selectClasse('mago')"><span class="opt-name">Mago</span><span class="opt-sub">Cajado &middot; magia</span></div>
-        <div class="opt-card" id="cls-clerico" onclick="selectClasse('clerico')"><span class="opt-name">Cl&eacute;rigo</span><span class="opt-sub">Livro Astral</span></div>
+        <div class="opt-card" id="cls-clerico" onclick="selectClasse('clerico')"><span class="opt-name">Cl&eacute;rigo</span><span class="opt-sub">Cajado &middot; cura</span></div>
       </div>
       <div id="clsInfo" class="info"></div>
     </div>
@@ -207,8 +425,9 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); fon
       </div>
     </div>
 
-    <div class="pane" id="t-nome">
-      <div class="lbl">Nome do personagem <small id="nameStatusTag"></small></div>
+    <!-- Campo de Nome nativo L2 fixo no painel (sem 3ª aba) -->
+    <div class="l2-name-pane">
+      <div class="lbl">◆ Nome do Personagem <small id="nameStatusTag"></small></div>
       <input type="text" id="charName" class="name-input" value="&Iacute;caro" maxlength="16" placeholder="Digite seu nome..." autocomplete="off" autocapitalize="words" enterkeyhint="done">
       <div id="nameFeedback" class="fb">Digite o nome do seu her&oacute;i.</div>
     </div>
@@ -244,9 +463,6 @@ var scene, camera, renderer, clock, mixer;
 var currentModel = null, weaponObj = null, shieldObj = null;
 var currentRace = 'human_fighter';
 var currentSet = 'fighter', currentWeapon = 'sword', currentDest = 'cidade';
-
-var currentRace = 'human_fighter';
-var shieldObj = null;
 
 var RACE_DATA = {
   'human_fighter': {
@@ -554,24 +770,30 @@ function loadModel(url){
     clips = {};
     gltf.animations.forEach(function(c){
       clips[c.name] = c;
-      var clean = c.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
+      var clean = c.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter|_MDwarf|_MElf|_FOrc|_FDarkElf|_MDarkElf/g, '');
       if(!clips[clean]) clips[clean] = c;
     });
-    clips['idle'] = clips['idle'] || clips['Wait_2HS_MFighter'] || clips['Wait_1HS_MFighter'] || gltf.animations[0];
-    clips['guard'] = clips['guard'] || clips['AtkWait_2HS_MFighter'];
+
+    var clip1H = clips['idle_1hs'] || clips['Wait_1HS'] || gltf.animations.find(function(a){ return /Wait_1HS/i.test(a.name); });
+    var clip1HGuard = clips['guard_1hs'] || clips['AtkWait_1HS'] || gltf.animations.find(function(a){ return /AtkWait_1HS/i.test(a.name); });
+    var clip2H = clips['idle'] || gltf.animations.find(function(a){ return a.name === 'idle' || /Wait_2HS/i.test(a.name); });
+    var clip2HGuard = clips['guard'] || gltf.animations.find(function(a){ return a.name === 'guard' || /AtkWait_2HS/i.test(a.name); });
+    var clipHand = clips['idle_hand'] || gltf.animations.find(function(a){ return a.name === 'idle_hand' || /Wait_Hand/i.test(a.name); });
+
+    clips['idle_1hs'] = clip1H || clipHand || clip2H;
+    clips['guard_1hs'] = clip1HGuard || clip2HGuard;
+    clips['idle'] = clip2H || clip1H || gltf.animations[0];
+    clips['guard'] = clip2HGuard || clip1HGuard;
     clips['run'] = clips['run'] || clips['Run_2HS_MFighter'] || clips['Run_1HS_MFighter'];
     clips['walk'] = clips['walk'] || clips['Walk_2HS_MFighter'] || clips['Walk_1HS_MFighter'];
     clips['slash1'] = clips['slash1'] || clips['Atk01_2HS_MFighter'] || clips['Atk01_1HS_MFighter'];
     clips['slash2'] = clips['slash2'] || clips['Atk02_2HS_MFighter'] || clips['Atk02_1HS_MFighter'];
     clips['slash4'] = clips['slash4'] || clips['SpAtk01_2HS_MFighter'] || clips['SpAtk01_1HS_MFighter'];
     clips['roll'] = clips['roll'] || clips['SpAtk11_2HS_MFighter'] || clips['SpAtk02_1HS_MFighter'];
-    clips['idle_hand'] = clips['idle_hand'] || clips['Wait_Hand_MFighter'] || clips['idle'];
-    clips['run_hand'] = clips['run_hand'] || clips['Run_Hand_MFighter'] || clips['run'];
-    clips['walk_hand'] = clips['walk_hand'] || clips['Walk_Hand_MFighter'] || clips['walk'];
+    clips['idle_hand'] = clipHand || clip1H || clip2H;
     clips['punch'] = clips['punch'] || clips['Atk01_Hand_MFighter'] || clips['slash1'];
-    var isCaster = (currentWeapon === 'staff' || currentClasse === 'mago' || currentClasse === 'clerico');
-    var is1H = (currentWeapon === 'shield' || currentWeapon === 'swordshield' || currentClasse === 'guardiao');
-    playAction((currentWeapon === 'none' || isCaster || is1H) ? 'idle_hand' : 'idle');
+
+    playAction('idle');
   });
 }
 
@@ -661,72 +883,62 @@ function attachWeapon(){
   var wpBone = currentModel.getObjectByName('Weapon_R_Bone') || currentModel.getObjectByName('Bip01_R_Hand');
   var shdBone = currentModel.getObjectByName('Shield_L_Bone') || currentModel.getObjectByName('Bip01_L_Forearm');
 
-  if(weaponObj && wpBone){
-    wpBone.remove(weaponObj);
-    weaponObj = null;
+  if(weaponObj && weaponObj.parent){
+    weaponObj.parent.remove(weaponObj);
   }
-  if(shieldObj && shdBone){
-    shdBone.remove(shieldObj);
-    shieldObj = null;
+  weaponObj = null;
+  if(shieldObj && shieldObj.parent){
+    shieldObj.parent.remove(shieldObj);
   }
+  shieldObj = null;
 
-  if(staffObj && staffObj.parent) staffObj.parent.remove(staffObj); staffObj = null;
-  if(currentWeapon === 'staff' && wpBone){
-    staffObj = makeStaff(); wpBone.add(staffObj);
-  } else if(currentWeapon === 'book' && shdBone){/* [clerigo] cajado na mao direita (os mesmos do mago) + Livro Astral aberto na esquerda */
-    staffObj = makeBook(); shdBone.add(staffObj);
-    if(wpBone){ weaponObj = makeStaff(); wpBone.add(weaponObj); }
-  } else if((currentWeapon === 'sword' || currentWeapon === 'dragon_slayer') && wpBone){
-    weaponObj = attachL2Item(wpBone, null, 'assets/personagens/twohanded_sword.glb');
-  } else if(currentWeapon === 'shield' || currentWeapon === 'swordshield' || currentClasse === 'guardiao'){
-    /* Guardião: Espada de 1 Mão + Escudo */
-    if(shdBone){
-      shieldObj = attachL2Item(shdBone, null, 'assets/personagens/round_shield.glb');
+  if(currentClasse === 'mago' || currentClasse === 'clerico' || currentWeapon === 'staff'){
+    // Mago e Clérigo: Cajado nativo oficial do L2 (cedar_staff.glb) na mão direita, mão esquerda 100% vazia (sem livro)
+    if(wpBone){
+      weaponObj = attachL2Item(wpBone, null, 'assets/personagens/cedar_staff.glb');
     }
+  } else if(currentClasse === 'guardiao' || currentWeapon === 'shield' || currentWeapon === 'swordshield'){
+    // Guardião: Espada de 1 mão (gladius.glb) na direita e Escudo (round_shield.glb) no braço esquerdo
     if(wpBone){
       weaponObj = attachL2Item(wpBone, null, 'assets/personagens/gladius.glb');
     }
+    if(shdBone){
+      shieldObj = attachL2Item(shdBone, null, 'assets/personagens/round_shield.glb');
+    }
+  } else {
+    // Guerreiro: Espada de duas mãos nativa (twohanded_sword.glb)
+    if(wpBone){
+      weaponObj = attachL2Item(wpBone, null, 'assets/personagens/twohanded_sword.glb');
+    }
   }
 }
 
-var staffObj = null;
-/* cajado do mago (mesmo desenho simples do jogo: haste escura + orbe azul), em unidades do osso (modelo ~42 u de altura) */
-function makeStaff(){
-  var g = new THREE.Group();
-  var haste = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 34, 8), new THREE.MeshStandardMaterial({ color: 0x4a3322, roughness: 0.7 }));
-  haste.position.y = 4;
-  var orbe = new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 10), new THREE.MeshStandardMaterial({ color: 0x66bbff, emissive: 0x2266cc, emissiveIntensity: 1.2 }));
-  orbe.position.y = 22.5;
-  g.add(haste); g.add(orbe); g.rotation.set(L2_WPN_AXIS_FIX, 0, 0);
-  return g;
-}
-/* [clerigo] Livro Astral (mesmo desenho do jogo: js/clerigo_fx.js -> ClerigoFX.livro), em unidades do osso */
-function makeBook(){
-  var g = new THREE.Group(), L = 4.6, W = .32, H = 7, capa = new THREE.MeshStandardMaterial({ color: 0x1c2c48, roughness: .6 }), ouro = new THREE.MeshStandardMaterial({ color: 0xd9b25a, roughness: .35, metalness: .8, emissive: 0x3a2a08 }), pag = new THREE.MeshBasicMaterial({ color: 0xfff0c4 });
-  function cx(m, w, h, d, x, z){ var o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, 0, z); return o; }
-  g.add(cx(capa, W * 1.6, H, W * 2, 0, 0));
-  [-1, 1].forEach(function(l){ var pv = new THREE.Group(); pv.rotation.y = l * (Math.PI / 2 - .87); g.add(pv); pv.add(cx(capa, L, H, W, l * L / 2, 0)); pv.add(cx(ouro, L * .96, H * 1.02, W * .6, l * L / 2, -W * .7)); pv.add(cx(pag, L * .88, H * .9, W * .5, l * (L / 2 + .2), W * 1.05)); });
-  g.position.set(0, 3, 2.5); g.rotation.set(0, Math.PI / 2, 0);
-  return g;
-}
 var currentAction = null;
 window.playAction = function(name){
-  var isCaster = (currentWeapon === 'staff' || currentClasse === 'mago' || currentClasse === 'clerico');
-  var is1H = (currentWeapon === 'shield' || currentWeapon === 'swordshield' || currentClasse === 'guardiao');
-  if(currentWeapon === 'none' || isCaster || is1H){
-    if(name === 'idle') name = 'idle_hand';
-    else if(name === 'run') name = 'run_hand';
-    else if(name === 'walk') name = 'walk_hand';
-    else if(name === 'slash1' || name === 'slash2' || name === 'slash4') name = (isCaster ? 'punch' : name);
+  var is1H = (currentClasse === 'guardiao' || currentClasse === 'mago' || currentClasse === 'clerico' || currentWeapon === 'staff' || currentWeapon === 'shield' || currentWeapon === 'swordshield');
+  var targetName = name;
+
+  if(name === 'idle'){
+    targetName = (currentWeapon === 'none') ? 'idle_hand' : (is1H ? 'idle_1hs' : 'idle');
+  } else if(name === 'guard'){
+    targetName = is1H ? 'guard_1hs' : 'guard';
+  } else if(name === 'run'){
+    targetName = (currentWeapon === 'none') ? 'run_hand' : 'run';
+  } else if(name === 'walk'){
+    targetName = (currentWeapon === 'none') ? 'walk_hand' : 'walk';
+  } else if(name === 'slash1' || name === 'slash2' || name === 'slash4'){
+    if(currentWeapon === 'none' || currentClasse === 'mago' || currentClasse === 'clerico') targetName = 'punch';
   }
-  if(!mixer || !clips[name]) return;
-  var clip = clips[name];
+
+  if(!mixer || !clips) return;
+  var clip = clips[targetName] || clips[name] || (is1H ? clips['idle_1hs'] : clips['idle']);
+  if(!clip) return;
   var act = mixer.clipAction(clip);
   if(currentAction && currentAction !== act){
     currentAction.fadeOut(0.2);
   }
   act.reset();
-  var isLoop = (name === 'idle' || name === 'idle_hand' || name === 'run' || name === 'run_hand' || name === 'walk' || name === 'walk_hand' || name === 'guard');
+  var isLoop = (targetName.indexOf('idle') !== -1 || targetName.indexOf('run') !== -1 || targetName.indexOf('walk') !== -1 || targetName.indexOf('guard') !== -1);
   act.setLoop(isLoop ? THREE.LoopRepeat : THREE.LoopOnce);
   act.clampWhenFinished = !isLoop;
   act.fadeIn(0.2);
@@ -886,19 +1098,19 @@ window.selectHairColor = function(hex){
 };
 
 var CLASSES = {
-  guardiao:  { nome: 'Guardião',  wpn: 'shield',        save: 'shield', papel: 'Defensor: segura o inimigo e protege o grupo.' },
-  mago:      { nome: 'Mago',          wpn: 'staff',         save: 'staff',  papel: 'Dano mágico à distância com habilidades de área.' },
-  guerreiro: { nome: 'Guerreiro',     wpn: 'sword',         save: 'sword',  papel: 'Dano físico corpo a corpo, combos rápidos.' },
-  clerico:   { nome: 'Clérigo',       wpn: 'book',          save: 'book',   papel: 'Suporte: cura os aliados e fere com luz (Livro Astral).' }/* [clerigo] 10/11 */
+  guardiao:  { nome: 'Guardião',  wpn: 'shield', save: 'shield', papel: 'Defensor inabalável: espada de 1 mão e escudo sagrado, lidera a vanguarda e protege o grupo.' },
+  mago:      { nome: 'Mago',      wpn: 'staff',  save: 'staff',  papel: 'Dano mágico à distância: empunha o cajado arcano com feitiços destrutivos de área.' },
+  guerreiro: { nome: 'Guerreiro', wpn: 'sword',  save: 'sword',  papel: 'Dano físico corpo a corpo: montante colossal de 2 mãos com cortes devastadores.' },
+  clerico:   { nome: 'Clérigo',   wpn: 'staff',  save: 'staff',  papel: 'Suporte sagrado: canaliza bênçãos de cura e punição divina com seu cajado sacerdotal.' }
 };
 var currentClasse = 'guerreiro';
 window.selectClasse = function(id){
   var c = CLASSES[id];
-  if(!c){ var inf0 = document.getElementById('clsInfo'); if(inf0) inf0.textContent = 'O Clérigo (Livro Astral) ainda não está disponível.'; return; }
+  if(!c) return;
   currentClasse = id;
   currentWeapon = c.wpn;
   try { localStorage.setItem('isblade.weapon', c.save); } catch(_){}
-  Object.keys(CLASSES).concat(['clerico']).forEach(function(k){
+  Object.keys(CLASSES).forEach(function(k){
     var el = document.getElementById('cls-' + k); if(el) el.classList.toggle('active', k === id);
   });
   var inf = document.getElementById('clsInfo'); if(inf) inf.textContent = c.papel;
@@ -979,7 +1191,6 @@ window.enterWorld = function(){
   var pName = (nameEl && nameEl.value.trim()) || '';
   var nameCheck = checkNameAvailability(pName);
   if(!nameCheck.valid){
-    if(window.showTab) showTab('nome');
     if(nameEl) nameEl.focus();
     else alert(nameCheck.msg);
     return;

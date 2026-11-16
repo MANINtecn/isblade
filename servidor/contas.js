@@ -101,7 +101,7 @@ module.exports = function(opts){
       }
     } catch(e){}
   }
-  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword', clerico: 'book' };   /* classe define a arma (data/progressao.json); [clerigo] Livro Astral */
+  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword', clerico: 'staff' };   /* classe define a arma (data/progressao.json); [clerigo] cajado nativo L2 */
 const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_INICIAL || require('./progressao').dados().nivelInicial) | 0) || 1));   /* personagem novo nasce no nivel do tutorial (data/progressao.json -> nivelInicial) */
   function classeDe(x){ if(ARMA_CLASSE[x.classe]) return x.classe; return x.weapon === 'shield' || x.weapon === 'swordshield' ? 'guardiao' : x.weapon === 'staff' ? 'mago' : x.weapon === 'book' ? 'clerico' : 'guerreiro'; }   /* personagens antigos: classe pela arma */
   function limpaPers(x){

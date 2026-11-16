@@ -56,11 +56,12 @@ export const L2Hud = {
     } catch (_) {}
 
     // Purgar placeholders e skills fictícias antigas (ex: "Skill 1" sem ícone que ficavam com ícone de espada)
+    // O usuário solicitou expressamente a barra de skills limpa para arrastar as skills
     var changed = false;
     for (var i = 0; i < 12; i++) {
       var d = this.slots[i];
       if (d && d.type === 'skill') {
-        if (!d.ico && !d.svg && (!d.name || /^Skill \d+$/i.test(d.name))) {
+        if (!d.ico || d.ico.indexOf('sword_long') !== -1 || (!d.svg && (!d.name || /^Skill \d+$/i.test(d.name)))) {
           this.slots[i] = null;
           changed = true;
         }
@@ -391,18 +392,22 @@ export const L2Hud = {
       if (data.type === 'skill') {
         var skBtn = origSkillBtns[data.skillSlot];
         var icoPath = data.ico || (skBtn && skBtn.querySelector('img') && skBtn.querySelector('img').src);
-        if (icoPath) {
-          iconEl.innerHTML = '<img src="' + icoPath + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/sword_long.png\';">';
+        if (icoPath && icoPath.indexOf('sword_long') === -1) {
+          iconEl.innerHTML = '<img src="' + icoPath + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.parentNode.innerHTML=\'\';">';
         } else if (data.svg) {
           iconEl.innerHTML = '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + data.svg + '</div>';
         } else {
-          // Deixa o slot limpo e sem ícone se não houver asset configurado
+          // Deixa o slot 100% limpo e livre para o jogador arrastar as skills
           iconEl.innerHTML = '';
         }
         if (autoEl) autoEl.style.display = 'none';
       } else if (data.type === 'item') {
-        var itemIco = data.ico || ('assets/icones/' + (data.id || data.base || 'sword_long') + '.png');
-        if (iconEl) iconEl.innerHTML = '<img src="' + itemIco + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.src=\'assets/icones/pocao_vida.png\';">';
+        var itemIco = data.ico || (data.id || data.base ? ('assets/icones/' + (data.id || data.base) + '.png') : '');
+        if (itemIco && itemIco.indexOf('sword_long') === -1) {
+          iconEl.innerHTML = '<img src="' + itemIco + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.parentNode.innerHTML=\'\';">';
+        } else {
+          iconEl.innerHTML = '';
+        }
         if (autoEl) {
           var isSS = (data.id === 'soulshot' || data.id === 'spiritshot' || (data.name && data.name.toLowerCase().indexOf('soulshot') >= 0));
           autoEl.style.display = (isSS && self.autoSoulshot) ? 'block' : 'none';
