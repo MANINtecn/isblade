@@ -4348,3 +4348,45 @@ Resumo de 1 linha: **item L2 = zero ajuste (`+Y Up` marcado); item não-L2 = rot
 - Removido do painel novo: Community Board (Alt+B), Troca de Classe, PvP total, personagens do banco do L2 classico.
 - Commits locais no branch (c48f895 home, + painel). Sem push. Hook do repo do site tenta avisar no Discord e falha (webhook inexistente) sem impedir o commit.
 - Pendente (etapa 2, mexe em servidor/banco, esperando o dono): unificar conta do site com a do jogo, personagens do jogo no painel, skin comprada chegar no jogo. Tela de cadastro (RegisterModal) ainda com a cara antiga.
+
+### [Claude] 16/11 - Guardiao skill 1 refeita no Blender: Feixe do Escudo (aguardando aprovacao do dono)
+
+- Pedido do dono: passar a restilizacao das skills (receita do healer) comecando pelo Guardiao; skill 1 deixa de absorver/refletir dano. Nova mecanica: segura ate 3 s carregando (dano cresce) e solta de uma vez um feixe de luz saindo da face do escudo, para a frente.
+- Blender (MCP): cena nova `GUARDIAO_S1_FEIXE` em `assets/personagens/guardian_skills.blend` (copia de seguranca `guardian_skills_antes_feixe.blend`, o .blend nao e versionado). Copia do Guardiao (`G1_*`), cameras `G1_Cam` (aberta) e `G1_CamPerto`, bloom no compositor.
+- Animacao `G1_Feixe` (30 fps): Magicshot do L2 ESPELHADO por matriz para o braco do escudo (o L2 nao traz pose de escudo a frente). 0-10 preparo | 10-98 carga segurada (escudo erguido no peito, corpo travado em avanco) | 103 solta (bracos empurram o escudo) | 103-122 feixe | 122-146 volta.
+- Efeitos (`tools/blender_fx/guardiao_s1_feixe.py`, colecao `G1_FX`) com texturas de `tools/blender_fx/guardiao_s1_texturas.py` (`assets/fx/guardiao_s1_flare/feixe/lasca/onda.png`): flare anamorfico na face do escudo crescendo em 3 degraus (1 s, 2 s, 3 s; no 3o ganha a estrela de 8 pontas), lascas de luz convergindo; na soltura miolo branco quente + veu dourado de filamentos correndo, clarao na boca, 2 ondas em losango, lascas espirrando, flare e marca no chao na ponta (10 m). Cor: branco quente caindo para ouro.
+- Pendente: aprovacao visual do dono; definir o escalonamento do dano pela carga; escudo da cena e o modelo IS antigo (no jogo vai o escudo equipado); port para o jogo (`guardiao.js`/`guardiao_fx.js`, clipe a 48 fps via export_guardian).
+
+
+### [Claude] 16/11 - Sistema de Jogadores Fakes (Bots PvP) e Painel de Controle Visual
+
+- **REGRA ADICIONADA**: KTX2 deve trabalhar junto com WebP para dar folga de VRAM/processamento para a placa dos celulares (otimizacao combinada de texturas comprimidas na GPU e fallback leve).
+- **Jogadores Fakes para PvP (Dentro e Fora do Mapa)**:
+  - Criado modulo de servidor servidor/fakes.js para controle nativo de bots PvP sem instanciar processos pesados de navegador:
+    - Roster classico de Lineage 2 com 30+ nomes autenticos (SirKael, ShadowBlade, Valkyrie, BloodHunter, Khadgar, etc.).
+    - Rotacao de racas e classes nativas (human_m, human_f, elf_f, darkelf_f, orc_m, dwarf_f com espadas e cajados).
+    - IA de combate completa: persegue alvos a 4.8 m/s, strafe lateral, esquivas defensivas com rolamento (
+oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de skills especiais do servidor.
+    - Revide inteligente: se atacado por jogador ou outro bot, o bot foca imediatamente no agressor (V.atacante).
+    - 3 Modos de comportamento selecionaveis: pvp (todos contra todos + atacam jogadores), inimigo (focam prioritariamente jogadores reais) e 	reino (passivos para teste de dps e combos).
+    - Suporte a respawn configuravel apos 5.5s de morte em torno do ponto de invocacao.
+- **Comandos de Chat Interceptados no Servidor (server.js)**:
+  - /bot 10 ou /bot [qtd]: Spawna a quantidade especificada (padrao 10) ao redor do jogador.
+  - /bot arena 10: Spawna 10 bots diretamente na Arena PvP.
+  - /bot campo 10: Spawna 10 bots no campo aberto fora da muralha.
+  - /bot limpar: Deleta e remove todos os bots ativos da partida.
+  - /bot matar: Abate todos os bots com animacao de morte e drop/notificacao.
+  - /bot modo [pvp|inimigo|treino]: Altera o modo tatico dos bots.
+  - /bot painel ou /painel: Abre instantaneamente o Painel de Controle de Bots no jogo.
+- **Painel de Controle Visual (prototipo/js/painel_bots.js)**:
+  - Interface visual flutuante com acabamento L2 autentico (ouro antigo chanfrado, bordas metalicas escuras e tipografia Cinzel).
+  - Botao no HUD ⚔️ BOTS PVP com contador dinamico de bots ativos em tempo real (verde quando ha bots, vermelho quando vazio).
+  - Atalhos de teclado: F8 ou B (fora de inputs) e Escape para fechar.
+  - Controles visuais de quantidade: botoes rapidos [1], [5], [10], [20] e ajuste fino [-] / [+].
+  - Seletores de local (Aqui, Arena PvP, Campo Aberto) e de modo (PvP Livre, Focar Player, Treino).
+  - Botoes de acao de destaque: ⚔️ CONVOCAR 10 BOTS, 🛑 REMOVER TODOS, 💀 MATAR BOTS e ⚡ RESET COMPLETO.
+  - Guia rapido de comandos de chat embutido no rodape do painel.
+- **Integracao de Rede (prototipo/js/net.js)**:
+  - Exposto metodo Net.botCmd(o) para comunicacao direta via WebSocket com o pacote ot_cmd.
+  - Adicionado listener para ot_painel (abertura remota) e ot_info (atualizacao do contador em tempo real).
+  - Incluido script js/painel_bots.js nas paginas principais prototipo/cidade.html e prototipo/arena.html.

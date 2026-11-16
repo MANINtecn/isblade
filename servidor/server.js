@@ -41,7 +41,8 @@ const Inv = require('./inventario');
 const Mobs = require('./mobs_mundo');
 const { Baium, baiumOk } = require('./baium');      /* [baium-servidor] a luta do Baium roda aqui */
 const Moradores = require('./moradores').cria({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [moradores] NPCs com rotina e conversa na cidade */
-const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
+const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */
+const Fakes = require('./fakes');                                                                     /* [fakes] bots de PvP (comandos /bot e painel) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 const XP_SALAS = { shade: 1, caster: 1, brute: 1, mini_boss: 1, boss: 1 };      /* [auditoria 13/11] tipos da DG antiga por salas: os unicos aceitos na mensagem xp */
 function ganhaXp(J, v){
   if(!J.pers || !(v > 0)) return; const subiu = Prog.ganha(J.pers, v);
@@ -125,6 +126,10 @@ const emDuelo = (A, V, t) => { const d = A.duelo; return !!(d && d.com === V.id 
 const aliadoDe = (c, A, V, t) => V === A || (c.mapa === 'pvp' ? !!(A.party && A.party === V.party) : !emDuelo(A, V, t));
 function podeFerir(c, A, V, t){
   if(c.mapa === 'pvp') return !(A.party && A.party === V.party);          /* PvP livre: todos contra todos; so o mesmo grupo nao se fere */
+  if((A.isBot || V.isBot) && (A.modoPvp || V.modoPvp || c.mapa === 'pvp' || abertoAqui(c, A) || abertoAqui(c, V))){
+    if(A.party && A.party === V.party) return false;
+    return true; /* [fakes] bots em modo pvp podem sempre lutar */
+  }
   if(abertoAqui(c, A) && abertoAqui(c, V) && !emDuelo(A, V, t)){ if(A.party && A.party === V.party) return false; return temKarma(V) || temFlag(V, t) || !!A.pk; }      /* [pk] */
   const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim);   /* cidade: so no duelo ja comecado */
 }
@@ -187,6 +192,7 @@ function fere(c, A, V, base, t, pid){
   const duelo = c.mapa === 'cidade' && emDuelo(A, V, t), aberto = !duelo && abertoAqui(c, A) && abertoAqui(c, V), inocente = aberto && !temKarma(V) && !temFlag(V, t);
   if(aberto && !temKarma(V)) A.flagAte = t + FLAG_S;                 /* [pk] bateu em quem nao e PK: fica roxo */
   V.hp = Math.max(duelo ? 1 : 0, V.hp - dano); V.pvpHitT = t;                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
+  if(V.isBot) V.atacante = A.id;                                                  /* [fakes] bot revida quem o atacou */
   difunde(c, { t: 'hit', v: V.id, a: A.id, d: dano, hp: V.hp, b: bloqueio ? 1 : 0, p: pid || 0 });
   if(duelo && V.hp <= 1){ fimDuelo(c, V, A); }
   else if(V.hp <= 0){ V.morto = true; V.tMorte = t; A.abates++; V.mortes++; V.mortoPorJog = t;
@@ -334,6 +340,7 @@ function ataque(c, A, m){
     fere(c, A, V, d.dmg, t, 0);
   }
 }
+Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir });
 
 /* ---- HTTP estatico ---- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.vrm': 'model/gltf-binary', '.fbx': 'application/octet-stream', '.wasm': 'application/wasm', '.ogg': 'audio/ogg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.bin': 'application/octet-stream', '.woff2': 'font/woff2', '.ico': 'image/x-icon' };
@@ -531,7 +538,9 @@ wss.on('connection', ws => {
       }
     }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
-    else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .8){ J.ultChat = t; const txt = String(m.m || '').slice(0, 120).trim();      /* chat: geral = canal; c:'g' = grupo (em qualquer mapa) */
+    else if(m.t === 'bot_cmd'){ Fakes.executa(c, J, m); }
+    else if(m.t === 'chat'){ const t = agora(); if(t - J.ultChat > .3){ J.ultChat = t; const txt = String(m.m || '').slice(0, 120).trim();      /* chat: geral = canal; c:'g' = grupo (em qualquer mapa) */
+      if(txt && (txt.startsWith('/bot') || txt.startsWith('/fake') || txt === '/painel')){ Fakes.comando(c, J, txt); return; }
       if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }
       else if(txt && m.c === 'c'){ const C = Clas.de(J.pers); if(!C) envia(J, { t: 'chat', n: 'Sistema', m: 'Você não está em um clã.', c: 's' }); else for(const o of membrosOnline(C)) envia(o, { t: 'chat', n: J.nome, m: txt, c: 'c' }); }      /* [cla] chat do cla (@) */
       else if(txt) difunde(c, { t: 'chat', n: J.nome, m: txt, team: J.team }); } }
@@ -578,6 +587,7 @@ setInterval(() => {
   tick++; const t = agora(); for(const cp of todosCanais()) passaProj(cp, t);
   const jogsCid = []; for(const cc of canais.cidade) for(const Jc of cc.jog.values()) if(!Jc.morto) jogsCid.push({ id: Jc.id, nome: Jc.nome, x: Jc.x, z: Jc.z, pk: temKarma(Jc) });
   Moradores.tick(t, TICK / 1000, (M, txt) => { for(const cc of canais.cidade) if(cc.jog.size) difunde(cc, { t: 'mfala', n: M.n, m: txt }); }, jogsCid);      /* [moradores] reagem a quem chega e fogem de PK */
+  Fakes.tick(t, TICK / 1000);                                                                                                                      /* [fakes] laco de combate dos bots de PvP */
   const MOR = tick % 3 === 0 ? JSON.stringify({ t: 'mor', m: Moradores.snap() }) : null;
   for(const c of todosCanais()){
     for(const J of c.jog.values()){

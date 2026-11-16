@@ -233,6 +233,8 @@ export const Net = (function(){
     else if(m.t === 'wb'){ e = remotos.get(m.v); if(e){ e.wb = m.b || ''; aplicaArma(e); } }
     else if(m.t === 'sup'){ if(ctx.suporte) ctx.suporte(m); }      /* [clerigo] escudo / purificacao / prece */
     else if(m.t === 'cura'){ if(m.v === N.id){ if(ctx.curaSrv) ctx.curaSrv(m.hp, m); if(ctx.curaFx){ var S0 = ctx.getS(); ctx.curaFx(m, S0.px, S0.pz); } } else { e = remotos.get(m.v); if(e){ e.hp = m.hp; if(e.tag) desenhaTag(e); if(ctx.curaFx) ctx.curaFx(m, e.x, e.z); } } }      /* [clerigo] cura de jogador: valor e efeito no alvo */
+    else if(m.t === 'bot_painel'){ if(window.PainelBots && window.PainelBots.toggle) window.PainelBots.toggle(m.open); }
+    else if(m.t === 'bot_info'){ if(window.PainelBots && window.PainelBots.atualizaInfo) window.PainelBots.atualizaInfo(m); }
     else if(m.t === 'chat'){ if(window.Chat && Chat.recebe) Chat.recebe(m); else ctx.sysMsg(m.n + ': ' + m.m); }
   }
 
@@ -522,6 +524,7 @@ export const Net = (function(){
   N.attrReset = function(){ if(!N.on) return false; send({ t: 'attrreset' }); return true; };         /* reset de pontos, sempre gratis */               /* servidor decide o ganho */
   N.rolou = function(){ if(N.on) send({ t: 'roll' }); };
   N.controlaMorte = function(){ return N.on && N.mapa === 'pvp'; };           /* no mapa de PvP o reaparecimento e do servidor */
+  N.botCmd = function(o){ if(N.on) send(Object.assign({ t: 'bot_cmd' }, o || {})); };
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };
   N.alterna = function(forca){ alterna(forca); };
   return N;
