@@ -219,7 +219,8 @@ function setupPorNivel(racaBase, armaTipo, lv){
   }
 
   // 4. HP proporcional ao nível e conjunto
-  const hpBase = Math.round(300 + Math.pow(lv, 1.46) * 11);
+  /* [dano-l2] 17/11/2026: vida = a de um jogador do mesmo nivel com o equipamento do bot (antes 300 + nivel^1,46 x 11, ~2,5x a de um jogador) */
+  let hpBase; try { const Cb = require('./combate_l2.js'); const cls = { sword: 'guerreiro', shield: 'guardiao', staff: 'mago', book: 'clerico' }[armaTipo] || 'guerreiro'; hpBase = Cb.vidaMax(Cb.fichaBot(lv, cls, armaTipo, grau, en)); } catch(e){ hpBase = Math.round(300 + Math.pow(lv, 1.46) * 11); }
 
   return { raca, wb, en, grau, skills, hpBase };
 }

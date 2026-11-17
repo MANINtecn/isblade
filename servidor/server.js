@@ -197,9 +197,27 @@ function fimDuelo(c, perdedor, vencedor, motivo){
 }
 
 /* ---- dano de um golpe/projetil numa vitima (guarda de frente reduz; duelo nao mata) ---- */
-function fere(c, A, V, base, t, pid){
+/* [dano-l2] 17/11/2026 (dono aprovou): dano entre jogadores pelos status, estilo L2 (servidor/combate_l2.js + prototipo/data/status_l2.json).
+   A ficha (ataque da arma, defesa da armadura, nivel, atributos) vem do equipamento salvo; bots usam nivel/grau/encantamento deles.
+   DANO_L2=0 volta a formula antiga (dano fixo do JSON x PVP_MULT). */
+const Combate = require('./combate_l2.js'); Combate.carrega(RAIZ);
+const DANO_L2 = process.env.DANO_L2 !== '0';
+const CLASSE_DA_ARMA = { sword: 'guerreiro', shield: 'guardiao', staff: 'mago', book: 'clerico' };
+function fichaDe(J, t){
+  if(J._ficha && t - J._fichaT < 4) return J._ficha;
+  let f; try {
+    if(J.isBot) f = Combate.fichaBot(J.lv || 1, CLASSE_DA_ARMA[J.arma] || 'guerreiro', J.arma || 'sword', J.grau, J.en);
+    else if(J.pers) f = Combate.fichaDePers(Object.assign({ classe: J.pers.classe || CLASSE_DA_ARMA[J.arma] }, J.pers), J.arma || 'sword', Prog.statsDe(J.pers));
+  } catch(e){ f = null; }
+  if(!f) f = Combate.fichaBot(J.lv || 1, CLASSE_DA_ARMA[J.arma] || 'guerreiro', J.arma || 'sword');
+  J._ficha = f; J._fichaT = t; return f;
+}
+/* tipo: { b: multiplicador } = ataque padrao (golpe x soulshot); sem tipo = skill (base = poder do JSON, ja com soulshot) */
+function fere(c, A, V, base, t, pid, tipo){
   if(V.godMode) return;                                                                           /* [admin] God Mode: imortal a qualquer dano */
-  let dano = Math.max(1, Math.round(base * (.92 + Math.random() * .16) * PVP_MULT)), bloqueio = false;
+  let dano, bloqueio = false;
+  if(DANO_L2){ const fA = fichaDe(A, t), fV = fichaDe(V, t); dano = Math.max(1, tipo && tipo.b ? Math.round(Combate.danoBasico(fA, fV, 'sweep') * tipo.b) : Combate.danoSkill(fA, fV, base)); }
+  else dano = Math.max(1, Math.round(base * (.92 + Math.random() * .16) * PVP_MULT));
   if(V.guarda && Math.abs(angDif(Math.atan2(A.x - V.x, A.z - V.z), V.f)) < 1.1){ dano = Math.max(1, Math.round(dano * .2)); bloqueio = true; }   /* guarda de frente */
   if((A.preceAte || 0) > t) dano = Math.round(dano * (1 + (A.preceAtk || 0)));                  /* [clerigo] Prece: +ataque */
   if((V.preceAte || 0) > t) dano = Math.max(1, Math.round(dano / (1 + (V.preceDef || 0))));      /* [clerigo] Prece: +defesa */
@@ -223,7 +241,7 @@ function fere(c, A, V, base, t, pid){
 let proxProj = 1;
 function criaProj(c, A, d, idx){
   const p = d.proj, dx = Math.sin(A.f), dz = Math.cos(A.f);
-  const pr = { id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora(), par: +p.paralisa || 0, zona: d.zona || null, cura: +d.cura || 0, passaAliado: !!p.passaAliado };
+  const pr = { basico: idx < 0, id: proxProj++, A, x: A.x + dx * 1.2, z: A.z + dz * 1.2, dx, dz, v: Math.max(4, Math.min(40, +p.speed || 12)), w: Math.max(.3, Math.min(4, +p.width || 1)), range: Math.max(2, Math.min(40, d.range || 12)), d: 0, dmg: d.dmg, pierce: !!p.pierce, hit: new Set(), tl: agora(), par: +p.paralisa || 0, zona: d.zona || null, cura: +d.cura || 0, passaAliado: !!p.passaAliado };
   (c.proj = c.proj || []).push(pr); if(c.proj.length > 200) c.proj.shift();
   difunde(c, { t: 'proj', pid: pr.id, a: A.id, ar: A.arma, i: idx, x: r2(pr.x), z: r2(pr.z), dx: r2(dx), dz: r2(dz), v: pr.v, r: pr.range }, A);
 }
@@ -237,7 +255,7 @@ function passaProj(c, t){
       if(!aliado && (t < V.imune || !podeFerir(c, p.A, V, t))) continue;      /* inimigo: so quem pode ferir (e sem esquiva) */
       const sx = nx - p.x, sz = nz - p.z, l2 = sx * sx + sz * sz || 1e-6, u = Math.max(0, Math.min(1, ((V.x - p.x) * sx + (V.z - p.z) * sz) / l2)), qx = p.x + sx * u, qz = p.z + sz * u;      /* trecho percorrido neste quadro: nao atravessa ninguem em alta velocidade */
       if(aliado && Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); curaJog(c, p.A, V, p.cura, t); if(!p.passaAliado){ p.d = p.range + 1; break; } continue; }
-      if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id); if(p.par) paralisa(c, p.A, V, p.par, p.zona); if(!p.pierce){ p.d = p.range + 1; break; } }
+      if(Math.hypot(V.x - qx, V.z - qz) <= p.w * .5 + .55){ p.hit.add(V.id); fere(c, p.A, V, p.dmg, t, p.id, p.basico ? { b: p.dmg / 18 } : null); if(p.par) paralisa(c, p.A, V, p.par, p.zona); if(!p.pierce){ p.d = p.range + 1; break; } }
     }
     p.x = nx; p.z = nz; p.d += passo; if(p.d >= p.range) L.splice(i, 1);
   }
@@ -325,7 +343,7 @@ function ataqueMira(c, A, m, t){
     if(A.morto) return; const t2 = agora();
     for(const V of c.jog.values()){
       if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue;
-      if(Math.hypot(V.x - x, V.z - z) <= nv.raio + .45) fere(c, A, V, dmgM, t2, 0);
+      if(Math.hypot(V.x - x, V.z - z) <= nv.raio + .45) fere(c, A, V, dmgM, t2, 0, { b: dmgM / 18 });      /* [dano-l2] ataque padrao: 18 = golpe basico de referencia */
     }
   }, d * 1000);
 }
@@ -339,7 +357,7 @@ function ataque(c, A, m){
     criaProj(c, A, { dmg: Math.round(mb.dmg * (1 + tiro(A))), range: mb.range, proj: mb.proj, cura: mb.cura }, -1); return;
   }
   if(m.k === 'b' && BASICO[A.arma]){ ataqueMira(c, A, m, t); return; }
-  if(m.k === 'b'){ d = BASIC[m.id]; if(!d || t - A.ultB < .22) return; A.ultB = t; }
+  if(m.k === 'b'){ d = BASIC[m.id]; if(!d || t - A.ultB < .22) return; A.ultB = t; d = Object.assign({ golpe: m.id }, d); }
   else if(m.k === 's'){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
     if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > Math.max(3, (s.dur || 0) + 1)) return; parte2 = true; }   /* [guerreiro] janela = duracao da skill (Tufao ~4,2 s) */            /* 2o golpe da mesma skill: sem nova recarga */
@@ -353,14 +371,15 @@ function ataque(c, A, m){
   if(d.suporte){ if(!parte2) suporteSkill(c, A, d, m, t); return; }                                          /* [clerigo] escudo / purificacao / prece */
   if(d.area){ if(!parte2) areaSkill(c, A, d, m); return; }                                                    /* [mago] skill de area: aviso e dano no ponto mirado */
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
-  if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
+  if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }
+  const tipoB = d.golpe ? { b: ((Combate.dados().golpeBasico || {})[d.golpe] || 1) * (1 + (ss || 0)) } : null;      /* [dano-l2] ataque padrao: golpe do combo x soulshot */                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
   for(const V of c.jog.values()){
     if(V === A || V.morto || t < V.imune || !podeFerir(c, A, V, t)) continue;
     if(d.p0){ const vx = A.x - d.p0.x, vz = A.z - d.p0.z, L = vx * vx + vz * vz, k = L ? Math.max(0, Math.min(1, ((V.x - d.p0.x) * vx + (V.z - d.p0.z) * vz) / L)) : 0;
-      if(Math.hypot(V.x - d.p0.x - vx * k, V.z - d.p0.z - vz * k) <= (d.half || 1.3) + .45 + .6) fere(c, A, V, d.dmg, t, 0); continue; }   /* [caminho] quem estava no caminho do avanco (+0,6 m de latencia) */
+      if(Math.hypot(V.x - d.p0.x - vx * k, V.z - d.p0.z - vz * k) <= (d.half || 1.3) + .45 + .6) fere(c, A, V, d.dmg, t, 0, tipoB); continue; }   /* [caminho] quem estava no caminho do avanco (+0,6 m de latencia) */
     const dx = V.x - A.x, dz = V.z - A.z, dist = Math.hypot(dx, dz); if(dist > d.range + .6) continue;                  /* +0,6 m: latencia */
     if(d.half < 3.1 && Math.abs(angDif(Math.atan2(dx, dz), A.f)) > d.half + Math.atan2(.45, Math.max(dist, .5)) + .12) continue;
-    fere(c, A, V, d.dmg, t, 0);
+    fere(c, A, V, d.dmg, t, 0, tipoB);
   }
 }
 Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir, aliadoDe, curaJog });

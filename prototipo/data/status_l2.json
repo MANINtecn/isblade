@@ -1,0 +1,135 @@
+{
+  "_nota": "Dano PvP pelos status, estilo L2 (decisao do dono 17/11/2026). Lido pelo servidor (servidor/combate_l2.js) e pelo simulador (tools/simular_pvp_l2.js). O cliente NAO informa o proprio ataque: o servidor calcula com o equipamento salvo do personagem.",
+  "_formulas": "P.Atk = ataque da arma (tipo + grau) x (1 + encantamento) x raridade x (1 + dano% de luvas/escudo/set + 0,5% por ponto de FOR/INT acima do inicial) x nivel. P.Def = (defesa base + pecas da armadura por grau + escudo) x (1 + defesa% do set + VIT) x nivel. Nivel = (nivel + 89) / 100 (L2). Ataque padrao = 70 x P.Atk / P.Def x golpe x kBasico. Skill (por golpe) = 77 x P.Atk / P.Def x (poder / 100) x kSkill, poder = dano da skill no JSON x kPoder (proporcional: as skills daqui nao sobem de nivel como no L2). Soulshot: x (1 + bonus). Variacao +-8%.",
+  "armaAtk": {
+    "_nota": "Ataque base da arma por tipo e grau (referencia L2 Interlude: espada 2 maos, espada 1 mao com escudo, cajado).",
+    "sword": {
+      "sem": 50,
+      "D": 122,
+      "C": 175,
+      "B": 213,
+      "A": 260,
+      "S": 320
+    },
+    "shield": {
+      "sem": 38,
+      "D": 96,
+      "C": 140,
+      "B": 170,
+      "A": 205,
+      "S": 255
+    },
+    "staff": {
+      "sem": 44,
+      "D": 112,
+      "C": 160,
+      "B": 195,
+      "A": 235,
+      "S": 290
+    },
+    "book": {
+      "sem": 40,
+      "D": 100,
+      "C": 145,
+      "B": 175,
+      "A": 210,
+      "S": 260
+    }
+  },
+  "armaduraDef": {
+    "_nota": "Defesa de cada peca por grau (conjunto pesado). Sem peca no slot = 0.",
+    "helmet": {
+      "sem": 20,
+      "D": 30,
+      "C": 38,
+      "B": 43,
+      "A": 50,
+      "S": 57
+    },
+    "chest": {
+      "sem": 57,
+      "D": 87,
+      "C": 110,
+      "B": 125,
+      "A": 144,
+      "S": 167
+    },
+    "legs": {
+      "sem": 36,
+      "D": 55,
+      "C": 70,
+      "B": 79,
+      "A": 91,
+      "S": 106
+    },
+    "gloves": {
+      "sem": 15,
+      "D": 23,
+      "C": 29,
+      "B": 33,
+      "A": 38,
+      "S": 44
+    },
+    "boots": {
+      "sem": 15,
+      "D": 23,
+      "C": 29,
+      "B": 33,
+      "A": 38,
+      "S": 44
+    },
+    "shield": {
+      "sem": 40,
+      "D": 80,
+      "C": 110,
+      "B": 130,
+      "A": 160,
+      "S": 190
+    }
+  },
+  "defBase": 40,
+  "encArma": 0.03,
+  "encArmadura": 0.02,
+  "raridade": {
+    "normal": 1,
+    "raro": 1.1,
+    "epico": 1.25,
+    "lendario": 1.45
+  },
+  "golpeBasico": {
+    "sweep": 1,
+    "thrust": 1.15,
+    "spin": 1.3,
+    "up": 1.05,
+    "down": 1.1,
+    "wedge": 1.2
+  },
+  "kBasico": 0.573,
+  "kSkill": 0.968,
+  "kPoder": 1,
+  "variacao": 0.08,
+  "grauPorNivel": [
+    [
+      61,
+      "A"
+    ],
+    [
+      52,
+      "B"
+    ],
+    [
+      40,
+      "C"
+    ],
+    [
+      20,
+      "D"
+    ],
+    [
+      1,
+      "sem"
+    ]
+  ],
+  "_grauPorNivel": "S fica de fora enquanto nao existirem pecas de grau S no itens.json",
+  "_calibracao": "17/11/2026: node tools/simular_pvp_l2.js calibrar -> media dos niveis 5-90: ataque padrao 5% da vida e kit do Guerreiro 110% (mesmo nivel e grau)"
+}
