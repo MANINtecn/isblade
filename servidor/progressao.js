@@ -6,7 +6,7 @@ let P = null;
 function carrega(){ try { P = JSON.parse(fs.readFileSync(ARQ, 'utf8')); } catch(e){ console.error('progressao: sem', ARQ, e.message); P = P || { nivelMax: 400, pontosPorNivel: 2, curvaXp: { abatesMin: 6, abatesBase: 40, abatesRef: 30, expoente: 1.87, xpMobBase: 10, xpMobPorNivel: 2.2 }, classes: {}, mobsNivel: {}, xpPorAbate: {} }; } return P; }
 carrega();
 
-const NIVEL_MAX = () => P.nivelMax | 0 || 400;
+const NIVEL_MAX = () => P.nivelMax | 0 || 99;
 const abates = L => { const c = P.curvaXp; return Math.max(c.abatesMin, c.abatesBase * Math.pow(L / c.abatesRef, c.expoente)); };
 const xpMob = L => P.curvaXp.xpMobBase + P.curvaXp.xpMobPorNivel * L;
 const xpNeed = L => Math.round(abates(L) * xpMob(L));                       /* XP para sair do nivel L */

@@ -101,7 +101,7 @@ module.exports = function(opts){
       }
     } catch(e){}
   }
-  const NIVEL_MAX = 400, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword', clerico: 'staff' };   /* classe define a arma (data/progressao.json); [clerigo] cajado nativo L2 */
+  const NIVEL_MAX = 99, ARMA_CLASSE = { guardiao: 'shield', mago: 'staff', guerreiro: 'sword', clerico: 'staff' };   /* classe define a arma (data/progressao.json); [clerigo] cajado nativo L2 */
 const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_INICIAL || require('./progressao').dados().nivelInicial) | 0) || 1));   /* personagem novo nasce no nivel do tutorial (data/progressao.json -> nivelInicial) */
   function classeDe(x){ if(ARMA_CLASSE[x.classe]) return x.classe; return x.weapon === 'shield' || x.weapon === 'swordshield' ? 'guardiao' : x.weapon === 'staff' ? 'mago' : x.weapon === 'book' ? 'clerico' : 'guerreiro'; }   /* personagens antigos: classe pela arma */
   function limpaPers(x){
@@ -128,7 +128,7 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
   /* a chave vem da variavel SSO_SECRET ou do arquivo <DATA_DIR>/sso_secret.txt (fora do git; na VPS: C:\IS-sync\servidor\dados\sso_secret.txt) */
   const SSO_SECRET = process.env.SSO_SECRET || (function(){ try { return fs.readFileSync(path.join(DIR, 'sso_secret.txt'), 'utf8').trim(); } catch(e){ return ''; } })(), passesUsados = new Map();
   setInterval(() => { const t = Date.now(); for(const [n, ate] of passesUsados) if(ate < t) passesUsados.delete(n); }, 60e3).unref();
-  function confereTicket(tk){
+  function confereTicket(tk, escopo){
     if(!SSO_SECRET || typeof tk !== 'string' || tk.length > 600) return null;
     const i = tk.lastIndexOf('.'); if(i < 1) return null;
     const p = tk.slice(0, i), sig = tk.slice(i + 1), esp = crypto.createHmac('sha256', SSO_SECRET).update(p).digest('base64url');
@@ -136,6 +136,7 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
     let d; try { d = JSON.parse(Buffer.from(p, 'base64url').toString('utf8')); } catch(e){ return null; }
     const login = String(d.sub || '').toLowerCase(), agora = Date.now();
     if(!/^[a-z0-9_]{4,16}$/.test(login) || !(d.exp * 1000 > agora) || d.exp * 1000 - agora > 300e3 || !/^[a-f0-9]{16,64}$/.test(String(d.n || ''))) return null;
+    if((d.esc || 'jogar') !== (escopo || 'jogar')) return null;      /* passe de 'pers' (site lendo a lista) nao serve para entrar no jogo, e vice-versa */
     if(passesUsados.has(d.n)) return null; passesUsados.set(d.n, d.exp * 1000 + 60e3);
     return { login };
   }
@@ -164,11 +165,17 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
       }
       if(url === '/api/conta/sso' && req.method === 'POST'){
         if(!limite(ip, 's', 30, 600e3)) return resp(res, 429, { erro: 'Muitas tentativas. Espere uns minutos.' });
-        const b = await corpo(req), d = confereTicket(b.ticket);
+        const b = await corpo(req), d = confereTicket(b.ticket, 'jogar');
         if(!d) return resp(res, 401, { erro: 'Passe invalido ou vencido. Entre de novo pelo site.' });
         const k = 'site:' + d.login; let c = DB.contas[k];
         if(!c){ c = DB.contas[k] = { user: d.login, site: true, tokens: [], criada: Date.now(), dados: { rev: 0, chaves: {} } }; c.pers = []; }
         const token = novoToken(c); c.ult = Date.now(); const ch = chavesDaConta(c); grava(); return resp(res, 200, { token, user: c.user, rev: c.dados.rev, chaves: ch });
+      }
+      if(url === '/api/conta/sso-pers' && req.method === 'POST'){      /* [sso] o SITE (servidor a servidor) le os personagens da conta para o painel; nao cria conta */
+        const b = await corpo(req), d = confereTicket(b.ticket, 'pers');
+        if(!d) return resp(res, 401, { erro: 'Passe invalido.' });
+        const c = DB.contas['site:' + d.login]; if(c) migra(c);
+        return resp(res, 200, { pers: c ? c.pers.map(p => ({ name: p.name, classe: p.classe, level: p.level | 0, race: p.race, location: p.location })) : [] });
       }
       if(url === '/api/conta/sair' && req.method === 'POST'){
         const c = quem(req); if(c){ const h = sha(req.headers.authorization.slice(7)); c.tokens = c.tokens.filter(t => t.h !== h); grava(); } return resp(res, 200, { ok: true });

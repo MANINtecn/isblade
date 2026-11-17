@@ -12,6 +12,7 @@ const PORT = +process.env.PORT || 8000, CAP = +process.env.CAP || 50, PVP_MULT =
 /* Em VPS: o jogo (arquivos) fica na Vercel e este processo cuida so da conexao em tempo real. STATIC=0 desliga a entrega de arquivos; ORIGINS limita quais sites podem conectar
    (ex.: ORIGINS=https://jogar.l2ikarus.com,https://*.vercel.app). Sem ORIGINS qualquer site conecta (bom para teste local). */
 const SERVE_STATIC = process.env.STATIC !== '0', ORIGINS = (process.env.ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
+if(ORIGINS.length) for(const o of ['https://jogar.l2ikarus.com']) if(!ORIGINS.includes(o)) ORIGINS.push(o);      /* [dominio] 17/11/2026: endereco novo do jogo sempre liberado (a lista do .bat da VPS nao precisa mudar) */
 const casa = (p, o) => { if(!p.includes('*')) return p === o; const [a, b] = p.split('*'); return !!o && o.startsWith(a) && o.endsWith(b) && o.length > a.length + b.length && !o.slice(a.length, o.length - b.length).includes('.'); };   /* um '*' vale um trecho sem ponto (um nivel de subdominio) */
 const origemOk = o => !ORIGINS.length || ORIGINS.some(p => casa(p, o));
 const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), origemOk });      /* cadastro rapido + salvamento na nuvem (contas.js) */
