@@ -80,7 +80,14 @@ const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra, 
 const r2 = v => Math.round(v * 100) / 100, agora = () => Date.now() / 1000;
 const angDif = (a, b) => { let d = a - b; while(d > Math.PI) d -= 2 * Math.PI; while(d < -Math.PI) d += 2 * Math.PI; return d; };
 function posSpawn(c, J){
-  if(c.mapa === 'pvp'){ const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * ARENA_PVP.r; return { x: ARENA_PVP.x + Math.sin(a) * r, z: ARENA_PVP.z + Math.cos(a) * r }; }
+  if(c.mapa === 'pvp'){
+    const emBaium = (c && c.jog) ? [...c.jog.values()].some(j => !j.isBot && Math.hypot(j.x - (-28.4), j.z - (-53.85)) < 25) : false;
+    const areX = emBaium ? ARENA_PVP.x : 0;
+    const areZ = emBaium ? ARENA_PVP.z : 0;
+    const areR = emBaium ? ARENA_PVP.r : 9.5;
+    const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * areR;
+    return { x: r2(areX + Math.sin(a) * r), z: r2(areZ + Math.cos(a) * r) };
+  }
   const s = MAPAS.cidade.spawn, a = Math.random() * 6.283, r = Math.random() * s.r; return { x: s.x + Math.sin(a) * r, z: s.z + Math.cos(a) * r };
 }
 /* [anuncio] aviso do servidor (manutencao, eventos): o dono edita <DATA_DIR>/anuncio.txt na VPS (uma linha; vazio = sem aviso).

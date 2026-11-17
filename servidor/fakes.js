@@ -228,11 +228,24 @@ function setupPorNivel(racaBase, armaTipo, lv){
 /* Cria bots com configuração completa por nível e equipamento */
 // Raio e limites seguros de navegação para evitar queda ou flutuação fora do chão
 function clampCoordenadas(x, z, mapa){
-  if(mapa === 'pvp' || Math.hypot(x - (-28.4), z - (-53.85)) < 42){
-    const areX = -28.4, areZ = -53.85, rMax = 19.5; // Raio 100% plano e seguro da Arena Baium
+  if(mapa === 'pvp'){
+    // Detecta se a arena em uso é o Coliseu clássico (centro 0,0) ou o Salão do Baium / Torre (-28.4, -53.85)
+    const distBaium = Math.hypot(x - (-28.4), z - (-53.85));
+    const distColiseu = Math.hypot(x, z);
+    const emBaium = distBaium < 25 && distBaium < distColiseu;
+    const areX = emBaium ? -28.4 : 0;
+    const areZ = emBaium ? -53.85 : 0;
+    const rMax = emBaium ? 19.5 : 12.8; // Coliseu tem anel em 13.5m; 12.8m garante piso 100% sólido sem flutuar
     const dx = x - areX, dz = z - areZ;
     const d = Math.hypot(dx, dz);
-    if(d > rMax){
+    if(d > rMax && d > 0.0001){
+      return { x: r2(areX + (dx / d) * (rMax - 0.2)), z: r2(areZ + (dz / d) * (rMax - 0.2)) };
+    }
+  } else if(mapa === 'cidade' && Math.hypot(x - (-28.4), z - (-53.85)) < 30){
+    const areX = -28.4, areZ = -53.85, rMax = 19.5;
+    const dx = x - areX, dz = z - areZ;
+    const d = Math.hypot(dx, dz);
+    if(d > rMax && d > 0.0001){
       return { x: r2(areX + (dx / d) * (rMax - 0.2)), z: r2(areZ + (dz / d) * (rMax - 0.2)) };
     }
   }
@@ -441,15 +454,32 @@ function spawnTimes(opts){
   const classeA = opts.classeA || opts.classe || '';
   const classeB = opts.classeB || opts.classe || '';
 
-  const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
   let cx, cz, distBase;
 
   if(canal.mapa === 'pvp'){
-    // Salão de Baium (Arena PvP): centro (-28.4, -53.85).
-    // Bases seguras a 13.5m do centro (27m de distância entre equipes, piso plano 100% sólido sem cair)
-    cx = are.x;
-    cz = are.z;
-    distBase = 13.5;
+    // Detecta se estamos no Coliseu clássico (0,0) ou no Salão de Baium / Torre (-28.4, -53.85)
+    let emBaium = false;
+    if(typeof opts.x === 'number' && typeof opts.z === 'number'){
+      emBaium = Math.hypot(opts.x - (-28.4), opts.z - (-53.85)) < 25;
+    } else {
+      for(const jog of canal.jog.values()){
+        if(!jog.isBot && Math.hypot(jog.x - (-28.4), jog.z - (-53.85)) < 25){
+          emBaium = true;
+          break;
+        }
+      }
+    }
+
+    if(emBaium){
+      cx = -28.4;
+      cz = -53.85;
+      distBase = 13.5;
+    } else {
+      // Coliseu clássico (centro 0, 0, raio 13.5m)
+      cx = 0;
+      cz = 0;
+      distBase = 7.5; // Times a 15m de distância, perfeitamente posicionados dentro do Coliseu
+    }
   } else if(canal.mapa === 'cidade'){
     // Campo aberto ao sul de Talking Island
     cx = (typeof opts.x === 'number' && Math.abs(opts.x) > 40) ? opts.x : 0;
@@ -1235,8 +1265,10 @@ function comando(c, J, txt){
     const qtd = Math.min(30, Math.max(1, parseInt(arg2, 10) || 10));
     const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
     const cArena = canalArenaPvp();
-    const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
-    const sp = spawnBots({ canal: cArena, x: are.x, z: are.z, qtd, modo: 'pvp', lv, comHealer: true });
+    const emBaium = (cArena && cArena.jog) ? [...cArena.jog.values()].some(j => !j.isBot && Math.hypot(j.x - (-28.4), j.z - (-53.85)) < 25) : false;
+    const ax = emBaium ? -28.4 : 0;
+    const az = emBaium ? -53.85 : 0;
+    const sp = spawnBots({ canal: cArena, x: ax, z: az, qtd, modo: 'pvp', lv, comHealer: true });
     sis(`⚔️ ${sp} bots Nv ${lv} foram criados na Arena PvP! Vá até a Arena para lutar.`);
     return;
   }
@@ -1315,8 +1347,9 @@ function executa(c, J, m){
 
     if(m.local === 'arena' || c.mapa === 'pvp'){
       canal = canalArenaPvp() || c;
-      const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
-      x = are.x; z = are.z;
+      const emBaium = Math.hypot(J.x - (-28.4), J.z - (-53.85)) < 25;
+      x = emBaium ? -28.4 : 0;
+      z = emBaium ? -53.85 : 0;
     } else if(m.local === 'campo' || c.mapa === 'cidade'){
       canal = canalCidade() || c;
       x = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
@@ -1340,10 +1373,11 @@ function executa(c, J, m){
     let canal = c;
     let x = J.x, z = J.z;
 
-    if(m.local === 'arena'){
-      canal = canalArenaPvp();
-      const are = CTX.ARENA_PVP || { x: -28.4, z: -53.85 };
-      x = are.x; z = are.z;
+    if(m.local === 'arena' || c.mapa === 'pvp'){
+      canal = canalArenaPvp() || c;
+      const emBaium = Math.hypot(J.x - (-28.4), J.z - (-53.85)) < 25;
+      x = emBaium ? -28.4 : 0;
+      z = emBaium ? -53.85 : 0;
     } else if(m.local === 'campo'){
       canal = canalCidade();
       x = Math.hypot(J.x, J.z) > 96 ? J.x : 0;

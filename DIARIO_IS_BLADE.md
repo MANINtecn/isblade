@@ -4752,3 +4752,21 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
      - `darKit`: Tratamento seguro mapeando qualquer comando `S` para Grau A, garantindo retrocompatibilidade sem erros.
   3. **Itens (`prototipo/data/itens.json`)**:
      - Limpeza das 6 bases provisórias de Grau S (`imperial_helmet`, `imperial_armor`, `imperial_gauntlets`, `imperial_boots`, `forgotten_blade`, `shield_imperial_s`), garantindo que o catálogo de bases termine de forma limpa em `tallum_boots`.
+
+
+### [Gemini] 17/11 - Correção Definitiva da Flutuação e Posição dos Bots na Arena PvP
+
+- **Causa Raiz Identificada**:
+  - Na imagem enviada pelo usuário, bots (ex: `Kronos`) apareciam flutuando no ar em frente às ruínas e pilares de pedra do fundo da arena.
+  - O Coliseu clássico de `arena.html` tem seu piso sólido centralizado em `(0, 0)` com raio útil de `12.5m` a `13.5m`.
+  - No entanto, `servidor/fakes.js` e `servidor/server.js` mantinham `ARENA_PVP` e `clampCoordenadas` fixos no centro da câmara do Baium na Torre (`-28.4, -53.85`), que fica a mais de 60 metros de distância do centro do Coliseu.
+  - Ao nascer ou mover no mapa `pvp`, o clamp de segurança puxava os bots 40 metros para fora do piso do Coliseu em direção ao vazio do cenário, fazendo com que ficassem suspensos no ar na altura das ruínas de fundo.
+- **Solução Implementada**:
+  1. **Detecção Dinâmica de Arena em `clampCoordenadas` (`servidor/fakes.js`)**:
+     - Diferencia com precisão se o combate está no Coliseu clássico (centro `0, 0`, `rMax = 12.8m` dentro do anel azul) ou na câmara do Baium (`-28.4, -53.85`, `rMax = 19.5m`).
+     - Nenhum bot é mais jogado para fora do piso sólido do Coliseu; todos permanecem 100% sobre o chão de pedra.
+  2. **Posicionamento de Times e Spawns (`spawnTimes` e `executa` em `servidor/fakes.js`)**:
+     - No Coliseu, Time Azul e Time Vermelho nascem perfeitamente alinhados a 15 metros um do outro (`distBase = 7.5m`, em `x = -7.5` e `x = +7.5`), dentro dos limites do Coliseu.
+     - Spawns via `/bot arena` e painel detectam o local do jogador e respeitam o piso local.
+  3. **Spawn de Conexão (`posSpawn` em `servidor/server.js`)**:
+     - Spawns do canal `pvp` no Coliseu nascem dentro do raio seguro de 9.5m do centro `(0, 0)`.
