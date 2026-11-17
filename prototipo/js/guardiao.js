@@ -109,7 +109,7 @@ export const Guardiao = (function(){
     var tipoL = String(tipo).toLowerCase(), outra = !W_PSA[tipoL], psa = 'MFighter';   /* [guerreiro] a skill e da classe: toda raca/sexo usa os clipes do Blender (gravados no Humano M); nas outras, so rotacoes + quadril na escala da raca (como o Guardiao) */
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
     var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=4', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
-    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=5').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
+    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=6').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
     Promise.all([pr, prM]).then(function(ab){
       var list = ab[0], MED = ab[1] || {};
       if(!list || !list.length) return;
@@ -136,7 +136,7 @@ export const Guardiao = (function(){
           tr.push(t);
         });
         c.tracks = tr; rig.clips[src.name] = c;
-        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: (MED[src.name] && MED[src.name].rm) || null, psa: psa };
+        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: (MED[src.name] && MED[src.name].rm) || null, ini: (MED[src.name] && MED[src.name].ini) || 0, pausas: (MED[src.name] && MED[src.name].pausas) || null, psa: psa };   /* ini: onde o corpo comeca a se mexer; pausas: hit-stop gravado no Blender (s do clipe) */
       });
     });
   };

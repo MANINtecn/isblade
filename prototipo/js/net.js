@@ -398,7 +398,8 @@ export const Net = (function(){
       });
       remotos.forEach(function(r, id){ if(!vistos[id]){ r.dentro = false; r.grp.visible = false; } });
     } else if(m.t === 'erro'){ desligado = true; ctx.banner('SEM ACESSO', m.m || 'Conexao recusada', '#ff6b6b'); ctx.sysMsg(m.m || 'Conexao recusada');
-    } else if(m.t === 'dgs'){ if(ctx.dgs) ctx.dgs(m);      /* [dg-servidor] ondas da DG da Torre vindas do servidor */
+    } else if(m.t === 'dgs'){ if(ctx.dgs) ctx.dgs(m);      /* [dg-servidor] ondas da DG da Torre vindas do servidor */
+
     } else if(m.t === 'dg'){ if(ctx.dg) ctx.dg(m);
     } else if(m.t === 'dgconvite'){ puxar(m.key, m.id);
     } else if(m.t === 'recanal'){ if(N.mapa === 'masmorra') N.entrar('masmorra', 0);
@@ -864,11 +865,12 @@ export const Net = (function(){
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */
   N.atacou = function(an){
     if(!N.on || !an) return; if(an.clerB){ send({ t: 'atk', k: 'b', id: an.id, f: r2(ctx.getS().face) }); return; }      /* [clerigo] Lamina de Luz: o servidor faz o projetil voar */ if(an.magoB || an._tarde) return; if(an.noRange && an.skill) return;      /* acerto do proprio projetil em mob/chefe nao e um novo disparo */ var S = ctx.getS();
-    if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; var om = { t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }; if(typeof an.mc === 'number') om.mc = an.mc;      /* [feixe-escudo] multiplicador da carga (o servidor limita pelo "carga" do JSON) */ if(an.skill.suporte && ctx.alvoSuporte) om.al = ctx.alvoSuporte(an.skill) || 0;      /* [clerigo] aliado na mira */ if(an.skill.area && an.alvo){ om.x = r2(an.alvo.x); om.z = r2(an.alvo.z); om.d = r2(an.skill.area.delay || .8); } send(om); }      /* skill de area (meteoro, coluna): ponto mirado + tempo do aviso */
+    if(an.skill){ var sk = ctx.skills(), i = -1; for(var j = 0; j < sk.length; j++) if(sk[j].name === an.skill.name){ i = j; break; } if(i < 0) return; var om = { t: 'atk', k: 's', i: i, f: r2(S.face), p: an.part || 1 }; if(typeof an.mc === 'number') om.mc = an.mc;      /* [feixe-escudo] multiplicador da carga (o servidor limita pelo "carga" do JSON) */ if(an.skill.suporte && ctx.alvoSuporte) om.al = ctx.alvoSuporte(an.skill) || 0;      /* [clerigo] aliado na mira */ if(an.skill.area && an.alvo){ om.x = r2(an.alvo.x); om.z = r2(an.alvo.z); om.d = r2(an.skill.area.delay || .8); } if(an.skill.caminho && an.p0){ om.x0 = r2(an.p0.x); om.z0 = r2(an.p0.z); } send(om); }      /* [caminho] Investida: ponto de partida (para o servidor conferir o corredor) */      /* skill de area (meteoro, coluna): ponto mirado + tempo do aviso */
     else if(an.id && BASICOS[an.id]) send({ t: 'atk', k: 'b', id: an.id, f: r2(S.face) });
   };
   /* ---- dungeon em grupo ---- */
-  N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
+  N.dg = function(o){ if(!N.on) return false; o.t = 'dg'; send(o); return true; };
+
   N.dgs = function(o){ if(!N.on) return false; o.t = 'dgs'; send(o); return true; };      /* [dg-servidor] */
   N.alvos = function(){ var l = []; remotos.forEach(function(e){ l.push({ id: e.id, x: e.x, z: e.z, morto: e.morto, nome: e.nome, hp: e.hp }); }); return l; };
   N.soyLider = function(){ return !!(N.grupo && N.grupo.lider === N.sid); };

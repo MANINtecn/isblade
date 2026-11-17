@@ -1281,8 +1281,8 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader);      /* [assets-
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=27';
-import { Net } from './js/net.js?v=51';
+import { Guardiao } from './js/guardiao.js?v=28';
+import { Net } from './js/net.js?v=52';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -6461,7 +6461,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
 
-  var an={id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
+  var an={p0:(skill&&skill.caminho)?{x:S.px,z:S.pz}:null/* [caminho] Investida: ponto de partida */,id:pose,t:0,dur:skill?skill.dur:.34,from:{th:S.cur.th,yaw:S.cur.yaw},hit:false,pk:0,dmg:dmg,sk:sk,perfect:perfect,skill:skill};
   try {
     ssTiro(an);
     if(an.ss && !an.skill && window.spark) spark(S.px, 1.4, S.pz, 2.0, wpnCaster() ? 0x38e1ff : 0x4dd4ff, 0.28);
@@ -6489,7 +6489,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
 
-    an.clipMode=true;an.tt=0;an.hitT=base*cm.hit;an.total=base*cm.cut;an.lg=cm.lg;if(cm.rm){an.rm=cm.rm;an.rmSp=cm.sp||1;an.rmP=0;}/* [guerreiro] curva do corpo do Blender */
+    an.clipMode=true;an.tt=0;an.hitT=base*cm.hit;an.total=base*cm.cut;an.lg=cm.lg;if(cm.rm){an.rm=cm.rm;an.rmSp=cm.sp||1;an.rmP=0;}/* [guerreiro] curva do corpo do Blender */if(cm.ini||cm.pausas){an.ini=(cm.ini||0)/(cm.sp||1);an.pausas=cm.pausas;an.tt=an.ini;if(an.rm){var q0=Math.min(an.rm.length-1,Math.floor((cm.ini||0)*48));an.rmP=an.rm[q0];}}/* [ritmo] sem a espera parada do inicio */
 
 
 
@@ -6509,7 +6509,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
 
-    playClip(vrm,cm.c,{once:true,speed:cm.sp,fade:.08,hold:0});
+    var _act=playClip(vrm,cm.c,{once:true,speed:cm.sp,fade:.08,hold:0});if(_act&&an.ini){_act.time=an.ini*(cm.sp||1);}an.act=_act;an.sp=cm.sp||1;/* [ritmo] */
 
 
 
@@ -9522,7 +9522,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  var foraBoss=an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-1.2)>raioMira(an)):(reach>rng||(half<3.1&&cone>half+(an.skill&&an.skill.larg?Math.atan2(1.5+an.skill.larg,Math.max(reach,.5)):0)));/* [mago] circulo no ponto mirado; [feixe-escudo] corpo do alvo + folga */
+  var foraBoss=(an.p0&&an.skill&&an.skill.caminho)?(distSeg(S.ex,S.ez,an.p0.x,an.p0.z,S.px,S.pz)>1.5+(an.skill.half||1.3)):an.alvo?(Math.max(0,Math.hypot(S.ex-an.alvo.x,S.ez-an.alvo.z)-1.2)>raioMira(an)):(reach>rng||(half<3.1&&cone>half+(an.skill&&an.skill.larg?Math.atan2(1.5+an.skill.larg,Math.max(reach,.5)):0)));/* [mago] circulo no ponto mirado; [feixe-escudo] corpo do alvo + folga */
   if(!an.noRange&&foraBoss){if(!mobsHit)floatText('Errou','#7f8db0',16);return;}
 
 
@@ -11739,6 +11739,7 @@ function wOf(k){return ITM.rarities[k].weight*((k==='normal'||!DG.run)?1:DIFF().
 
 
 
+function distSeg(px,pz,ax,az,bx,bz){var vx=bx-ax,vz=bz-az,L=vx*vx+vz*vz,t=L?clamp(((px-ax)*vx+(pz-az)*vz)/L,0,1):0;return Math.hypot(px-ax-vx*t,pz-az-vz*t);}/* [caminho] distancia ate o trecho percorrido */
 function hitMobs(an,rng,half){
 
 
@@ -11763,11 +11764,12 @@ function hitMobs(an,rng,half){
 
 
 
+    if(an.p0&&an.skill&&an.skill.caminho){if(distSeg(m.x,m.z,an.p0.x,an.p0.z,S.px,S.pz)-m.r*.6>(an.skill.half||1.3)+.2)return;}else{/* [caminho] acerta quem ficou no caminho do avanco */
     if(reach>rng)return;
 
 
 
-    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r+(an.skill&&an.skill.larg||0),Math.max(reach,.5)))return;/* [feixe-escudo] larg = folga minima perto do escudo */
+    if(!full&&Math.abs(angDiff(S.face,Math.atan2(dx,dz)))>half+Math.atan2(m.r+(an.skill&&an.skill.larg||0),Math.max(reach,.5)))return;}/* [feixe-escudo] larg = folga minima perto do escudo */
 
 
 
@@ -15933,6 +15935,7 @@ function frame2(dt,T){
 
 
 
+  if(an0&&an0.rm&&mv.m>0&&(an0.hitList?an0.hi>=an0.hitList.length:an0.hit)){S.anim=null;an0=null;}/* [ritmo] golpe ja saiu: andar encerra a pose final */
   var animRoot=!!an0&&((an0.rm&&!(an0.skill&&an0.skill.mover))/* [guerreiro] skill do Blender: so a curva do Blender move o corpo */||(an0.skill&&an0.skill.armor&&!an0.skill.mover)||((an0.clipMode?an0.lg:(POSE[an0.id]?POSE[an0.id].lg:0))>2.2));
 
 
@@ -16247,7 +16250,8 @@ function frame2(dt,T){
 
 
 
-    if(!Guardiao.canalTick(an,dt))an.tt+=dt; /* >>> CLAUDE [guardiao] 2026-10-28 — skill canalizada <<< */
+    var _k=1;if(an.pausas){var _ct=an.tt*(an.sp||1);for(var _pi=0;_pi<an.pausas.length;_pi++){var _pp=an.pausas[_pi];if(_ct>=_pp[0]+.08&&_ct<_pp[1]){_k=7;break;}}if(an.act)an.act.timeScale=(an.sp||1)*_k;}/* [ritmo] hit-stop do Blender vira hit-stop curto de jogo */
+    if(!Guardiao.canalTick(an,dt))an.tt+=dt*_k; /* >>> CLAUDE [guardiao] 2026-10-28 — skill canalizada <<< */
 
 
 

@@ -18,6 +18,7 @@
     {
       "name": "Investida Relampago",
       "pose": "w_n0",
+      "caminho": true,
       "icon": "w_investida",
       "cd": 6,
       "dmg": 90,
