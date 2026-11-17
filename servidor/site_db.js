@@ -1,12 +1,12 @@
 /* site_db.js — "servidor do site" (l2ikarus.com) dentro do servidor do jogo, na VPS nova.
    Substitui a API da VPS antiga (192.99.110.164, perdida em 11/2026). O site (Vercel) chama, servidor a servidor:
      POST /sitedb/query     {sql, params}                        -> {result}   (banco do site no MariaDB local)
-     POST /sitedb/register  {login, email, password, referredBy} -> {success|message}
+     POST /sitedb/register  {login, email, passwordHash, referredBy} -> {success|message}
      GET  /sitedb/status/all                                      -> {online, players}
    Tudo exige o cabecalho x-api-key. Configuracao fora do git: <DATA_DIR>/sitedb.json
      { "host": "127.0.0.1", "port": 3306, "user": "...", "password": "...", "database": "l2ikarus_site", "apiKey": "..." }
    (criado pelo vps_windows/instalar_banco_site.ps1). Sem o arquivo, responde 503 e o jogo segue normal.
-   Senha das contas: scrypt (formato "scrypt$sal$hash"), conferida no site (api/player.js). */
+   Senha das contas: scrypt (formato "scrypt$sal$hash"), gerada e conferida no site (api/register.js e api/player.js). */
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 
@@ -35,16 +35,16 @@ module.exports = function(opts){
     const k = String(req.headers['x-api-key'] || ''), a = Buffer.from(k), b = Buffer.from(String(cfg && cfg.apiKey || ''));
     return b.length >= 24 && a.length === b.length && crypto.timingSafeEqual(a, b);
   }
-  const hashSenha = (senha) => { const sal = crypto.randomBytes(16).toString('hex'); return 'scrypt$' + sal + '$' + crypto.scryptSync(senha, sal, 32, { N: 16384 }).toString('hex'); };
 
   async function cadastra(b){
-    const login = String(b.login || '').trim(), email = String(b.email || '').trim().toLowerCase(), senha = String(b.password || '');
+    /* o site manda a senha ja' embaralhada (passwordHash = "scrypt$sal$hash", feito na Vercel); texto puro nunca trafega */
+    const login = String(b.login || '').trim(), email = String(b.email || '').trim().toLowerCase() || null, hash = String(b.passwordHash || '');
     if(!/^[a-zA-Z0-9_]{4,16}$/.test(login)) return [400, { message: 'Login: 4 a 16 letras, números ou _' }];
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return [400, { message: 'E-mail inválido.' }];
-    if(!/^[^\s]{6,64}$/.test(senha)) return [400, { message: 'Senha: 6 a 64 caracteres, sem espaço.' }];
-    const [ja] = await pool.query('SELECT login, email FROM accounts WHERE login = ? OR email = ? LIMIT 1', [login, email]);
+    if(email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120)) return [400, { message: 'E-mail inválido.' }];
+    if(!/^scrypt\$[a-f0-9]{32}\$[a-f0-9]{64}$/.test(hash)) return [400, { message: 'Senha inválida.' }];
+    const [ja] = await pool.query('SELECT login, email FROM accounts WHERE login = ? OR (email IS NOT NULL AND email = ?) LIMIT 1', [login, email]);
     if(ja.length) return [409, { message: String(ja[0].login).toLowerCase() === login.toLowerCase() ? 'Esse login já existe.' : 'Esse e-mail já tem conta.' }];
-    await pool.query('INSERT INTO accounts (login, password, email, access_level, created_time) VALUES (?, ?, ?, 0, ?)', [login, hashSenha(senha), email, Math.floor(Date.now() / 1000)]);
+    await pool.query('INSERT INTO accounts (login, password, email, access_level, created_time) VALUES (?, ?, ?, 0, ?)', [login, hash, email, Math.floor(Date.now() / 1000)]);
     const ref = String(b.referredBy || '').toLowerCase();
     if(/^[a-z0-9_-]{2,32}$/.test(ref)){
       try {
