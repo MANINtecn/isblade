@@ -725,7 +725,8 @@
       D:     'assets/personagens/elf_f_brigandine.glb?v=2',
       C:     'assets/personagens/elf_f_fullplate.glb?v=2',
       B:     'assets/personagens/elf_f_doom.glb?v=2',
-      A:     'assets/personagens/elf_f_tallum.glb?v=2'
+      A:     'assets/personagens/elf_f_tallum.glb?v=2',
+      S:     'assets/personagens/elf_f_tallum.glb?v=2'
     },
     human_fighter: {
       naked: 'assets/personagens/human_fighter.glb?v=9',
@@ -733,7 +734,8 @@
       D:     'assets/personagens/human_fighter_brigandine.glb?v=2',
       C:     'assets/personagens/human_fighter_fullplate.glb?v=2',
       B:     'assets/personagens/human_fighter_doom.glb?v=2',
-      A:     'assets/personagens/human_fighter_imperial.glb?v=2'
+      A:     'assets/personagens/human_fighter_imperial.glb?v=2',
+      S:     'assets/personagens/human_fighter_imperial.glb?v=2'
     },
     dwarf_f: {
       naked: 'assets/personagens/dwarf_f.glb?v=9',
@@ -741,7 +743,8 @@
       D:     'assets/personagens/dwarf_f_brigandine.glb?v=2',
       C:     'assets/personagens/dwarf_f_fullplate.glb?v=2',
       B:     'assets/personagens/dwarf_f_doom.glb?v=2',
-      A:     'assets/personagens/dwarf_f_tallum.glb?v=2'
+      A:     'assets/personagens/dwarf_f_tallum.glb?v=2',
+      S:     'assets/personagens/dwarf_f_tallum.glb?v=2'
     },
     human_fighter_female: {
       naked: 'assets/personagens/human_fighter_female.glb?v=9',

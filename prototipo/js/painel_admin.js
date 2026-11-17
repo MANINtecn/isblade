@@ -1,8 +1,12 @@
 'use strict';
 /* ==========================================================================
-   PAINEL DE ADMINISTRAÇÃO / GM POWER - IS BLADE (16/11/2026)
+   PAINEL DE ADMINISTRAÇÃO / GM POWER - IS BLADE (17/11/2026)
    Interface visual exclusiva para controle de Administrador / Game Master (GM):
+   - Controle de Alvo (Target): Aplicar em Mim (Eu) ou no Target (Alvo selecionado no jogo ou na lista)
    - Definir Nível (1 a 85 / Graus D, C, B, A, S e Herói)
+   - Trocar Nick (Personagens Reais ou Bots)
+   - Trocar Sexo (Masculino ↔ Feminino com modelo 3D atualizado em tempo real)
+   - Kits de Equipamento por Grau (No-Grade, D, C, B, A, S equipados com glow e encantamento oficial)
    - Ressurreição Instantânea (Ress com 100% HP/MP)
    - Cura Completa (Full Heal)
    - God Mode (Modo Invulnerável / Imortalidade)
@@ -11,7 +15,7 @@
    - Economia & Adena (+100k, +1M, +10M)
    - Encantamento de Arma (+4, +7, +10, +16) com Glow Visual
    - Teleporte Rápido para qualquer local do mundo
-   - Atalho direto para Bots PvP
+   - Atalho direto para Bots PvP e Guerra de Times
    - Tecla de atalho: F10 ou comando //admin no chat
    ========================================================================== */
 
@@ -24,6 +28,10 @@
   var godModeAtivo = false;
   var speedAtual = 1;
   var nivelAtual = 1;
+
+  // Estado de Alvo
+  var modoAlvo = 'target'; // 'eu' ou 'target'
+  var alvoAtualObj = null;
 
   var DESTINOS = {
     cidade: { nome: 'Talking Island (Cidade)', x: 0, z: 6 },
@@ -78,7 +86,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 580px;
+        width: 620px;
         max-width: 95vw;
         max-height: 88vh;
         background: linear-gradient(180deg, rgba(14, 18, 30, 0.98) 0%, rgba(8, 10, 18, 0.99) 100%);
@@ -130,17 +138,17 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 16px;
       }
 
       .pa-section {
         background: rgba(255, 255, 255, 0.025);
         border: 1px solid rgba(212, 175, 55, 0.2);
         border-radius: 8px;
-        padding: 14px 16px;
+        padding: 13px 15px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 11px;
       }
       .pa-sec-title {
         font-size: 12px;
@@ -155,7 +163,7 @@
 
       .pa-grid-btns {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
         gap: 8px;
       }
 
@@ -259,6 +267,17 @@
     document.head.appendChild(st);
   }
 
+  function obterAlvoId(){
+    if(modoAlvo === 'eu') return 'eu';
+    var sel = document.getElementById('pa-select-target');
+    if(sel && sel.value){
+      return sel.value;
+    }
+    if(alvoAtualObj && alvoAtualObj.id) return alvoAtualObj.id;
+    if(window.Net && Net.alvoAtual && Net.alvoAtual()) return Net.alvoAtual();
+    return 'eu';
+  }
+
   function renderModal(){
     if(container) return;
     criarEstilos();
@@ -285,7 +304,61 @@
       </div>
 
       <div class="pa-body">
-        <!-- 1. DEFINIÇÃO DE NÍVEL -->
+        <!-- 0. CONTROLE DE ALVO (TARGET / GM) -->
+        <div class="pa-section" style="border-color: rgba(255, 215, 0, 0.45); background: rgba(255, 215, 0, 0.04);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="pa-sec-title">🎯 Controle de Alvo (Target)</div>
+            <div style="display:flex; gap:6px;">
+              <button class="pa-btn" id="pa-btn-alvo-eu" style="padding:4px 10px; font-size:11px;">👤 Em Mim</button>
+              <button class="pa-btn active" id="pa-btn-alvo-target" style="padding:4px 10px; font-size:11px;">🎯 No Alvo</button>
+            </div>
+          </div>
+          
+          <div id="pa-alvo-status-box" style="padding:8px 12px; background:rgba(0,0,0,0.55); border:1px solid #334155; border-radius:6px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+            <div id="pa-alvo-status-txt">
+              <span style="color:#94a3b8;">Alvo Ativo:</span> <b style="color:#ffd700;" id="pa-txt-alvo-nome">Nenhum (Selecione no jogo ou na lista)</b>
+            </div>
+            <div id="pa-alvo-status-hp" style="font-weight:800; color:#4ade80;"></div>
+          </div>
+
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="pa-select-target" style="flex:1; background:#0f172a; color:#f8fafc; border:1px solid #475569; border-radius:6px; padding:7px 10px; font-size:12px; font-weight:600; cursor:pointer;">
+              <option value="eu">👤 Eu Mesmo (Você)</option>
+            </select>
+            <button class="pa-btn" id="pa-btn-focar-jogo" style="white-space:nowrap; padding:7px 12px;">🎯 Focar no Jogo</button>
+            <button class="pa-btn" id="pa-btn-atualizar-alvos" title="Atualizar Lista de Alvos" style="padding:7px 10px;">🔄</button>
+          </div>
+        </div>
+
+        <!-- 1. IDENTIDADE & APARÊNCIA (NICK E SEXO) -->
+        <div class="pa-section">
+          <div class="pa-sec-title">🎭 Identidade & Aparência (Nick e Sexo)</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" id="pa-input-nick" placeholder="Novo Nick do Personagem / Bot..." maxlength="20" style="flex:1; background:#0f172a; color:#f8fafc; border:1px solid #475569; border-radius:6px; padding:7px 12px; font-size:12px; font-weight:700;">
+            <button class="pa-btn pa-btn-gold" id="pa-btn-aplicar-nick" style="white-space:nowrap; padding:7px 14px;">✏️ Alterar Nick</button>
+          </div>
+          <div class="pa-grid-btns">
+            <button class="pa-btn" id="pa-btn-sex-m">♂️ Masculino</button>
+            <button class="pa-btn" id="pa-btn-sex-f">♀️ Feminino</button>
+            <button class="pa-btn pa-btn-gold" id="pa-btn-sex-toggle">🔄 Alternar Sexo</button>
+          </div>
+        </div>
+
+        <!-- 2. KITS DE EQUIPAMENTO POR GRAU (LINEAGE 2) -->
+        <div class="pa-section">
+          <div class="pa-sec-title">📦 Kits de Equipamento por Grau (Lineage 2)</div>
+          <div style="font-size:11px; color:#94a3b8; margin-top:-4px;">Equipa set de armadura completo e arma da classe com encantamento oficial:</div>
+          <div class="pa-grid-btns">
+            <button class="pa-btn" data-kit="sem" style="border-color:#94a3b8;">⚪ No-Grade (Nv 1 · +0)</button>
+            <button class="pa-btn" data-kit="D" style="border-color:#7fd6a0; color:#7fd6a0;">🟢 Grau D (Nv 20 · +4 Azul)</button>
+            <button class="pa-btn" data-kit="C" style="border-color:#ffd36a; color:#ffd36a;">🟡 Grau C (Nv 40 · +7 Vívido)</button>
+            <button class="pa-btn" data-kit="B" style="border-color:#5aa9ff; color:#93c5fd;">🔵 Grau B (Nv 52 · +10 Púrpura)</button>
+            <button class="pa-btn" data-kit="A" style="border-color:#b45aff; color:#d8b4fe;">🟣 Grau A (Nv 61 · +13 Carmesim)</button>
+            <button class="pa-btn pa-btn-gold" data-kit="S" style="border-color:#f5c451; color:#fde047;">👑 Grau S (Nv 76 · +16 Hero)</button>
+          </div>
+        </div>
+
+        <!-- 3. DEFINIÇÃO DE NÍVEL -->
         <div class="pa-section">
           <div class="pa-sec-title">⚡ Nível do Personagem (Atributos & Grau)</div>
           <div class="pa-grid-btns">
@@ -303,7 +376,7 @@
           </div>
         </div>
 
-        <!-- 2. SOBREVIVÊNCIA & COMBATE -->
+        <!-- 4. SOBREVIVÊNCIA & COMBATE -->
         <div class="pa-section">
           <div class="pa-sec-title">💚 Sobrevivência & Combate</div>
           <div class="pa-grid-btns">
@@ -314,7 +387,7 @@
           </div>
         </div>
 
-        <!-- 3. VELOCIDADE GM -->
+        <!-- 5. VELOCIDADE GM -->
         <div class="pa-section">
           <div class="pa-sec-title">🏃 Velocidade de Movimento GM</div>
           <div class="pa-grid-btns">
@@ -325,7 +398,7 @@
           </div>
         </div>
 
-        <!-- 4. ECONOMIA & ENCANTAMENTO -->
+        <!-- 6. ECONOMIA & ENCANTAMENTO -->
         <div class="pa-section">
           <div class="pa-sec-title">💰 Economia & Glow de Arma</div>
           <div class="pa-grid-btns">
@@ -338,7 +411,7 @@
           </div>
         </div>
 
-        <!-- 5. TELEPORTE RÁPIDO -->
+        <!-- 7. TELEPORTE RÁPIDO -->
         <div class="pa-section">
           <div class="pa-sec-title">🌀 Teleporte Rápido</div>
           <div class="pa-grid-btns">
@@ -351,7 +424,7 @@
           </div>
         </div>
 
-        <!-- 6. ATALHO BOTS PVP & GUERRA DE TIMES -->
+        <!-- 8. ATALHO BOTS PVP & GUERRA DE TIMES -->
         <div class="pa-section">
           <div class="pa-sec-title">🤖 Guerra de Times & Bots PvP</div>
           <div class="pa-grid-btns">
@@ -371,7 +444,7 @@
       </div>
 
       <div class="pa-footer">
-        <span>Comandos de Chat: <b>//setlevel [1-85]</b> &middot; <b>//ress</b> &middot; <b>//heal</b> &middot; <b>//god</b> &middot; <b>//kill</b></span>
+        <span>Comandos: <b>//setlevel [1-85]</b> &middot; <b>//setkit [NG/D/C/B/A/S]</b> &middot; <b>//setnick</b> &middot; <b>//setsex</b></span>
         <span>Atalho: <b>[F10]</b></span>
       </div>
     `;
@@ -380,8 +453,165 @@
     vincularEventos();
   }
 
+  function atualizarVisualAlvo(){
+    var bEu = document.getElementById('pa-btn-alvo-eu');
+    var bTarget = document.getElementById('pa-btn-alvo-target');
+    if(bEu) bEu.classList.toggle('active', modoAlvo === 'eu');
+    if(bTarget) bTarget.classList.toggle('active', modoAlvo === 'target');
+
+    var txtNome = document.getElementById('pa-txt-alvo-nome');
+    var txtHp = document.getElementById('pa-alvo-status-hp');
+
+    if(modoAlvo === 'eu'){
+      var meuNome = (localStorage.getItem('isblade.player_name') || 'Você (GM)');
+      if(txtNome) txtNome.textContent = '👤 ' + meuNome + ' (Você)';
+      if(txtHp) txtHp.textContent = '100% HP';
+    } else {
+      if(alvoAtualObj){
+        var n = alvoAtualObj.nome || 'Heroi';
+        var lv = alvoAtualObj.lv || 1;
+        var hpPct = Math.round(((alvoAtualObj.hp || 0) / (alvoAtualObj.pmax || 100)) * 100);
+        var tipo = alvoAtualObj.isBot ? 'Bot' : 'Player';
+        if(txtNome) txtNome.textContent = '🎯 [Lv ' + lv + '] ' + n + ' (' + tipo + ')';
+        if(txtHp) txtHp.textContent = hpPct + '% HP';
+      } else {
+        if(txtNome) txtNome.textContent = 'Nenhum (Selecione no jogo ou na lista)';
+        if(txtHp) txtHp.textContent = '';
+      }
+    }
+  }
+
+  function atualizarListaAlvos(){
+    var sel = document.getElementById('pa-select-target');
+    if(!sel) return;
+
+    var curVal = sel.value;
+    var opts = '<option value="eu">👤 Eu Mesmo (Você)</option>';
+
+    if(window.Net && Net.obterListaEntidades){
+      var lista = Net.obterListaEntidades();
+      lista.forEach(function(e){
+        var t = e.isBot ? 'Bot' : 'Player';
+        var tm = e.team ? (e.team === 'A' ? '[Azul] ' : '[Vermelho] ') : '';
+        opts += '<option value="' + e.id + '">🎯 [Lv ' + (e.lv || 1) + '] ' + tm + e.nome + ' (' + t + ')</option>';
+      });
+    }
+
+    sel.innerHTML = opts;
+    if(curVal && sel.querySelector('option[value="' + curVal + '"]')){
+      sel.value = curVal;
+    } else if(alvoAtualObj && alvoAtualObj.id && sel.querySelector('option[value="' + alvoAtualObj.id + '"]')){
+      sel.value = String(alvoAtualObj.id);
+    } else {
+      sel.value = modoAlvo === 'eu' ? 'eu' : (sel.options.length > 1 ? sel.options[1].value : 'eu');
+    }
+  }
+
+  function atualizarAlvo(ent){
+    alvoAtualObj = ent;
+    if(ent && ent.id){
+      modoAlvo = 'target';
+      var sel = document.getElementById('pa-select-target');
+      if(sel){
+        if(!sel.querySelector('option[value="' + ent.id + '"]')){
+          atualizarListaAlvos();
+        }
+        sel.value = String(ent.id);
+      }
+    }
+    atualizarVisualAlvo();
+  }
+
   function vincularEventos(){
     document.getElementById('pa-btn-fechar').onclick = function(){ toggle(false); };
+
+    // Modo de Alvo
+    document.getElementById('pa-btn-alvo-eu').onclick = function(){
+      som('click');
+      modoAlvo = 'eu';
+      var sel = document.getElementById('pa-select-target');
+      if(sel) sel.value = 'eu';
+      atualizarVisualAlvo();
+    };
+
+    document.getElementById('pa-btn-alvo-target').onclick = function(){
+      som('click');
+      modoAlvo = 'target';
+      var sel = document.getElementById('pa-select-target');
+      if(sel && sel.value === 'eu' && sel.options.length > 1){
+        sel.value = sel.options[1].value;
+      }
+      atualizarVisualAlvo();
+    };
+
+    // Select de Alvo
+    var selAlvo = document.getElementById('pa-select-target');
+    selAlvo.onchange = function(){
+      som('click');
+      if(selAlvo.value === 'eu'){
+        modoAlvo = 'eu';
+      } else {
+        modoAlvo = 'target';
+        var id = parseInt(selAlvo.value, 10);
+        if(window.Net && Net.obterListaEntidades){
+          var lista = Net.obterListaEntidades();
+          alvoAtualObj = lista.find(function(x){ return x.id === id; }) || null;
+        }
+      }
+      atualizarVisualAlvo();
+    };
+
+    // Focar no jogo
+    document.getElementById('pa-btn-focar-jogo').onclick = function(){
+      som('click');
+      var id = obterAlvoId();
+      if(window.Net && Net.focarAlvo){
+        Net.focarAlvo(id === 'eu' ? 0 : id);
+      }
+    };
+
+    // Atualizar Lista
+    document.getElementById('pa-btn-atualizar-alvos').onclick = function(){
+      som('click');
+      atualizarListaAlvos();
+      atualizarVisualAlvo();
+    };
+
+    // Alterar Nick
+    document.getElementById('pa-btn-aplicar-nick').onclick = function(){
+      var input = document.getElementById('pa-input-nick');
+      var nick = (input.value || '').trim();
+      if(!nick){
+        if(window.Chat) Chat.sistema('⚠️ Digite o novo nome no campo de texto.');
+        return;
+      }
+      som('power');
+      cmd('setnick', { nome: nick, alvo: obterAlvoId() });
+      input.value = '';
+    };
+
+    // Trocar Sexo
+    document.getElementById('pa-btn-sex-m').onclick = function(){
+      som('power');
+      cmd('setsexo', { sexo: 'M', alvo: obterAlvoId() });
+    };
+    document.getElementById('pa-btn-sex-f').onclick = function(){
+      som('power');
+      cmd('setsexo', { sexo: 'F', alvo: obterAlvoId() });
+    };
+    document.getElementById('pa-btn-sex-toggle').onclick = function(){
+      som('power');
+      cmd('setsexo', { sexo: 'toggle', alvo: obterAlvoId() });
+    };
+
+    // Kits por Grau
+    container.querySelectorAll('[data-kit]').forEach(function(b){
+      b.onclick = function(){
+        som('power');
+        var g = b.dataset.kit;
+        cmd('setkit', { grau: g, alvo: obterAlvoId() });
+      };
+    });
 
     // Slider de Nível
     var slider = document.getElementById('pa-slider-lv');
@@ -407,13 +637,13 @@
     // Ressuscitar
     document.getElementById('pa-btn-ress').onclick = function(){
       som('power');
-      cmd('ress');
+      cmd('ress', { alvo: obterAlvoId() });
     };
 
     // Curar Tudo
     document.getElementById('pa-btn-heal').onclick = function(){
       som('power');
-      cmd('heal');
+      cmd('heal', { alvo: obterAlvoId() });
     };
 
     // God Mode
@@ -425,7 +655,7 @@
     // Matar Alvo
     document.getElementById('pa-btn-kill').onclick = function(){
       som('power');
-      cmd('kill');
+      cmd('kill', { alvo: obterAlvoId() });
     };
 
     // Velocidade GM
@@ -445,7 +675,7 @@
       b.onclick = function(){
         som('power');
         var q = parseInt(b.dataset.adena, 10);
-        cmd('adena', { qtd: q });
+        cmd('adena', { qtd: q, alvo: obterAlvoId() });
       };
     });
 
@@ -454,7 +684,7 @@
       b.onclick = function(){
         som('power');
         var e = parseInt(b.dataset.en, 10);
-        cmd('enchant', { en: e });
+        cmd('enchant', { en: e, alvo: obterAlvoId() });
       };
     });
 
@@ -522,15 +752,16 @@
   function cmd(acao, dados){
     if(window.Net && Net.adminCmd){
       var payload = Object.assign({ acao: acao }, dados || {});
-      var alvoId = (Net.alvoAtual && Net.alvoAtual()) || 0;
-      if(alvoId) payload.alvo = alvoId;
+      if(!payload.alvo){
+        payload.alvo = obterAlvoId();
+      }
       Net.adminCmd(payload);
     }
   }
 
   function aplicarNivel(lv){
     som('power');
-    cmd('setlevel', { lv: lv });
+    cmd('setlevel', { lv: lv, alvo: obterAlvoId() });
   }
 
   function toggle(forca){
@@ -540,6 +771,8 @@
     som(aberto ? 'open' : 'click');
     if(aberto){
       try { if(document.exitPointerLock) document.exitPointerLock(); } catch(e){}
+      atualizarListaAlvos();
+      atualizarVisualAlvo();
       cmd('info');
     }
     if(window.UIJanelas) UIJanelas.notificar('painel_admin', aberto);
@@ -571,6 +804,8 @@
         txtLv.textContent = 'Nv ' + nivelAtual;
       }
     }
+    atualizarListaAlvos();
+    atualizarVisualAlvo();
   }
 
   function aplicarSpeed(mult){
@@ -589,7 +824,6 @@
     var dest = DESTINOS[dKey];
     if(!dest) return;
 
-    // Se estiver em cidade.html e for teleportar para a cidade ou outro local
     if(window.L2Teleport && L2Teleport.warpLocal && typeof S !== 'undefined'){
       L2Teleport.warpLocal(dest.nome, function(){
         S.px = dest.x; S.pz = dest.z;
@@ -646,6 +880,8 @@
     isOpen: function(){ return !!aberto; },
     toggle: toggle,
     atualizar: atualizar,
+    atualizarAlvo: atualizarAlvo,
+    atualizarListaAlvos: atualizarListaAlvos,
     aplicarSpeed: aplicarSpeed,
     onTeleport: onTeleport
   };

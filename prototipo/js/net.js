@@ -469,6 +469,81 @@ export const Net = (function(){
     else if(m.t === 'admin_info'){ if(window.PainelAdmin && window.PainelAdmin.atualizar) window.PainelAdmin.atualizar(m); }
     else if(m.t === 'admin_speed'){ if(window.PainelAdmin && window.PainelAdmin.aplicarSpeed) window.PainelAdmin.aplicarSpeed(m.speed); }
     else if(m.t === 'admin_teleport'){ if(window.PainelAdmin && window.PainelAdmin.onTeleport) window.PainelAdmin.onTeleport(m); }
+    else if(m.t === 'admin_renomeado'){
+      if(m.id === N.id){
+        localStorage.setItem('isblade.player_name', m.nome);
+        try { if(window.Chat) Chat.sistema('👑 Seu nick foi alterado para ' + m.nome); else ctx.sysMsg('Você foi renomeado para ' + m.nome); } catch(e){}
+        atualizaHud();
+      }
+      e = remotos.get(m.id);
+      if(e){
+        e.nome = m.nome;
+        if(e.tag) desenhaTag(e);
+      }
+      if(window.PainelAdmin && PainelAdmin.atualizarListaAlvos) PainelAdmin.atualizarListaAlvos();
+    }
+    else if(m.t === 'admin_sexo'){
+      if(m.id === N.id || m.eu){
+        localStorage.setItem('isblade.char_type', m.raca);
+        try { if(window.Chat) Chat.sistema('👑 Seu modelo/sexo foi alterado para ' + m.raca); } catch(e){}
+        if(window.switchCharacter) window.switchCharacter(m.raca);
+        else if(window.atualizaModeloArmadura3D) window.atualizaModeloArmadura3D();
+      }
+      e = remotos.get(m.id);
+      if(e){
+        e.raca = m.raca;
+        if(e.rig && e.rig.root){
+          e.grp.remove(e.rig.root);
+          e.rig = null;
+          ctx.loadL2(heroUrl(m.raca), function(r){
+            if(!remotos.has(e.id)) return;
+            e.rig = r;
+            e.grp.add(r.root);
+            r.drv = { mixer: new THREE.AnimationMixer(r.root), actions: {}, cur: null, curName: '', hold: 0 };
+            r.tipo = e.raca;
+            ctx.anexar(r, THREE);
+            aplicaArma(e);
+            criaTag(e);
+            tocar(e, e.morto ? 'death' : 'idle');
+            brilho(e);
+          });
+        }
+      }
+      if(window.PainelAdmin && PainelAdmin.atualizarListaAlvos) PainelAdmin.atualizarListaAlvos();
+    }
+    else if(m.t === 'ent_update'){
+      e = remotos.get(m.id);
+      if(e){
+        if(m.nome) e.nome = m.nome;
+        if(typeof m.lv === 'number') e.lv = m.lv;
+        if(typeof m.hp === 'number') e.hp = m.hp;
+        if(typeof m.pmax === 'number') e.pmax = m.pmax;
+        if(typeof m.en === 'number'){ e.en = m.en; brilho(e); }
+        if(m.wb !== undefined){ e.wb = m.wb; aplicaArma(e); }
+        if(m.raca && m.raca !== e.raca){
+          e.raca = m.raca;
+          if(e.rig && e.rig.root){
+            e.grp.remove(e.rig.root);
+            e.rig = null;
+            ctx.loadL2(heroUrl(m.raca), function(r){
+              if(!remotos.has(e.id)) return;
+              e.rig = r;
+              e.grp.add(r.root);
+              r.drv = { mixer: new THREE.AnimationMixer(r.root), actions: {}, cur: null, curName: '', hold: 0 };
+              r.tipo = e.raca;
+              ctx.anexar(r, THREE);
+              aplicaArma(e);
+              criaTag(e);
+              tocar(e, e.morto ? 'death' : 'idle');
+              brilho(e);
+            });
+          }
+        }
+        if(e.tag) desenhaTag(e);
+        if(N.alvo === e.id) desenhaAlvo();
+      }
+      if(window.PainelAdmin && PainelAdmin.atualizarListaAlvos) PainelAdmin.atualizarListaAlvos();
+    }
     else if(m.t === 'team_st'){
       if(m.id === N.id){
         if(N.eu) N.eu.team = m.team || '';
@@ -653,7 +728,15 @@ export const Net = (function(){
   }
   /* ---------- selecionar outro jogador (clique/toque) e menu de acoes ---------- */
   function alvo(){ return N.alvo ? remotos.get(N.alvo) || null : null; }
-  function selecionar(id){ N.alvo = id || 0; if(!id && anelAlvo) anelAlvo.visible = false; desenhaAlvo(); }
+  function selecionar(id){
+    N.alvo = id || 0;
+    if(alvoEl) alvoEl.dataset.id = N.alvo ? String(N.alvo) : '';
+    if(!id && anelAlvo) anelAlvo.visible = false;
+    desenhaAlvo();
+    if(window.PainelAdmin && PainelAdmin.atualizarAlvo){
+      PainelAdmin.atualizarAlvo(alvo());
+    }
+  }
   function desenhaAlvo(){
     if(!alvoEl) return; var e = alvo(); if(!e){ alvoEl.style.display = 'none'; alvoEl._h = ''; return; }
     var g = N.grupo, souLider = !g || g.lider === N.sid, jaNoGrupo = noGrupo(e.id), k = Math.max(0, Math.min(1, e.hp / (e.pmax || 100)));
@@ -784,7 +867,33 @@ export const Net = (function(){
   N.botCmd = function(o){ if(N.on) send(Object.assign({ t: 'bot_cmd' }, o || {})); };
   N.adminCmd = function(o){ if(N.on) send(Object.assign({ t: 'admin_cmd' }, o || {})); };
   N.setTeam = function(team){ if(N.on) send({ t: 'set_team', team: team || '' }); };
-  N.alvoAtual = function(){ return (alvoEl && alvoEl.dataset && alvoEl.dataset.id ? parseInt(alvoEl.dataset.id, 10) : 0) || 0; };
+  N.focarAlvo = function(id){
+    if(!id || id === 'eu'){
+      selecionar(0);
+      return;
+    }
+    selecionar(parseInt(id, 10));
+  };
+  N.obterListaEntidades = function(){
+    var l = [];
+    remotos.forEach(function(e){
+      if(!e) return;
+      l.push({
+        id: e.id,
+        nome: e.nome || 'Desconhecido',
+        lv: e.lv || 1,
+        hp: e.hp || 0,
+        pmax: e.pmax || 100,
+        raca: e.raca || '',
+        cls: e.cls || '',
+        arma: e.arma || 'sword',
+        team: e.team || '',
+        isBot: !!(e.sid && e.sid.indexOf('bot_') === 0)
+      });
+    });
+    return l;
+  };
+  N.alvoAtual = function(){ return N.alvo || (alvoEl && alvoEl.dataset && alvoEl.dataset.id ? parseInt(alvoEl.dataset.id, 10) : 0) || 0; };
   N.status = function(){ return { on: N.on, mapa: N.mapa, canal: N.canal, id: N.id, remotos: remotos.size, duelo: N.duelo }; };
   N.alterna = function(forca){ alterna(forca); };
   return N;

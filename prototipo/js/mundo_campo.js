@@ -55,7 +55,7 @@ window.MundoCampo = (function(){
       var dm = new Uint8Array(n * 4); for(var q = 0; q < n; q++){ dm[q * 4] = AN[q] ? 255 : 0; dm[q * 4 + 1] = RG[q] * 60; dm[q * 4 + 3] = 255; }
       var tm = new THREE.DataTexture(dm, nx, nz, THREE.RGBAFormat); tm.minFilter = tm.magFilter = THREE.NearestFilter; tm.needsUpdate = true; M.UVM.tMalha.value = tm; M.UVM.vMalha.value = [x0, z0, ps, nx, nz];
       var tl = new THREE.TextureLoader(), U = {};
-      J.texturas.forEach(function(tx, i){ var t = tl.load(BASE + tx.arquivo + v); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = opt.baixa ? 1 : 4; U['tSolo' + i] = { value: t }; U['eSolo' + i] = { value: 1 / tx.metros }; });
+      J.texturas.forEach(function(tx, i){ var t = tl.load(BASE + tx.arquivo + v); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = opt.baixa ? 1 : 8; U['tSolo' + i] = { value: t }; U['eSolo' + i] = { value: 1 / tx.metros }; });
       var mat = opt.baixa ? new THREE.MeshLambertMaterial({}) : new THREE.MeshStandardMaterial({ roughness: .95, metalness: 0 });      /* [baixa] celular: Lambert (mais leve) com o MESMO shader de mistura; a troca generica de qualidade (aplicaQualidade) trocava por um Lambert liso e o chao ficava sem textura */
       mat.userData.lamb = 1;
       mat.onBeforeCompile = function(sh){
@@ -71,6 +71,7 @@ window.MundoCampo = (function(){
           'if(uMalha > .5){ vec2 uvm = ((vMW.xz - vec2(vMalha[0], vMalha[1])) / vMalha[2] + .5) / vec2(vMalha[3], vMalha[4]); vec4 am = texture2D(tMalha, uvm); float reg = floor(am.g * 255.0 / 60.0 + .5);\n' +
           '  if(reg > .5 && reg < 3.5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.1, .35, 1.0), .38); else if(am.r < .5) diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1.0, .05, .05), .7); }');
       };
+      if(window.SoloDetalhe) SoloDetalhe.aplica(THREE, mat, { baixa: opt.baixa });      /* [solo-detalhe] 17/11: grama/torroes de perto (a textura do bioma tem ~57 cm por pixel) */
       var me = new THREE.Mesh(g, mat); me.receiveShadow = true; me.frustumCulled = false; me.name = 'MUNDO_TERRENO'; scene.add(me); M.mesh = me;
       M.pronto = true; return M;
     });

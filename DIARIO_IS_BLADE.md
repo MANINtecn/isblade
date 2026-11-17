@@ -4671,3 +4671,50 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
      - `ui_janelas.js` incluído em ambos os ambientes.
      - Corrigida a colisão da tecla 'b' em `arena.html` que enviava o jogador de volta para a cidade, agora abrindo/fechando o Painel Mestre de Bots com a tecla 'B' ou 'F8'.
      - Vinculação de `UIJanelas.notificar()` em `loja.js`, `status.js`, `chat.js`, `painel_bots.js`, `painel_admin.js`, `l2_npcs.js`, `moradores.js` e `net.js`.
+
+### [Claude] 17/11 - l2ikarus.com: doacao livre por PIX (branch l2ikarus-web)
+
+- Pedido do dono: frase de efeito + QR Code + chave PIX para doacao de qualquer valor, ao lado do titulo "Voce nao clica no alvo. Voce mira.".
+- Cartao "Apoie o projeto / Curtiu? Fortaleca o servidor." com QR Code, botao "PIX copia e cola" e "Copiar chave"; nome do doador opcional (pelo Discord).
+- PIX estatico sem valor gerado no navegador: `src/config/pixEstatico.js` (BR Code + CRC16; conferido com o exemplo oficial do Banco Central, CRC 1D3D). QR pela lib `qrcode` 1.5.4 (npm).
+- Separado do PIX da loja (PagBank/Ikoin): a doacao nao credita nada no jogo.
+- PENDENTE: dono passar chave aleatoria, nome do recebedor e cidade -> preencher `PIX_DOACAO` em `src/config/ikarusWeb.js`. Com os campos vazios o cartao nao aparece.
+- Commits locais c74aab1 e o ajuste de largura, sem push.
+
+### [Claude] 17/11 - Doacao PIX ligada (branch l2ikarus-web)
+
+- Dono escolheu QR fixo sem CPF (nao PagBank). Chave aleatoria + recebedor + cidade preenchidos em `PIX_DOACAO` (`src/config/ikarusWeb.js`); cidade no BR Code = TOCANTINS.
+- QR conferido: decodificado com OpenCV a partir das capturas do PC e do celular, devolve o mesmo copia e cola gerado (CRC 1EEB).
+- Falta o dono ler o QR no app do banco para conferir o nome (sem pagar). Lista de apoiadores fica para depois (com QR fixo o site nao confirma pagamento). Sem push.
+
+### [Antigravity] 17/11 - Painel Admin com Target Lineage 2, Kits de Grau Automáticos, Troca de Nick e Sexo
+
+- **Pedido do Usuário**:
+  1. Painel de Admin onde possa aplicar comandos em "Mim" ou no "Target" (exatamente igual no L2), podendo dar target direto pelo painel.
+  2. Dar Nível para si mesmo ou para o alvo, atualizando HP/MP, atributos e liberando habilidades.
+  3. Trocar Nick de si mesmo ou do alvo (player ou bot) em tempo real, refletindo nas tags e no chat.
+  4. Trocar Sexo (Masculino ↔ Feminino) de si mesmo ou do alvo, trocando o modelo 3D correspondente imediatamente.
+  5. Dar Kit de Equipamento por Grau Automático: escolher a grade (No-Grade, D, C, B, A, S) e receber set completo de armadura (peitoral, calça, elmo, luvas, botas) e a arma correspondente à classe com o encantamento e glow oficial do Lineage 2 (+4 Azul, +7 Vívido, +10 Púrpura, +13 Carmesim, +16 Hero).
+
+- **Implementações Realizadas**:
+  1. **Controle de Alvo no Painel Admin (`painel_admin.js`)**:
+     - Card de Alvo no topo com alternador `[ 👤 Em Mim ]` / `[ 🎯 No Alvo ]`.
+     - Indicador dinâmico de Alvo Ativo com Nome, Nível, Classe e % de HP.
+     - Dropdown `<select id="pa-select-target">` listando todos os bots e jogadores remotos do mapa em tempo real.
+     - Botão `[ 🎯 Focar no Jogo ]` (`Net.focarAlvo(id)`) para focar a mira/anel do alvo no 3D instantaneamente.
+     - Sincronização automática quando o jogador seleciona qualquer alvo no mundo 3D (`PainelAdmin.atualizarAlvo(entidade)`).
+  2. **Identidade & Aparência (Nick e Sexo)**:
+     - Seção no Painel Admin com input de Nick + botão `[ ✏️ Alterar Nick ]`.
+     - Botões de sexo: `[ ♂️ Masculino ]`, `[ ♀️ Feminino ]` e `[ 🔄 Alternar Sexo ]`.
+     - Suporta tanto jogadores reais quanto Bots (fakes).
+     - Difusão das mensagens de rede `admin_renomeado` e `admin_sexo`, atualizando tags de rede, HUD, e alternando malha 3D via `switchCharacter` e `loadL2`.
+  3. **Kits por Grau Automáticos Lineage 2 (`admin.js` e `itens.json`)**:
+     - Suporte completo aos 6 Graus oficiais:
+       - **No-Grade**: Nv 1, Set Plate/Devotion + Arma NG +0.
+       - **Grau D**: Nv 20, Set Brigandine + Arma D +4 (Glow Azul).
+       - **Grau C**: Nv 40, Set Full Plate + Arma C +7 (Glow Azul Vívido).
+       - **Grau B**: Nv 52, Set Doom Plate + Arma B +10 (Glow Púrpura).
+       - **Grau A**: Nv 61, Set Tallum + Arma A +13 (Glow Carmesim).
+       - **Grau S**: Nv 76, Set Imperial Crusader + Arma S +16 (Glow Dourado/Hero).
+     - Detecção inteligente da classe do alvo (Guerreiro = Espada 2H; Guardião = Espada 1H + Escudo; Mago = Cajado/Staff; Clérigo = Livro Astral).
+     - Equipa automaticamente todas as peças no inventário do jogador ou bot, atualiza bônus de HP/Defesa/Dano e reflete o glow da arma para todos os jogadores do canal.

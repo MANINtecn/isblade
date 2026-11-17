@@ -41,7 +41,8 @@
     "D":   { "name": "Grau D",   "css": "#7fd6a0", "nivel": 20, "venda": 4 },
     "C":   { "name": "Grau C",   "css": "#ffd36a", "nivel": 40, "venda": 10 },
     "B":   { "name": "Grau B",   "css": "#5aa9ff", "nivel": 52, "venda": 25 },
-    "A":   { "name": "Grau A",   "css": "#b45aff", "nivel": 61, "venda": 50 }
+    "A":   { "name": "Grau A",   "css": "#b45aff", "nivel": 61, "venda": 50 },
+    "S":   { "name": "Grau S",   "css": "#f5c451", "nivel": 76, "venda": 100 }
   },
 
   "conjunto": {
@@ -51,11 +52,13 @@
     "C": { "vida": 15, "dano": 5, "defesa": 7, "name": "Conjunto Grau C (+15% HP, +5% Dano, +7% Def)" },
     "B": { "vida": 20, "dano": 8, "defesa": 10, "name": "Conjunto Grau B (+20% HP, +8% Dano, +10% Def)" },
     "A": { "vida": 25, "dano": 12, "defesa": 14, "name": "Conjunto Grau A (+25% HP, +12% Dano, +14% Def)" },
+    "S": { "vida": 35, "dano": 18, "defesa": 20, "name": "Conjunto Grau S (+35% HP, +18% Dano, +20% Def)" },
     "sets": {
       "brigandine": { "nome": "Brigandine Heavy Set (D)", "grau": "D", "pecas": ["helmet", "chest", "legs", "gloves", "boots"], "vida": 15, "defesa": 8 },
       "fullplate":  { "nome": "Full Plate Heavy Set (C)",  "grau": "C", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 20, "defesa": 10 },
       "doom":       { "nome": "Doom Plate Heavy Set (B)",  "grau": "B", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 25, "defesa": 12 },
-      "tallum":     { "nome": "Tallum Heavy Set (A)",      "grau": "A", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 28, "dano": 15, "defesa": 14 }
+      "tallum":     { "nome": "Tallum Heavy Set (A)",      "grau": "A", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 28, "dano": 15, "defesa": 14 },
+      "imperial":   { "nome": "Imperial Crusader Set (S)", "grau": "S", "pecas": ["helmet", "chest", "gloves", "boots"], "vida": 35, "dano": 20, "defesa": 22 }
     }
   },
 
@@ -120,7 +123,13 @@
     { "id": "tallum_helmet", "name": "Tallum Helm", "slot": "helmet", "grau": "A", "set": "tallum", "stats": { "vida": 110, "defesa": 12 } },
     { "id": "tallum_armor", "name": "Tallum Plate Armor", "slot": "chest", "grau": "A", "set": "tallum", "stats": { "vida": 220, "defesa": 24 } },
     { "id": "tallum_gauntlets", "name": "Tallum Gauntlets", "slot": "gloves", "grau": "A", "set": "tallum", "stats": { "dano": 16, "estamina": 18 } },
-    { "id": "tallum_boots", "name": "Tallum Boots", "slot": "boots", "grau": "A", "set": "tallum", "stats": { "estamina": 38, "vida": 55 } }
+    { "id": "tallum_boots", "name": "Tallum Boots", "slot": "boots", "grau": "A", "set": "tallum", "stats": { "estamina": 38, "vida": 55 } },
+    { "id": "imperial_helmet", "name": "Imperial Crusader Helmet", "slot": "helmet", "grau": "S", "set": "imperial", "stats": { "vida": 160, "defesa": 18 } },
+    { "id": "imperial_armor", "name": "Imperial Crusader Breastplate", "slot": "chest", "grau": "S", "set": "imperial", "stats": { "vida": 340, "defesa": 36 } },
+    { "id": "imperial_gauntlets", "name": "Imperial Crusader Gauntlets", "slot": "gloves", "grau": "S", "set": "imperial", "stats": { "dano": 24, "estamina": 26 } },
+    { "id": "imperial_boots", "name": "Imperial Crusader Boots", "slot": "boots", "grau": "S", "set": "imperial", "stats": { "estamina": 55, "vida": 85 } },
+    { "id": "forgotten_blade", "name": "Forgotten Blade", "slot": "weapon", "grau": "S", "weapon": "sword", "modelo": "assets/armas/claymore.glb", "stats": { "dano": 68 } },
+    { "id": "shield_imperial_s", "name": "Imperial Crusader Shield", "slot": "shield", "grau": "S", "weapon": "shield", "modelo": "assets/armas/shield_is.glb", "stats": { "dano": 20, "defesa": 24 } }
   ],
 
   "start": {

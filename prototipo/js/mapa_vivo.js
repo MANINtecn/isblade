@@ -142,6 +142,7 @@ window.MapaVivo = (function(){
         } });
         lg(M, 'texturas: ' + tot + ' referencias, ' + dup + ' repetidas juntadas');
         var n0 = fila.length; try{ if(!window.__MV_SEM_FUSAO) fila = funde(fila, g.scene); }catch(e){ console.warn('[mapa-vivo] fusao', e); } lg(M, 'pecas: ' + n0 + ' -> ' + fila.length + ' (chamadas de desenho)');
+        if(window.SoloDetalhe) fila.forEach(function(o){ (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ SoloDetalhe.seTerreno(THREE, m, { baixa: opt.baixa }); }); });   /* [solo-detalhe] chao do mapa nitido de perto (antes do preparo de shaders abaixo) */
         var gr = new THREE.Group(); gr.add(g.scene); gr.position.set(M.X.x, M.X.y, M.X.z); gr.rotation.y = M.X.r; gr.name = 'MAPA_' + M.id;
         scene.add(gr); gr.updateMatrixWorld(true); gr.traverse(function(o){ o.matrixAutoUpdate = false; });
         var c = new THREE.Vector3();

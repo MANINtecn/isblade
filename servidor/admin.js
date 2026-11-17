@@ -1,10 +1,13 @@
 'use strict';
 /* ==========================================================================
-   ADMIN / GM POWERS - IS BLADE (16/11/2026)
+   ADMIN / GM POWERS - IS BLADE (17/11/2026)
    Sistema completo de administração e controle de jogo (GM):
-   - Definir Nível (//setlevel [1-85], //lvl [1-85])
-   - Ressurreição Instantânea (//ress, //res)
-   - Cura Total (//heal)
+   - Definir Nível (//setlevel [1-85], //lvl [1-85]) em Mim ou no Target
+   - Ressurreição Instantânea (//ress, //res) em Mim ou no Target
+   - Cura Total (//heal) em Mim ou no Target
+   - Trocar Nick (//setnick [novo_nome], //nick) em Mim ou no Target
+   - Trocar Sexo (//setsex [M|F|toggle], //sexo) em Mim ou no Target
+   - Dar Kit Automático por Grau (//setkit [NG|D|C|B|A|S], //kit)
    - God Mode / Invulnerabilidade (//god, //invul)
    - Abater Alvo (//kill)
    - Adena e Economia (//adena [qtd])
@@ -25,6 +28,169 @@ const DESTINOS = {
   baium: { nome: 'Salão de Baium', x: -28.4, z: -53.85 }
 };
 
+/* Kits Oficiais de Equipamento por Grau Lineage 2 */
+const KITS_GRAU = {
+  sem: {
+    grau: 'sem',
+    nome: 'No-Grade (Nv 1 · Set Plate/Devotion +0)',
+    minLv: 1,
+    en: 0,
+    set: {
+      helmet: 'helmet_iron',
+      chest:  'chest_plate',
+      legs:   'legs_plate',
+      gloves: 'gloves_hide',
+      boots:  'boots_swift'
+    },
+    armas: {
+      sword:  'sword_long',
+      shield: 'gladius',
+      escudo: 'shield_guardian',
+      staff:  'staff_arcane',
+      book:   'book'
+    }
+  },
+  D: {
+    grau: 'D',
+    nome: 'Grau D (Nv 20 · Set Brigandine +4 Azul)',
+    minLv: 20,
+    en: 4,
+    set: {
+      helmet: 'brigandine_helmet',
+      chest:  'brigandine_tunic',
+      legs:   'brigandine_gaiters',
+      gloves: 'brigandine_gauntlets',
+      boots:  'brigandine_boots'
+    },
+    armas: {
+      sword:  'claymore',
+      shield: 'bastard_sword',
+      escudo: 'composite_shield',
+      staff:  'ghost_staff',
+      book:   'book'
+    }
+  },
+  C: {
+    grau: 'C',
+    nome: 'Grau C (Nv 40 · Set Full Plate +7 Vívido)',
+    minLv: 40,
+    en: 7,
+    set: {
+      helmet: 'fullplate_helmet',
+      chest:  'fullplate_armor',
+      legs:   'fullplate_gaiters',
+      gloves: 'fullplate_gauntlets',
+      boots:  'fullplate_boots'
+    },
+    armas: {
+      sword:  'berserker_blade',
+      shield: 'samurai_longsword',
+      escudo: 'full_plate_shield',
+      staff:  'ghouls_staff',
+      book:   'book'
+    }
+  },
+  B: {
+    grau: 'B',
+    nome: 'Grau B (Nv 52 · Set Doom Plate +10 Púrpura)',
+    minLv: 52,
+    en: 10,
+    set: {
+      helmet: 'doom_helmet',
+      chest:  'doom_armor',
+      legs:   null, // Doom é armadura de corpo inteiro
+      gloves: 'doom_gauntlets',
+      boots:  'doom_boots'
+    },
+    armas: {
+      sword:  'great_sword',
+      shield: 'samurai_longsword',
+      escudo: 'doom_shield',
+      staff:  'valhalla',
+      book:   'book'
+    }
+  },
+  A: {
+    grau: 'A',
+    nome: 'Grau A (Nv 61 · Set Tallum +13 Carmesim)',
+    minLv: 61,
+    en: 13,
+    set: {
+      helmet: 'tallum_helmet',
+      chest:  'tallum_armor',
+      legs:   null, // Tallum é armadura inteiriça
+      gloves: 'tallum_gauntlets',
+      boots:  'tallum_boots'
+    },
+    armas: {
+      sword:  'dragon_slayer',
+      shield: 'gladius',
+      escudo: 'shield_imperial',
+      staff:  'sword_of_miracles',
+      book:   'book'
+    }
+  },
+  S: {
+    grau: 'S',
+    nome: 'Grau S (Nv 76 · Set Imperial +16 Dourado/Hero)',
+    minLv: 76,
+    en: 16,
+    set: {
+      helmet: 'imperial_helmet',
+      chest:  'imperial_armor',
+      legs:   null,
+      gloves: 'imperial_gauntlets',
+      boots:  'imperial_boots'
+    },
+    armas: {
+      sword:  'forgotten_blade',
+      shield: 'samurai_longsword',
+      escudo: 'shield_imperial_s',
+      staff:  'sword_of_miracles',
+      book:   'book'
+    }
+  }
+};
+
+/* Mapeamento de Sexo por Raça (Lineage 2) */
+const MAPA_SEXO = {
+  // Masculino -> Feminino
+  'human_m': 'human_fighter_female',
+  'human_fighter': 'human_fighter_female',
+  'magic_m': 'magic_f',
+  'elf_m': 'elf_f',
+  'darkelf_m': 'darkelf_f',
+  'orc_m': 'orc_f',
+  'dwarf_m': 'dwarf_f',
+
+  // Feminino -> Masculino
+  'human_f': 'human_fighter',
+  'human_fighter_female': 'human_fighter',
+  'magic_f': 'magic_m',
+  'elf_f': 'elf_m',
+  'darkelf_f': 'darkelf_m',
+  'orc_f': 'orc_m',
+  'dwarf_f': 'dwarf_m'
+};
+
+function extrairRacaBase(racaStr){
+  const s = String(racaStr || 'human_fighter').toLowerCase();
+  if(s.includes('human_fighter_female') || s.includes('female') || s.includes('ffighter')) return 'human_fighter_female';
+  if(s.includes('human_fighter') || s.includes('human_m') || s.includes('fighter')) return 'human_fighter';
+  if(s.includes('darkelf_f')) return 'darkelf_f';
+  if(s.includes('darkelf_m')) return 'darkelf_m';
+  if(s.includes('darkelf')) return 'darkelf_f';
+  if(s.includes('elf_f')) return 'elf_f';
+  if(s.includes('elf_m')) return 'elf_m';
+  if(s.includes('dwarf_f')) return 'dwarf_f';
+  if(s.includes('dwarf_m')) return 'dwarf_m';
+  if(s.includes('orc_f')) return 'orc_f';
+  if(s.includes('orc_m')) return 'orc_m';
+  if(s.includes('magic_f')) return 'magic_f';
+  if(s.includes('magic_m')) return 'magic_m';
+  return 'human_fighter';
+}
+
 function init(contexto){
   CTX = contexto;
 }
@@ -44,17 +210,14 @@ function ehComando(txt){
   if(!txt || typeof txt !== 'string') return false;
   const t = txt.trim().toLowerCase();
   if(t.startsWith('//')) return true;
-  return /^\/(setlevel|lvl|nivel|ress|res|heal|curar|god|invul|kill|matar|adena|enchant|encantar|speed|velo|teleport|goto|admin|painel|gm)\b/.test(t);
+  return /^\/(setlevel|lvl|nivel|ress|res|heal|curar|god|invul|kill|matar|adena|enchant|encantar|speed|velo|teleport|goto|admin|painel|gm|setkit|kit|setnick|nick|setsex|sexo)\b/.test(t);
 }
 
 /* Localiza um alvo no canal (por id, nome ou alvo do jogador) */
 function obterAlvo(c, J, idOuNome){
   if(!c || !c.jog) return J;
-  if(!idOuNome){
-    // Se o jogador estiver com alvo selecionado
-    if(J.alvoId && c.jog.has(J.alvoId)) return c.jog.get(J.alvoId);
-    return J;
-  }
+  if(!idOuNome || idOuNome === 'eu' || idOuNome === J.id) return J;
+
   const idNum = parseInt(idOuNome, 10);
   if(!isNaN(idNum) && c.jog.has(idNum)) return c.jog.get(idNum);
 
@@ -62,6 +225,9 @@ function obterAlvo(c, J, idOuNome){
   for(const jog of c.jog.values()){
     if(jog.nome && jog.nome.toLowerCase() === nomeBuscado) return jog;
   }
+
+  // Se o jogador estiver com alvo selecionado no jogo
+  if(J.alvoId && c.jog.has(J.alvoId)) return c.jog.get(J.alvoId);
   return J;
 }
 
@@ -87,6 +253,7 @@ function setLevel(c, J, lvNum, targetId){
       }
       CTX.difunde(c, { t: 'en', v: alvo.id, en: alvo.en });
       CTX.difunde(c, { t: 'wb', v: alvo.id, b: alvo.wb });
+      CTX.difunde(c, { t: 'ent_update', id: alvo.id, lv: alvo.lv, hp: alvo.hp, pmax: alvo.pmax, en: alvo.en, wb: alvo.wb, raca: alvo.raca, grau: alvo.grau });
     }
     broadcastSis(c, `👑 [ADMIN] Bot ${alvo.nome} foi configurado para Nível ${lv} (Grau ${alvo.grau})!`);
     return;
@@ -106,6 +273,7 @@ function setLevel(c, J, lvNum, targetId){
     if(CTX.Contas) CTX.Contas.grava();
     if(CTX.Prog) CTX.envia(alvo, Object.assign({ t: 'prog', subiu: 1 }, CTX.Prog.info(alvo.pers)));
     CTX.envia(alvo, { t: 'usou', hp: alvo.hp, cura: 1 });
+    CTX.difunde(c, { t: 'ent_update', id: alvo.id, lv: alvo.lv, hp: alvo.hp, pmax: alvo.pmax });
   }
 
   broadcastSis(c, `👑 [ADMIN] Nível de ${alvo.nome} definido para ${lv}! (HP Máximo: ${alvo.pmax})`);
@@ -124,6 +292,7 @@ function ress(c, J, targetId){
   }
 
   CTX.difunde(c, { t: 'resp', id: alvo.id, x: alvo.x, z: alvo.z, hp: alvo.hp, pm: alvo.pmax, keep: 1 });
+  CTX.difunde(c, { t: 'ent_update', id: alvo.id, hp: alvo.hp, pmax: alvo.pmax });
   CTX.envia(alvo, { t: 'usou', hp: alvo.hp, cura: 1 });
   broadcastSis(c, `⚡ [ADMIN] ${alvo.nome} foi ressuscitado com 100% de vida e mana!`);
 }
@@ -136,11 +305,201 @@ function heal(c, J, targetId){
   alvo.morto = false;
   alvo.hp = alvo.pmax;
   CTX.difunde(c, { t: 'resp', id: alvo.id, x: alvo.x, z: alvo.z, hp: alvo.hp, pm: alvo.pmax, keep: 1 });
+  CTX.difunde(c, { t: 'ent_update', id: alvo.id, hp: alvo.hp, pmax: alvo.pmax });
   CTX.envia(alvo, { t: 'usou', hp: alvo.hp, cura: 1 });
   sis(J, `💖 [ADMIN] ${alvo.nome} recebeu cura total (HP: ${alvo.hp}/${alvo.pmax})!`);
 }
 
-/* 4. God Mode (Invulnerabilidade) */
+/* 4. Trocar Nick */
+function setNick(c, J, novoNick, targetId){
+  if(!CTX || !J) return;
+  const limpo = String(novoNick || '').trim();
+  if(!limpo || limpo.length < 2 || limpo.length > 20){
+    sis(J, '⚠️ Nick inválido! Deve conter entre 2 e 20 caracteres.');
+    return;
+  }
+  const alvo = obterAlvo(c, J, targetId);
+  const antigo = alvo.nome;
+  alvo.nome = limpo;
+  if(alvo.pers){
+    alvo.pers.name = limpo;
+    if(CTX.Contas) CTX.Contas.grava();
+  }
+  CTX.difunde(c, { t: 'admin_renomeado', id: alvo.id, nome: limpo, antigo });
+  CTX.difunde(c, { t: 'ent_update', id: alvo.id, nome: limpo });
+  broadcastSis(c, `👑 [ADMIN] ${antigo} agora se chama ${limpo}!`);
+}
+
+/* 5. Trocar Sexo */
+function setSexo(c, J, targetId, sexoDesejado){
+  if(!CTX || !J) return;
+  const alvo = obterAlvo(c, J, targetId);
+  const racaAtual = (alvo.pers && alvo.pers.charType) || alvo.raca || 'human_fighter';
+  const racaBaseAtual = extrairRacaBase(racaAtual);
+  const isFem = racaBaseAtual.endsWith('_f') || racaBaseAtual === 'human_fighter_female';
+
+  let novaRacaBase = racaBaseAtual;
+  const sexoAlvo = String(sexoDesejado || '').toUpperCase();
+
+  if(sexoAlvo === 'M'){
+    novaRacaBase = isFem ? (MAPA_SEXO[racaBaseAtual] || 'human_fighter') : racaBaseAtual;
+  } else if(sexoAlvo === 'F'){
+    novaRacaBase = !isFem ? (MAPA_SEXO[racaBaseAtual] || 'human_fighter_female') : racaBaseAtual;
+  } else {
+    // Alternar (toggle)
+    novaRacaBase = MAPA_SEXO[racaBaseAtual] || (isFem ? 'human_fighter' : 'human_fighter_female');
+  }
+
+  const novoSexo = (novaRacaBase.endsWith('_f') || novaRacaBase === 'human_fighter_female') ? 'F' : 'M';
+
+  if(alvo.isBot){
+    if(CTX.Fakes && CTX.Fakes.setupPorNivel){
+      const setup = CTX.Fakes.setupPorNivel(novaRacaBase, alvo.arma, alvo.lv);
+      alvo.raca = setup.raca;
+      alvo.wb = setup.wb;
+      alvo.en = setup.en;
+      if(alvo.pers) alvo.pers.charType = setup.raca;
+      CTX.difunde(c, { t: 'admin_sexo', id: alvo.id, raca: setup.raca, sexo: novoSexo });
+      CTX.difunde(c, { t: 'ent_update', id: alvo.id, raca: setup.raca, wb: setup.wb, en: setup.en });
+    } else {
+      alvo.raca = novaRacaBase;
+      if(alvo.pers) alvo.pers.charType = novaRacaBase;
+      CTX.difunde(c, { t: 'admin_sexo', id: alvo.id, raca: novaRacaBase, sexo: novoSexo });
+    }
+  } else {
+    // Jogador Real
+    alvo.raca = novaRacaBase;
+    if(alvo.pers){
+      alvo.pers.charType = novaRacaBase;
+      if(CTX.Contas) CTX.Contas.grava();
+    }
+    CTX.envia(alvo, { t: 'admin_sexo', id: alvo.id, raca: novaRacaBase, sexo: novoSexo, eu: true });
+    CTX.difunde(c, { t: 'admin_sexo', id: alvo.id, raca: novaRacaBase, sexo: novoSexo });
+    CTX.difunde(c, { t: 'ent_update', id: alvo.id, raca: novaRacaBase });
+  }
+
+  broadcastSis(c, `👑 [ADMIN] Sexo de ${alvo.nome} alterado para ${novoSexo === 'F' ? 'Feminino ♀️' : 'Masculino ♂️'} (${novaRacaBase})!`);
+}
+
+/* 6. Dar Kit de Equipamento por Grau (Lineage 2) */
+function darKit(c, J, grauKey, targetId){
+  if(!CTX || !J) return;
+  const gNorm = String(grauKey || 'C').toUpperCase();
+  const kitKey = (gNorm === 'NO-GRADE' || gNorm === 'SEM' || gNorm === 'NG') ? 'sem' : (KITS_GRAU[gNorm] ? gNorm : 'C');
+  const kit = KITS_GRAU[kitKey] || KITS_GRAU.C;
+  const alvo = obterAlvo(c, J, targetId);
+
+  // 1. Caso Bot
+  if(alvo.isBot){
+    if((alvo.lv || 1) < kit.minLv) alvo.lv = kit.minLv;
+    alvo.grau = kit.grau;
+    if(CTX.Fakes && CTX.Fakes.setupPorNivel){
+      const setup = CTX.Fakes.setupPorNivel(alvo.raca, alvo.arma, alvo.lv);
+      alvo.pmax = setup.hpBase;
+      alvo.hp = setup.hpBase;
+      alvo.en = kit.en;
+      alvo.wb = setup.wb;
+      alvo.grau = kit.grau;
+      alvo.skills = setup.skills;
+      if(alvo.pers){
+        alvo.pers.level = alvo.lv;
+        alvo.pers.charType = setup.raca;
+      }
+      CTX.difunde(c, { t: 'en', v: alvo.id, en: alvo.en });
+      CTX.difunde(c, { t: 'wb', v: alvo.id, b: alvo.wb });
+      CTX.difunde(c, { t: 'ent_update', id: alvo.id, lv: alvo.lv, hp: alvo.hp, pmax: alvo.pmax, en: alvo.en, wb: alvo.wb, raca: alvo.raca, grau: alvo.grau });
+    }
+    broadcastSis(c, `👑 [ADMIN] Kit ${kit.nome} concedido para o bot ${alvo.nome}! (+${kit.en})`);
+    return;
+  }
+
+  // 2. Caso Jogador Real
+  if(!alvo.pers) return;
+  if((alvo.lv || (alvo.pers && alvo.pers.level) || 1) < kit.minLv){
+    setLevel(c, J, kit.minLv, alvo.id);
+  }
+
+  if(CTX.Inv && CTX.Inv.garante) CTX.Inv.garante(alvo.pers);
+  alvo.pers.inv = alvo.pers.inv || { items: [], equip: {}, adena: 0 };
+  const inv = alvo.pers.inv;
+  inv.items = inv.items || [];
+  inv.equip = inv.equip || {};
+
+  // Determina o tipo de arma da classe do alvo
+  let tipoArma = 'sword';
+  const armaAtual = alvo.arma || (alvo.pers && alvo.pers.classe) || '';
+  if(armaAtual.includes('clerigo') || armaAtual.includes('healer') || armaAtual === 'book') tipoArma = 'book';
+  else if(armaAtual.includes('guardiao') || armaAtual.includes('tank') || armaAtual === 'shield' || inv.equip.shield) tipoArma = 'shield';
+  else if(armaAtual.includes('mago') || armaAtual.includes('magic') || armaAtual === 'staff') tipoArma = 'staff';
+
+  const wpnBase = kit.armas[tipoArma] || kit.armas.sword;
+  const shdBase = (tipoArma === 'shield') ? (kit.armas.escudo || 'shield_guardian') : null;
+
+  // Cria ou equipa as peças do Set
+  const pecasSlots = ['helmet', 'chest', 'legs', 'gloves', 'boots'];
+  const tUid = Date.now();
+
+  pecasSlots.forEach((slot, idx) => {
+    const baseId = kit.set[slot];
+    if(baseId){
+      let item = inv.items.find(i => i && i.base === baseId);
+      if(!item){
+        item = { uid: `kit_${kit.grau}_${slot}_${tUid}_${idx}`, base: baseId, rar: 'raro', en: 0 };
+        inv.items.push(item);
+      }
+      inv.equip[slot] = item.uid;
+    } else if(slot === 'legs'){
+      // Set inteiriço (Full-body): desocupa a calça
+      delete inv.equip.legs;
+    }
+  });
+
+  // Cria ou equipa a Arma com o encantamento do Grau
+  let wpnItem = inv.items.find(i => i && i.base === wpnBase);
+  if(!wpnItem){
+    wpnItem = { uid: `kit_${kit.grau}_wpn_${tUid}`, base: wpnBase, rar: 'epico', en: kit.en };
+    inv.items.push(wpnItem);
+  } else {
+    wpnItem.en = kit.en;
+  }
+  inv.equip.weapon = wpnItem.uid;
+  alvo.en = kit.en;
+  alvo.enV = kit.en;
+  alvo.wb = wpnBase;
+
+  // Cria ou equipa o Escudo se for Guardião
+  if(shdBase){
+    let shdItem = inv.items.find(i => i && i.base === shdBase);
+    if(!shdItem){
+      shdItem = { uid: `kit_${kit.grau}_shd_${tUid}`, base: shdBase, rar: 'raro', en: 0 };
+      inv.items.push(shdItem);
+    }
+    inv.equip.shield = shdItem.uid;
+  } else {
+    delete inv.equip.shield;
+  }
+
+  // Recalcula HP máximo
+  if(CTX.pmaxMax){
+    alvo.pmax = CTX.pmaxMax(alvo.pers);
+  } else {
+    alvo.pmax = Math.round(400 + (alvo.lv || 40) * 28 * 1.3);
+  }
+  alvo.hp = alvo.pmax;
+
+  if(CTX.Contas) CTX.Contas.grava();
+  CTX.envia(alvo, { t: 'inv', inv: alvo.pers.inv });
+  CTX.envia(alvo, { t: 'usou', hp: alvo.hp, cura: 1 });
+  if(CTX.Prog) CTX.envia(alvo, Object.assign({ t: 'prog' }, CTX.Prog.info(alvo.pers)));
+
+  CTX.difunde(c, { t: 'en', v: alvo.id, en: alvo.en });
+  CTX.difunde(c, { t: 'wb', v: alvo.id, b: wpnBase });
+  CTX.difunde(c, { t: 'ent_update', id: alvo.id, lv: alvo.lv, hp: alvo.hp, pmax: alvo.pmax, en: alvo.en, wb: wpnBase });
+
+  broadcastSis(c, `👑 [ADMIN] Kit ${kit.nome} equipado com sucesso em ${alvo.nome}! (+${kit.en})`);
+}
+
+/* 7. God Mode (Invulnerabilidade) */
 function toggleGod(c, J){
   if(!CTX || !J) return;
   J.godMode = !J.godMode;
@@ -148,7 +507,7 @@ function toggleGod(c, J){
   sis(J, `🛡️ [ADMIN] Modo Invulnerável (God Mode): ${J.godMode ? '✅ ATIVADO (Você é imortal)' : '❌ DESATIVADO'}`);
 }
 
-/* 5. Matar Alvo Selecionado */
+/* 8. Matar Alvo Selecionado */
 function kill(c, J, targetId){
   if(!CTX || !J) return;
   const alvo = obterAlvo(c, J, targetId);
@@ -161,45 +520,65 @@ function kill(c, J, targetId){
   alvo.morto = true;
   alvo.tMorte = CTX.agora ? CTX.agora() : Date.now() / 1000;
   CTX.difunde(c, { t: 'die', v: alvo.id, a: J.id, nv: alvo.nome, na: J.nome });
+  CTX.difunde(c, { t: 'ent_update', id: alvo.id, hp: 0 });
   sis(J, `💀 [ADMIN] ${alvo.nome} foi abatido instantaneamente.`);
 }
 
-/* 6. Dar Adena */
-function darAdena(c, J, qtdNum){
-  if(!CTX || !J || !J.pers) return;
+/* 9. Dar Adena */
+function darAdena(c, J, qtdNum, targetId){
+  if(!CTX || !J) return;
+  const alvo = obterAlvo(c, J, targetId);
+  if(!alvo.pers) return;
   const qtd = parseInt(qtdNum, 10) || 100000;
-  if(CTX.Inv && CTX.Inv.garante) CTX.Inv.garante(J.pers);
-  J.pers.inv = J.pers.inv || { items: [], equip: {}, adena: 0 };
-  J.pers.inv.adena = Math.max(0, (J.pers.inv.adena | 0) + qtd);
+  if(CTX.Inv && CTX.Inv.garante) CTX.Inv.garante(alvo.pers);
+  alvo.pers.inv = alvo.pers.inv || { items: [], equip: {}, adena: 0 };
+  alvo.pers.inv.adena = Math.max(0, (alvo.pers.inv.adena | 0) + qtd);
   if(CTX.Contas) CTX.Contas.grava();
-  CTX.envia(J, { t: 'inv', inv: J.pers.inv });
-  sis(J, `💰 [ADMIN] +${qtd.toLocaleString('pt-BR')} Adena adicionada! Total: ${J.pers.inv.adena.toLocaleString('pt-BR')} Adena.`);
+  CTX.envia(alvo, { t: 'inv', inv: alvo.pers.inv });
+  sis(J, `💰 [ADMIN] +${qtd.toLocaleString('pt-BR')} Adena entregue a ${alvo.nome}! Total: ${alvo.pers.inv.adena.toLocaleString('pt-BR')} Adena.`);
 }
 
-/* 7. Encantar Arma com Glow */
-function encantarArma(c, J, nivelNum){
-  if(!CTX || !J || !J.pers) return;
+/* 10. Encantar Arma com Glow */
+function encantarArma(c, J, nivelNum, targetId){
+  if(!CTX || !J) return;
   const en = Math.max(0, Math.min(16, parseInt(nivelNum, 10) || 16));
-  const inv = J.pers.inv;
+  const alvo = obterAlvo(c, J, targetId);
+
+  if(alvo.isBot){
+    alvo.en = en;
+    if(alvo.pers && alvo.pers.inv && alvo.pers.inv.items){
+      const it = alvo.pers.inv.items[0];
+      if(it) it.en = en;
+    }
+    CTX.difunde(c, { t: 'en', v: alvo.id, en });
+    CTX.difunde(c, { t: 'ent_update', id: alvo.id, en });
+    broadcastSis(c, `👑 [ADMIN] Arma do bot ${alvo.nome} foi encantada para +${en}! Glow visual ativado.`);
+    return;
+  }
+
+  // Jogador real
+  if(!alvo.pers) return;
+  const inv = alvo.pers.inv;
   if(!inv || !inv.items) return;
 
   const wpnUid = inv.equip && inv.equip.weapon;
-  const item = inv.items.find(i => i && (i.uid === wpnUid || (i.base && (i.base.startsWith('sword') || i.base.startsWith('staff') || i.base.startsWith('gladius')))));
+  const item = inv.items.find(i => i && (i.uid === wpnUid || (i.base && (i.base.startsWith('sword') || i.base.startsWith('staff') || i.base.startsWith('gladius') || i.base.startsWith('claymore') || i.base.startsWith('dragon') || i.base.startsWith('forgotten')))));
 
   if(item){
     item.en = en;
-    J.en = en;
-    J.enV = en;
+    alvo.en = en;
+    alvo.enV = en;
     if(CTX.Contas) CTX.Contas.grava();
-    CTX.envia(J, { t: 'inv', inv: J.pers.inv });
-    CTX.difunde(c, { t: 'en', v: J.id, en });
-    sis(J, `⚔️ [ADMIN] Arma encantada para +${en}! Glow visual atualizado para todos.`);
+    CTX.envia(alvo, { t: 'inv', inv: alvo.pers.inv });
+    CTX.difunde(c, { t: 'en', v: alvo.id, en });
+    CTX.difunde(c, { t: 'ent_update', id: alvo.id, en });
+    broadcastSis(c, `⚔️ [ADMIN] Arma de ${alvo.nome} encantada para +${en}! Glow visual atualizado para todos.`);
   } else {
-    sis(J, '⚠️ Nenhuma arma encontrada para encantar.');
+    sis(J, `⚠️ Nenhuma arma encontrada para encantar em ${alvo.nome}.`);
   }
 }
 
-/* 8. Velocidade de Movimento GM */
+/* 11. Velocidade de Movimento GM */
 function setSpeed(c, J, multNum){
   if(!CTX || !J) return;
   const mult = Math.max(1, Math.min(4, parseFloat(multNum) || 1));
@@ -208,7 +587,7 @@ function setSpeed(c, J, multNum){
   sis(J, `🏃 [ADMIN] Velocidade de movimento configurada para ${mult}x!`);
 }
 
-/* 9. Teleporte GM */
+/* 12. Teleporte GM */
 function teleport(c, J, destNome, xCustom, zCustom){
   if(!CTX || !J) return;
   let tx = 0, tz = 0, nomeDest = '';
@@ -241,6 +620,7 @@ function comando(c, J, txt){
   const cmd = partes[0].toLowerCase();
   const arg1 = partes[1];
   const arg2 = partes[2];
+  const arg3 = partes[3];
 
   switch(cmd){
     case 'setlevel':
@@ -259,6 +639,21 @@ function comando(c, J, txt){
       heal(c, J, arg1);
       break;
 
+    case 'setnick':
+    case 'nick':
+      setNick(c, J, arg1, arg2);
+      break;
+
+    case 'setsex':
+    case 'sexo':
+      setSexo(c, J, arg2, arg1);
+      break;
+
+    case 'setkit':
+    case 'kit':
+      darKit(c, J, arg1, arg2);
+      break;
+
     case 'god':
     case 'invul':
       toggleGod(c, J);
@@ -270,12 +665,12 @@ function comando(c, J, txt){
       break;
 
     case 'adena':
-      darAdena(c, J, arg1);
+      darAdena(c, J, arg1, arg2);
       break;
 
     case 'enchant':
     case 'encantar':
-      encantarArma(c, J, arg1);
+      encantarArma(c, J, arg1, arg2);
       break;
 
     case 'speed':
@@ -303,7 +698,7 @@ function comando(c, J, txt){
       break;
 
     default:
-      sis(J, 'Comandos Admin: //setlevel [1-85] | //ress | //heal | //god | //kill | //adena [qtd] | //enchant [4-16] | //speed [1-4] | //teleport [cidade|arena|curuma|fortress|pantano|baium] | //admin');
+      sis(J, 'Comandos Admin: //setlevel [1-85] | //ress | //heal | //setkit [NG/D/C/B/A/S] | //setnick [nome] | //setsex [M/F] | //god | //kill | //adena [qtd] | //enchant [4-16] | //speed [1-4] | //teleport [cidade|arena|curuma|fortress|pantano|baium] | //admin');
       break;
   }
 }
@@ -326,6 +721,18 @@ function executa(c, J, m){
       heal(c, J, m.alvo);
       break;
 
+    case 'setnick':
+      setNick(c, J, m.nome || m.nick, m.alvo);
+      break;
+
+    case 'setsexo':
+      setSexo(c, J, m.alvo, m.sexo);
+      break;
+
+    case 'setkit':
+      darKit(c, J, m.grau, m.alvo);
+      break;
+
     case 'god':
       toggleGod(c, J);
       break;
@@ -335,11 +742,11 @@ function executa(c, J, m){
       break;
 
     case 'adena':
-      darAdena(c, J, m.qtd);
+      darAdena(c, J, m.qtd, m.alvo);
       break;
 
     case 'enchant':
-      encantarArma(c, J, m.en);
+      encantarArma(c, J, m.en, m.alvo);
       break;
 
     case 'speed':
@@ -370,11 +777,15 @@ module.exports = {
   setLevel,
   ress,
   heal,
+  setNick,
+  setSexo,
+  darKit,
   toggleGod,
   kill,
   darAdena,
   encantarArma,
   setSpeed,
   teleport,
-  DESTINOS
+  DESTINOS,
+  KITS_GRAU
 };
