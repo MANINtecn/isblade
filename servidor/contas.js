@@ -123,6 +123,21 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
   }
   function validaToken(tk){ if(!/^[a-f0-9]{64}$/.test(String(tk || ''))) return null; const h = sha(tk); for(const u in DB.contas){ const c = DB.contas[u]; if(c.tokens.some(t => t.h === h)){ migra(c); return c; } } return null; }
 
+  /* ---- [sso] entrada pelo site (l2ikarus.com): o site da' um passe assinado (HMAC-SHA256 com SSO_SECRET, igual nos dois lados),
+     valido por 2 minutos e de uso unico. A conta do jogo fica em DB.contas['site:<login>'] (separada das contas antigas do jogo; comeca do zero). */
+  const SSO_SECRET = process.env.SSO_SECRET || '', passesUsados = new Map();
+  setInterval(() => { const t = Date.now(); for(const [n, ate] of passesUsados) if(ate < t) passesUsados.delete(n); }, 60e3).unref();
+  function confereTicket(tk){
+    if(!SSO_SECRET || typeof tk !== 'string' || tk.length > 600) return null;
+    const i = tk.lastIndexOf('.'); if(i < 1) return null;
+    const p = tk.slice(0, i), sig = tk.slice(i + 1), esp = crypto.createHmac('sha256', SSO_SECRET).update(p).digest('base64url');
+    if(!iguais(sig, esp)) return null;
+    let d; try { d = JSON.parse(Buffer.from(p, 'base64url').toString('utf8')); } catch(e){ return null; }
+    const login = String(d.sub || '').toLowerCase(), agora = Date.now();
+    if(!/^[a-z0-9_]{4,16}$/.test(login) || !(d.exp * 1000 > agora) || d.exp * 1000 - agora > 300e3 || !/^[a-f0-9]{16,64}$/.test(String(d.n || ''))) return null;
+    if(passesUsados.has(d.n)) return null; passesUsados.set(d.n, d.exp * 1000 + 60e3);
+    return { login };
+  }
   const RK = { t: 0, v: null };
   async function http(req, res, url){
     cors(req, res);
@@ -141,9 +156,17 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
       }
       if(url === '/api/conta/entrar' && req.method === 'POST'){
         if(!limite(ip, 'e', 20, 600e3)) return resp(res, 429, { erro: 'Muitas tentativas. Espere uns minutos.' });
-        const b = await corpo(req), user = String(b.user || '').trim().toLowerCase(), senha = String(b.senha || ''), c = DB.contas[user];
+        const b = await corpo(req), user = String(b.user || '').trim().toLowerCase(), senha = String(b.senha || ''), c = (DB.contas[user] && !DB.contas[user].site) ? DB.contas[user] : null;      /* [sso] conta do site so' entra pelo passe */
         const ok = c ? iguais(hashSenha(senha, c.sal), c.hash) : (hashSenha(senha, '0'.repeat(32)), false);      /* gasta o mesmo tempo com usuario inexistente */
         if(!ok) return resp(res, 401, { erro: 'Usuario ou senha incorretos.' });
+        const token = novoToken(c); c.ult = Date.now(); const ch = chavesDaConta(c); grava(); return resp(res, 200, { token, user: c.user, rev: c.dados.rev, chaves: ch });
+      }
+      if(url === '/api/conta/sso' && req.method === 'POST'){
+        if(!limite(ip, 's', 30, 600e3)) return resp(res, 429, { erro: 'Muitas tentativas. Espere uns minutos.' });
+        const b = await corpo(req), d = confereTicket(b.ticket);
+        if(!d) return resp(res, 401, { erro: 'Passe invalido ou vencido. Entre de novo pelo site.' });
+        const k = 'site:' + d.login; let c = DB.contas[k];
+        if(!c){ c = DB.contas[k] = { user: d.login, site: true, tokens: [], criada: Date.now(), dados: { rev: 0, chaves: {} } }; c.pers = []; }
         const token = novoToken(c); c.ult = Date.now(); const ch = chavesDaConta(c); grava(); return resp(res, 200, { token, user: c.user, rev: c.dados.rev, chaves: ch });
       }
       if(url === '/api/conta/sair' && req.method === 'POST'){

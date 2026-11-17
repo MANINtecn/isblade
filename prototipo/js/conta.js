@@ -156,6 +156,21 @@
   }
   function quando(f){ if(document.body) f(); else document.addEventListener('DOMContentLoaded', f); }
 
+  /* [sso] entrada pelo site (l2ikarus.com): troca o passe assinado do site por um token do servidor do jogo. cb(erro|null) */
+  function entrarComPasse(ticket, cb){
+    var t = new XMLHttpRequest(); t.open('POST', base() + '/api/conta/sso'); t.timeout = 15000; t.setRequestHeader('content-type', 'application/json');
+    t.onload = function(){
+      var j = null; try { j = JSON.parse(t.responseText); } catch(x){}
+      if(t.status === 200 && j && j.token){
+        s(TOK, j.token); s(USR, j.user); remI(CONV);
+        aplica(j.chaves || {}, j.rev || 0);
+        try { sessionStorage.setItem('isblade.fluxo', '1'); } catch(x){}
+        cb(null);
+      } else cb((j && j.erro) || 'Nao consegui entrar no jogo. Tente de novo pelo site.');
+    };
+    t.onerror = t.ontimeout = function(){ cb('Servidor do jogo fora do ar no momento. Tente de novo em instantes.'); };
+    t.send(JSON.stringify({ ticket: String(ticket || '') }));
+  }
   window.Conta = {
     logado: logado, usuario: function(){ return g(USR); }, sair: sair, enviar: enviar,
     exigir: function(){ if(!logado()){ location.replace('login.html'); return; } quando(chip); },
@@ -165,6 +180,7 @@
        A tela de carregamento libera a aba (sessionStorage); ?dev=1 libera para testes. */
     fluxo: function(){ try { if(/[?&]dev=1/.test(location.search)) sessionStorage.setItem('isblade.fluxo', '1'); if(sessionStorage.getItem('isblade.fluxo') !== '1') location.replace('index.html'); else if(!logado()) location.replace('login.html'); } catch(e){} },
     liberaFluxo: function(){ try { sessionStorage.setItem('isblade.fluxo', '1'); } catch(e){} },
+    entrarComPasse: entrarComPasse, site: 'https://www.l2ikarus.com',
     telaLogin: telaLogin, convidado: function(){ return false; }, puxar: puxar,
     /* personagens: criar, renomear e apagar passam pelo SERVIDOR (cb(codigo, resposta)); ao dar certo a lista local vira copia da do servidor */
     api: function(metodo, caminho, corpo, cb){ if(!logado()) return cb(401, { erro: 'Entre na conta.' }); pedeAsync(metodo, caminho, corpo, function(cod, j){ if(cod === 200 && j && j.pers){ try { setI('isblade_characters', JSON.stringify(j.pers)); s(REV, String(j.rev)); remI(SUJO); snap(); } catch(e){} } cb(cod, j); }); },

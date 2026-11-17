@@ -19,11 +19,14 @@
   <div id="host"></div>
   <p class="volta"><a href="index.html">← voltar ao início</a></p>
 </main>
-<script src="js/conta.js?v=5"></script>
+<script src="js/conta.js?v=6"></script>
 <script>
-  /* Ja logado: pula direto para o painel. Senao mostra o formulario (criar conta ou entrar); "jogar sem conta" vai direto ao carregamento. */
-  if(Conta.logado()) location.replace('painel.html');
-  else Conta.telaLogin({ host: document.getElementById('host'), depois: 'painel.html', convidado: 'carregando.html' });
+  /* [sso] 17/11/2026: a conta agora e' a do site (l2ikarus.com). Ja logado: direto ao carregamento -> selecao de personagem.
+     Sem conta: volta ao site para entrar ou criar. O formulario antigo so' aparece em teste local ou com ?dev=1. */
+  var DEV = /[?&]dev=1/.test(location.search) || /^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname);
+  if(Conta.logado()){ Conta.liberaFluxo(); location.replace('carregando.html'); }
+  else if(!DEV) location.replace(Conta.site + '/?jogar=1');
+  else Conta.telaLogin({ host: document.getElementById('host'), depois: 'carregando.html', convidado: 'carregando.html' });
 </script>
 </body>
 </html>

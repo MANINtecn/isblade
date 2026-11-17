@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrando — L2 Ikarus</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#04050a">
+<link rel="manifest" href="manifest.json">
+<style>
+  /* [sso] porta de entrada vinda do site l2ikarus.com: recebe o passe (#t=...), entra na conta e segue para o carregamento -> selecao de personagem */
+  html,body{margin:0;height:100%;background:#04050a;color:#c3cbda;font:400 15px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif}
+  main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;box-sizing:border-box;text-align:center}
+  .marca{font:700 22px 'Cinzel',Georgia,serif;letter-spacing:.18em;color:#dfe6f2}
+  .marca b{color:#fff}
+  .losango{width:18px;height:18px;background:#3b82f6;transform:rotate(45deg);box-shadow:0 0 22px rgba(59,130,246,.8);animation:gira 1.4s ease-in-out infinite}
+  @keyframes gira{50%{transform:rotate(225deg);opacity:.5}}
+  #msg{max-width:420px;min-height:1.5em}
+  #msg.erro{color:#fca5a5}
+  a.volta{display:none;color:#0b1220;background:linear-gradient(180deg,#fff,#a9b4c7 55%,#f4f7fb);padding:12px 22px;text-decoration:none;font-weight:800;letter-spacing:.15em;text-transform:uppercase;font-size:12px;
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+  .erro ~ a.volta{display:inline-block}
+</style>
+</head>
+<body>
+<main>
+  <div class="marca">L2 <b>IKARUS</b></div>
+  <div class="losango" id="giro" aria-hidden="true"></div>
+  <p id="msg">Entrando no jogo...</p>
+  <a class="volta" id="volta" href="https://www.l2ikarus.com/?jogar=1">Voltar ao site</a>
+</main>
+<script src="js/conta.js?v=6"></script>
+<script>
+(function(){
+  var msg = document.getElementById('msg'), giro = document.getElementById('giro'), volta = document.getElementById('volta');
+  var site = (window.Conta && Conta.site) || 'https://www.l2ikarus.com';
+  volta.href = site + '/?jogar=1';
+  function erro(t){ msg.textContent = t; msg.className = 'erro'; giro.style.display = 'none'; }
+  var m = /[#&]t=([A-Za-z0-9_.-]+)/.exec(location.hash || '');
+  /* tira o passe da barra de endereco (nao fica no historico) */
+  try { history.replaceState(null, '', location.pathname); } catch(e){}
+  if(!m){
+    /* sem passe: quem ja esta na conta segue; quem nao esta volta ao site para entrar */
+    if(window.Conta && Conta.logado()){ Conta.liberaFluxo(); location.replace('carregando.html'); }
+    else location.replace(site + '/?jogar=1');
+    return;
+  }
+  Conta.entrarComPasse(m[1], function(e){
+    if(e) return erro(e);
+    location.replace('carregando.html');
+  });
+})();
+</script>
+</body>
+</html>
