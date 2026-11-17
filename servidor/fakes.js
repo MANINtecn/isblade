@@ -226,6 +226,19 @@ function setupPorNivel(racaBase, armaTipo, lv){
 }
 
 /* Cria bots com configuração completa por nível e equipamento */
+// Raio e limites seguros de navegação para evitar queda ou flutuação fora do chão
+function clampCoordenadas(x, z, mapa){
+  if(mapa === 'pvp' || Math.hypot(x - (-28.4), z - (-53.85)) < 42){
+    const areX = -28.4, areZ = -53.85, rMax = 19.5; // Raio 100% plano e seguro da Arena Baium
+    const dx = x - areX, dz = z - areZ;
+    const d = Math.hypot(dx, dz);
+    if(d > rMax){
+      return { x: r2(areX + (dx / d) * (rMax - 0.2)), z: r2(areZ + (dz / d) * (rMax - 0.2)) };
+    }
+  }
+  return { x: r2(x), z: r2(z) };
+}
+
 function spawnBots(opts){
   if(!CTX) return 0;
   const canal = opts.canal || canalCidade();
@@ -266,8 +279,15 @@ function spawnBots(opts){
     const nomeBase = nomeDisponivel();
     const nome = team ? (team === 'A' ? 'Azul_' : 'Verm_') + nomeBase : nomeBase;
 
-    let bx, bz;
-    if(opts.formacao){
+    let bx, bz, fRot;
+    if(qtd === 1){
+      // Duelo 1v1: Spawna exatamente na frente do jogador/invocador a 4.2m de distância
+      const dirPlayer = typeof opts.playerF === 'number' ? opts.playerF : (typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : 0);
+      const distDuelo = 4.2;
+      bx = r2(cx + Math.sin(dirPlayer) * distDuelo);
+      bz = r2(cz + Math.cos(dirPlayer) * distDuelo);
+      fRot = r2(dirPlayer + Math.PI); // virado de frente para o jogador
+    } else if(opts.formacao){
       // Formação militar tática de batalha: linha de frente avançada, retaguarda protegida
       const isBackline = (persona.arma === 'book' || persona.arma === 'staff' || persona.cls === 'clerigo' || persona.cls === 'magic');
       const dir = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : (team === 'A' ? Math.PI / 2 : -Math.PI / 2);
@@ -283,13 +303,18 @@ function spawnBots(opts){
 
       bx = r2(cx + fwdX * distLinha + latX * distLat);
       bz = r2(cz + fwdZ * distLinha + latZ * distLat);
+      fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : (team === 'A' ? Math.PI / 2 : -Math.PI / 2);
     } else {
       const ang = (i / qtd) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
       const raio = 3.5 + Math.random() * 8.5;
       bx = r2(cx + Math.sin(ang) * raio);
       bz = r2(cz + Math.cos(ang) * raio);
+      fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : r2(Math.random() * 6.28);
     }
-    const fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : (opts.formacao ? (team === 'A' ? Math.PI / 2 : -Math.PI / 2) : r2(Math.random() * 6.28));
+
+    const cPos = clampCoordenadas(bx, bz, canal.mapa);
+    bx = cPos.x;
+    bz = cPos.z;
 
     const bot = {
       id,
@@ -345,6 +370,13 @@ function spawnBots(opts){
       spawnZ: bz,
       modo, // 'pvp', 'inimigo', 'treino'
       respawn: opts.respawn !== false,
+      iaTipo: opts.ia || 'humano', // 'humano', 'agressivo', 'defensivo'
+      ordem: 'normal',            // 'normal', 'avancar', 'proteger', 'recuar', 'pausar'
+      modoTatico: 'combate',      // 'combate', 'peel', 'recuo', 'posicionamento'
+      tRecuo: 0,
+      tPausaCombo: 0,
+      comboHits: 0,
+      alvoFocoTeam: 0,
       alvoId: 0,
       tAtk: t + 0.4 + Math.random() * 1.0,
       tSkill: t + 2.0 + Math.random() * 3.0,
@@ -383,10 +415,13 @@ function spawnBots(opts){
     const grauTxt = grauPorNivel(lv);
     const setNome = grauTxt === 'S' ? 'Imperial/Tallum (+16)' : (grauTxt === 'A' ? 'Tallum (+13)' : (grauTxt === 'B' ? 'Doom (+10)' : (grauTxt === 'C' ? 'Full Plate (+7)' : (grauTxt === 'D' ? 'Brigandine (+4)' : 'No-Grade'))));
     const timeTxt = team ? ` [${team === 'A' ? 'Time Azul' : 'Time Vermelho'}]` : '';
+    const msg = criados === 1
+      ? `⚔️ DUELO 1v1: 1 bot${timeTxt} Nv ${lv} (Grau ${grauTxt} · ${setNome}) aceitou o desafio e está à sua frente!`
+      : `⚔️ ${criados} bots${timeTxt} Nv ${lv} (Grau ${grauTxt} · ${setNome}) entraram na partida!`;
     CTX.difunde(canal, {
       t: 'chat',
       n: 'Sistema',
-      m: `⚔️ ${criados} bots${timeTxt} Nv ${lv} (Grau ${grauTxt} · ${setNome}) entraram na partida!`,
+      m: msg,
       c: 's'
     });
   }
@@ -411,10 +446,10 @@ function spawnTimes(opts){
 
   if(canal.mapa === 'pvp'){
     // Salão de Baium (Arena PvP): centro (-28.4, -53.85).
-    // Bases nos cantos Oeste e Leste do salão (21 metros de afastamento, 42m de distância entre as equipes!)
+    // Bases seguras a 13.5m do centro (27m de distância entre equipes, piso plano 100% sólido sem cair)
     cx = are.x;
     cz = are.z;
-    distBase = 21.0;
+    distBase = 13.5;
   } else if(canal.mapa === 'cidade'){
     // Campo aberto ao sul de Talking Island
     cx = (typeof opts.x === 'number' && Math.abs(opts.x) > 40) ? opts.x : 0;
@@ -516,8 +551,43 @@ function matarBots(canalAlvo){
   return mortos;
 }
 
-/* Encontra alvo adequado para o bot */
+/* Localiza o alvo prioritário da equipe (focus fire de grupo em alvos feridos ou healers) */
+function alvoPrioritarioTime(canal, team, t){
+  if(!canal || !canal.jog || !team) return null;
+  let melhorAlvo = null;
+  let menorHpPct = 999;
+  let healerInimigo = null;
+
+  for(const cand of canal.jog.values()){
+    if(cand.morto || cand.hp <= 0 || t < cand.imune) continue;
+    if(cand.team === team) continue;
+    if(cand.team && cand.team !== team){
+      const hpPct = (cand.hp || 0) / (cand.pmax || 1);
+      if(hpPct < 0.40 && hpPct < menorHpPct){
+        menorHpPct = hpPct;
+        melhorAlvo = cand;
+      }
+      if((cand.arma === 'book' || cand.cls === 'clerigo') && !healerInimigo){
+        healerInimigo = cand;
+      }
+    }
+  }
+  return melhorAlvo || healerInimigo;
+}
+
+/* Encontra alvo adequado para o bot com inteligência tática */
 function buscaAlvo(bot, c, t){
+  if(bot.ordem === 'pausar') return null;
+
+  // Assistência Tática de Equipe (Focus Fire)
+  if(bot.team && bot.iaTipo === 'humano'){
+    const foco = alvoPrioritarioTime(c, bot.team, t);
+    if(foco && Math.random() < 0.72){
+      const d = Math.hypot(foco.x - bot.x, foco.z - bot.z);
+      if(d < 38) return foco;
+    }
+  }
+
   let melhor = null;
   let melhorDist = 48;
 
@@ -545,8 +615,13 @@ function buscaAlvo(bot, c, t){
     // Se o bot tem time, ele busca preferencialmente o time rival pelo mapa
     let pesoDist = d;
     if(bot.team){
-      if(timeRival) pesoDist = d * 0.25;
-      else pesoDist = d * 2.5;
+      if(timeRival){
+        const hpPct = (cand.hp || 0) / (cand.pmax || 1);
+        const bonusExecucao = hpPct < 0.4 ? 0.6 : 1.0;
+        pesoDist = d * 0.25 * bonusExecucao;
+      } else {
+        pesoDist = d * 2.5; // evita quem não tem time
+      }
     }
 
     if(pesoDist < melhorDist){
@@ -588,16 +663,115 @@ function tick(t, dt){
         continue;
       }
 
-      // Modo treino: passivo
-      if(bot.modo === 'treino'){
+      // Modo treino ou ordem de pausa
+      if(bot.modo === 'treino' || bot.ordem === 'pausar'){
         bot.a = 'idle';
         bot.guarda = false;
         continue;
       }
 
-      // IA DEDICADA DE CLÉRIGO / HEALER (LIVRO ASTRAL)
+      // Ordem coletiva: Recuo Geral / Reagrupar
+      if(bot.ordem === 'recuar' && t < bot.tRecuo){
+        bot.guarda = false;
+        bot.a = 'run';
+        const angRecuo = Math.atan2(bot.spawnX - bot.x, bot.spawnZ - bot.z);
+        bot.f = r2(angRecuo);
+        bot.x = r2(bot.x + Math.sin(angRecuo) * 5.8 * dt);
+        bot.z = r2(bot.z + Math.cos(angRecuo) * 5.8 * dt);
+        continue;
+      }
+
+      // 1. RECUO DE SOBREVIVÊNCIA POR HP BAIXO (< 28%)
+      // Um jogador humano não continua batendo suicida com 10% de HP; ele desengaja e busca suporte!
+      const hpPct = (bot.hp || 0) / (bot.pmax || 1);
       const isHealer = bot.arma === 'book' || bot.cls === 'clerigo';
+      const isGuardiao = bot.arma === 'shield';
+      const isMago = bot.arma === 'staff';
+
+      if(hpPct < 0.28 && bot.iaTipo === 'humano' && !isHealer && bot.ordem !== 'avancar'){
+        if(t > bot.tRecuo){
+          bot.tRecuo = t + 2.5; // recua por 2.5 segundos
+          bot.a = 'roll';
+          bot.imune = t + 0.35;
+        }
+      }
+
+      if(t < bot.tRecuo && !isHealer){
+        // Recua em direção à base ou ao Healer do time
+        let destinoX = bot.spawnX, destinoZ = bot.spawnZ;
+        if(bot.team){
+          for(const W of c.jog.values()){
+            if(W.team === bot.team && (W.arma === 'book' || W.cls === 'clerigo') && !W.morto && W.hp > 0){
+              destinoX = W.x; destinoZ = W.z;
+              break;
+            }
+          }
+        }
+        const dxR = destinoX - bot.x, dzR = destinoZ - bot.z;
+        const dR = Math.hypot(dxR, dzR) || 1;
+        bot.f = r2(Math.atan2(dxR, dzR));
+        bot.a = 'run';
+        bot.guarda = false;
+        const k = Math.min(dR, 5.8 * dt);
+        bot.x = r2(bot.x + (dxR / dR) * k);
+        bot.z = r2(bot.z + (dzR / dR) * k);
+        continue;
+      }
+
+      // IA DEDICADA DE CLÉRIGO / HEALER (LIVRO ASTRAL)
       if(isHealer){
+        // Instinto de Sobrevivência & Fuga Tática do Healer:
+        // Se um inimigo estiver colado no curandeiro (< 4.2m), ele NÃO fica parado apanhando!
+        let perseguidor = null;
+        let menorDistInim = 4.5;
+        for(const Inim of c.jog.values()){
+          if(Inim.morto || Inim.hp <= 0) continue;
+          if(bot.team && Inim.team === bot.team) continue;
+          if(CTX.aliadoDe && CTX.aliadoDe(c, bot, Inim, t)) continue;
+          const dI = Math.hypot(Inim.x - bot.x, Inim.z - bot.z);
+          if(dI < menorDistInim){ menorDistInim = dI; perseguidor = Inim; }
+        }
+
+        if(perseguidor){
+          // Auto-preservação: Escudo Astral se disponível
+          if(bot.skills.includes(2) && (!bot.cd['book2'] || t > bot.cd['book2'])){
+            bot.a = 'c_s3';
+            bot.tAtk = t + 1.2;
+            CTX.ataque(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
+          } else if(Math.random() < 0.25 && t > bot.tAtk){
+            bot.a = 'roll';
+            bot.imune = t + 0.35;
+          }
+
+          // Corre na direção do Guardião ou Guerreiro aliado mais próximo!
+          let protetor = null;
+          let menorDistP = 999;
+          for(const W of c.jog.values()){
+            if(W === bot || W.morto || W.hp <= 0 || W.arma === 'book') continue;
+            if((bot.team && W.team === bot.team) || (CTX.aliadoDe && CTX.aliadoDe(c, bot, W, t))){
+              const d = Math.hypot(W.x - bot.x, W.z - bot.z);
+              if(d < menorDistP){ menorDistP = d; protetor = W; }
+            }
+          }
+
+          let dirFugaX, dirFugaZ;
+          if(protetor){
+            dirFugaX = protetor.x - bot.x;
+            dirFugaZ = protetor.z - bot.z;
+          } else {
+            dirFugaX = bot.x - perseguidor.x;
+            dirFugaZ = bot.z - perseguidor.z;
+          }
+          const dFuga = Math.hypot(dirFugaX, dirFugaZ) || 1;
+          bot.f = r2(Math.atan2(dirFugaX, dirFugaZ));
+          bot.a = 'run';
+          bot.guarda = false;
+          const k = 5.8 * dt;
+          bot.x = r2(bot.x + (dirFugaX / dFuga) * k);
+          bot.z = r2(bot.z + (dirFugaZ / dFuga) * k);
+          continue;
+        }
+
         // 1. Procura aliado caído do mesmo time para ressuscitar (até 12m)
         let aliadoCaido = null;
         let menorDistCaido = 14;
@@ -712,6 +886,33 @@ function tick(t, dt){
         bot.alvoId = alvo ? alvo.id : 0;
       }
 
+      // IA DE PEELING DO GUARDIÃO (TANK)
+      // Se algum aliado frágil do time estiver sendo atacado a menos de 15m, o Guardião intercepta!
+      if(isGuardiao && bot.team && bot.ordem !== 'avancar'){
+        let ameaca = null;
+        for(const W of c.jog.values()){
+          if(W === bot || W.morto || W.hp <= 0 || W.team !== bot.team) continue;
+          const ehFragil = (W.arma === 'book' || W.cls === 'clerigo' || W.arma === 'staff' || (W.hp / W.pmax < 0.35));
+          if(ehFragil){
+            for(const Inim of c.jog.values()){
+              if(Inim.morto || Inim.hp <= 0 || Inim.team === bot.team) continue;
+              const dInim = Math.hypot(Inim.x - W.x, Inim.z - W.z);
+              if(dInim < 4.8){
+                ameaca = Inim;
+                break;
+              }
+            }
+          }
+          if(ameaca) break;
+        }
+
+        if(ameaca){
+          alvo = ameaca;
+          bot.alvoId = ameaca.id;
+          bot.modoTatico = 'peel';
+        }
+      }
+
       // Sem alvo: patrulha suave próximo ao ponto de spawn
       if(!alvo){
         bot.guarda = false;
@@ -735,9 +936,7 @@ function tick(t, dt){
       const angAlvo = Math.atan2(dx, dz);
       bot.f = r2(angAlvo);
 
-      const isMago = bot.arma === 'staff';
       const isHealerCombat = bot.arma === 'book' || bot.cls === 'clerigo';
-      const isGuardiao = bot.arma === 'shield';
       const distIdeal = (isMago || isHealerCombat) ? 10.0 : 2.1;
 
       // Distância de combate
@@ -758,6 +957,40 @@ function tick(t, dt){
         bot.z = r2(bot.z - (dz / dist) * k);
       } else {
         // Alcance de golpe
+
+        // 1. Respeito à Guarda do Alvo (Shield Awareness):
+        // Se o oponente ergueu o escudo, o bot humano NÃO bate na parede frontal de escudo!
+        const alvoBloqueando = alvo.guarda || (alvo.a && alvo.a.indexOf('guard') >= 0);
+        if(alvoBloqueando){
+          // Circula rapidamente pelo flanco ou recua 1 metro
+          const angFlanco = angAlvo + Math.PI / 2 * bot.strafeDir;
+          bot.x = r2(bot.x + Math.sin(angFlanco) * 2.8 * dt);
+          bot.z = r2(bot.z + Math.cos(angFlanco) * 2.8 * dt);
+          bot.tAtk = Math.max(bot.tAtk, t + 0.45);
+          bot.a = 'run';
+          continue;
+        }
+
+        // 2. Bloqueio Reativo do Guardião:
+        // Se o inimigo iniciou ataque corpo a corpo, o Guardião ergue o escudo!
+        const alvoAtacando = alvo.a && (alvo.a.indexOf('slash') >= 0 || alvo.a.indexOf('thrust') >= 0 || alvo.a.indexOf('atk') >= 0);
+        if(isGuardiao && alvoAtacando && dist < 3.2 && !bot.guarda && Math.random() < 0.72){
+          bot.guarda = true;
+          bot.a = 'guard';
+          setTimeout(() => { if(bot) bot.guarda = false; }, 750);
+          continue;
+        }
+
+        // 3. Cadência Humana (Pacing & Footsies - pausa entre combos):
+        if(t < bot.tPausaCombo){
+          // Movimentação orbital leve enquanto recupera estamina/fôlego
+          const lateralAng = angAlvo + Math.PI / 2 * bot.strafeDir;
+          bot.x = r2(bot.x + Math.sin(lateralAng) * 1.6 * dt);
+          bot.z = r2(bot.z + Math.cos(lateralAng) * 1.6 * dt);
+          bot.a = 'idle';
+          continue;
+        }
+
         if(t > bot.tStrafe){
           bot.tStrafe = t + 1.2 + Math.random() * 1.8;
           bot.strafeDir = Math.random() < 0.5 ? 1 : -1;
@@ -768,27 +1001,35 @@ function tick(t, dt){
         bot.x = r2(bot.x + Math.sin(lateralAng) * 1.5 * dt);
         bot.z = r2(bot.z + Math.cos(lateralAng) * 1.5 * dt);
 
-        // Guardião: ativa postura de guarda com frequência
-        if(isGuardiao && Math.random() < 0.28 && !bot.guarda){
+        // Guardião: postura de guarda preventiva ocasional
+        if(isGuardiao && Math.random() < 0.22 && !bot.guarda){
           bot.guarda = true;
           bot.a = 'guard';
           setTimeout(() => { if(bot) bot.guarda = false; }, 850);
         }
 
         // Esquiva defensiva (roll) quando sob ataque
-        if(bot.atacante && Math.random() < 0.08 && t > bot.tAtk){
+        if(bot.atacante && Math.random() < 0.12 && t > bot.tAtk){
           bot.a = 'roll';
           bot.imune = t + 0.35;
           const kRoll = 3.6;
           bot.x = r2(bot.x + Math.sin(lateralAng) * kRoll);
           bot.z = r2(bot.z + Math.cos(lateralAng) * kRoll);
           bot.tAtk = t + 0.6;
+          bot.comboHits = 0;
           continue;
         }
 
         // Execução de ataque / skills
         if(t > bot.tAtk && !bot.guarda){
-          bot.tAtk = t + 0.7 + Math.random() * 0.35;
+          bot.comboHits = (bot.comboHits || 0) + 1;
+          // Após 2 ataques consecutivos, faz uma pausa tática de 0.5s a 0.8s (footsies)
+          if(bot.comboHits >= 2 && bot.iaTipo === 'humano'){
+            bot.comboHits = 0;
+            bot.tPausaCombo = t + 0.5 + Math.random() * 0.35;
+          }
+
+          bot.tAtk = t + 0.75 + Math.random() * 0.35;
           const temSkills = bot.skills && bot.skills.length > 0;
           const usaSkill = temSkills && t > bot.tSkill && Math.random() < 0.55;
 
@@ -827,6 +1068,34 @@ function tick(t, dt){
       console.warn('[Fakes tick erro]', err && err.message);
     }
   }
+
+  // PASSE FINAL DE SEGURANÇA ESPACIAL E POSICIONAMENTO HUMANO:
+  // 1. Anti-dogpiling (espaçamento natural entre aliados e inimigos)
+  // 2. Restrição estrita de perímetro (impede atravessar paredes ou flutuar no vazio da arena)
+  for(const c of CTX.canais.cidade.concat(CTX.canais.pvp)){
+    if(!c || !c.jog || c.jog.size === 0) continue;
+    for(const bot of bots.values()){
+      if(bot.canalRef !== c || bot.morto || bot.hp <= 0) continue;
+
+      // Anti-dogpiling
+      for(const outro of c.jog.values()){
+        if(outro === bot || outro.morto || outro.hp <= 0) continue;
+        const dSepX = bot.x - outro.x, dSepZ = bot.z - outro.z;
+        const dSep = Math.hypot(dSepX, dSepZ);
+        const espacoMin = 1.6;
+        if(dSep > 0.0001 && dSep < espacoMin){
+          const forca = ((espacoMin - dSep) / espacoMin) * 2.8 * dt;
+          bot.x = r2(bot.x + (dSepX / dSep) * forca);
+          bot.z = r2(bot.z + (dSepZ / dSep) * forca);
+        }
+      }
+
+      // Restringe ao piso seguro
+      const cp = clampCoordenadas(bot.x, bot.z, c.mapa);
+      bot.x = cp.x;
+      bot.z = cp.z;
+    }
+  }
 }
 
 /* Processa comandos de chat: /bot [qtd] [lv], /bot arena, /bot limpar, /bot matar */
@@ -844,6 +1113,59 @@ function comando(c, J, txt){
   if(cmd === '/painel' || sub === 'painel'){
     CTX.envia(J, { t: 'bot_painel', open: true, total: bots.size });
     sis('Painel de Bots PvP aberto.');
+    return;
+  }
+
+  // /1v1 ou /duelo [lv] [classe] -> Duelo solo diretamente em frente ao jogador
+  if(cmd === '/1v1' || cmd === '/duelo' || sub === '1v1' || sub === 'duelo'){
+    const lv = Math.min(85, Math.max(1, parseInt(cmd === '/1v1' || cmd === '/duelo' ? sub : arg2, 10) || J.lv || 40));
+    const argClasse = (cmd === '/1v1' || cmd === '/duelo' ? arg2 : arg3) || '';
+    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd: 1, lv, modo: 'pvp', classe: argClasse, playerF: J.f, ia: 'humano' });
+    sis(`⚔️ 1 bot Nv ${lv} (${argClasse || 'desafiante'}) aceitou seu duelo 1v1 e está à sua frente!`);
+    return;
+  }
+
+  // /bot ordem [avancar|proteger|recuar|pausar|continuar]
+  if(sub === 'ordem' || sub === 'tatico'){
+    const ordem = (arg2 || 'normal').toLowerCase();
+    const tNow = agora();
+    let n = 0;
+    for(const b of bots.values()){
+      if(b.canalRef === c){
+        b.ordem = ordem;
+        if(ordem === 'recuar') b.tRecuo = tNow + 4.5;
+        n++;
+      }
+    }
+    sis(`🚩 Ordem tática para ${n} bots definida: ${ordem.toUpperCase()}`);
+    return;
+  }
+
+  // Atalhos diretos de ordens
+  if(sub === 'pausar'){
+    for(const b of bots.values()) if(b.canalRef === c) b.ordem = 'pausar';
+    sis('🛑 Todos os bots foram pausados.');
+    return;
+  }
+  if(sub === 'continuar' || sub === 'play'){
+    for(const b of bots.values()) if(b.canalRef === c) b.ordem = 'normal';
+    sis('▶️ Bots retomaram o combate!');
+    return;
+  }
+  if(sub === 'avancar'){
+    for(const b of bots.values()) if(b.canalRef === c) b.ordem = 'avancar';
+    sis('⚔️ Ordem: AVANÇAR!');
+    return;
+  }
+  if(sub === 'proteger'){
+    for(const b of bots.values()) if(b.canalRef === c) b.ordem = 'proteger';
+    sis('🛡️ Ordem: PROTEGER HEALER!');
+    return;
+  }
+  if(sub === 'recuar' || sub === 'reagrupar'){
+    const tNow = agora();
+    for(const b of bots.values()) if(b.canalRef === c){ b.ordem = 'recuar'; b.tRecuo = tNow + 4.5; }
+    sis('🏃 Ordem: RECUAR / REAGRUPAR!');
     return;
   }
 
@@ -1009,7 +1331,8 @@ function executa(c, J, m){
       lv,
       comHealer: m.comHealer !== false,
       classeA: m.classeA || '',
-      classeB: m.classeB || ''
+      classeB: m.classeB || '',
+      ia: m.ia || 'humano'
     });
     CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });
     CTX.envia(J, { t: 'chat', n: 'Sistema', m: `🚩 Painel: Guerra de Times iniciada (Azul ${r.timeA} vs Vermelho ${r.timeB})!`, c: 's' });
@@ -1036,10 +1359,24 @@ function executa(c, J, m){
       lv,
       team: m.team || '',
       classe: m.classe || '',
-      comHealer: m.comHealer !== false
+      comHealer: m.comHealer !== false,
+      ia: m.ia || 'humano',
+      playerF: J.f
     });
     CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });
     CTX.envia(J, { t: 'chat', n: 'Sistema', m: `⚔️ Painel: ${criados} bots Nv ${lv} spawnados com sucesso!`, c: 's' });
+  } else if(acao === 'ordem'){
+    const ordem = String(m.ordem || 'normal').toLowerCase();
+    const tNow = agora();
+    let n = 0;
+    for(const b of bots.values()){
+      if(b.canalRef === c){
+        b.ordem = ordem;
+        if(ordem === 'recuar') b.tRecuo = tNow + 4.5;
+        n++;
+      }
+    }
+    CTX.envia(J, { t: 'chat', n: 'Sistema', m: `🚩 Painel: Ordem Tática ${ordem.toUpperCase()} transmitida a ${n} bots!`, c: 's' });
   } else if(acao === 'limpar'){
     const removidos = limparBots(m.tudo ? null : c);
     CTX.envia(J, { t: 'bot_info', total: bots.size, mapa: c.mapa });

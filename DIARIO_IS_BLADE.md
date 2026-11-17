@@ -4553,3 +4553,54 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Causa: `applyHit` (arena.html e cidade.html) tinha `if(S.dead&&!MOBS.length&&!(projetil/area))return;` ANTES do visual. No mapa PvP (arena.html?mode=dungeon&go=pvp) nao ha mobs nem chefe vivo (S.dead = true), entao saia antes de skillSwingFx / fxBasico / slashArc: skills e ataque basico do proprio jogador ficavam sem efeito (so projetil/area escapavam). Os dos bots passam por skillFxRemoto, por isso alguns apareciam.
 - Correcao [fx-pvp]: virou `soVisual`; o visual e o som rodam sempre e o `return` foi para logo antes do dano local (mobsHit). O dano no PvP continua do servidor.
 - Teste no mapa PvP (servidor local isolado, sem mobs, S.dead true): antes, depois da skill 1 a contagem de efeitos ficava parada (~28 acima da base, so os efeitos de inicio); depois, cada skill gera os seus (22 a 56 acima da base). Observacao: em qualidade alta o navegador de teste (sem placa de video) roda a ~1 qps, por isso nao serve para medir la.
+
+### [Claude] 17/11 - l2ikarus.com: topo da IS Labs + cadastro novo (branch l2ikarus-web)
+
+- Dono: manter a marca IS Labs bem visivel (o site vira da IS Labs com varios jogos web no futuro; hoje usa l2ikarus.com por ser URL conhecida). Foco total no L2 Ikarus Web para fazer renda; jogo de sobrevivencia proprio fica para depois.
+- Home: topo agora e a mesma barra + logo IS Labs (fortaleza, fagulhas) do site no ar. Barra: Jogos (sem link, vitrine futura de jogos web), pilula "L2 Ikarus BETA · Hack and slash web", Grupo, Discord, Entrar/Minha conta, Jogar agora (no lugar de Baixar o jogo). Abaixo: "IS Labs apresenta" + arte L2 Ikarus e o resto do conteudo. Celular: barra fixa "Jogar agora" embaixo.
+- Cadastro novo `CadastroIkarusWeb.jsx` (Google ou login/senha, mesma API /api/register + login automatico + ref de indicacao). RegisterModal antigo so nas paginas legadas.
+- Conferido em 1440 e 390 px, sem erro de JS e sem rolagem lateral. Commit local no branch, sem push.
+
+### Sessão 17/11/2026 - Controle Mestre em Tela Única (No Scroll), Duelo 1v1 com Posicionamento Frontal, IA Tática Humana, Resolução de Flutuação e Anti-Aglomeração de Bots
+
+- **Painel de Controle Mestre Unificado em Tela Única (`prototipo/js/painel_bots.js`)**:
+  - **Zero Scroll / Single-Screen Layout**: Design compacto e refinado estilo Lineage II com proporção de 520px de largura e altura contida, eliminando totalmente barras de rolagem ou seções escondidas.
+  - **Barra de Presets Rápidos 1-Clique**:
+    * `⚔️ 1v1 Duelo`: Seleciona instantaneamente 1 bot calibrado para duelo sparring solo à frente do jogador.
+    * `🛡️ 3 vs 3`: Convocação de trio balanceado com Healer.
+    * `🚩 5 vs 5 TvT`: Convocação padrão de guerra de equipes com formação tática nos cantos.
+    * `💥 10 vs 10`: Batalha total de grande escala.
+  - **Grid Duplo Compacto (Setup & Tática)**:
+    * Coluna Esquerda: Seletor de Quantidade (permitindo explicitamente `1` para duelo solo até `25`), Stepper de Nível (1 a 85 com visualizador instantâneo de Grau D/C/B/A/S, Set de Armadura e Glow de encantamento), e Local de Batalha (`Aqui`, `Arena PvP`, `Campo`).
+    * Coluna Direita: Modo de Equipes (`1v1 / Livre`, `TvT Azul x Vermelho`, `Time Azul`, `Time Vermelho`), Seletor de Classe dos Bots (`Todas`, `Dano/Guerreiro`, `Tank/Guardião`, `Mago`, `Healer/Clérigo`), Inteligência Tática (`Humano`, `Agressivo`, `Treino`) e Entrada do Jogador em Equipes (`Azul`, `Vermelho`, `Neutro`).
+  - **Barra de Ordens Táticas em Tempo Real (Comando de Grupo ao Vivo)**:
+    * Cinco botões interativos para controlar o exército de bots durante a luta sem reiniciar o mapa: `⚔️ Avançar`, `🛡️ Proteger Healer`, `🏃 Reagrupar`, `🛑 Pausar` e `▶️ Luta Livre`.
+  - **Botão Mestre Dinâmico Responsivo**:
+    * Altera seu rótulo e estilo em tempo real: `⚔️ INICIAR DUELO 1v1 (1 BOT NV 40 · GRAU C)` no modo solo ou `🚩 INICIAR GUERRA TVT (5 vs 5 · COM HEALERS · GRAU C)` em guerra de times.
+  - **Acesso Rápido no Header**:
+    * Botões de ação imediata no topo do modal (`💀 Matar`, `🛑 Limpar` e `✕ Fechar`) e contador ao vivo de bots ativos.
+- **Duelo 1v1 Solo com Posicionamento Frontal (`servidor/fakes.js`)**:
+  - Quando a quantidade solicitada for `qtd === 1` (via Painel, comando `/1v1`, `/duelo` ou `/bot 1`):
+    * O bot não nasce em ângulo circular aleatório; ele é posicionado a exatamente `4.2m` em frente ao jogador com base no ângulo de visão (`dirPlayer = opts.playerF`), com rotação espelhada de frente para o jogador (`fRot = dirPlayer + Math.PI`).
+    * Inicia imediatamente em postura de sparring e duelo 1v1.
+- **Resolução Definitiva da Flutuação de Bots na Arena Baium (`servidor/fakes.js` & `servidor/server.js`)**:
+  - Identificada a causa da imagem com bot Kronos pairando no vazio: o salão da Arena Baium possui piso plano sólido até o raio de 20.5m. Quando bots eram invocados com `distBase = 21m` ou executavam rolamentos/recuos contínuos, ultrapassavam a borda do piso e caíam nas ruínas externas sem piso embaixo, aparentando flutuar no ar.
+  - `clampCoordenadas(x, z, mapa)`: Implementado limitador estrito de raio circular (`rMax = 19.5m`) centrado no pedestal de Baium `(-28.4, -53.85)` tanto na geração de spawn quanto no laço físico do servidor.
+  - `distBase` de guerra TvT em arena reajustado de 21m para 13.5m (distância entre equipes de 27m, 100% sobre o lajedo de pedra seguro).
+- **Sistema de Anti-Aglomeração & Espaçamento Natural (Anti-Dogpiling) (`servidor/fakes.js`)**:
+  - Passe espacial no tick dos bots aplicando força de repulsão suave (`raioMin = 1.6m`) entre entidades vivas no mesmo canal.
+  - Impede que os bots colapsem em um único ponto geométrico ou fiquem amontoados batendo no mesmo lugar; os personagens abrem leque e lutam lado a lado como humanos reais.
+- **Inteligência Tática Humana dos Bots (`servidor/fakes.js`)**:
+  - **Foco de Equipe (Assist & Focus Fire)**: Bots aliados dão assistência prioritária em alvos inimigos abaixo de 40% de vida ou no Healer adversário.
+  - **Recuo de Sobrevivência (HP < 28%)**: Ao sofrer dano crítico, o bot desengaja, executa rolamento defensivo e recua em direção ao seu Clérigo/base por 2.5s para receber cura.
+  - **Instinto de Preservação do Healer**: Se um inimigo se aproximar a menos de 4.5m, o Clérigo ativa o Escudo Astral (skill 2), rola para trás e busca a proteção do Guardião/Guerreiro mais próximo.
+  - **Peeling Ativo do Guardião (Tank)**: Ao detectar um aliado frágil (Healer ou Mago) sob ataque a menos de 4.8m, o Guardião intercepta o agressor, ergue o escudo (`guard = true`) e assume a linha de frente.
+  - **Respeito à Guarda do Oponente (Shield Awareness)**: Bots humanos não golpeiam repetidamente contra escudo erguido; circulam pelo flanco ou recuam 1 metro.
+  - **Bloqueio Reativo do Escudo**: Guardião tem 72% de chance de erguer o escudo no momento exato em que o oponente inicia a animação de ataque.
+  - **Cadência e Footsies**: Pausa tática de 0.5s–0.8s após sequências de 2 golpes para fôlego e movimentação lateral, eliminando o comportamento mecânico de ataque sem pausa.
+- **Nitidez Acentuada de Times e Desafiantes (`prototipo/js/net.js`)**:
+  - Tags de time ampliadas em 20% com contornos reforçados de 6px.
+  - Anéis de solo (`THREE.RingGeometry`) alargados para raio de 0.70m a 1.25m com brilho neon vibrante (`0x0ea5e9` no Time Azul, `0xef4444` no Time Vermelho e `0xf59e0b` em bots desafiantes 1v1).
+  - Bots neutros de 1v1 identificados com badge `⚔️ DESAFIANTE [1v1]` e barra de vida dourada.
+- **Painel Admin GM (`prototipo/js/painel_admin.js`)**:
+  - Adicionado botão de atalho `⚔️ Duelo 1v1 (1 Bot)` acionando `PainelBots.duelo1v1()`.

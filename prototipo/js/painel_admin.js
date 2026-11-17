@@ -355,10 +355,11 @@
         <div class="pa-section">
           <div class="pa-sec-title">🤖 Guerra de Times & Bots PvP</div>
           <div class="pa-grid-btns">
-            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-times">🚩 Guerra 5v5 (com Healers)</button>
-            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-spawn">⚔️ Spawn 10 Bots (Nv Atual)</button>
+            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-1v1">⚔️ Duelo 1v1 (1 Bot)</button>
+            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-times">🚩 Guerra 5v5 (Healers)</button>
+            <button class="pa-btn pa-btn-gold" id="pa-btn-bots-spawn">⚔️ Spawn 10 Bots</button>
             <button class="pa-btn pa-btn-kill" id="pa-btn-bots-limpar">🛑 Limpar Bots</button>
-            <button class="pa-btn" id="pa-btn-bots-painel">⚙️ Painel de Bots (F8)</button>
+            <button class="pa-btn" id="pa-btn-bots-painel">⚙️ Painel Mestre (B/F8)</button>
           </div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:6px 0 4px;text-transform:uppercase;">Time do GM / Jogador:</div>
           <div class="pa-grid-btns">
@@ -468,6 +469,15 @@
     });
 
     // Bots PvP & Guerra de Times
+    document.getElementById('pa-btn-bots-1v1').onclick = function(){
+      som('click');
+      var lv = parseInt(slider.value, 10) || 40;
+      if(window.PainelBots && PainelBots.duelo1v1){
+        PainelBots.duelo1v1(lv);
+      } else if(window.Net && Net.botCmd){
+        Net.botCmd({ acao: 'spawn', qtd: 1, lv: lv, modo: 'pvp', ia: 'humano' });
+      }
+    };
     document.getElementById('pa-btn-bots-times').onclick = function(){
       som('click');
       var lv = parseInt(slider.value, 10) || 40;

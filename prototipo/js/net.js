@@ -112,15 +112,18 @@ export const Net = (function(){
 
   function atualizaTeamRing(e){
     var tm = e.team || (e.nome && e.nome.indexOf('Azul_') === 0 ? 'A' : (e.nome && e.nome.indexOf('Verm_') === 0 ? 'B' : ''));
-    if(!tm){
+    var isBot1v1 = !tm && e.sid && e.sid.indexOf('bot_') === 0;
+
+    if(!tm && !isBot1v1){
       if(e.teamRing){ e.grp.remove(e.teamRing); e.teamRing = null; }
       return;
     }
-    var corHex = tm === 'A' ? 0x38bdf8 : 0xff4d4d;
+
+    var corHex = tm === 'A' ? 0x0ea5e9 : (tm === 'B' ? 0xef4444 : 0xf59e0b);
     if(!e.teamRing){
-      var geo = new THREE.RingGeometry(0.85, 1.05, 32);
+      var geo = new THREE.RingGeometry(0.70, 1.25, 32);
       geo.rotateX(-Math.PI / 2);
-      var mat = new THREE.MeshBasicMaterial({ color: corHex, transparent: true, opacity: 0.88, side: THREE.DoubleSide, depthWrite: false });
+      var mat = new THREE.MeshBasicMaterial({ color: corHex, transparent: true, opacity: 0.90, side: THREE.DoubleSide, depthWrite: false });
       var msh = new THREE.Mesh(geo, mat);
       msh.position.y = 0.04;
       e.grp.add(msh);
@@ -165,26 +168,36 @@ export const Net = (function(){
       if(e.nome.indexOf('Azul_') === 0) tm = 'A';
       else if(e.nome.indexOf('Verm_') === 0) tm = 'B';
     }
+    var isBot1v1 = !tm && e.sid && e.sid.indexOf('bot_') === 0;
 
-    // 1. Badge Luminoso de Time no topo (Pill HD)
+    // 1. Badge Luminoso de Time no topo (Pill HD com contorno reforçado)
     if(tm === 'A'){
-      desenhaPill(g, 156, 6, 200, 28, 14, '#082f49', '#0369a1', '#38bdf8');
-      g.font = '900 15px system-ui,Arial,sans-serif';
+      desenhaPill(g, 136, 4, 240, 32, 16, '#082f49', '#0284c7', '#38bdf8');
+      g.font = '900 16px system-ui,Arial,sans-serif';
       g.textAlign = 'center';
-      g.lineWidth = 3;
+      g.lineWidth = 4;
       g.strokeStyle = '#021827';
-      g.strokeText('🛡️ TIME AZUL', 256, 25);
-      g.fillStyle = '#e0f2fe';
-      g.fillText('🛡️ TIME AZUL', 256, 25);
+      g.strokeText('🛡️ TIME AZUL', 256, 26);
+      g.fillStyle = '#f0f9ff';
+      g.fillText('🛡️ TIME AZUL', 256, 26);
     } else if(tm === 'B'){
-      desenhaPill(g, 146, 6, 220, 28, 14, '#450a0a', '#991b1b', '#f87171');
+      desenhaPill(g, 126, 4, 260, 32, 16, '#450a0a', '#dc2626', '#f87171');
+      g.font = '900 16px system-ui,Arial,sans-serif';
+      g.textAlign = 'center';
+      g.lineWidth = 4;
+      g.strokeStyle = '#230404';
+      g.strokeText('⚔️ TIME VERMELHO', 256, 26);
+      g.fillStyle = '#fef2f2';
+      g.fillText('⚔️ TIME VERMELHO', 256, 26);
+    } else if(isBot1v1){
+      desenhaPill(g, 146, 4, 220, 30, 15, '#3b2505', '#d97706', '#fbbf24');
       g.font = '900 15px system-ui,Arial,sans-serif';
       g.textAlign = 'center';
       g.lineWidth = 3;
-      g.strokeStyle = '#230404';
-      g.strokeText('⚔️ TIME VERMELHO', 256, 25);
-      g.fillStyle = '#fee2e2';
-      g.fillText('⚔️ TIME VERMELHO', 256, 25);
+      g.strokeStyle = '#1e1002';
+      g.strokeText('⚔️ DESAFIANTE [1v1]', 256, 25);
+      g.fillStyle = '#fef3c7';
+      g.fillText('⚔️ DESAFIANTE [1v1]', 256, 25);
     } else if(e.cla){
       desenhaPill(g, 206, 6, 100, 26, 13, '#1e1b4b', '#4338ca', '#818cf8');
       g.font = '800 14px system-ui,Arial,sans-serif';
@@ -196,26 +209,26 @@ export const Net = (function(){
     // 2. Nome + Nível Nítido (Linha do meio)
     var nmLimpo = e.nome ? e.nome.replace(/^(Azul_|Verm_)/, '') : 'Heroi';
     var textoNome = (e.cla && tm ? '[' + e.cla + '] ' : '') + 'Lv ' + (e.lv || 1) + '  ' + nmLimpo;
-    var yNome = (tm || e.cla) ? 68 : 50;
+    var yNome = (tm || isBot1v1 || e.cla) ? 70 : 52;
 
-    g.font = '800 28px system-ui,Arial,sans-serif';
+    g.font = '800 29px system-ui,Arial,sans-serif';
     g.textAlign = 'center';
     g.lineWidth = 6;
-    g.strokeStyle = 'rgba(0,0,0,0.95)';
+    g.strokeStyle = 'rgba(0,0,0,0.96)';
     g.lineJoin = 'round';
     g.strokeText(textoNome, 256, yNome);
 
-    var corNome = e.morto ? '#94a3b8' : (noGrupo(e.id) ? '#4ade80' : (tm === 'A' ? '#7dd3fc' : (tm === 'B' ? '#fca5a5' : (e.pk === 2 ? '#ef4444' : (e.pk === 1 ? '#c084fc' : (N.mapa === 'pvp' ? '#fdba74' : '#f8fafc'))))));
+    var corNome = e.morto ? '#94a3b8' : (noGrupo(e.id) ? '#4ade80' : (tm === 'A' ? '#7dd3fc' : (tm === 'B' ? '#fca5a5' : (isBot1v1 ? '#fbbf24' : (e.pk === 2 ? '#ef4444' : (e.pk === 1 ? '#c084fc' : (N.mapa === 'pvp' ? '#fdba74' : '#f8fafc')))))));
     g.fillStyle = corNome;
     g.fillText(textoNome, 256, yNome);
 
     // 3. Barra de HP Estilizada (Linha inferior)
-    var yBar = (tm || e.cla) ? 88 : 70;
-    var barW = 320, barH = 18, barX = 96;
+    var yBar = (tm || isBot1v1 || e.cla) ? 92 : 74;
+    var barW = 330, barH = 19, barX = 91;
     var k = Math.max(0, Math.min(1, (e.hp || 0) / (e.pmax || 100)));
 
     // Caixa de fundo
-    desenhaPill(g, barX - 2, yBar - 2, barW + 4, barH + 4, 8, 'rgba(10,15,28,0.92)', 'rgba(15,23,42,0.96)', tm === 'A' ? '#0369a1' : (tm === 'B' ? '#991b1b' : '#334155'));
+    desenhaPill(g, barX - 2, yBar - 2, barW + 4, barH + 4, 8, 'rgba(10,15,28,0.94)', 'rgba(15,23,42,0.98)', tm === 'A' ? '#0284c7' : (tm === 'B' ? '#dc2626' : (isBot1v1 ? '#d97706' : '#334155')));
 
     // Miolo de vida preenchido
     if(k > 0 && !e.morto){
@@ -240,7 +253,10 @@ export const Net = (function(){
         gradHp.addColorStop(1, '#0284c7');
       } else if(tm === 'B'){
         gradHp.addColorStop(0, '#f87171');
-        gradHp.addColorStop(1, '#b91c1c');
+        gradHp.addColorStop(1, '#dc2626');
+      } else if(isBot1v1){
+        gradHp.addColorStop(0, '#fde047');
+        gradHp.addColorStop(1, '#ca8a04');
       } else {
         if(k > 0.5){ gradHp.addColorStop(0, '#4ade80'); gradHp.addColorStop(1, '#16a34a'); }
         else if(k > 0.25){ gradHp.addColorStop(0, '#facc15'); gradHp.addColorStop(1, '#ca8a04'); }
@@ -304,7 +320,7 @@ export const Net = (function(){
   function criaTag(e){
     var cv = document.createElement('canvas'); cv.width = 512; cv.height = 144;
     var tex = new THREE.CanvasTexture(cv), sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
-    sp.scale.set(3.4, 0.96, 1); sp.position.y = 3.25; sp.renderOrder = 999; e.grp.add(sp); e.tag = { cv: cv, tex: tex, sp: sp }; desenhaTag(e);
+    sp.scale.set(3.8, 1.15, 1); sp.position.y = 3.35; sp.renderOrder = 999; e.grp.add(sp); e.tag = { cv: cv, tex: tex, sp: sp }; desenhaTag(e);
   }
 
   /* ---------- jogadores remotos ---------- */

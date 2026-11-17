@@ -22,7 +22,7 @@ const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z
 /* [mapas-multi] 08/11/2026 (dono: todos os mapas multijogador): Cruma, Fortaleza e Pantano tem canais como a cidade (50 por canal); o jogador entra onde o
    jogo o coloca (posicao inicial vem do cliente) e manda a altura (y) para os outros o desenharem no relevo. Ninguem fere ninguem la (PvP com flag vem depois);
    mobs continuam de cada jogador ate a Fase 6. */     /* masmorra = instancia SOLO (dungeon, duelo com o Baium): um canal por jogador */
-const ARENA_PVP = { x: -28.4, z: -53.85, r: +process.env.PVP_R || 34 };               /* PvP livre: todos nascem em pontos aleatorios dentro deste raio (parte andavel do circulo do Baium) */
+const ARENA_PVP = { x: -28.4, z: -53.85, r: +process.env.PVP_R || 19.5 };               /* PvP livre: piso plano seguro do salão do Baium (raio 19.5m) */
 const SPAWN_TIME = null;    /* mapa de PvP = circulo gigante do Baium (3o andar da Torre, centro -28,4/-53,85, raio 62): cada time nasce num lado, 72 m de distancia */
 const CAP_PVP = +process.env.CAP_PVP || 500;                        /* arena livre: entra quem quiser (limite so de seguranca) */
 const PARTY_MAX = 6, PARTY_GRACA = 90;                              /* grupo: ate 6; quem cai ou troca de pagina tem 90 s para voltar */
@@ -572,7 +572,7 @@ wss.on('connection', ws => {
         envia(J, { t: 'chat', n: 'Sistema', m: `Você agora faz parte do ${nomeTime}.`, c: 's' }); return;
       }
       if(txt && Admin.ehComando(txt)){ Admin.comando(c, J, txt); return; }
-      if(txt && (txt.startsWith('/bot') || txt.startsWith('/fake') || txt === '/painel')){ Fakes.comando(c, J, txt); return; }
+      if(txt && (txt.startsWith('/bot') || txt.startsWith('/fake') || txt === '/painel' || txt.startsWith('/1v1') || txt.startsWith('/duelo'))){ Fakes.comando(c, J, txt); return; }
       if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }
       else if(txt && m.c === 'c'){ const C = Clas.de(J.pers); if(!C) envia(J, { t: 'chat', n: 'Sistema', m: 'Você não está em um clã.', c: 's' }); else for(const o of membrosOnline(C)) envia(o, { t: 'chat', n: J.nome, m: txt, c: 'c' }); }      /* [cla] chat do cla (@) */
       else if(txt) difunde(c, { t: 'chat', n: J.nome, m: txt, team: J.team }); } }
