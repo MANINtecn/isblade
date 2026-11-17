@@ -411,7 +411,7 @@ def montar_lancador():
                      dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=10, alinha=True), dict(acao="W_SpAtk11_2HS", de=0, ate=30, saida=26, alinha=True),
                      # 17/11/2026 (dono): sem os dois cortes no ar; o corte subindo emenda direto no corte descendo, espada fincada NA FRENTE
                      dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=14, alinha=True, giro=lambda t: GIRO_L, inclina=lambda t: INCL_L, retoque=lambda a, t: vertical(a, 1.0)),          # desce ja com a espada em pe NA FRENTE (ponta para baixo)
-                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=44, alinha=True, giro=lambda t: GIRO_L, inclina=lambda t: INCL_L, retoque=lambda a, t: vertical(a, 1.0))], emenda=7)
+                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=44, alinha=True, inclina=lambda t: INCL_L, retoque=lambda a, t: vertical(a, 1.0))], emenda=7)
     N = fx[-1][1]; d0 = dados_mundo(acao, N)
     h0 = [fx[1][1], pico_rapido(d0, fx[3][0], fx[3][1]), fx[4][1]]
     N, mv, d0 = pausas(acao, N, [(h0[0], 4), (h0[1], 4), (h0[2], 9)]); FP, FL, FD = [mv(h) for h in h0]

@@ -108,8 +108,8 @@ export const Guardiao = (function(){
     var tipo = rig.tipo || ''; if(!tipo){ try { tipo = localStorage.getItem('isblade.char_type') || ''; } catch(e){} }
     var tipoL = String(tipo).toLowerCase(), outra = !W_PSA[tipoL], psa = 'MFighter';   /* [guerreiro] a skill e da classe: toda raca/sexo usa os clipes do Blender (gravados no Humano M); nas outras, so rotacoes + quadril na escala da raca (como o Guardiao) */
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
-    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=3', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
-    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=4').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
+    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=4', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
+    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=5').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
     Promise.all([pr, prM]).then(function(ab){
       var list = ab[0], MED = ab[1] || {};
       if(!list || !list.length) return;
