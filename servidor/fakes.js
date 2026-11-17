@@ -170,14 +170,13 @@ function setupPorNivel(racaBase, armaTipo, lv){
   let en = 0;
 
   if(armaTipo === 'book'){
-    // Clérigo / Healer (Livro Astral)
-    wb = 'book';
-    if(grau === 'S') en = 16;
-    else if(grau === 'A') en = 13;
-    else if(grau === 'B') en = 10;
-    else if(grau === 'C') en = 7;
-    else if(grau === 'D') en = 4;
-    else en = 0;
+    // Clérigo / Healer: Cajado de mago conforme o grau (idêntico ao L2, sem livro)
+    if(grau === 'S'){ wb = 'ghouls_staff'; en = 16; }
+    else if(grau === 'A'){ wb = 'sword_of_miracles'; en = 13; }
+    else if(grau === 'B'){ wb = 'valhalla'; en = 10; }
+    else if(grau === 'C'){ wb = 'ghouls_staff'; en = 7; }
+    else if(grau === 'D'){ wb = 'ghost_staff'; en = 4; }
+    else { wb = 'staff_arcane'; en = 0; }
   } else if(armaTipo === 'shield'){
     // Guardião (Espada 1H + Escudo)
     if(grau === 'S'){ wb = 'samurai_longsword'; en = 16; }

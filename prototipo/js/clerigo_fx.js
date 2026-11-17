@@ -989,33 +989,8 @@
     });
   };
 
-  /* ---------------- Livro Astral (arma do Clérigo):
-     Aberto em V, lombada vertical, páginas iluminadas e estrela sagrada flutuante. ---------------- */
+  /* ---------------- Livro desativado (Healer no L2 usa cajado e mao esquerda vazia) ---------------- */
   C.livro = function(esc){
-    esc = esc || 1;
-    var L = 0.2 * esc, W = 0.014 * esc, H = 0.3 * esc, raiz = new T.Group();
-    var capa = new T.MeshStandardMaterial({ color: 0x1c2c48, roughness: 0.55, metalness: 0.25 });
-    var ouro = new T.MeshStandardMaterial({ color: 0xd9b25a, roughness: 0.3, metalness: 0.85, emissive: 0x3a2a08 });
-    var pag = new T.MeshBasicMaterial({ color: 0xfff0c4 });
-
-    function caixa(m, w, h, d, x, y, z){
-      var o = new T.Mesh(new T.BoxGeometry(w, h, d), m);
-      o.position.set(x, y, z);
-      return o;
-    }
-    raiz.add(caixa(capa, W * 1.6, H, W * 2, 0, 0, 0));
-    [-1, 1].forEach(function(lado){
-      var pv = new T.Group();
-      pv.rotation.y = lado * (Math.PI / 2 - 0.87);
-      raiz.add(pv);
-      pv.add(caixa(capa, L, H, W, lado * L / 2, 0, 0));
-      pv.add(caixa(ouro, L * 0.96, H * 1.02, W * 0.6, lado * L / 2, 0, -W * 0.7));
-      pv.add(caixa(pag, L * 0.88, H * 0.9, W * 0.5, lado * (L / 2 + 0.01), 0, W * 1.05));
-    });
-    var br = sprite(TX.estrela || null, OURO, 0.55 * esc, 0.75);
-    br.position.z = 0.12 * esc;
-    raiz.add(br);
-    raiz.userData.brilho = br;
-    return raiz;
+    return new T.Group();
   };
 })();

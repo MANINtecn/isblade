@@ -5897,11 +5897,15 @@ function souClerigo(){if(S&&S.classe==='clerico')return true;try{return localSto
 function wpnDoItem(w){return (w==='staff'&&souClerigo())?'book':w;}/* [clerigo] usa os cajados do mago: o item e 'staff', o jeito de lutar (skills) e 'book' */
 function itemDaArma(w){return w==='book'?'staff':w;}/* conjuradores: mesmas animacoes do cajado (idle, corrida, CastShort da raca) */
 function livroNoRig(rig,on){
-  if(!rig||!rig.root)return;
-  if(on&&!rig.livro&&window.ClerigoFX&&ClerigoFX.pronto){var bo=rig.root.getObjectByName('Shield_L_Bone')||rig.root.getObjectByName('Bip01_L_Hand')||rig.root.getObjectByName('Bip01_L_Forearm');
-    if(bo){var c=new THREE.Group(),lv=ClerigoFX.livro(1.15);c.add(lv);bo.add(c);rig.root.updateMatrixWorld(true);var ws=new THREE.Vector3(),wq=new THREE.Quaternion(),rq=new THREE.Quaternion();bo.getWorldScale(ws);bo.getWorldQuaternion(wq);rig.root.getWorldQuaternion(rq);
-      c.scale.setScalar(1/Math.max(1e-4,Math.abs(ws.x)));c.quaternion.copy(wq.invert().multiply(rq));lv.position.set(0,.05,.12);rig.livro=c;}}
-  if(rig.livro)rig.livro.visible=!!on;
+  // [clerigo] Healer no L2 usa cajado na mao direita e NAO usa livro na mao esquerda
+  if(!rig)return;
+  if(rig.livro){
+    try{
+      rig.livro.visible=false;
+      if(rig.livro.parent)rig.livro.parent.remove(rig.livro);
+    }catch(_){}
+    rig.livro=null;
+  }
 }
 function clerigoBasicoIni(id){/* Lamina de Luz: cada golpe do combo dispara uma lamina (data/armas/book.json -> basico) */
   var w=(DATA.armas.book&&DATA.armas.book.basico)||null,an=S.anim;if(!w||!an)return;var nv=w.niveis[id]||{};
@@ -5910,7 +5914,7 @@ function clerigoBasicoIni(id){/* Lamina de Luz: cada golpe do combo dispara uma 
 }
 /* <<< CLAUDE [clerigo] */
 function applyWeaponVis(rig){
-  if(GREADY.staff&&!GREADY.book)GREADY.book=GREADY.staff;livroNoRig(rig,WPN==='book');/* [clerigo] */
+  if(GREADY.staff&&!GREADY.book)GREADY.book=GREADY.staff;livroNoRig(rig,false);/* [clerigo] sem livro */
 
 
 
@@ -18300,7 +18304,7 @@ try{Moradores.init({THREE:THREE,scene:scene,camera:function(){return camera;},ge
   loadL2:function(url,cb){loadL2Player(url,{blade:0xdfe8ff,emis:0x3a5fb0,glow:0x5aa9ff,guard:0x8b7bff},cb);}});}catch(e){console.warn('moradores',e);}/* [moradores] NPCs com rotina (servidor/moradores.js) */
 Net.init({
   suporte:suporteRecebe,alvoSuporte:alvoSuporte,/* [clerigo] fase 2 */
-  curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,on);},/* [clerigo] */
+  curaFx:function(m,x,z){if(m&&m.de&&window.ClerigoFX&&ClerigoFX.pronto)try{ClerigoFX.cura(x,z,(m.q|0)>=40);SFX.play('c_s1_hit');}catch(_){}},livroRemoto:function(r,on){livroNoRig(r,false);},/* [clerigo] sem livro */
   getY:function(){return S.py||0;},alturaRemota:function(y){return y;},chaoRemoto:function(x,z){return getGroundHeight(x,z);},/* [pagina-unica] outros jogadores no relevo do mundo */
   ms:mobSrvSnap,mdmg:mobSrvDano,mtiro:mobSrvTiro,mtele:mobSrvTele,/* [chefes-marcados] *//* [mob3d-cidade] mobs do servidor no campo */
   armaRemota:function(rig,b){try{ArmaGrau.aplica(rig,b?baseOf(b):null,attachL2Item);}catch(_){}},/* [graus] arma do grau nos outros jogadores */

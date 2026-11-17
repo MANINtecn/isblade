@@ -326,7 +326,7 @@ export const Net = (function(){
   /* ---------- jogadores remotos ---------- */
   function aplicaArma(e){
     var r = e.rig; if(!r) return; var a = e.arma;
-    if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = a === 'staff'; if(ctx.livroRemoto) ctx.livroRemoto(r, a === 'book');      /* [clerigo] Livro Astral */
+    if(r.swd2h) r.swd2h.visible = a === 'sword'; if(r.swd1h) r.swd1h.visible = false; if(r.shd) r.shd.visible = a === 'shield'; if(r.stf) r.stf.visible = (a === 'staff' || a === 'book'); if(ctx.livroRemoto) ctx.livroRemoto(r, false);      /* [clerigo] Healer usa cajado (L2), sem livro */
     if(ctx.armaRemota) ctx.armaRemota(r, e.wb || '');      /* [graus] modelo da arma pelo grau */
   }
   function addRemoto(p){

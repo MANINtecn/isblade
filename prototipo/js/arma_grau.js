@@ -532,8 +532,8 @@
       if(rig.shd.visible) filhoGrau(rig.shd, attach, shdUrl);
     }
 
-    /* cajado do mago na mao direita */
-    var isStaff = (w === 'staff');
+    /* cajado do mago / healer na mao direita */
+    var isStaff = (w === 'staff' || w === 'book');
     if(isStaff && url){
       if(!rig.stfL2){
         rig.stfL2 = attach(rig.root, 'Weapon_R_Bone', url, { isL2: true });

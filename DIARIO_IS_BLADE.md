@@ -4817,3 +4817,25 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Teste de ponta a ponta local (servidor do jogo na porta 8012 + site simulado): Jogar -> carregando -> selecao -> criacao, sem segundo login; passe falso recusado; sem passe e sem conta volta ao site.
 - ORDEM PARA PUBLICAR: (1) mesma chave secreta em GAME_SSO_SECRET (Vercel, projeto do site) e SSO_SECRET (VPS, servidor do jogo) e reiniciar o servidor do jogo com o contas.js novo; (2) push do jogo; (3) push do site. Sem a chave nos dois lados ninguem entra no jogo (o login antigo do jogo ja manda para o site).
 - Pendente depois: trocar "IS BLADE" por "L2 Ikarus" nas telas do jogo, link "Lobby" da criacao/selecao, aba Personagens do painel com os personagens do jogo, NIVEL_MAX 400 no servidor (dono definiu 99).
+
+### [Claude] 17/11 - Remoção Total do Livro (Book) da Classe Healer / Clérigo
+- **Demanda do Dono**:
+  - Personagens/bots da classe Healer estavam nascendo com o livro (Livro Astral) na mão esquerda.
+  - No Lineage 2 oficial, Healer/Clérigo segura cajado/maça de mago na mão direita e mantém a mão esquerda vazia (sem livro de fantasia).
+- **Correções Aplicadas**:
+  1. `prototipo/cidade.html` e `prototipo/arena.html`:
+     - Função `livroNoRig` atualizada para desativar e desanexar qualquer instância de `rig.livro`.
+     - `applyWeaponVis(rig)` e `livroRemoto(rig)` forçados a `livroNoRig(rig, false)`.
+  2. `prototipo/js/net.js`:
+     - Healers remotos e bots (`a === 'book'`) agora têm seu cajado visível na mão direita (`r.stf.visible = true`) e `livroRemoto(r, false)`.
+  3. `prototipo/js/arma_grau.js`:
+     - `ArmaGrau.aplica` atualizado para tratar `w === 'book'` como arma de mago/caster (`isStaff = true`), acoplando o modelo 3D do cajado oficial do grau correspondente em `Weapon_R_Bone`.
+  4. `prototipo/js/clerigo_fx.js`:
+     - Função `ClerigoFX.livro` desativada (retorna `Group` vazio).
+  5. `servidor/fakes.js`:
+     - Spawns de bots Healer não utilizam mais `wb = 'book'`. O bot agora nasce com cajado oficial de acordo com o grau (Sem Grau: `staff_arcane`, D: `ghost_staff`, C: `ghouls_staff`, B: `valhalla`, A: `sword_of_miracles`, S: `ghouls_staff`).
+  6. `servidor/admin.js`:
+     - Kits de Admin para Healer (`tipoArma === 'book'`) atualizados para entregar o cajado oficial de cada grau em vez de item fictício `'book'`.
+  7. `prototipo/selecao.html`:
+     - Label de equipamento atualizado para `✝️ Clérigo · Cajado Sagrado`.
+

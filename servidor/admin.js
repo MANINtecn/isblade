@@ -47,7 +47,7 @@ const KITS_GRAU = {
       shield: 'gladius',
       escudo: 'shield_guardian',
       staff:  'staff_arcane',
-      book:   'book'
+      book:   'staff_arcane'
     }
   },
   D: {
@@ -67,7 +67,7 @@ const KITS_GRAU = {
       shield: 'bastard_sword',
       escudo: 'composite_shield',
       staff:  'ghost_staff',
-      book:   'book'
+      book:   'ghost_staff'
     }
   },
   C: {
@@ -87,7 +87,7 @@ const KITS_GRAU = {
       shield: 'samurai_longsword',
       escudo: 'full_plate_shield',
       staff:  'ghouls_staff',
-      book:   'book'
+      book:   'ghouls_staff'
     }
   },
   B: {
@@ -107,7 +107,7 @@ const KITS_GRAU = {
       shield: 'samurai_longsword',
       escudo: 'doom_shield',
       staff:  'valhalla',
-      book:   'book'
+      book:   'valhalla'
     }
   },
   A: {
@@ -127,7 +127,7 @@ const KITS_GRAU = {
       shield: 'gladius',
       escudo: 'shield_imperial',
       staff:  'sword_of_miracles',
-      book:   'book'
+      book:   'sword_of_miracles'
     }
   }
 };
