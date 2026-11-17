@@ -110,7 +110,7 @@
 
   function telaLogin(opt){
     opt = opt || {}; estilo();
-    var o = el('<div id="cnt"><div class="cx"><h2>IS BLADE</h2><p>Crie sua conta em 10 segundos: só usuário e senha.</p>' +
+    var o = el('<div id="cnt"><div class="cx"><h2>L2 IKARUS</h2><p>Crie sua conta em 10 segundos: só usuário e senha.</p>' +
       '<label>Usuário</label><input id="cu" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="16" placeholder="ex.: guerreiro_01">' +
       '<label>Senha</label><div class="ln"><input id="cs" type="password" autocomplete="current-password" maxlength="64" placeholder="mínimo 6 caracteres"><button type="button" class="ver" id="cv">ver</button></div>' +
       '<div class="er" id="ce"></div><div class="bt"><button class="b s" id="cen" type="button">Entrar</button><button class="b p" id="ccr" type="button">Criar conta</button></div>' +

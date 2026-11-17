@@ -1,6 +1,6 @@
 {
-  "name": "IS BLADE",
-  "short_name": "IS BLADE",
+  "name": "L2 Ikarus",
+  "short_name": "L2 Ikarus",
   "description": "RPG de acao no navegador (nome provisorio).",
   "start_url": "./index.html",
   "scope": "./",
