@@ -4989,3 +4989,27 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Correcao sem mexer no visual: `tools/blender_fx/guerreiro_pausas.py` mede no .blend (espaco do mundo, avanco e salto contam como movimento) onde o corpo comeca a se mexer (`ini`) e os trechos parados (`pausas`), gravados em `medidas.json`; a guarda de aparo do Contra-Golpe fica fora. Jogo (arena e cidade, guardiao.js v28): o clipe comeca no `ini`; cada pausa vira hit-stop de 0,08 s e o resto passa 7x mais rapido; depois do ultimo golpe andar encerra a pose final. Novos tempos (1o golpe / volta do controle): Investida 0,46/0,79 s (era 0,71/1,06), Lancador 0,48/1,99 (0,60/2,75), Fenda 0,56/0,92 (1,08/1,68), Modo 1,33/1,56 (2,46/2,76), Execucao 0,48/3,24 (0,60/3,63).
 - Investida errava quem estava perto: o golpe era conferido depois de avancar 5,4 m, olhando para a frente. Agora acerta todo mundo no corredor do avanco (`"caminho": true` no sword.json): jogo (mobs e chefe, arena e cidade) e servidor (PvP e bots; o cliente manda o ponto de partida x0/z0, o servidor limita a 10 m da posicao atual). Dono aprovou a parte do servidor. Copia `servidor/server.js.antes_caminho`. Testado (arena): acerta o chefe a 2, 4 e 6 m. PRECISA reiniciar o servidor da VPS para valer no ar.
 - Dano no PvP (achado, nada mudado ainda): o servidor usa dano FIXO da skill x 0,5 (PVP_MULT), sem nivel/status/arma; vida do jogador = 400 + 20/nivel + 200 + VIT (~1.800 no Nv 60); bot = 300 + nivel^1,46 x 11 (~2.700 no Nv 40, ~4.600 no Nv 60). Kit inteiro do guerreiro no PvP ~680. Dono escolheu: dano pelos status, estilo L2. Plano a apresentar antes de mexer.
+
+### [Claude] 17/11 - RESUMO PARA OUTRO CHAT: site l2ikarus.com + conta unica com o jogo (ler isto primeiro)
+
+**Repos e onde publica**
+- Site: `C:\TECX SOFTHOUSE\L2 IKARUS INTERCROW\site` (React/Vite, Vercel, GitHub MANINtecn/l2ikarus). Trabalho no branch `l2ikarus-web`; publicar = fast-forward do `main` + push (main = producao em www.l2ikarus.com; l2ikarus.com redireciona para www). Push so com ok do dono. Nunca abrir `.env`.
+- Jogo: este repo (MANINtecn/isblade). Arquivos na Vercel (isblade.tecx.pro, sem www; o www NAO resolve). Servidor na VPS do jogo 51.79.41.62 (play.isblade.tecx.pro): pasta `C:\IS-sync`, tarefas IS_Servidor/IS_Sync/IS_Caddy; IS_Sync faz git reset --hard a cada 5 min e reinicia so o node. Outro agente (Gemini) tambem da push aqui: mudanca que depende de config externa nasce DESLIGADA.
+- API do site (contas, Ikoin, PIX, galeria) passa pela VPS do L2 **192.99.110.164** (HeavyHost): `C:\status-server\server.js` porta 8080 (iniciar com `C:\status-server\iniciar.bat`) + MySQL. Se ela cair: login do site da "Erro interno: fetch failed", /api/status = online:false, /api/links = null.
+
+**Site novo (no ar)**
+- Home `src/assets/components/PaginaIkarusWeb.jsx/.css`, textos/enderecos em `src/config/ikarusWeb.js` (JOGO_BASE, URL_STATUS_JOGO, PIX_DOACAO, versus, galeria reserva...). Topo collab IS Labs x L2 Ikarus, chamada "O primeiro L2 sem target", L2 classico x L2 Ikarus, vitrine (GaleriaJogo), PC e celular, classes, Torre, progressao (99 niveis, 5 pts), loja de skins (Ikoin), doacao PIX estatico (`src/config/pixEstatico.js`, QR via lib `qrcode`).
+- Painel `PainelIkarusWeb.jsx`: abas Jogos (padrao; cartao L2 Ikarus + Jogar), Carteira (Ikoin/PIX PagBank, resgate, historico), Loja de skins (em breve), Personagens (do jogo), Indicacao. Login e cadastro novos (`CadastroIkarusWeb.jsx`, login no `App.jsx`). Sessao do jogador 30 dias.
+- Admin: aba GALERIA (`GaleriaAdmin.jsx`) -> Vercel Blob (store publico, BLOB_READ_WRITE_TOKEN), tabela `site_galeria`, cache 1 ano; `api/_galeria.js`, acoes em `api/admin.js`, lista publica `/api/galeria` em `api/status.js`.
+- Paginas legadas: `/sandbox` e `/jogos` (sem link na home). L2 classico/300x nao aparecem no site.
+
+**Conta unica (no ar)**
+- Site `POST /api/player/ticket` (api/player.js): passe HMAC-SHA256 com `GAME_SSO_SECRET` (Vercel do site), 2 min, nonce. `src/config/jogar.js` -> abre `JOGO_BASE/entrar.html#t=...`.
+- Jogo: `servidor/contas.js` `POST /api/conta/sso` (conta `site:<login>`, comeca do zero; conta do site nao entra por senha) e `POST /api/conta/sso-pers` (passe escopo 'pers', o site le a lista: `/api/player/personagens`). Chave lida de `SSO_SECRET` ou `C:\IS-sync\servidor\dados\sso_secret.txt` (fora do git; o dono criou). `prototipo/entrar.html` -> carregando -> selecao. `Conta.ssoAtivo=true` (js/conta.js) e `SSO_ATIVO=true` (index.html): login/capa antigos mandam para o site.
+- Celular: aviso de girar vira "Toque para jogar" no Android (js/giro.js, js/mobile.js); iPhone nao deixa travar.
+- Servidor: nivel max 99; ORIGINS sempre inclui https://jogar.l2ikarus.com. Telas do jogo com nome L2 Ikarus.
+
+**Pendente**
+- DNS: CNAME `jogar` no DNS do l2ikarus.com (valor da Vercel do projeto do jogo). Quando responder: trocar `JOGO_BASE` no site para https://jogar.l2ikarus.com e redirecionar isblade.tecx.pro.
+- VPS do L2 (192.99.110.164) com a API 8080 fora do ar em 17/11 -> login/cadastro/Ikoin/galeria do site param. Dono precisa ligar `C:\status-server\iniciar.bat` (e o MySQL). Futuro a decidir: tirar as contas do site da VPS do L2.
+- Status reais do L2 (pontos por nivel hoje 2 em data/progressao.json; dono quer 5 depois). Lista de apoiadores da doacao (depois). Catalogo de skins.
