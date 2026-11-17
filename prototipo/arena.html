@@ -2703,7 +2703,7 @@ var CM={
 
 };
 
-function getClipConfig(pose){if(WPN==='sword'&&/^w_[sn][0-9]$/.test(pose)&&vrm&&vrm.wClips&&vrm.wClips[pose]&&vrm.clips&&vrm.clips[pose])return vrm.wClips[pose];/* [guerreiro] clipe do Blender (so Humano M) */
+function getClipConfig(pose){if(WPN==='sword'&&/^w_[sn][0-9]$/.test(pose)&&vrm&&vrm.wClips&&vrm.wClips[pose]&&vrm.clips&&vrm.clips[pose])return vrm.wClips[pose];if(WPN==='sword'&&vrm&&vrm.isL2&&vrm.clips){var _nb={sweep:'Atk01_2HS',thrust:'Atk02_2HS',spin:'Atk03_2HS'}[pose];if(_nb&&vrm.clips[_nb])return {c:_nb,sp:1.6,hit:.52,cut:.8,lg:0};}/* [basico-l2] ataque padrao do Guerreiro = golpes nativos do L2 (Atk01 > Atk02 > Atk03); hit = pico medido da ponta da espada *//* [guerreiro] clipe do Blender (so Humano M) */
 
   /* >>> CLAUDE [guardiao] 2026-10-27 — clipes do Guardiao (Blender) */
   if(WPN==='shield'){var _gm=Guardiao.clipeConfig(pose,vrm);if(_gm)return _gm;}
@@ -9177,6 +9177,9 @@ function loadL2Player(modelUrl, sword, cb){
       var clean = c.name.replace(/_FElf|_FDwarf|_MOrc|_FMagic|_MFighter/g, '');
       if(!clips[clean]) clips[clean] = c;
     });
+    /* [basico-l2] 17/11/2026: os modelos do Humano M (nograde/brigandine/doom/fullplate) trazem copias genericas (Mixamo) com nomes de golpe/guarda/reacao
+       que deitam o personagem no chao. Sem elas, o mapeamento abaixo usa as animacoes nativas do L2 do mesmo arquivo (AtkWait/Atk01/Atk02/SpAtk01). */
+    if(gltf.animations.some(function(c){ return /mixamo/i.test(c.name); })) ['guard','slash1','slash2','slash3','slash4','block_hit','hit_large','hit_small','parry','roll','test'].forEach(function(k){ delete clips[k]; });
     clips['idle'] = clips['idle'] || clips['Wait_2HS_MFighter'] || clips['Wait_1HS_MFighter'] || gltf.animations[0];
     clips['idle_hand'] = clips['idle_hand'] || clips['Wait_Hand_MFighter'] || clips['idle'];
     clips['run'] = clips['run'] || clips['Run_2HS_MFighter'] || clips['Run_1HS_MFighter'];
