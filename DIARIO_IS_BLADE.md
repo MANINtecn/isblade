@@ -5013,3 +5013,11 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - DNS: CNAME `jogar` no DNS do l2ikarus.com (valor da Vercel do projeto do jogo). Quando responder: trocar `JOGO_BASE` no site para https://jogar.l2ikarus.com e redirecionar isblade.tecx.pro.
 - VPS do L2 (192.99.110.164) com a API 8080 fora do ar em 17/11 -> login/cadastro/Ikoin/galeria do site param. Dono precisa ligar `C:\status-server\iniciar.bat` (e o MySQL). Futuro a decidir: tirar as contas do site da VPS do L2.
 - Status reais do L2 (pontos por nivel hoje 2 em data/progressao.json; dono quer 5 depois). Lista de apoiadores da doacao (depois). Catalogo de skins.
+
+### [Claude] 17/11 - Banco do site na VPS nova (a VPS antiga 192.99.110.164 foi perdida)
+
+- Dono: a VPS antiga do L2 foi apagada por falta de pagamento; a nova (51.79.41.62) so roda o L2 Ikarus; contas comecam do zero; banco do site fica na VPS.
+- Jogo (d46c86c, 6802078; no ar, VPS atualizada): `servidor/site_db.js` dentro do servidor do jogo atende /sitedb/query, /sitedb/register (recebe passwordHash scrypt, e-mail opcional, indicacao) e /sitedb/status/all, com x-api-key. Config fora do git `servidor/dados/sitedb.json`. Sem ela responde 503 ("banco do site nao configurado") e o jogo segue normal. Dependencia nova `mysql2` 3.11.5. Tabelas em `servidor/sitedb_schema.sql` (accounts com senha scrypt + Ikoin, pedidos, codigos, indicacao, site_settings, site_galeria).
+- Instalador: `servidor/vps_windows/instalar_banco_site.ps1` (rodar como administrador em C:\IS-sync\servidorps_windows): baixa e instala MariaDB (servico MariaDB, so 127.0.0.1), banco l2ikarus_site, usuario 'site', tabelas, `dados/sitedb.json` + `dados/mariadb_root.txt`, tarefa IS_BackupSite (04:00, C:\IS-backups, 14 dias, `backup_banco_site.ps1`), reinicia o node e mostra as 3 variaveis da Vercel.
+- Site (67cca26, no ar): login confere scrypt (aceita SHA1 antigo); cadastro manda scrypt; sem consultas ao L2 antigo (characters); admin sem abas ONLINE, RANKING, PERSONAGENS, OFERTA.
+- FALTA (dono): rodar o instalador na VPS e trocar na Vercel do site: VPS_API_URL=https://play.isblade.tecx.pro/sitedb, VPS_STATUS_URL=https://play.isblade.tecx.pro/sitedb/status, VPS_STATUS_TOKEN=<chave que o script mostra>; Redeploy. Depois testar cadastro, login, Jogar, Ikoin e Galeria.
