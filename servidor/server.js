@@ -16,6 +16,7 @@ if(ORIGINS.length) for(const o of ['https://jogar.l2ikarus.com']) if(!ORIGINS.in
 const casa = (p, o) => { if(!p.includes('*')) return p === o; const [a, b] = p.split('*'); return !!o && o.startsWith(a) && o.endsWith(b) && o.length > a.length + b.length && !o.slice(a.length, o.length - b.length).includes('.'); };   /* um '*' vale um trecho sem ponto (um nivel de subdominio) */
 const origemOk = o => !ORIGINS.length || ORIGINS.some(p => casa(p, o));
 const Contas = require('./contas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), origemOk });      /* cadastro rapido + salvamento na nuvem (contas.js) */
+const SiteDB = require('./site_db')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), jogadores: () => { try { return todosCanais().reduce((a, c) => a + c.jog.size, 0); } catch(e){ return 0; } } });      /* [site-db] substitui a API da VPS antiga do L2 */
 const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 17;                                                   /* m/s: base 6.2 m/s, sprint 11.5 m/s, esquiva 4.6 m em 0.4 s; folga de latencia */
@@ -370,6 +371,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
 const srv = http.createServer((req, res) => {
   let url; try { url = decodeURIComponent(req.url.split('?')[0]); } catch (e) { res.writeHead(400); return res.end(); }
   if(url === '/status'){ res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' }); return res.end(JSON.stringify({ cap: CAP, canais: todosCanais().map(c => ({ mapa: c.mapa, n: c.n, jogadores: c.jog.size })) })); }
+  if(url.startsWith('/sitedb/')) return SiteDB.http(req, res, url);      /* [site-db] API do site l2ikarus.com (banco MariaDB local da VPS) */
   if(url.startsWith('/api/')) return Contas.http(req, res, url);
   if(!SERVE_STATIC){ res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return res.end('servidor de jogo (sem arquivos). WebSocket em /ws, estado em /status'); }
   if(url === '/') url = '/index.html';              /* entrada do jogo (botao Start -> selecao.html) */
