@@ -538,7 +538,11 @@
     aberto = typeof forca === 'boolean' ? forca : !aberto;
     container.style.display = aberto ? 'flex' : 'none';
     som(aberto ? 'open' : 'click');
-    if(aberto) cmd('info');
+    if(aberto){
+      try { if(document.exitPointerLock) document.exitPointerLock(); } catch(e){}
+      cmd('info');
+    }
+    if(window.UIJanelas) UIJanelas.notificar('painel_admin', aberto);
   }
 
   function atualizar(info){
@@ -639,6 +643,7 @@
   window.PainelAdmin = {
     abrir: function(){ toggle(true); },
     fechar: function(){ toggle(false); },
+    isOpen: function(){ return !!aberto; },
     toggle: toggle,
     atualizar: atualizar,
     aplicarSpeed: aplicarSpeed,

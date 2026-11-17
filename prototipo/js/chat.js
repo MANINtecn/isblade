@@ -31,8 +31,8 @@
       e.preventDefault(); abre();
     });
   }
-  function abre(){ monta(); C.aberto = true; box.classList.add('on'); campo.value = ''; try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} setTimeout(function(){ campo.focus(); }, 0); log.scrollTop = log.scrollHeight; }
-  function fecha(){ C.aberto = false; box.classList.remove('on'); campo.blur(); }
+  function abre(){ monta(); C.aberto = true; box.classList.add('on'); campo.value = ''; try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} setTimeout(function(){ campo.focus(); }, 0); log.scrollTop = log.scrollHeight; if(window.UIJanelas) UIJanelas.notificar('chat', true); }
+  function fecha(){ if(!C.aberto && (!box || !box.classList.contains('on'))) return; C.aberto = false; if(box) box.classList.remove('on'); if(campo) campo.blur(); if(window.UIJanelas) UIJanelas.notificar('chat', false); }
   function manda(){
     var t = campo.value.trim(); campo.value = '';
     if(t){ var canal = ''; if(t.charAt(0) === '#'){ canal = 'g'; t = t.slice(1).trim(); } else if(t.charAt(0) === '@'){ canal = 'c'; t = t.slice(1).trim(); }      /* @ = cla */ if(t && cfg.enviar) cfg.enviar(t, canal); }

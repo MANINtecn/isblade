@@ -78,12 +78,12 @@
     document.body.appendChild(el);
   }
 
-  A.fechar = function(){ A.atualiza(null); };
+  A.fechar = function(){ ult = ''; if(el) el.style.display = 'none'; };
 
   A.atualiza = function(a){
     if(!document.body) return; monta();
     if(!a){
-      if(ult){ ult = ''; el.style.display = 'none'; }
+      ult = ''; if(el) el.style.display = 'none';
       return;
     }
     var kHp = Math.max(0, Math.min(1, a.hp / (a.max || 1)));

@@ -167,8 +167,11 @@
           pend = { for: 0, int: 0, agi: 0, vit: 0 };
           render();
         }
+        if(window.UIJanelas) UIJanelas.notificar('stp', aberto);
       });
     },
+    abrir: function(){ Status.toggle(true); },
+    fechar: function(){ Status.toggle(false); },
     refresh: function(){
       if(aberto){
         var tot = gastos();

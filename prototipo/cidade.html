@@ -796,8 +796,9 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/inventario_ui.js?v=39"></script>
 <script src="js/skills_ui.js?v=42"></script>
 <script src="js/moradores.js?v=2"></script>
-<script src="js/mundo_campo.js?v=5"></script>
-<script src="js/mapa_vivo.js?v=14"></script>
+<script src="js/solo_detalhe.js?v=2"></script>
+<script src="js/mundo_campo.js?v=6"></script>
+<script src="js/mapa_vivo.js?v=15"></script>
 <script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
@@ -809,6 +810,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/horizonte.js?v=3"></script>
 <script src="js/painel_bots.js?v=2"></script>
 <script src="js/painel_admin.js?v=2"></script>
+<script src="js/ui_janelas.js?v=1"></script>
 </head>
 
 
@@ -4668,6 +4670,7 @@ if(window.Horizonte) setTimeout(function(){Horizonte.init(THREE,scene,camera,SAI
 var PORTAL_MENU=false;
 function openPortalMenu(){
   PORTAL_MENU=true;try{document.exitPointerLock();}catch(_){}
+  if(window.UIJanelas) UIJanelas.notificar('dg_menu', true);
   var h='<div class="hd"><b style="letter-spacing:.2em">PORTAL DIMENSIONAL - ESCOLHA O DESTINO</b><button type="button" id="diffX">Cancelar (Esc)</button></div><div class="dcards">';
   var DD=(typeof DGD!=='undefined'&&DGD.difficulties)||{};
   Object.keys(DD).forEach(function(k){var D=DD[k];
@@ -4693,7 +4696,7 @@ window.irArea=function(id){
   if(window.L2Teleport)L2Teleport.warpLocal(C.nome,vai);else vai();
 };
 window.openPortalMenu=function(){openPortalMenu();};
-function closePortalMenu(){PORTAL_MENU=false;document.getElementById('diff').classList.remove('open');}
+function closePortalMenu(){PORTAL_MENU=false;document.getElementById('diff').classList.remove('open');if(window.UIJanelas) UIJanelas.notificar('dg_menu', false);}
 /* <<< CLAUDE [portal-cidade] */
 
 
@@ -4758,11 +4761,29 @@ scarecrowGltfLoader.load('assets/personagens/scarecrow.glb', function(gltf){
 /* >>> CLAUDE [coluna] 16/11/2026 (dono): sai o domo de estrelas da arena (600 pontos numa meia-esfera de 80 m, sem nevoa, visivel do mundo todo) e as faiscas lilas
    espalhadas no centro. Entra UMA coluna de particulas douradas subindo do centro da praca: farol de direcao para voltar a cidade (no celular nao da para subir a camera).
    Pontos quadrados (sem forma redonda), tamanho fixo na tela (sizeAttenuation:false) para enxergar de longe, sem nevoa. Um desenho por quadro. */
-var COL_H=60,EMB=QUAL.nivel==='baixa'?140:220,embGeo=new THREE.BufferGeometry(),ep=new Float32Array(EMB*3),es=[];
-for(i=0;i<EMB;i++){var _cr=i%10<7?.35:1.2;ep[i*3]=(Math.random()-.5)*2*_cr;ep[i*3+1]=.3+Math.random()*COL_H;ep[i*3+2]=(Math.random()-.5)*2*_cr;es.push(3+Math.random()*4);}
-embGeo.setAttribute('position',new THREE.BufferAttribute(ep,3));
-var colunaCidade=new THREE.Points(embGeo,new THREE.PointsMaterial({color:0xffd98a,size:3,sizeAttenuation:false,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-colunaCidade.name='COLUNA_CIDADE';embGeo.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,COL_H/2,0),COL_H/2+2);/* esfera fixa: nao recalcula com os pontos subindo */
+/* [feixe-cidade] 17/11/2026 (dono): os pontos quadrados de tamanho fixo viravam uma pilha de quadradinhos brancos ao longe. Agora e um FEIXE de luz:
+   um plano que gira so no eixo vertical para olhar a camera (1 desenho, 2 triangulos), shader com nucleo branco-quente, halo dourado com queda suave
+   (sem aresta dura), faixas finas de energia subindo e topo dissolvendo no ceu. Paleta de explosao (branco -> ouro -> ambar), sem rosa/lilas. */
+var COL_H=72,COL_W=4.2,colUni={uT:{value:0}};
+var colGeo=new THREE.PlaneGeometry(COL_W,COL_H);colGeo.translate(0,COL_H/2+.1,0);
+var colunaCidade=new THREE.Mesh(colGeo,new THREE.ShaderMaterial({uniforms:colUni,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:[
+    'uniform float uT;varying vec2 vUv;',
+    'void main(){',
+    '  float u=vUv.x*2.0-1.0,v=vUv.y,au=abs(u);',
+    '  float nucleo=exp(-au*20.0);',                                        /* fio central branco-quente */
+    '  float halo=exp(-au*4.5)*0.42;',                                       /* corpo dourado com queda suave ate a borda */
+    '  float cu=fract((u+1.0)*5.0),col=floor((u+1.0)*5.0),h=fract(sin(col*91.7)*437.5);',
+    '  float d=fract(v*5.0-uT*(0.30+0.25*h)+h);',
+    '  float faixa=smoothstep(0.0,0.12,d)*(1.0-smoothstep(0.12,0.38,d))*pow(1.0-abs(cu*2.0-1.0),3.0)*exp(-au*2.5)*0.55;',   /* filetes subindo, pontas suaves */
+    '  float k=(nucleo+halo+faixa)*smoothstep(0.0,0.025,v)*(1.0-smoothstep(0.30,1.0,v));',
+    '  k*=(1.0-smoothstep(0.85,1.0,au))*(0.88+0.12*sin(uT*1.7));',
+    '  vec3 c=mix(vec3(1.0,0.52,0.16),vec3(1.0,0.82,0.42),smoothstep(0.0,0.7,nucleo+halo));',
+    '  c=mix(c,vec3(1.0,0.97,0.9),nucleo);',
+    '  gl_FragColor=vec4(c*k,1.0);',
+    '}'].join('\n')}));
+colunaCidade.name='COLUNA_CIDADE';colunaCidade.renderOrder=5;
 scene.add(colunaCidade);
 /* <<< CLAUDE [coluna] */
 
@@ -12308,11 +12329,8 @@ function dgStart(key){
 
 function openDiff(){
 
-
-
   DG.menu=true;SFX.play('ui');try{document.exitPointerLock();}catch(_){}
-
-
+  if(window.UIJanelas) UIJanelas.notificar('dg_menu', true);
 
   var h='<div class="hd"><b style="letter-spacing:.2em">ESCOLHA A DIFICULDADE</b><button type="button" id="diffX">Cancelar (Esc)</button></div><div class="dcards">';
 
@@ -12372,13 +12390,12 @@ function openDiff(){
 
 function closeDiff(){
 
-
-
   $('#diff').classList.remove('open');DG.menu=false;
 
-
-
   S.pz=Math.max(S.pz,-5.5);/* sai da frente do portal para nao reabrir na hora */
+  if(window.UIJanelas) UIJanelas.notificar('dg_menu', false);
+
+}
 
 
 
@@ -13178,8 +13195,7 @@ function toggleInv(force){
 
 
   if(invOpen){try{document.exitPointerLock();}catch(_){}renderInv();if(window.L2Drag)L2Drag.restore('inv');}
-
-
+  if(window.UIJanelas) UIJanelas.notificar('inv', invOpen);
 
 }
 window.toggleInv=toggleInv;
@@ -13324,8 +13340,7 @@ function toggleSk(force){
 
 
   if(skOpen){try{document.exitPointerLock();}catch(_){}renderSk();if(window.L2Drag)L2Drag.restore('skp');}
-
-
+  if(window.UIJanelas) UIJanelas.notificar('skp', skOpen);
 
 }
 window.toggleSk=toggleSk;
@@ -13917,6 +13932,7 @@ function buildPad(){
       b.classList.remove('open');
       b.style.display = 'none';
     }
+    if(window.UIJanelas) UIJanelas.notificar('cfg', willOpen);
   };
 
   function setCombo(on){document.body.classList.toggle('combo-ui',on);if(cb)cb.checked=on;try{localStorage.setItem('isblade.comboUI',on?'1':'0');}catch(_){}}
@@ -14805,23 +14821,22 @@ window.addEventListener('keydown',function(e){
 
   else if(k==='x'){try{document.exitPointerLock();}catch(_){}if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
 
-  else if(k==='escape'){var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
+  else if(k==='escape'){if(window.UIJanelas && UIJanelas.temJanelaAberta()){UIJanelas.fecharTopo();return;}var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
 
   else if(k==='k')toggleSk();
 
   else if(k==='c'||k==='u'){try{document.exitPointerLock();}catch(_){}if(window.Status)Status.toggle();}/* [status] Character Status (C) */
 
-
-
   else if(k==='m'){NAV.mode=NAV.mode==='dn'?'click':'dn';applyMode();}
-
-
 
   else if(k==='v')showRange=!showRange;
 
-
-
-  else if(k==='b')showRings=!showRings;
+  else if(k==='b'){
+    if(window.PainelBots && PainelBots.toggle){
+      e.preventDefault();
+      PainelBots.toggle();
+    } else showRings=!showRings;
+  }
 
 
 
@@ -16973,15 +16988,7 @@ function frameBody(nowMs){
 
 
 
-  var ap=embGeo.attributes.position.array;
-
-
-
-  for(var q=0;q<EMB;q++){ap[q*3+1]+=es[q]*dt;if(ap[q*3+1]>COL_H)ap[q*3+1]=.3;}/* [coluna] */
-
-
-
-  embGeo.attributes.position.needsUpdate=true;
+  colUni.uT.value+=dt;colunaCidade.rotation.y=Math.atan2(camera.position.x-colunaCidade.position.x,camera.position.z-colunaCidade.position.z);/* [feixe-cidade] sempre de frente para a camera */
 
 
 

@@ -108,8 +108,8 @@
     window.addEventListener('keydown', function(e){ if((e.key === 'h' || e.key === 'H') && !e.repeat && !digitando() && op.usar){ op.usar('pocao_vida'); } });
     if(document.body) botao(); else document.addEventListener('DOMContentLoaded', botao);
   };
-  L.abrir = function(loja){ if(window.SomL2 && !L.aberta()) SomL2.ui('janela_abre'); monta(); lojaAtual = loja || 'galladucci'; aba = 'comprar'; L._msg = ''; el.style.display = 'block'; if(lojaAtual === 'wilford'){ ARM = null; if(op.arm) op.arm('ver'); } try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} desenha(); };
-  L.fechar = function(){ if(el && el.style.display !== 'none'){ el.style.display = 'none'; if(window.SomL2) SomL2.ui('janela_fecha'); } };
+  L.abrir = function(loja){ if(window.SomL2 && !L.aberta()) SomL2.ui('janela_abre'); monta(); lojaAtual = loja || 'galladucci'; aba = 'comprar'; L._msg = ''; el.style.display = 'block'; if(lojaAtual === 'wilford'){ ARM = null; if(op.arm) op.arm('ver'); } try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} desenha(); if(window.UIJanelas) UIJanelas.notificar('loja', true); };
+  L.fechar = function(){ if(el && el.style.display !== 'none'){ el.style.display = 'none'; if(window.SomL2) SomL2.ui('janela_fecha'); if(window.UIJanelas) UIJanelas.notificar('loja', false); } };
   L.aberta = function(){ return !!(el && el.style.display !== 'none'); };
   L.aviso = function(t){ L._msg = t || ''; var m = el && el.querySelector('#lojaMsg'); if(m) m.textContent = L._msg; };
   L.atualiza = function(){ desenha(); botao(); };

@@ -448,6 +448,7 @@
     document.getElementById('l2-dialog-title').textContent = npcData.name;
     renderMainPage();
     dialogEl.classList.add('active');
+    if(window.UIJanelas) UIJanelas.notificar('l2_dialog', true);
   }
 
   function closeDialog(){
@@ -456,6 +457,7 @@
     }
     activeDialog = null;
     if(dialogEl) dialogEl.classList.remove('active');
+    if(window.UIJanelas) UIJanelas.notificar('l2_dialog', false);
   }
 
   // =========================================================================
@@ -1356,7 +1358,9 @@
 
     isOpen: function(){
       return !!activeDialog;
-    }
+    },
+    openDialog: openDialog,
+    closeDialog: closeDialog
   };
 
 })();

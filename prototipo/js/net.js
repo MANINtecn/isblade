@@ -582,6 +582,7 @@ export const Net = (function(){
   function alterna(forca){
     menuAberto = forca === undefined ? !menuAberto : !!forca; if(!menuEl) return; menuEl.style.display = menuAberto ? 'block' : 'none'; menuEl._h = '';
     if(menuAberto){ try { document.exitPointerLock(); } catch(e){} renderMenu(); }
+    if(window.UIJanelas) UIJanelas.notificar('net_menu', menuAberto);
   }
   function aceitar(tipo){
     if(tipo === 'cla' && pedCla){ send({ t: 'cla', k: 'aceitar' }); pedCla = null; desenhaPed(); return; }

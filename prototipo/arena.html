@@ -489,6 +489,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/l2_teleport.js"></script>
 <script src="js/painel_bots.js?v=2"></script>
 <script src="js/painel_admin.js?v=2"></script>
+<script src="js/ui_janelas.js?v=1"></script>
 </head>
 
 <body>
@@ -6570,6 +6571,7 @@ function pvpSair(){Net.sair();DG.pvp=false;pvpExitBtn(false);if(DG.deCidade){ret
 function openDiff(){
 
   DG.menu=true;SFX.play('ui');try{document.exitPointerLock();}catch(_){}
+  if(window.UIJanelas) UIJanelas.notificar('dg_menu', true);
 
   var h='<div class="hd"><b style="letter-spacing:.2em">ESCOLHA A DIFICULDADE</b><button type="button" id="diffX">Cancelar (Esc)</button></div><div class="dcards">';
 
@@ -6604,6 +6606,7 @@ function closeDiff(){
   $('#diff').classList.remove('open');DG.menu=false;
 
   S.pz=Math.max(S.pz,-5.5);/* sai da frente do portal para nao reabrir na hora */
+  if(window.UIJanelas) UIJanelas.notificar('dg_menu', false);
 
 }
 
@@ -7129,6 +7132,7 @@ function toggleInv(force){
   if(!som(invOpen?'inv_abre':'inv_fecha'))SFX.play('ui');
 
   if(invOpen){try{document.exitPointerLock();}catch(_){}renderInv();if(window.L2Drag)L2Drag.restore('inv');}
+  if(window.UIJanelas) UIJanelas.notificar('inv', invOpen);
 
 }
 window.toggleInv=toggleInv;
@@ -7205,6 +7209,7 @@ function toggleSk(force){
   if(!som(skOpen?'status_abre':'status_fecha'))SFX.play('ui');
 
   if(skOpen){try{document.exitPointerLock();}catch(_){}renderSk();if(window.L2Drag)L2Drag.restore('skp');}
+  if(window.UIJanelas) UIJanelas.notificar('skp', skOpen);
 
 }
 window.toggleSk=toggleSk;
@@ -7564,11 +7569,15 @@ function buildPad(){
     if(!box) return;
     var willOpen = (typeof force === 'boolean') ? force : !box.classList.contains('open');
     if(willOpen){
+      try{ if(document.exitPointerLock) document.exitPointerLock(); }catch(_){}
       box.classList.add('open');
+      box.style.display = 'block';
       if(window.L2Drag && L2Drag.bringToFront) L2Drag.bringToFront(box);
     } else {
       box.classList.remove('open');
+      box.style.display = 'none';
     }
+    if(window.UIJanelas) UIJanelas.notificar('cfg', willOpen);
   };
 
   function setCombo(on){document.body.classList.toggle('combo-ui',on);if(cb)cb.checked=on;try{localStorage.setItem('isblade.comboUI',on?'1':'0');}catch(_){}}
@@ -7821,8 +7830,11 @@ window.addEventListener('keydown',function(e){
     }
   }
   if(k==='b'){
-    returnToCity();
-    return;
+    if(window.PainelBots && PainelBots.toggle){
+      e.preventDefault();
+      PainelBots.toggle();
+      return;
+    }
   }
 
   if(e.code==='PageUp'){e.preventDefault();NAV.view='fp';applyView();return;}
@@ -7854,7 +7866,7 @@ window.addEventListener('keydown',function(e){
 
   else if(k==='x'){if(window.Net&&Net.alterna)Net.alterna();else{var nb=document.getElementById('netBtn');if(nb)nb.click();}}/* [acoes] Menu de Acoes (X) */
 
-  else if(k==='escape'){var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
+  else if(k==='escape'){if(window.UIJanelas && UIJanelas.temJanelaAberta()){UIJanelas.fecharTopo();return;}var cBox=document.getElementById('cfg');if(cBox&&cBox.classList.contains('open')){if(window.toggleCfg)window.toggleCfg(false);else cBox.classList.remove('open');}else if(DG.menu)closeDiff();}
 
   else if(k==='k')toggleSk();
 

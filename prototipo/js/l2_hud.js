@@ -284,6 +284,12 @@ export const L2Hud = {
         return;
       }
       if (kLow === 'escape') {
+        if (window.UIJanelas && UIJanelas.temJanelaAberta()) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          UIJanelas.fecharTopo();
+          return;
+        }
         var cfgBox = document.getElementById('cfg');
         if (cfgBox && cfgBox.classList.contains('open')) {
           e.preventDefault();

@@ -4617,3 +4617,57 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Topo novo: arte IS Labs (fortaleza + fagulhas) no alto a esquerda e a arte L2 Ikarus em destaque do centro para a direita, as duas comecando no topo da pagina por tras da barra. Barra transparente no topo e solida ao rolar. Texto "IS Labs x L2 Ikarus", Jogar agora, Criar conta, chips e status do servidor embaixo da arte do L2 Ikarus.
 - Celular: IS Labs no alto, L2 Ikarus logo abaixo sobrepondo de leve, barra fixa de Jogar embaixo.
 - Conferido em 1440, 1280 e 390 px, sem erro e sem rolagem lateral. Commit local, sem push.
+
+### [Claude] 17/11 - Chao nitido de perto (Fase A) e feixe de luz da cidade
+- Pedido do dono: o chao parecia borrao e a coluna da cidade saia como particulas quadradas.
+- Causa do chao: `solo_*.png` (mundo) e `terr_fortress/curuma/...` (mapas) sao UMA imagem de 512 px do mapa inteiro esticada (campo: ~57 cm por pixel).
+- `prototipo/js/solo_detalhe.js` (novo) + `assets/mundo/solo_detalhe.png` (gerada por `tools/solo_detalhe.py`): textura de detalhe sem cor que repete e multiplica a cor do chao. R = folhas de grama a cada 6 m (some de 25 a 90 m e em encosta), G = tufos a cada 14 m girado, B = variacao larga a cada 70 m. Celular basico: 2 leituras em vez de 3.
+- Aplicado no terreno do mundo (`mundo_campo.js`) e no material "Terreno" dos mapas (`mapa_vivo.js`, antes do preparo de shaders). Anisotropia do chao 4 -> 8 (fora do modo baixa). Comparar no console: `SoloDetalhe.forca(0)` / `(1)`.
+- Feixe da cidade (`cidade.html`, [feixe-cidade]): sai a nuvem de 220 pontos quadrados; entra um plano que vira para a camera (1 desenho) com shader: fio branco-quente, halo dourado com queda suave, filetes subindo, topo dissolvendo. Sem rosa/lilas.
+- Conferido no navegador: shaders compilam sem erro; grama e tufos aparecem de perto; feixe visto da praca. Nao conferido de longe no campo.
+- Pendente: PNG (o KTX2 ainda nao tem carregador); arena.html (torre.js) nao recebeu o detalhe; Fase B (horizonte com cor) aguarda o dono.
+
+### [Claude] 17/11 - l2ikarus.com: "o primeiro L2 sem target" (branch l2ikarus-web)
+
+- Dono aprovou trocar "hack and slash" por **"O primeiro L2 sem target"** como chamada principal (categoria: MMORPG de ação). Destacar mira, esquiva, combos e PC + celular.
+- Arte do topo: `public/media/web/capa_logo.webp` = capa.jpg sem "BY IS LABS / O UNICO L2 HACK AND SLASH" (escurecida e cortada); chamada em metal + azul entre a logo e os botoes.
+- Botao "Jogar agora" do site todo agora em aco escovado (igual ao da barra), nao mais azul.
+- Secoes novas: L2 classico x L2 Ikarus (ataque, defesa, skills, onde jogar), "Veja o jogo" com 2 capturas reais (beta) e "PC e celular" (PC, celular, como app).
+- Capturas reais: tiradas com o jogo local (`python -m http.server` no prototipo + Edge via Playwright, `arena.html?dev=1` com token falso no localStorage e `isblade.fluxo` no sessionStorage), guerreiro humano contra o Espantalho de Treino (modelo do Baium). Ficaram fracas (personagem sem armadura, painel de missao na tela, cabeca do gigante cortada): servem de previa; trocar por prints/videos gravados pelo dono.
+- Commit local df53401, sem push.
+
+
+### [Antigravity] 17/11/2026 - Varredura Universal de Janelas, Auto-Cursor Inteligente e Limpeza de Tela com Tecla ESC
+
+- **Diretriz Atendida**:
+  - *"Você vai fazer uma varredura e tudo que abrir janela, um exemplo, abrir inventário, exemplo, abrir o character, abrir o options, abrir painel dos boots, qualquer coisa que eu abrir que gerar uma janela, uma lojinha por exemplo, automaticamente já tem que me trazer o mouse sem eu precisar apertar o N. E na hora que eu fechar eu volto para a mira automática. Quando eu quiser, eu clico M e aí eu uso o mouse do jeito que eu quiser. Mas quando abrir essa janelas de diálogo, de alguma coisa, automaticamente já tem que me dar o mouse. Agora eu abro a janela, eu tenho que ficar apertando o M para liberar o mouse, para poder navegar. Isso atras demais. E seu eu der esc, várias vezes, tem que sair fechando tudo. O ESC ajuda demais você limpar a tela na hora da correria."*
+
+- **Implementações Realizadas**:
+  1. **Sistema Universal de Gerenciamento de Janelas e Auto-Cursor (`prototipo/js/ui_janelas.js`)**:
+     - Criado o módulo `UIJanelas` com mapeamento universal de todas as janelas do jogo:
+       - **Inventário (I)** (`#inv`, `toggleInv`)
+       - **Character / Status (C / U)** (`#stp`, `Status.toggle`)
+       - **Habilidades / Skills (K)** (`#skp`, `toggleSk`)
+       - **Opções / Configurações (O)** (`#cfg`, `toggleCfg`)
+       - **Painel Mestre de Bots PvP (B / F8)** (`#painelBotsModal`, `PainelBots.toggle`)
+       - **Painel Admin GM Power (F10)** (`#painelAdminModal`, `PainelAdmin.toggle`)
+       - **Loja / Armazém / Forja** (`#lojaWin`, `Loja.fechar`)
+       - **Diálogos de NPCs Lineage 2** (Clarissa, etc.) (`#l2-npc-dialog`, `L2NPCs.closeDialog`)
+       - **Diálogos com Moradores** (`#morConv`, `Moradores.fecha`)
+       - **Menu de Ações / Party / Rede (X / P)** (`#netMenu`, `Net.alterna`)
+       - **Menu de Dificuldade / Portal** (`#diff`, `closeDiff` / `closePortalMenu`)
+       - **Chat Lineage 2 (Enter)** (`#chatBox`, `Chat.fecha`)
+       - **Painel Dev / Ajuste F2** (`#f2box`)
+     - **Auto-Cursor Inteligente**: Ao abrir qualquer janela, o mouse é liberado imediatamente (`document.exitPointerLock()`), sem exigir apertar N ou M.
+     - **Retorno Automático para Mira**: Ao fechar a última janela aberta, se o modo de jogo for Dragon Nest (`NAV.mode === 'dn'`), o cursor trava instantaneamente de volta na mira de combate (`requestPointerLock`).
+     - **Suporte a Múltiplas Janelas**: Se o jogador mantiver Inventário e Status abertos ao mesmo tempo, o mouse continua solto até a última janela ser fechada.
+     - **Tecla M 100% Livre**: A tecla M continua atuando como toggle manual para o jogador alternar livremente entre os modos de mira e cursor livre sempre que desejar.
+  2. **Tecla ESC Universal e Limpeza Sequencial de Tela**:
+     - Interceptação global em fase de captura (`capture: true`): a cada pressionada de ESC, a janela mais recente/no topo é fechada.
+     - Pressionar ESC repetidas vezes limpa todas as janelas sequencialmente até a tela ficar livre.
+     - Quando a tela estiver limpa, pressionar ESC desmarca o alvo atual (`AlvoL2.fechar()`, `Net.selecionar(0)`, `tmark.visible = false`).
+     - Se a tela estiver limpa e sem alvo, garante o retorno suave da mira de combate.
+  3. **Integração em `arena.html` e `cidade.html`**:
+     - `ui_janelas.js` incluído em ambos os ambientes.
+     - Corrigida a colisão da tecla 'b' em `arena.html` que enviava o jogador de volta para a cidade, agora abrindo/fechando o Painel Mestre de Bots com a tecla 'B' ou 'F8'.
+     - Vinculação de `UIJanelas.notificar()` em `loja.js`, `status.js`, `chat.js`, `painel_bots.js`, `painel_admin.js`, `l2_npcs.js`, `moradores.js` e `net.js`.

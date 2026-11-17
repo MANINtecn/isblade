@@ -98,13 +98,13 @@
       '<div class="lin"><input id="morTxt" maxlength="160" placeholder="Escreva para ' + esc(e.i.nome) + '..." autocomplete="off"><button type="button" data-a="env">Falar</button></div>';
     el.innerHTML = h; var lg = el.querySelector('.log'); lg.scrollTop = lg.scrollHeight;
   }
-  function abre(n){ monta(); conv = { n: n, log: [], espera: false }; el.style.display = 'block'; try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} desenha(); manda('Oi!'); }
+  function abre(n){ monta(); conv = { n: n, log: [], espera: false }; el.style.display = 'block'; try { if(document.pointerLockElement) document.exitPointerLock(); } catch(e){} desenha(); manda('Oi!'); if(window.UIJanelas) UIJanelas.notificar('moradores', true); }
   function manda(txt){
     if(!conv || conv.espera) return; var inp = document.getElementById('morTxt'); txt = (txt || (inp && inp.value) || '').trim(); if(!txt) return;
     conv.log.push({ q: 'eu', m: txt }); conv.espera = true; desenha(); if(ctx.enviar) ctx.enviar(conv.n, txt);
     if(/^tchau/i.test(txt)) setTimeout(function(){ M.fecha(); }, 2600);
     setTimeout(function(){ if(conv && conv.espera){ conv.espera = false; desenha(); } }, 12000);
   }
-  M.fecha = function(){ conv = null; if(el) el.style.display = 'none'; };
+  M.fecha = function(){ conv = null; if(el) el.style.display = 'none'; if(window.UIJanelas) UIJanelas.notificar('moradores', false); };
   M.aberta = function(){ return !!conv; };
 })();

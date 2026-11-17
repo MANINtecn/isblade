@@ -876,6 +876,7 @@
         Net.botCmd({ acao: 'status' });
       }
     }
+    if(window.UIJanelas) UIJanelas.notificar('painel_bots', estado.aberto);
   }
 
   function atualizaInfo(info){
@@ -905,6 +906,7 @@
     toggle: toggle,
     abrir: function(){ toggle(true); },
     fechar: function(){ toggle(false); },
+    isOpen: function(){ return !!estado.aberto; },
     setQtd: setQtd,
     setLv: setLv,
     duelo1v1: function(lv, cls){
