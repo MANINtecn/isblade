@@ -18,7 +18,7 @@
     ['estrela', 'onda', 'leque', 'raios', 'hex_brilho'].forEach(function(n){ TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v); });
     ['fenda', 'veios'].forEach(function(n){ TX[n] = tl.load('assets/fx/guerreiro_' + n + '.png' + v); });
     TX.raios.wrapS = TX.raios.wrapT = TX.veios.wrapS = TX.veios.wrapT = T.RepeatWrapping;
-    ['halo', 'flare', 'flare_largo', 'losango', 'vento', 'fissura'].forEach(txN); TX.raiosCol = TX.raios.clone(); TX.raiosCol.repeat.set(3, 1.2);
+    ['halo', 'flare', 'flare_largo', 'losango', 'vento', 'fissura', 'selo'].forEach(txN); TX.veu = tl.load('assets/fx/clerigo_veu_energia.png' + v); TX.veu.wrapS = TX.veu.wrapT = T.RepeatWrapping; TX.raiosCol = TX.raios.clone(); TX.raiosCol.repeat.set(3, 1.2);
     G.pronto = true;
   };
   /* G.preparar({ renderer, camera, scene, rt: fn -> alvo do bloom, rig: fn -> personagem }) (regra: nada compila na hora da skill) */
@@ -32,7 +32,7 @@
     g.add(new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: ACO, transparent: true, opacity: .5, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide })));
     var tg = new T.BufferGeometry(); tg.setAttribute('position', new T.BufferAttribute(new Float32Array(9), 3)); tg.setAttribute('color', new T.BufferAttribute(new Float32Array(9), 3));
     g.add(new T.Mesh(tg, new T.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide })));
-    if(!geoPedra) geoPedra = new T.DodecahedronGeometry(1, 0); g.add(new T.Mesh(geoPedra, new T.MeshLambertMaterial({ color: 0x2c241f, emissive: 0x331005 })));
+    rochas(); g.add(new T.Mesh(GEO_ROCHAS[0], MAT_ROCHA)); g.add(new T.Mesh(geoVeu(6, .7), aditivo(ACO, TX.veu, .5)));
     var mc = matCasca(ACO, .5, .01), mf = new T.MeshBasicMaterial({ color: ACO, transparent: true, opacity: .2, blending: T.AdditiveBlending, depthWrite: false });
     malhas(rig).forEach(function(o){ [mc, mf].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.bind(o.skeleton, o.bindMatrix); c.frustumCulled = false; g.add(c); }); });
     var rt = null; try{ rt = PREP.rt ? PREP.rt() : null; }catch(_){}
@@ -40,7 +40,7 @@
     try{ R.setRenderTarget(null); }catch(_){}
     G._amostras = g;   /* fica guardado: os materiais nao sao descartados, entao os shaders nao somem */
   }
-  G.tick = function(dt){ prepTick(); for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i](dt)) vivos.splice(i, 1); };
+  G.tick = function(dt){ prepTick(); if(TX.veu) TX.veu.offset.y -= dt * .9; for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i](dt)) vivos.splice(i, 1); };
   function seq(dur, fn, fimFn){ var t = 0; vivos.push(function(dt){ t += dt; fn(Math.min(1, t / dur), t); if(t >= dur){ if(fimFn) fimFn(); return true; } return false; }); }
   function aditivo(cor, tex, op, lado){ return new T.MeshBasicMaterial({ color: cor, map: tex || null, transparent: true, opacity: op == null ? 1 : op, blending: T.AdditiveBlending, depthWrite: false, side: lado || T.DoubleSide }); }
   function sprite(tex, cor, tam, op){ var s = new T.Sprite(new T.SpriteMaterial({ map: tex, color: cor, transparent: true, opacity: op == null ? 1 : op, blending: T.AdditiveBlending, depthWrite: false })); s.scale.set(tam, tam, 1); s.frustumCulled = false; return s; }
@@ -62,9 +62,9 @@
   function fenda(x, z, R, cor, vida, giro){ var m = chao(TX.fenda, cor, R * 2, 1, .06); m.position.x = x; m.position.z = z; m.rotation.z = giro || 0; cena.add(m); seq(vida || 1.6, function(u, t){ var s = u < .12 ? .2 + .8 * u / .12 : 1; m.scale.set(s, s, s); m.material.opacity = u < .75 ? 1 : Math.max(0, 1 - (u - .75) / .25); }, function(){ some(m); }); }
   function brilhoChao(x, z, R, cor, vida){ var m = chao(TX.hex_brilho, cor, R * 2, 1, .04); m.position.x = x; m.position.z = z; cena.add(m); seq(vida || 1, function(u){ var s = u < .15 ? u / .15 : 1; m.scale.set(s, s, s); m.material.opacity = u < .7 ? .85 : Math.max(0, .85 * (1 - (u - .7) / .3)); }, function(){ some(m); }); return m; }
   function lascas(x, z, n, vel, tam){
-    if(!geoPedra) geoPedra = new T.DodecahedronGeometry(1, 0); if(leve()) n = Math.ceil(n * .5);
-    for(var i = 0; i < n; i++){ (function(){ var m = new T.Mesh(geoPedra, new T.MeshBasicMaterial({ color: i % 3 ? 0x2a2220 : 0x3a2a22 })); m.userData.keep = true; var a = rnd(0, 6.28), v = rnd(.5, 1) * vel, vz = rnd(2.2, 5.2); m.scale.set(tam * rnd(.6, 1.3), tam * rnd(.4, .9), tam * rnd(.6, 1.1)); m.position.set(x, .2, z); cena.add(m); var vida = rnd(.7, 1.1), w = [rnd(-8, 8), rnd(-8, 8), rnd(-8, 8)];
-      seq(vida, function(u, t){ m.position.set(x + Math.cos(a) * v * t, Math.max(.05, .2 + vz * t - 9.8 * t * t / 2), z + Math.sin(a) * v * t); m.rotation.set(w[0] * t, w[1] * t, w[2] * t); if(u > .8) m.scale.multiplyScalar(.93); }, function(){ cena.remove(m); m.material.dispose(); }); })(); }
+    var G_ = rochas(); if(leve()) n = Math.ceil(n * .5);   /* lascas de rocha de verdade (bm_lasca_pedra do Blender), material compartilhado */
+    for(var i = 0; i < n; i++){ (function(){ var m = new T.Mesh(G_[i % G_.length], MAT_ROCHA); m.userData.keep = true; var a = rnd(0, 6.28), v = rnd(.5, 1) * vel, vz = rnd(2.2, 5.2); m.scale.set(tam * rnd(.6, 1.3), tam * rnd(.4, .9), tam * rnd(.6, 1.1)); m.position.set(x, .2, z); cena.add(m); var vida = rnd(.7, 1.1), w = [rnd(-8, 8), rnd(-8, 8), rnd(-8, 8)];
+      seq(vida, function(u, t){ m.position.set(x + Math.cos(a) * v * t, Math.max(.05, .2 + vz * t - 9.8 * t * t / 2), z + Math.sin(a) * v * t); m.rotation.set(w[0] * t, w[1] * t, w[2] * t); if(u > .8) m.scale.multiplyScalar(.93); }, function(){ cena.remove(m); }); })(); }
   }
   function brasas(x, y, z, n, alt, vel, cor){
     if(leve()) n = Math.ceil(n * .5);
@@ -209,9 +209,56 @@
   }
   function fissuraN(x, z, rumo, comp, larg, cor, vida){ var geo = new T.PlaneGeometry(comp, larg); geo.rotateX(-Math.PI / 2); var m = new T.Mesh(geo, aditivo(cor, txN('fissura'), 1)); m.rotation.y = rumo - Math.PI / 2; m.position.set(x, .06, z);   /* rumo = direcao no chao (como o face): comprimento ao longo dela */ m.frustumCulled = false; cena.add(m);
     seq(vida || 1.6, function(u){ var s = u < .06 ? u / .06 : 1; m.scale.set(s, 1, 1); m.material.opacity = u < .75 ? 1 : Math.max(0, 1 - (u - .75) / .25); }, function(){ some(m); }); }
-  function rochasN(x, z, n, alt, ang){ if(!geoPedra) geoPedra = new T.DodecahedronGeometry(1, 0); for(var i = 0; i < n; i++){ (function(){ var m = new T.Mesh(geoPedra, new T.MeshLambertMaterial({ color: i % 2 ? 0x2c241f : 0x3b2e26, emissive: 0x331005 })); m.userData.keep = true;
-    var a = (ang == null ? rnd(0, 6.28) : ang + rnd(-.5, .5)), r = rnd(.3, .6), h = rnd(.6, 1) * (alt || 1); m.scale.set(rnd(.22, .34), h * .55, rnd(.2, .3)); m.position.set(x + Math.cos(a) * r, -h * .4, z + Math.sin(a) * r); m.rotation.set(rnd(-.4, .4), rnd(0, 6.28), rnd(-.4, .4)); cena.add(m);
-    seq(1.5, function(u){ var k = u < .08 ? u / .08 : (u > .82 ? 1 - (u - .82) / .18 : 1); m.position.y = -h * .4 + h * .55 * Math.min(1, k * 1.2); m.scale.y = Math.max(.01, h * .55 * (u > .82 ? k : 1)); }, function(){ cena.remove(m); m.material.dispose(); }); })(); } }
+  function rochasN(x, z, n, alt, ang){ lajesN(x, z, n, ang == null ? null : ang, .5 * (alt || 1), (alt || 1), 1.3, ang == null ? rnd(.2, .6) : .45); }   /* pedras de verdade (lajes do Blender) no lugar dos dados de 12 faces */
+  /* ---------- pecas do Blender que faltavam no jogo (17/11/2026, comparacao skill a skill com guerreiro_skills_novas.blend) ----------
+     rocha: icosfera deformada por ruido, base achatada, faces chapadas, cor de rocha escura/clara (bm_pedra + mat_rocha do guerreiro_fx2.py)
+     laje: rocha alongada que sobe do chao inclinada para fora e afunda no fim (lajes_erguem); veu: prisma estrelado translucido com filamentos subindo (veu);
+     selo: selo angular no chao, entra devagar e gira pouco (selo). Geometrias e o material da rocha sao compartilhados (nada e criado/descartado por golpe). */
+  var GEO_ROCHAS = null, MAT_ROCHA = null, GEO_VEU = {};
+  function ruido(x, y, z){ return Math.sin(x * 1.9 + Math.sin(y * 1.3) * 1.7) * Math.cos(y * 1.7 + Math.sin(z * 1.1) * 1.5) * .7 + Math.sin(z * 2.3 + x * .9) * .3; }
+  function rochas(){
+    if(GEO_ROCHAS) return GEO_ROCHAS; GEO_ROCHAS = [];
+    for(var s = 0; s < 6; s++){
+      var g = new T.IcosahedronGeometry(1, 2), p = g.attributes.position, v = new T.Vector3(), o = [s * 13.7 + 1, s * 7.3 + 5, s * 3.1 + 9], corte = -(.1 + .25 * ((s * .37) % 1)), cor = new Float32Array(p.count * 3);
+      for(var i = 0; i < p.count; i++){ v.fromBufferAttribute(p, i); var n = ruido(v.x * 1.3 + o[0], v.y * 1.3 + o[1], v.z * 1.3 + o[2]) * .38 + ruido(v.x * 3.1 + o[0], v.y * 3.1 + o[1], v.z * 3.1 + o[2]) * .12;
+        v.multiplyScalar(1 + n); v.y = Math.max(v.y, corte); p.setXYZ(i, v.x, v.y, v.z); var k = Math.max(0, Math.min(1, (n + .25) / .5));
+        cor[i * 3] = .085 + k * .21; cor[i * 3 + 1] = .075 + k * .17; cor[i * 3 + 2] = .066 + k * .14; }
+      g.setAttribute('color', new T.BufferAttribute(cor, 3)); g.computeVertexNormals(); GEO_ROCHAS.push(g);
+    }
+    MAT_ROCHA = new T.MeshLambertMaterial({ vertexColors: true, emissive: 0x1c0703 }); return GEO_ROCHAS;
+  }
+  /* lajes de rocha: n lajes a `dist` m de (x,z) na direcao `ang` (rumo como o face; null = qualquer), altura alt0..alt1 m, ficam `vida` s */
+  function lajesN(x, z, n, ang, alt0, alt1, vida, dist){
+    var G_ = rochas(); n = leve() ? Math.ceil(n / 2) : n;
+    for(var k = 0; k < n; k++){ (function(){
+      var a = ang == null ? rnd(0, 6.28) : ang + rnd(-.5, .5), d = dist == null ? .45 : dist, h = rnd(alt0 || .8, alt1 || 1.4), w = rnd(.36, .48), dd = Math.max(.32, w * .75);
+      var m = new T.Mesh(G_[Math.floor(rnd(0, G_.length))], MAT_ROCHA); m.userData.keep = true; m.rotation.order = 'YXZ'; m.rotation.y = a + rnd(-.25, .25); m.rotation.x = rnd(.24, .52); m.rotation.z = rnd(-.24, .24);
+      m.position.set(x + Math.sin(a) * d, -.02, z + Math.cos(a) * d); cena.add(m); var V_ = vida || 1;
+      seq(V_ + .28, function(u, t){ var sy = t < .04 ? .25 + .85 * t / .04 : (t < .08 ? 1.1 : (t < .15 ? 1.1 - .1 * (t - .08) / .07 : 1)); if(t > V_) sy = Math.max(.001, 1 - (t - V_) / .28);
+        m.scale.set(w / 2, h / 2 * sy, dd / 2); }, function(){ cena.remove(m); });
+    })(); }
+  }
+  function geoVeu(pontas, r2){ var ch = pontas + '_' + r2; if(GEO_VEU[ch]) return GEO_VEU[ch];
+    var g = new T.CylinderGeometry(1, 1, 1, pontas * 2, 1, true), p = g.attributes.position, v = new T.Vector3();
+    for(var i = 0; i < p.count; i++){ v.fromBufferAttribute(p, i); var a = Math.atan2(v.x, v.z), idx = Math.round(a / (Math.PI / pontas)); if(Math.abs(idx) % 2 === 1){ p.setX(i, v.x * r2); p.setZ(i, v.z * r2); } }
+    g.translate(0, .5, 0); return GEO_VEU[ch] = g; }
+  /* veu de energia: prisma estrelado (pontas) de raio R e altura H; cresce rapido, fica `vida` s, abre e achata ao sumir */
+  function veuN(x, z, R, H, cor, vida, r2, pontas){
+    var m = new T.Mesh(geoVeu(pontas || 6, r2 || .7), aditivo(cor, TX.veu, .9)); m.userData.keep = true; m.position.set(x, .02, z); m.rotation.y = rnd(0, 6.28); m.frustumCulled = false; cena.add(m); var V_ = vida || .3;
+    seq(.12 + V_ + .3, function(u, t){ var sy, sr = 1, op = .9; if(t < .12){ sy = .02 + .98 * t / .12; } else if(t < .12 + V_){ sy = 1; } else { var e = (t - .12 - V_) / .3; sy = Math.max(.001, 1 - e); sr = 1 + .15 * e; op = .9 * (1 - e); }
+      m.scale.set(R * sr, H * sy, R * sr); m.material.opacity = op; m.rotation.y += .01; }, function(){ cena.remove(m); });
+  }
+  /* selo angular no chao, preso a fnPos() (o jogador); entra em .2 s, gira devagar, some no fim */
+  function seloN(fnPos, R, cor, vida, giro){
+    var m = chao(txN('selo'), cor, R * 2, 0, .06); cena.add(m); var V_ = vida || 1;
+    seq(V_ + .25, function(u, t){ var p = fnPos(); m.position.x = p.x; m.position.z = p.z; m.rotation.z = (giro || .3) * t; var s = t < .2 ? .4 + .6 * t / .2 : 1; m.scale.set(s, s, s);
+      m.material.opacity = t < .2 ? .85 * t / .2 : (t > V_ ? Math.max(0, .85 * (1 - (t - V_) / .25)) : .85); }, function(){ some(m); });
+  }
+  /* linhas de velocidade ao longo de um caminho (sprites esticados de vento) */
+  function linhasN(x, z, fx, fz, L, n, t0, cor){
+    for(var i = 0; i < (leve() ? Math.ceil(n / 2) : n); i++){ (function(){ var s = sprite(txN('vento'), cor || 0xffe8d0, 1, 1), k = rnd(.1, .9), h = rnd(.4, 1.8), w = rnd(1.2, 2.4), ti = (t0 || 0) + k * .15; s.scale.set(w, .07, 1); s.visible = false; cena.add(s);
+      seq(ti + .25, function(u, t){ if(t < ti) return; s.visible = true; var e = (t - ti) / .25; s.position.set(x + fx * (L * k + e * .6), h, z + fz * (L * k + e * .6)); s.material.opacity = 1 - e; }, function(){ some(s); }); })(); }
+  }
   function estrelasStun(x, z, dur){ for(var k = 0; k < 4; k++){ (function(k){ var s = sprite(txN('flare'), OURO, .6, 1); cena.add(s); seq(dur, function(u, t){ var a = k * 1.5708 + t * 6; s.position.set(x + Math.cos(a) * .5, 2.3 + .06 * Math.sin(t * 9), z + Math.sin(a) * .5); s.material.opacity = u < .9 ? 1 : (1 - u) / .1; }, function(){ some(s); }); })(k); } }
   function auraLamina(swd, dur, cor){
     if(!swd) return; var P = ponta(swd); if(!P) return; var L = [];
@@ -241,17 +288,18 @@
     else if(pose === 'w_n2'){                                                                      /* Tufao: lamina deitada, vortice de vento, sombras da espada, contorno de sangue */
       var giro = (tm.L[tm.L.length - 2] || tm.ht) + .1; contornoN(rig, SANG, tm.tot + .4, function(t){ return t < .3 ? t / .3 * .5 : (t < tm.tot ? .5 + .25 * Math.sin(t * 9) : Math.max(0, .5 - (t - tm.tot) * 2)); });
       auraLamina(swd, tm.tot, SANG); trilha(swd, giro, .9); sombrasN(rig, giro, .045, CARM2, .2, .6, tm.ht * .6);
+      seloN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, 1.7, SANG, tm.tot + .2, .6);   /* selo de postura (Blender: selo 's' preso ao corpo) */
       vorticeN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, giro, 70, CARM2);
       if(!leve()) vorticeN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, giro, 30, SANG);
     }
     else if(pose === 'w_n3'){                                                                      /* Modo de Batalha: estilhacos convergem para a lamina enquanto ele concentra */
       var P0 = swd && ponta(swd); if(P0){ for(var j = 0; j < (leve() ? 10 : 26); j++){ (function(){ var s = sprite(txN('losango'), BRASA, .2, 1), a0 = rnd(0, 6.28), r0 = rnd(1.2, 2), z0 = rnd(-.2, 1.6), t0 = rnd(0, tm.ht * .7), d = rnd(.3, .5); s.visible = false; cena.add(s);
         seq(t0 + d, function(u, t){ if(t < t0) return; s.visible = true; var e = (t - t0) / d, alvo = P0.org.clone().lerp(P0.tip, .5); swd.localToWorld(alvo); var a = a0 + e * 2.4; s.position.set(alvo.x + Math.cos(a) * r0 * (1 - e * e), alvo.y + z0 * (1 - e * e), alvo.z + Math.sin(a) * r0 * (1 - e * e)); s.material.opacity = 1 - e * .5; }, function(){ some(s); }); })(); } }
-      contornoN(rig, CARM2, tm.ht + .1, function(t){ return .4 * t / tm.ht; });
+      contornoN(rig, CARM2, tm.ht + .1, function(t){ return .4 * t / tm.ht; }); seloN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, 2.6, BRASA, tm.tot, .35);
     }
     else if(pose === 'w_n4'){                                                                      /* Execucao: arrancada com ecos, contorno, lamina em brasa, sombra da espada em cada corte */
       contornoN(rig, CARM2, tm.tot + .5, function(t){ return t < .15 ? t / .15 * .6 : (t < tm.tot ? .6 + .25 * Math.sin(t * 8) : Math.max(0, .6 - (t - tm.tot) * 2)); });
-      auraLamina(swd, tm.tot, CARM2); ecosN(rig, .05, tm.ht * .9, .06, CARM2, .3, .55);
+      auraLamina(swd, tm.tot, CARM2); ecosN(rig, .05, tm.ht * .9, .06, CARM2, .3, .55); linhasN(x, z, fx, fz, 2.2, 8, .05);
       tm.L.forEach(function(th, k){ sombrasN(rig, k === tm.L.length - 1 ? .3 : .22, .03, CARM2, .28, k === tm.L.length - 1 ? .8 : .55, Math.max(0, th - .24)); });
       trilha(swd, tm.tot, 1.1);
     }
@@ -268,12 +316,12 @@
     var ex = tp ? tp.x : hx, ey = tp ? Math.max(.4, tp.y) : 1.3, ez = tp ? tp.z : hz, pt = function(){ var q = peitoDe(o); return q; };
     if(pose === 'w_n0'){                                                                           /* linha de corte no alvo; 0,38 s depois explode */
       var cx = (o.px != null ? o.px : hx) - fx * 1.2, cz = (o.pz != null ? o.pz : hz) - fz * 1.2, mk = marcaN(cx, 1.25, cz, 0, ACO); flareN(cx, 1.25, cz, 1.2, ACO, .25, false);
-      seq(.42, function(u){ mk.scale.set(2.4 + u * .6, .26 * (1 - u * .4), 1); }, function(){ some(mk); flareN(cx, 1.25, cz, 4.4, CARM2, .6); flareN(cx, 1.25, cz, 2, ACO, .35, false); estilhacosN(cx, 1.25, cz, leve() ? 4 : 8, CARM2); brasas(cx, 1.2, cz, 18, 2.4, 2); agita(.5); flash('#ff3a1a', .2, 260); });
+      seq(.42, function(u){ mk.scale.set(2.4 + u * .6, .26 * (1 - u * .4), 1); }, function(){ some(mk); flareN(cx, 1.25, cz, 4.4, CARM2, .6); flareN(cx, 1.25, cz, 2, ACO, .35, false); estilhacosN(cx, 1.25, cz, leve() ? 4 : 8, CARM2); brasas(cx, 1.2, cz, 18, 2.4, 2); veuN(cx, cz, .5, 3.6, ACO, .2, .7, 6); agita(.5); flash('#ff3a1a', .2, 260); });
     }
     else if(pose === 'w_n1'){ flareN(ex, ey, ez, 2.8, CARM2, .45); flareN(ex, ey, ez, 1.1, ACO, .22, false); espinhos(ex, ey, ez, leve() ? 6 : 10, 1, ACO, .25); brasas(ex, ey, ez, 16, 2.2, 1.8); estrelasStun(hx, hz, 1.5); agita(.45); }
     else if(pose === 'w_n2'){
-      if(!last){ flareN(ex, ey, ez, 1.5, part % 2 ? SANG : ACO, .28, part % 2 === 0); drenoN(ex, ey, ez, leve() ? 2 : 4, pt, CARM2); agita(.12); return; }
-      var X = window.S ? S.px : hx, Z = window.S ? S.pz : hz; flareN(X, 1.1, Z, 4.6, CARM2, .6); flareN(X, 1.1, Z, 3.4, SANG, .7, false); estilhacosN(X, 1.1, Z, leve() ? 5 : 10, CARM2); drenoN(X + 1.5, 1.2, Z, leve() ? 4 : 10, pt, CARM2); brasas(X, 1, Z, 30, 2.6, 2.4); agita(.6); flash('#c01008', .22, 300);
+      if(!last){ flareN(ex, ey, ez, 1.5, part % 2 ? SANG : ACO, .28, part % 2 === 0); drenoN(ex, ey, ez, leve() ? 2 : 4, pt, CARM2); if(part % 3 === 0){ var px_ = window.S ? S.px : hx, pz_ = window.S ? S.pz : hz; lascas(px_, pz_, 3, 2.6, .07); brasas(px_, .6, pz_, 6, 2.2, 2.4); } agita(.12); return; }
+      var X = window.S ? S.px : hx, Z = window.S ? S.pz : hz; flareN(X, 1.1, Z, 4.6, CARM2, .6); flareN(X, 1.1, Z, 3.4, SANG, .7, false); estilhacosN(X, 1.1, Z, leve() ? 5 : 10, CARM2); drenoN(X + 1.5, 1.2, Z, leve() ? 4 : 10, pt, CARM2); brasas(X, 1, Z, 30, 2.6, 2.4); estrelasStun(hx, hz, 1.25); setTimeout(function(){ var q = window.S ? { x: S.px, z: S.pz } : { x: X, z: Z }; veuN(q.x, q.z, .8, 2.4, SANG, .37, .88, 8); }, 450); agita(.6); flash('#c01008', .22, 300);
     }
     else if(pose === 'w_n3'){ var P = swd && ponta(swd); if(P){ [.18, .36, .54, .72, .9].forEach(function(k, i){ var v = P.org.clone().lerp(P.tip, k); swd.localToWorld(v); flareN(v.x, v.y, v.z, i === 2 ? 3 : 1.6, i === 2 ? ACO : BRASA, .5, i === 2); }); } agita(.4); flash('#ff4a1a', .18, 260); }
     else if(pose === 'w_n4'){
@@ -285,18 +333,18 @@
     }
     else if(pose === 'w_n5'){
       if(part === 1){ flareN(ex, .4, ez, 1.4, BRASA, .3, false); fenda(ex, ez, 1.2, BRASA, 1.2, .2); return; }
-      if(part === 2){ for(var i = 0; i < 7; i++){ var a = f + (i - 3) * .15, L2 = rnd(2.8, 4); fissuraN(ex + Math.sin(a) * L2 / 2, ez + Math.cos(a) * L2 / 2, a, L2, .7, i % 2 ? BRASA : CARM, 1.6); rochasN(ex + Math.sin(a) * L2 * .5, ez + Math.cos(a) * L2 * .5, leve() ? 1 : 2, 1.1, a); }
+      if(part === 2){ for(var i = 0; i < 7; i++){ var a = f + (i - 3) * .15, L2 = rnd(2.8, 4); fissuraN(ex + Math.sin(a) * L2 / 2, ez + Math.cos(a) * L2 / 2, a, L2, .7, i % 2 ? BRASA : CARM, 1.6); for(var j = 0; j < 3; j++){ var tq = (j + 1) / 4; lajesN(ex + Math.sin(a) * L2 * tq, ez + Math.cos(a) * L2 * tq, 1, a, .5 + .5 * (1 - tq), 1 + .6 * (1 - tq), .92); } }
         lascas(ex + fx * .8, ez + fz * .8, 16, 4, .16); flareN(ex, .6, ez, 2.6, BRASA, .4); agita(.4); return; }
       if(!last){ flareN(ex, ey, ez, 1.8, ACO, .3); brasas(ex, ey, ez, 8, 1.4, 1.6); agita(.15); return; }
-      fenda(ex, ez, 4.2, BRASA, 2.2, .3); fenda(ex, ez, 2.8, CARM, 2, 1.2); rochasN(ex, ez, leve() ? 4 : 8, 1.5); lascas(ex, ez, 26, 4.8, .2); flareN(ex, .8, ez, 4.4, ACO, .55); coluna(ex, ez, 3.6, .5, BRASA, .45, 2); agita(.7); flash('#ff6a14', .25, 300);
+      fenda(ex, ez, 4.2, BRASA, 2.2, .3); fenda(ex, ez, 2.8, CARM, 2, 1.2); for(var e8 = 0; e8 < 8; e8++){ var a8 = e8 * .785 + rnd(-.2, .2); lajesN(ex, ez, 1, a8, .8, 1.5, 1.05, rnd(1, 1.8)); } lascas(ex, ez, 30, 4.8, .2); flareN(ex, .8, ez, 4.4, ACO, .55); veuN(ex, ez, .5, 3.6, BRASA, .2, .7, 6); agita(.7); flash('#ff6a14', .25, 300);
     }
     else if(pose === 'w_n6'){                                                                      /* a fenda corre 9 m pela frente: segmentos, rochas, jatos e flares; fecha com explosao */
-      var x0 = ex, z0 = ez; flareN(x0, .6, z0, 2.8, ACO, .4); fenda(x0, z0, 2.2, BRASA, 2.2, .4); agita(.45);
-      var passos = Math.round(9 / .75); for(var k = 0; k < passos; k++){ (function(k){ setTimeout(function(){ var d = .4 + k * .75, cx = x0 + fx * d, cz = z0 + fz * d; fissuraN(cx, cz, f, 1.45, 1.1, k % 2 ? BRASA : CARM, 1.8); rochasN(cx, cz, leve() ? 1 : 2, 1.1, k % 2 ? f + 1.57 : f - 1.57); if(k % 2 === 0){ coluna(cx, cz, 2.2, .26, BRASA, .3, 2); flareN(cx, .5, cz, 1.4, BRASA, .25, false); agita(.08); } lascas(cx, cz, 3, 2.2, .11);
-        if(k === passos - 1){ flareN(cx, .8, cz, 4, ACO, .5); coluna(cx, cz, 5, .6, CARM, .5, 2); lascas(cx, cz, 16, 3.6, .18); agita(.4); } }, k * 50); })(k); }
+      var x0 = ex, z0 = ez; flareN(x0, .6, z0, 2.8, ACO, .4); fenda(x0, z0, 2.2, BRASA, 2.2, .4); agita(.45); estrelasStun(hx, hz, 1.45);
+      var passos = Math.round(9 / .75); for(var k = 0; k < passos; k++){ (function(k){ setTimeout(function(){ var d = .4 + k * .75, cx = x0 + fx * d, cz = z0 + fz * d; fissuraN(cx, cz, f, 1.45, 1.1, k % 2 ? BRASA : CARM, 1.8); lajesN(cx, cz, 3, k % 2 ? f + 1.57 : f - 1.57, .7, 1.4, 1.05); if(k % 2 === 0){ veuN(cx, cz, .26, 2.2 + rnd(0, .9), BRASA, .25, .7, 5); flareN(cx, .5, cz, 1.4, BRASA, .25, false); agita(.08); } lascas(cx, cz, 4, 2.4, .12);
+        if(k === passos - 1){ flareN(cx, .8, cz, 4, ACO, .5); veuN(cx, cz, .7, 5.2, ACO, .45, .75, 6); lascas(cx, cz, 16, 3.6, .18); agita(.4); } }, k * 50); })(k); }
     }
   };
-  G.modo = function(rig, dur){ if(!G.pronto || !rig) return; auraLamina(rig.swd2h, dur, CARM2); contornoN(rig, CARM2, dur, function(t, u){ return u > .95 ? (1 - u) / .05 * .55 : .45 + .15 * Math.sin(t * 5); });
+  G.modo = function(rig, dur){ if(!G.pronto || !rig) return; auraLamina(rig.swd2h, dur, CARM2); contornoN(rig, CARM2, dur, function(t, u){ return u > .95 ? (1 - u) / .05 * .55 : .45 + .15 * Math.sin(t * 5); }); var tb_ = 0, tt_ = 0; vivos.push(function(dt){ tt_ += dt; tb_ -= dt; if(tb_ <= 0){ tb_ = leve() ? .7 : .36; if(window.S) brasas(S.px, .4, S.pz, 4, 2.8, .7); } return tt_ >= dur; });   /* aura de brasas do buff (Blender: aura_br a cada 18 quadros) */
     var t = 0, prox = 0; vivos.push(function(dt){ t += dt; if(t >= prox && window.S){ prox += .35; brasas(S.px, .4, S.pz, leve() ? 2 : 4, 2.8, .6); } return t >= dur; }); };
   G.modoRemoto = function(x, z){ if(!G.pronto) return; flareN(x, 1.8, z, 3, BRASA, .5); brasas(x, .5, z, 20, 2.6, 1); };
   G.remotoN = function(pose, e){ var x = e.x, z = e.z, f = e.f || 0, fx = Math.sin(f), fz = Math.cos(f);
