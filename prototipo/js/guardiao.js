@@ -106,12 +106,17 @@ export const Guardiao = (function(){
   G.anexarGuerreiro = function(rig, THREE){
     if(!rig || !rig.clips) return;
     var tipo = rig.tipo || ''; if(!tipo){ try { tipo = localStorage.getItem('isblade.char_type') || ''; } catch(e){} }
-    var psa = W_PSA[String(tipo).toLowerCase()]; if(!psa) return;
+    var tipoL = String(tipo).toLowerCase(), outra = !W_PSA[tipoL], psa = 'MFighter';   /* [guerreiro] a skill e da classe: toda raca/sexo usa os clipes do Blender (gravados no Humano M); nas outras, so rotacoes + quadril na escala da raca (como o Guardiao) */
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
-    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); }));
-    pr.then(function(list){
+    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
+    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=3').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
+    Promise.all([pr, prM]).then(function(ab){
+      var list = ab[0], MED = ab[1] || {};
       if(!list || !list.length) return;
       var nos = {}; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis' || o.name === 'Bip01') nos[o.name] = o; });
+      var ky = 1;
+      if(outra && nos.Bip01_Pelvis){ rig.root.updateMatrixWorld(true); var wp = new THREE.Vector3(); nos.Bip01_Pelvis.getWorldPosition(wp); ky = Math.max(.5, Math.min(1.6, (wp.y / rig.root.scale.y) / 25.9)); }   /* altura do quadril da raca / do Humano M (mesma referencia do Guardiao) */
+      rig.wKy = +ky.toFixed(3);
       rig.wClips = rig.wClips || {};
       list.forEach(function(src){
         if(!W_T[src.name]) return;
@@ -123,7 +128,7 @@ export const Guardiao = (function(){
             var ref = nos[node];
             if(ref){
               var v = t.values.slice(), x0 = v[0], y0 = v[1], z0 = v[2];
-              for(var i = 0; i < v.length; i += 3){ v[i] = ref.position.x + (v[i] - x0); v[i + 1] = ref.position.y + (v[i + 1] - y0); v[i + 2] = ref.position.z + (v[i + 2] - z0); }
+              for(var i = 0; i < v.length; i += 3){ v[i] = ref.position.x + (v[i] - x0) * ky; v[i + 1] = ref.position.y + (v[i + 1] - y0) * ky; v[i + 2] = ref.position.z + (v[i + 2] - z0) * ky; }
               tr.push(new THREE.VectorKeyframeTrack(t.name, t.times, v));
             }
             return;
@@ -131,7 +136,7 @@ export const Guardiao = (function(){
           tr.push(t);
         });
         c.tracks = tr; rig.clips[src.name] = c;
-        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, psa: psa };
+        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: (MED[src.name] && MED[src.name].rm) || null, psa: psa };
       });
     });
   };

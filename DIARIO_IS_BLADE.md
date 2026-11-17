@@ -4859,3 +4859,22 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
      - Adicionadas tags de controle de cache (`no-cache, no-store, must-revalidate`) no cabeçalho `<head>` para garantir que a remoção das estrelinhas e nomes limpos sejam carregados instantaneamente pelos navegadores sem cache residual.
   5. `.claude/skills/estilo-fx-refinado/SKILL.md`:
      - Título da seção 2.1 higienizado para remover o caractere de estrela restante na documentação.
+
+### [Claude] 17/11 - Incidente: login do jogo mandava para o site antes da hora (corrigido)
+
+- Outro agente fez push do repo do jogo e levou junto o commit 6c09afe (conta unica). Resultado: login.html/index.html do jogo no ar mandavam para o site, que ainda nao gerava passe, e a VPS ainda nao tinha a chave -> ninguem entrava no jogo.
+- Correcao publicada (0b7e596): trava `Conta.ssoAtivo = false` (js/conta.js) e `SSO_ATIVO = false` (index.html). Login antigo voltou (conferido no ar: formulario aparece em isblade.tecx.pro/login, capa abre). A rota /api/conta/sso ja esta no servidor da VPS (responde "Passe invalido") e e inofensiva sem chave.
+- Servidor le a chave de `servidor/dados/sso_secret.txt` (fora do git) ou da variavel SSO_SECRET (0981457): na VPS basta criar `C:\IS-sync\servidor\dados\sso_secret.txt`.
+- Para ligar: dono cria o arquivo na VPS + GAME_SSO_SECRET na Vercel do site; depois eu ligo as duas travas, push do jogo e push do site (main do repo do site = branch l2ikarus-web).
+- Licao: commits locais do repo do jogo podem subir pelo push de outro agente; mudanca que depende de configuracao externa tem que nascer desligada.
+
+
+### [Claude] 17/11 - Guerreiro: skills travando e sem o movimento do Blender (pedido do dono)
+
+- Queixa do dono: "testando o guerreiro as skills tao travando o game, mas elas sao leves no visual, e tambem novamente nao estao fazendo o movimento que definimos no blender". Regra dele: "se criamos no blender com aquele movimento, aquele movimento e o aceitavel, nada menos que o combinado"; e "e habilidade da classe, qualquer personagem pode ser guerreiro".
+- Causas do movimento: (1) a exportacao jogava fora a curva de deslocamento do corpo de cada skill e o jogo espalhava so o total (`lg`) numa curva generica antes do 1o golpe; (2) durante a skill o personagem virava para a mira (24 rad/s) e a Investida fazia curva; (3) Modo de Batalha deixava andar; (4) so o Humano M tinha os clipes do Blender (outras racas/sexos: animacao generica).
+- Correcao: `tools/blender_fx/guerreiro_curvas_corpo.py` le a curva do .blend (blender -b) e grava `rm` (metros por quadro, 48 fps) em `guerreiro_clips/medidas.json` (totais conferidos 7,6 / 0,6 / 2,4 / 1,1 m); `js/guardiao.js` v25 carrega o `rm` e anexa os clipes do Blender a TODA raca/sexo (so rotacoes + quadril na escala da raca, como o Guardiao); arena.html e cidade.html: corpo anda pela curva, direcao travada no lancamento, sem andar extra (Tufao continua com WASD).
+- Causas da travada (medido com Chrome/WebGL por software, por skill): materiais descartados no fim dos efeitos apagavam o shader e a skill seguinte recompilava; cada eco do corpo criava um esqueleto por malha, reenviado a GPU todo quadro e nunca liberado (ate 10.500 envios de textura numa skill); texturas guerreiro2_* so carregavam na 1a skill.
+- Correcao (`js/guerreiro_fx.js` v5, copia `.antes_travada`): materiais nao sao mais descartados; eco com 1 esqueleto congelado (calcula 1 vez, liberado no fim); texturas no init; `GuerreiroFX.preparar` (arena e cidade) sobe as texturas e compila os shaders dos efeitos (inclusive os do corpo, no alvo do bloom) assim que o personagem existe. Visual sem mudanca.
+- Medido depois: JS dos efeitos 84-322 ms -> 5-16 ms por skill; envios de textura 400-10.500 -> 150-280. AINDA compila 3-11 shaders a cada skill (tambem na 2a vez): causa fora do guerreiro_fx.js, diagnostico em andamento.
+- NAO testado ainda: pes no chao nas outras racas (teste pronto), celular, PvP (o outro jogador ve a skill com o clipe?).

@@ -18,15 +18,35 @@
     ['estrela', 'onda', 'leque', 'raios', 'hex_brilho'].forEach(function(n){ TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v); });
     ['fenda', 'veios'].forEach(function(n){ TX[n] = tl.load('assets/fx/guerreiro_' + n + '.png' + v); });
     TX.raios.wrapS = TX.raios.wrapT = TX.veios.wrapS = TX.veios.wrapT = T.RepeatWrapping;
+    ['halo', 'flare', 'flare_largo', 'losango', 'vento', 'fissura'].forEach(txN);
     G.pronto = true;
   };
-  G.tick = function(dt){ for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i](dt)) vivos.splice(i, 1); };
+  /* G.preparar({ renderer, camera, scene, rt: fn -> alvo do bloom, rig: fn -> personagem }) (regra: nada compila na hora da skill) */
+  var PREP = null; G.preparar = function(c){ PREP = c; };
+  function prepTick(){
+    if(!PREP || PREP.ok) return; var rig = null; try{ rig = PREP.rig && PREP.rig(); }catch(_){} if(!rig || !rig.root || !rig.swd2h) return;
+    var ks = Object.keys(TX); if(!ks.every(function(k){ var im = TX[k].image; return im && im.width; })) return;
+    PREP.ok = true; var R = PREP.renderer, g = new T.Group();
+    try{ ks.forEach(function(k){ R.initTexture(TX[k]); }); }catch(e){ console.warn('[guerreiro] texturas', e); }
+    g.add(sprite(TX.estrela, ACO, 1, 1)); g.add(chao(TX.onda, ACO, 1, 1));
+    g.add(new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: ACO, transparent: true, opacity: .5, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide })));
+    var tg = new T.BufferGeometry(); tg.setAttribute('position', new T.BufferAttribute(new Float32Array(9), 3)); tg.setAttribute('color', new T.BufferAttribute(new Float32Array(9), 3));
+    g.add(new T.Mesh(tg, new T.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide })));
+    if(!geoPedra) geoPedra = new T.DodecahedronGeometry(1, 0); g.add(new T.Mesh(geoPedra, new T.MeshLambertMaterial({ color: 0x2c241f, emissive: 0x331005 })));
+    var mc = matCasca(ACO, .5, .01), mf = new T.MeshBasicMaterial({ color: ACO, transparent: true, opacity: .2, blending: T.AdditiveBlending, depthWrite: false });
+    malhas(rig).forEach(function(o){ [mc, mf].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.bind(o.skeleton, o.bindMatrix); c.frustumCulled = false; g.add(c); }); });
+    var rt = null; try{ rt = PREP.rt ? PREP.rt() : null; }catch(_){}
+    try{ R.setRenderTarget(rt); if(R.compileAsync) R.compileAsync(g, PREP.camera, PREP.scene); else R.compile(g, PREP.camera, PREP.scene); }catch(e){ console.warn('[guerreiro] shaders', e); }
+    try{ R.setRenderTarget(null); }catch(_){}
+    G._amostras = g;   /* fica guardado: os materiais nao sao descartados, entao os shaders nao somem */
+  }
+  G.tick = function(dt){ prepTick(); for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i](dt)) vivos.splice(i, 1); };
   function seq(dur, fn, fimFn){ var t = 0; vivos.push(function(dt){ t += dt; fn(Math.min(1, t / dur), t); if(t >= dur){ if(fimFn) fimFn(); return true; } return false; }); }
   function aditivo(cor, tex, op, lado){ return new T.MeshBasicMaterial({ color: cor, map: tex || null, transparent: true, opacity: op == null ? 1 : op, blending: T.AdditiveBlending, depthWrite: false, side: lado || T.DoubleSide }); }
   function sprite(tex, cor, tam, op){ var s = new T.Sprite(new T.SpriteMaterial({ map: tex, color: cor, transparent: true, opacity: op == null ? 1 : op, blending: T.AdditiveBlending, depthWrite: false })); s.scale.set(tam, tam, 1); s.frustumCulled = false; return s; }
   function chao(tex, cor, lado, op, y){ var m = new T.Mesh(new T.PlaneGeometry(lado, lado), aditivo(cor, tex, op)); m.rotation.x = -Math.PI / 2; m.position.y = y || .05; m.frustumCulled = false; return m; }
   function grupo(x, y, z){ var g = new T.Group(); g.position.set(x, y, z); cena.add(g); return g; }
-  function some(g){ g.traverse(function(o){ if(o.material && o.material.dispose) o.material.dispose(); if(o.geometry && o.geometry.dispose && !o.userData.keep) o.geometry.dispose(); }); if(g.parent) g.parent.remove(g); }
+  function some(g){ g.traverse(function(o){ if(o.geometry && o.geometry.dispose && !o.userData.keep) o.geometry.dispose(); }); if(g.parent) g.parent.remove(g); }
   function agita(a){ try{ if(window.S) S.shake = Math.max(S.shake || 0, a); }catch(_){} }
   function flash(cor, a, ms){ try{ if(window.screenFlash) screenFlash(cor, a, ms); }catch(_){} }
   var geoPedra = null;
@@ -78,7 +98,7 @@
         pos[6 * k] = s.b.x; pos[6 * k + 1] = s.b.y; pos[6 * k + 2] = s.b.z; pos[6 * k + 3] = s.a.x; pos[6 * k + 4] = s.a.y; pos[6 * k + 5] = s.a.z;
         col[6 * k] = .8 * br * .5; col[6 * k + 1] = .07 * br * .5; col[6 * k + 2] = .03 * br * .5; col[6 * k + 3] = .95 * br * .7; col[6 * k + 4] = .5 * br * .7; col[6 * k + 5] = .16 * br * .7; }
       geo.setDrawRange(0, Math.max(0, (n - 1) * 6)); geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true;
-      if(t >= dur && n === 0){ cena.remove(mesh); geo.dispose(); mesh.material.dispose(); return true; } return false;
+      if(t >= dur && n === 0){ cena.remove(mesh); geo.dispose(); return true; } return false;
     });
   }
   function pontaMundo(swd){ var P = swd && ponta(swd); if(!P) return null; var v = P.tip.clone(); swd.localToWorld(v); return v; }
@@ -151,19 +171,23 @@
     if(!rig || !rig.root) return; var L = malhas(rig); if(!L.length) return; if(cor === CARM2) cor = 0xff3c0a;   /* carmesim puro aditivo sobre a pele + bloom puxa para o rosa: brasa no contorno */
     var sc = escalaRig(rig), m = matCasca(cor, 0, .022 / Math.max(sc, 1e-4)), cs = [];
     L.forEach(function(o){ var c = new T.SkinnedMesh(o.geometry, m); c.bind(o.skeleton, o.bindMatrix); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); c.frustumCulled = false; c.renderOrder = 5; o.parent.add(c); cs.push(c); });
-    seq(dur, function(u, t){ m.opacity = .65 * Math.max(0, Math.min(1, fn ? fn(t, u) : (u < .1 ? u / .1 : 1 - u))); }, function(){ cs.forEach(function(c){ if(c.parent) c.parent.remove(c); }); m.dispose(); });
+    seq(dur, function(u, t){ m.opacity = .65 * Math.max(0, Math.min(1, fn ? fn(t, u) : (u < .1 ? u / .1 : 1 - u))); }, function(){ cs.forEach(function(c){ if(c.parent) c.parent.remove(c); }); });
   }
+  /* esqueleto parado na pose atual: calcula os ossos uma vez so (nao reenvia a textura de ossos todo quadro); malhas com o mesmo esqueleto dividem a copia */
+  function congela(src, lista){ for(var i = 0; i < lista.length; i++) if(lista[i]._src === src) return lista[i];
+    var bs = src.bones.map(function(b){ var n = new T.Bone(); n.matrixAutoUpdate = false; n.matrixWorld.copy(b.matrixWorld); return n; }), sk = new T.Skeleton(bs, src.boneInverses), up = sk.update, feito = false;
+    sk._src = src; sk.update = function(){ if(feito) return; feito = true; up.call(sk); }; lista.push(sk); return sk; }
   /* eco do corpo: copia da pose ATUAL (ossos congelados) com brilho na silhueta e um pouco de miolo; some em `vida` s */
   function ecoN(rig, cor, vida, a0, soEspada){
     if(!rig) return; var g = new T.Group(); cena.add(g); var mf = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .18 * a0, blending: T.AdditiveBlending, depthWrite: false });
-    var sc = escalaRig(rig), mc = matCasca(cor, a0, .03 / Math.max(sc, 1e-4)), ms = [mf, mc];
+    var sc = escalaRig(rig), mc = matCasca(cor, a0, .03 / Math.max(sc, 1e-4)), ms = [mf, mc], sks = [];
     if(!soEspada && !leve()) malhas(rig).forEach(function(o){
-      o.updateMatrixWorld(true); var bs = o.skeleton.bones.map(function(b){ var n = new T.Bone(); n.matrixAutoUpdate = false; n.matrixWorld.copy(b.matrixWorld); return n; }), sk = new T.Skeleton(bs, o.skeleton.boneInverses);
+      o.updateMatrixWorld(true); var sk = congela(o.skeleton, sks);
       [mf, mc].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.bind(sk, o.bindMatrix); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); });
     });
     var swd = rig.swd2h; if(swd){ swd.updateMatrixWorld(true); var me = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .55 * a0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); ms.push(me);
       swd.traverse(function(o){ if(!o.isMesh || !o.geometry) return; var c = new T.Mesh(o.geometry, me); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); }); }
-    seq(vida, function(u){ var k = 1 - u; mf.opacity = .18 * a0 * k; mc.opacity = a0 * k; if(ms[2]) ms[2].opacity = .55 * a0 * k * k; }, function(){ cena.remove(g); ms.forEach(function(mm){ mm.dispose(); }); });
+    seq(vida, function(u){ var k = 1 - u; mf.opacity = .18 * a0 * k; mc.opacity = a0 * k; if(ms[2]) ms[2].opacity = .55 * a0 * k * k; }, function(){ cena.remove(g); sks.forEach(function(k){ k.dispose(); }); });
   }
   /* sombra da espada: uma copia da lamina a cada `passo` s durante `dur` s */
   function sombrasN(rig, dur, passo, cor, vida, a0, atraso){ var t = -(atraso || 0), prox = 0; vivos.push(function(dt){ t += dt; if(t < 0) return false; if(t >= prox){ prox += passo * (leve() ? 2 : 1); ecoN(rig, cor, vida, a0, true); } return t >= dur; }); }
