@@ -125,7 +125,8 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
 
   /* ---- [sso] entrada pelo site (l2ikarus.com): o site da' um passe assinado (HMAC-SHA256 com SSO_SECRET, igual nos dois lados),
      valido por 2 minutos e de uso unico. A conta do jogo fica em DB.contas['site:<login>'] (separada das contas antigas do jogo; comeca do zero). */
-  const SSO_SECRET = process.env.SSO_SECRET || '', passesUsados = new Map();
+  /* a chave vem da variavel SSO_SECRET ou do arquivo <DATA_DIR>/sso_secret.txt (fora do git; na VPS: C:\IS-sync\servidor\dados\sso_secret.txt) */
+  const SSO_SECRET = process.env.SSO_SECRET || (function(){ try { return fs.readFileSync(path.join(DIR, 'sso_secret.txt'), 'utf8').trim(); } catch(e){ return ''; } })(), passesUsados = new Map();
   setInterval(() => { const t = Date.now(); for(const [n, ate] of passesUsados) if(ate < t) passesUsados.delete(n); }, 60e3).unref();
   function confereTicket(tk){
     if(!SSO_SECRET || typeof tk !== 'string' || tk.length > 600) return null;
