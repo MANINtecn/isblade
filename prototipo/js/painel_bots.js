@@ -545,7 +545,7 @@
             </div>
             <div class="pb-opts-row">
               <button type="button" class="pb-opt-btn" data-classe="mago">🧙 Mago</button>
-              <button type="button" class="pb-opt-btn" data-classe="clerigo">✨ Healer</button>
+              <button type="button" class="pb-opt-btn" data-classe="clerigo">✝️ Healer</button>
             </div>
 
             <!-- IA TATICA -->

@@ -1246,7 +1246,7 @@ function comando(c, J, txt){
     const qtd = Math.min(20, Math.max(1, parseInt(arg2, 10) || 2));
     const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
     const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, classe: 'clerigo', modo: 'pvp' });
-    sis(`✨ ${sp} bots Clérigos / Healers Nv ${lv} criados ao seu redor!`);
+    sis(`✝️ ${sp} bots Clérigos / Healers Nv ${lv} criados ao seu redor!`);
     return;
   }
 

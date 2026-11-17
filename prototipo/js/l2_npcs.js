@@ -632,7 +632,7 @@
                   localStorage.setItem('isblade_weapon_enchant', enchantLevel);
                   playEnchantSuccessSound();
                   logEl.style.color = '#00d5ff';
-                  logEl.textContent = '✨ SUCESSO! A arma resplandece com poder +' + enchantLevel + '!';
+                  logEl.textContent = 'SUCESSO! A arma resplandece com poder +' + enchantLevel + '!';
                   renderLocalEnchant();
                 } else {
                   playEnchantFailSound();

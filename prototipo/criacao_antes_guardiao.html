@@ -370,7 +370,7 @@ var RACE_DATA = {
     model: 'assets/personagens/magic_m.glb?v=7',
     stats: { str: 22, dex: 21, con: 27, int: 41, wit: 20, men: 39 },
     lore: '"Estudiosos dos pergaminhos arcanos da Torre de Marfim, os Místicos Humanos manipulam a energia cósmica para erguer barreiras e desferir cataclismos elementais."',
-    features: ['🔮 Maior INT de Aden (INT 41)', '⚡ Feitiços Primordiais Elementais', '🌀 Barreira Mística Protetora', '✨ Projéteis Arcanos de Longo Alcance']
+    features: ['🔮 Maior INT de Aden (INT 41)', '⚡ Feitiços Primordiais Elementais', '🌀 Barreira Mística Protetora', 'Projéteis Arcanos de Longo Alcance']
   },
   'magic_f': {
     name: 'Humana Mística (F)',
@@ -379,7 +379,7 @@ var RACE_DATA = {
     model: 'assets/personagens/magic_f.glb?v=7',
     stats: { str: 22, dex: 21, con: 27, int: 41, wit: 20, men: 39 },
     lore: '"Devotas da luz sagrada de Einhasad, as Místicas Humanas canalizam as forças primordiais dos elementos para devastar inimigos à distância com feitiçaria arcana."',
-    features: ['🔮 Maior Dano Mágico Primário', '⚡ Feitiços de Choque e Fogo Destrutivo', '🌀 Escudo Arcano de Mana Defensivo', '✨ Projéteis Luminosos de Alta Velocidade']
+    features: ['🔮 Maior Dano Mágico Primário', '⚡ Feitiços de Choque e Fogo Destrutivo', '🌀 Escudo Arcano de Mana Defensivo', 'Projéteis Luminosos de Alta Velocidade']
   },
   'elf_m': {
     name: 'Elfo Branco (M)',
@@ -388,7 +388,7 @@ var RACE_DATA = {
     model: 'assets/personagens/elf_m.glb?v=7',
     stats: { str: 36, dex: 35, con: 36, int: 23, wit: 14, men: 26 },
     lore: '"Protetores das florestas sagradas de Eva, os Elfos possuem reflexos ultra-rápidos e movimentação aerodinâmica. Seus cortes são cirúrgicos e velozes."',
-    features: ['🏃 Velocidade de Movimento Superior', '✨ Crítico Elevado e Evasão Ágil', '⚔️ Fluidez Ligeira com Lâminas Duplas', '💨 Salto Evasivo com I-Frames']
+    features: ['🏃 Velocidade de Movimento Superior', 'Crítico Elevado e Evasão Ágil', '⚔️ Fluidez Ligeira com Lâminas Duplas', '💨 Salto Evasivo com I-Frames']
   },
   'elf_f': {
     name: 'Elfa Branca (F)',
@@ -397,7 +397,7 @@ var RACE_DATA = {
     model: 'assets/personagens/elf_f.glb?v=7',
     stats: { str: 36, dex: 35, con: 36, int: 23, wit: 14, men: 26 },
     lore: '"Abençoadas pela deusa da água Eva, as Elfas possuem a mais alta agilidade e velocidade de ataque de todo o mundo. Seus golpes são velozes e graciosos como uma tempestade de lâminas."',
-    features: ['🏃 Velocidade de Ataque Superior (+15% Atk Spd)', '✨ Alta Taxa de Crítico e Esquiva Natural', '⚔️ Fluidez Ágil de Espadas e Lâminas', '💨 Esquiva Deslizante com Rastro Astral']
+    features: ['🏃 Velocidade de Ataque Superior (+15% Atk Spd)', 'Alta Taxa de Crítico e Esquiva Natural', '⚔️ Fluidez Ágil de Espadas e Lâminas', '💨 Esquiva Deslizante com Rastro Astral']
   },
   'orc_m': {
     name: 'Orc Guerreiro (M)',
@@ -996,7 +996,7 @@ function checkNameAvailability(name){
   if(existing.indexOf(clean.toLowerCase()) !== -1){
     return { valid: false, msg: '❌ O nome "' + clean + '" já existe! Escolha outro nome.', color: '#ef4444' };
   }
-  return { valid: true, msg: '✨ Nome "' + clean + '" está livre no Reino de Aden!', color: '#22c55e' };
+  return { valid: true, msg: 'Nome "' + clean + '" está livre no Reino de Aden!', color: '#22c55e' };
 }
 
 function setupNameValidation(){

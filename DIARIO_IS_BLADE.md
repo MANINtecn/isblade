@@ -4796,3 +4796,24 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
     - `T+5s: 100% (Entrando no jogo)`
   - Carregamento 100% restaurado e funcional sem travamentos ou exceções.
 
+### [Claude] 17/11 - Regra e Remoção Completa do Ícone de Estrelinhas (Sparkles ✨)
+- **Nova Regra Mandatória**:
+  - **PROIBIDO Ícone de Estrelinhas (sparkles ✨)**: O ícone/emoji de estrelinhas (`✨`) é terminantemente proibido de ser adicionado em qualquer interface, texto de diálogo, notificação, botão, seletor de classe, encantamento ou log do jogo. Onde existir deve ser sempre removido. Adicionado à documentação de diretrizes em `.claude/skills/estilo-fx-refinado/SKILL.md`.
+- **Varredura e Remoção Aplicada**:
+  1. `prototipo/criacao.html`: Removido da validação de nomes (`Nome "[nome]" está livre no Reino de Aden!`) e das listas de características de classes (substituído por `🎯` ou `☀️`).
+  2. `prototipo/cidade.html` e `prototipo/arena.html`: Removido dos seletores e botões (`Criar / Trocar` e `☀️ Humana Mística (F)`).
+  3. `prototipo/js/alvo_l2.js`: Clérigo / Healer atualizado para o ícone temático sagrado `✝️`.
+  4. `prototipo/js/painel_bots.js`: Botão do seletor de Healer atualizado para `✝️ Healer`.
+  5. `prototipo/js/l2_npcs.js`: Mensagem de sucesso de encantamento atualizada para texto direto sem estrelinhas.
+  6. `prototipo/selecao.html`: Ícone de Maga Sagrada atualizado para `☀️`.
+  7. `servidor/fakes.js`: Mensagem de spawn de Healers atualizada para `✝️`.
+  8. Arquivos históricos de backup em `prototipo/` higienizados.
+
+### [Claude] 17/11 - Conta unica site <-> jogo (passe assinado) - commits locais, sem push
+
+- Decisao do dono: a conta do site (l2ikarus.com) vira a unica; contas do jogo comecam do zero. Painel do site vira a central de jogos (aba Jogos). Dominio futuro do jogo: jogar.l2ikarus.com (dono adiciona na Vercel; manter isblade.tecx.pro ate o redirecionamento).
+- Site (repo do site, branch l2ikarus-web, commit 5a50034): POST /api/player/ticket (HMAC-SHA256 com GAME_SSO_SECRET, 2 min, nonce); sessao do jogador 30 dias; home "Jogar agora" logado vai direto ao jogo, sem login abre o login e depois a central; painel com aba Jogos (cartao L2 Ikarus + Jogar); ?jogar=1 (volta do jogo). Endereco do jogo em src/config/ikarusWeb.js (JOGO_BASE).
+- Jogo (commit 6c09afe): servidor/contas.js POST /api/conta/sso (SSO_SECRET, uso unico, conta 'site:<login>', conta do site nao entra por senha); prototipo/entrar.html (#t=passe -> carregando -> selecao); login.html e index.html mandam para o site (formulario antigo so local ou ?dev=1); js/conta.js entrarComPasse. Copias: servidor/contas.js.antes_sso, prototipo/js/conta.js.antes_sso.
+- Teste de ponta a ponta local (servidor do jogo na porta 8012 + site simulado): Jogar -> carregando -> selecao -> criacao, sem segundo login; passe falso recusado; sem passe e sem conta volta ao site.
+- ORDEM PARA PUBLICAR: (1) mesma chave secreta em GAME_SSO_SECRET (Vercel, projeto do site) e SSO_SECRET (VPS, servidor do jogo) e reiniciar o servidor do jogo com o contas.js novo; (2) push do jogo; (3) push do site. Sem a chave nos dois lados ninguem entra no jogo (o login antigo do jogo ja manda para o site).
+- Pendente depois: trocar "IS BLADE" por "L2 Ikarus" nas telas do jogo, link "Lobby" da criacao/selecao, aba Personagens do painel com os personagens do jogo, NIVEL_MAX 400 no servidor (dono definiu 99).

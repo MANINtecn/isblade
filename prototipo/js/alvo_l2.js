@@ -21,7 +21,7 @@
     if(n.indexOf('baium') >= 0 || tipo === 'boss') return '👑';
     if(n.indexOf('guardi') >= 0) return '🛡️';
     if(n.indexOf('mago') >= 0 || n.indexOf('feitic') >= 0) return '🔮';
-    if(n.indexOf('clérigo') >= 0 || n.indexOf('clerigo') >= 0) return '✨';
+    if(n.indexOf('clérigo') >= 0 || n.indexOf('clerigo') >= 0) return '✝️';
     if(n.indexOf('espadachim') >= 0 || n.indexOf('guerreiro') >= 0) return '⚔️';
     if(tipo === 'player') return '👤';
     if(nv >= 30) return '💀';

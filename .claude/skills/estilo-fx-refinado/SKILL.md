@@ -25,10 +25,12 @@ Este documento rege a modelagem 3D (Blender), os shaders procedurais (Three.js) 
    - O elemento 3D deve ser **ÚNICO**.
 4. **PROIBIDO Formas Orgânicas Tosquinhas**:
    - Asas de anjo não são tiras ou chifres curvados simplórios. Devem ter **anatomia de penas reais em camadas articuladas** (primárias longas fanning, secundárias e plumas de ombro).
+5. **PROIBIDO Ícone de Estrelinhas (sparkles)**:
+   - **NUNCA** adicionar ou utilizar o ícone/emoji de estrelinhas em qualquer interface, texto, notificação, botão, diálogo, classe ou efeito do jogo. Onde for encontrado, deve ser sumariamente removido.
 
 ---
 
-## ✨ 2. OS PILARES DO ACABAMENTO REFINADO (EFEITOS LEVES)
+## 2. OS PILARES DO ACABAMENTO REFINADO (EFEITOS LEVES)
 
 ### A. Geometria Esbelta e Lapidação Diamante
 - **Proporções Nobres**: Hastes esbeltas e delgadas com espinha central em relevo (crista facetada estilo diamante que reflete a iluminação).
