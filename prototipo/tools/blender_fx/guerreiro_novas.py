@@ -401,30 +401,32 @@ def montar_execucao():
 # ================================================================== N5 CORTE LANCADOR: crava na diagonal no pe do alvo, arranca a espada quebrando o chao em leque e lanca;
 # 2 cortes no ar; desce cravando a espada 100% na vertical com as duas maos e quebra o chao
 def montar_lancador():
-    random.seed(15)
+    random.seed(15); INCL_L = float(os.environ.get("GW_INCL", "-16"))
+    # a descida usa a MESMA direcao do corpo da versao aprovada (que vinha depois dos 2 cortes no ar): mede essa direcao montando a sequencia antiga so para medir
+    _v, _ = G.bake(BASE_ARM, "W_N5_medida", [dict(acao="W_AtkWait_2HS", de=0, ate=8, saida=9), dict(acao="W_SpAtk01_2HS", de=22, ate=43, saida=14, alinha=True),
+                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=10, alinha=True), dict(acao="W_SpAtk11_2HS", de=0, ate=30, saida=26, alinha=True),
+                     dict(acao="W_Atk01_2HS", de=6, ate=56, saida=30, alinha=True), dict(acao="W_Atk02_2HS", de=6, ate=56, saida=30, alinha=True)], emenda=7)
+    yw = list(G.BASE["yaws"]); GIRO_L = (yw[5] - yw[3] + 180) % 360 - 180; bpy.data.actions.remove(_v); print("LANCADOR giro da descida", round(GIRO_L, 1))                              # inclinacao do tronco na descida (negativo = para a frente)
     acao, fx = G.bake(BASE_ARM, "W_N5_Lancador", [dict(acao="W_AtkWait_2HS", de=0, ate=8, saida=9), dict(acao="W_SpAtk01_2HS", de=22, ate=43, saida=14, alinha=True),
                      dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=10, alinha=True), dict(acao="W_SpAtk11_2HS", de=0, ate=30, saida=26, alinha=True),
-                     dict(acao="W_Atk01_2HS", de=6, ate=56, saida=30, alinha=True), dict(acao="W_Atk02_2HS", de=6, ate=56, saida=30, alinha=True),
-                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=14, alinha=True, inclina=lambda t: -16, retoque=lambda a, t: vertical(a, 1.0)),          # desce ja com a espada em pe NA FRENTE (ponta para baixo)
-                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=44, alinha=True, inclina=lambda t: -16, retoque=lambda a, t: vertical(a, 1.0))], emenda=7)
+                     # 17/11/2026 (dono): sem os dois cortes no ar; o corte subindo emenda direto no corte descendo, espada fincada NA FRENTE
+                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=14, alinha=True, giro=lambda t: GIRO_L, inclina=lambda t: INCL_L, retoque=lambda a, t: vertical(a, 1.0)),          # desce ja com a espada em pe NA FRENTE (ponta para baixo)
+                     dict(acao="W_SpAtk01_2HS", de=43, ate=43, saida=44, alinha=True, giro=lambda t: GIRO_L, inclina=lambda t: INCL_L, retoque=lambda a, t: vertical(a, 1.0))], emenda=7)
     N = fx[-1][1]; d0 = dados_mundo(acao, N)
-    h0 = [fx[1][1], pico_rapido(d0, fx[3][0], fx[3][1]), pico(d0, fx[4][0], fx[4][1]), pico(d0, fx[5][0], fx[5][1]), fx[6][1]]
-    N, mv, d0 = pausas(acao, N, [(h0[0], 4), (h0[1], 4), (h0[2], 4), (h0[3], 4), (h0[4], 9)]); FP, FL, H1, H2, FD = [mv(h) for h in h0]
-    J0 = FL + 4; ZA = 1.6
+    h0 = [fx[1][1], pico_rapido(d0, fx[3][0], fx[3][1]), fx[4][1]]
+    N, mv, d0 = pausas(acao, N, [(h0[0], 4), (h0[1], 4), (h0[2], 9)]); FP, FL, FD = [mv(h) for h in h0]
+    J0 = FL + 4; ZA = 1.6; D0 = mv(fx[4][0]); H2 = D0                                           # H2 = topo do salto (inicio da descida)
     def corpo(f):
         if f <= J0: return V(0, 0)
-        if f <= H1: t = (f - J0) / (H1 - J0); return V(0, 0.7 * t, ZA * (1 - (1 - t) ** 2))
-        if f <= H2: t = (f - H1) / (H2 - H1); return V(0, 0.7 + 0.15 * t, ZA + 0.15 * math.sin(math.pi * t))
-        D0 = mv(fx[6][0])
-        if f <= D0: return V(0, 0.85, ZA)
-        if f <= FD: t = (f - D0) / (FD - D0); return V(0, 0.85 + 0.25 * t, ZA * (1 - t * t))     # cai acelerando ate cravar
+        if f <= D0: t = (f - J0) / max(1, D0 - J0); return V(0, 0.7 * t, ZA * (1 - (1 - t) ** 2))
+        if f <= FD: t = (f - D0) / max(1, FD - D0); return V(0, 0.7 + 0.4 * t, ZA * (1 - t * t))     # cai acelerando ate cravar
         return V(0, 1.1, 0)
-    d = desloca(d0, corpo); print("LANCADOR crava", FP, "arranca", FL, "ar", H1, H2, "desce", FD, "total", N)
+    d = desloca(d0, corpo); print("LANCADOR crava", FP, "arranca", FL, "topo", D0, "desce", FD, "total", N)
     sc, col, ref, arm, esp = cena("N5_LANCADOR", N + 34, acao); cams(sc, ref, (0, 1.8, 1.6), 1.3, 0.6, "cam_lateral")
     anda_obj(arm, [(f, corpo(f)) for f in range(1, N + 1)])
     pf = d[FP][0]; OY = pf.y / U + 0.35                                                          # a ponta crava no pe do orc
     g = 9.0 * U; HC = 0.7 * U
-    alvos = [(FL, 0.0), (H1, max(0.5 * U, d[H1][0].z - HC)), (H2, max(0.7 * U, d[H2][0].z - HC + 0.2 * U))]
+    alvos = [(FL, 0.0), (H2, max(0.7 * U, d[H2][0].z - HC + 0.2 * U))]
     zs = {f: 0.0 for f in range(1, FL + 1)}
     for (fa, za), (fb, zb) in zip(alvos, alvos[1:]):
         T = (fb - fa) / 48.0; v = balistico(za, zb, T, g)
@@ -441,8 +443,8 @@ def montar_lancador():
     ys = {f: OY * U + (0.9 * U * min(1, max(0, (f - FL) / (FD - FL)))) for f in zs}
     o = orc(col, "N5", V(0, OY), [("idle", 1), ("death", FCH - 4)])
     for f in sorted(zs):
-        if f % 2 == 0 or f in (FL, H1, H2, FD, FCH): o.location = (0, ys[f], zs[f]); o.keyframe_insert("location", frame=f)
-    gira_obj(o, [(FL - 1, (0, 0, 0)), (FL + 12, (-25, 0, 0)), (H1 + 3, (-40, 0, 10)), (H2 + 3, (-60, 0, 0)), (FCH, (-90, 0, 0))])
+        if f % 2 == 0 or f in (FL, H2, FD, FCH): o.location = (0, ys[f], zs[f]); o.keyframe_insert("location", frame=f)
+    gira_obj(o, [(FL - 1, (0, 0, 0)), (FL + 12, (-25, 0, 0)), (H2 + 3, (-50, 0, 6)), (FCH, (-90, 0, 0))])
     # 1) crava na diagonal: faisca na ponta, rachadura comeca
     impacto(sc, col, "crava", pf, FP, 1, "o"); fenda(col, "crava_fenda", (pf.x, pf.y, 0.5), FP, 1.2, "o", 30, 0.2)
     sombras_espada(col, "sombra_crava", arm, esp, FP - 10, FP, 2, BRASA, 10, 0.5)
@@ -451,17 +453,15 @@ def montar_lancador():
     trilha_glow(col, "tr_sobe", d, FL - 10, FL + 4, 0.30, 3.6); impacto(sc, col, "sobe", d[FL][0], FL, 2, "o")
     sombras_espada(col, "sombra_sobe", arm, esp, FL - 10, FL + 2, 1, CARM, 12, 0.55)
     fantasmas(col, "eco_salto", arm, esp, [J0 + 2, J0 + 5, J0 + 8], CARM, 14, 0.5)
-    # 3) dois cortes no ar
-    for k, f in enumerate((H1, H2)):
-        trilha_glow(col, "tr_ar%d" % k, d, f - 12, f + 2, 0.24, 3.2); impacto(sc, col, "ar%d" % k, d[f][0], f, 1, "b")
-        sombras_espada(col, "sombra_ar%d" % k, arm, esp, f - 12, f + 1, 1, CARM, 12, 0.55)
-    # 4) desce cravando na vertical: rastro do corpo e da espada, quebra de chao em estrela
-    D0 = mv(fx[6][0]); fantasmas(col, "eco_desce", arm, esp, [D0 + 3, (D0 + FD) // 2, FD - 2], CARM, 14, 0.55)
+    # 3) desce cravando na vertical NA FRENTE: rastro do corpo e da espada, quebra de chao em estrela
+    fantasmas(col, "eco_desce", arm, esp, [D0 + 3, (D0 + FD) // 2, FD - 2], CARM, 14, 0.55)
     sombras_espada(col, "sombra_desce", arm, esp, D0, FD, 1, CARM, 14, 0.6)
     pd = d[FD][0]; ch = Vector((pd.x, pd.y, 0))
     impacto(sc, col, "desce", pd + Vector((0, 0, 0.4 * U)), FD, 3, "b")
     estrela_quebra(sc, col, "estrela", ch, FD, 8)
-    meta(sc, acao, N, [FP, FL, H1, H2, FD], 1.1, salto=True)
+    sc.frame_set(FD + 6); pb = arm.pose.bones; Mw = arm.matrix_world; fr = (Mw.to_3x3() @ Vector((0, -1, 0))).normalized(); fr.z = 0; fr.normalize()
+    tipw = esp.matrix_world @ PL; pel = Mw @ pb["Bip01_Pelvis"].head; lado = fr.cross(Vector((0, 0, 1))); mao = Mw @ pb["Weapon_R_Bone"].head; print("LANCADOR ponta cravada: frente %.2f m lado %.2f m altura %.2f m | mao frente %.2f lado %.2f" % ((tipw - pel).dot(fr) / U, (tipw - pel).dot(lado) / U, tipw.z / U, (mao - pel).dot(fr) / U, (mao - pel).dot(lado) / U))
+    meta(sc, acao, N, [FP, FL, FD], 1.1, salto=True)
     fim_cena(sc); return sc
 
 # ================================================================== N6 FENDA SISMICA: crava a espada e a fenda (mais larga) corre 9 m para a frente

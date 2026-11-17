@@ -1,4 +1,5 @@
 'use strict';
+const crypto = require('crypto');
 /* ==========================================================================
    ADMIN / GM POWERS - IS BLADE (17/11/2026)
    Sistema completo de administração e controle de jogo (GM):

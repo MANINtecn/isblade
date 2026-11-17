@@ -4915,3 +4915,30 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
      - `oncontextmenu` e `ondblclick` agora consultam diretamente o atributo `data-slot` do Paperdoll e o estado `data-eq`, garantindo que desequipar via clique direito funcione com precisão cirúrgica em qualquer item.
   5. **Sincronia Visual Imediata em `cidade.html` e `arena.html`**:
      - Função `invDoServidor` atualizada para invocar `window.atualizaModeloArmadura3D()` assim que o inventário chega do servidor, renderizando instantaneamente a armadura 3D equipada.
+
+
+### [Claude] 17/11 - Correcao de Habilidades Sumindo da Barra de Atalhos e Blindagem Contra Desconexoes (DC)
+
+- **Contexto e Queixas do Usuario**:
+  - *"quando eu clico em atualziar as skilss some da barra, e toda hora levo um dc"*
+- **Causas Raizes Identificadas**:
+  1. **Purga Incorreta de Skills no Carregamento da Barra (`prototipo/js/l2_hud.js`)**:
+     - No metodo `loadSlots()`, a condicao de limpeza de placeholders continha `if (!d.ico || d.ico.indexOf('sword_long') !== -1 || ...)`.
+     - Como as habilidades das classes (Guerreiro, Mago, Clerigo) utilizam renderizacao vetorial SVG (`svg`) em vez de arquivos raster PNG (`ico`), o campo `d.ico` ficava vazio (`""`).
+     - A avaliacao `!d.ico` resultava em `true` imediatamente pelo operador `||`, deletando todas as habilidades salvas na barra de atalhos toda vez que a pagina era recarregada, atualizada ou reaberta.
+     - Alem disso, o `dragstart` nos botoes de skills em `cidade.html` e `arena.html` nao gravava o payload `svg`, dependendo da presenca de `d.ico`.
+  2. **Quedas Frequentes de Conexao / Desconexoes (DC)**:
+     - Em `servidor/admin.js`, a funcao `genUid` em `darKit` utilizava `crypto.randomBytes(5)` sem a importacao `const crypto = require('crypto');` no topo do arquivo. Ao executar kit ou comando admin, lancava `TypeError: crypto.randomBytes is not a function`.
+     - Em `servidor/server.js`, a recepcao de mensagens continha `ws.on('message', buf => { try { tratar(buf); } catch (e) { ... try { ws.close(); } catch(x){} } })`. Qualquer excecao em comando ou pacote fechava sumariamente a conexao do cliente (DC).
+     - O timeout do heartbeat no servidor (`setInterval`) verificava `!ws.isAlive` a cada 15 segundos, mas `ws.isAlive = true` so era atribuido no evento de `pong` do protocolo WS (e nao na recepcao de mensagens ativas de movimentacao/ataque), causando encerramentos indevidos se houvesse qualquer atraso de pacote.
+     - Em `prototipo/js/net.js`, nao havia mecanismo de reconexao automatica apos desconexao acidental.
+- **Solucoes Implementadas**:
+  1. **Preservacao Absoluta das Skills na Barra de Atalhos (`prototipo/js/l2_hud.js`)**:
+     - A logica de purga em `loadSlots` foi corrigida para purgar exclusivamente entradas com icone de espada (`sword_long`) ou entradas sem icone, sem SVG e com nome generico de placeholder (`Skill \d+`).
+     - O metodo `sync()` e os manipuladores de clique e `drop` agora recuperam e preservam automaticamente o markup SVG da habilidade se `d.svg` estiver ausente, mantendo os atalhos 100% salvos e persistentes no `localStorage` por personagem.
+     - Atualizados `cidade.html` e `arena.html` para incluir `svg` completo no `dragstart` dos botoes de `#skills`.
+  2. **Blindagem do Servidor e Eliminacao de DCs (`servidor/admin.js`, `servidor/server.js`, `prototipo/js/net.js`)**:
+     - Importado `const crypto = require('crypto');` em `servidor/admin.js`, garantindo execucao perfeita e sem erros do gerador de UIDs em kits.
+     - No `servidor/server.js`, a recepcao de pacotes marca `ws.isAlive = true` a cada mensagem recebida e nao fecha a conexao do jogador caso ocorra erro nao-fatal em tratamento de comandos.
+     - Intervalo do heartbeat ajustado de 15s para 30s com protecao try/catch em `ws.ping()`.
+     - Implementado sistema de reconexao automatica transparente em `prototipo/js/net.js` (espera 2 segundos e tenta restabelecer a conexao caso o socket caia inesperadamente durante o jogo).

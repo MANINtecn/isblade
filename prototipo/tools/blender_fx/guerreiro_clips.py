@@ -74,11 +74,11 @@ def bake(arm, nome, partes, emenda=5):
     """partes: lista de dict(acao=, de=, ate=, saida=quadros de saida, giro=funcao(t 0..1)->graus extras  ou None)
     A pose de cada pedaco e amostrada na acao nativa (de..ate em quadros de 48 fps) e esticada para 'saida' quadros; entre pedacos ha uma emenda suave de 'emenda' quadros.
     Devolve (acao_nova, lista_de_quadros_por_parte [(ini, fim)])."""
-    poses = []; faixas = []; ultima = None; yaw_ult = 0.0
+    poses = []; faixas = []; ultima = None; yaw_ult = 0.0; yaw_ini = None; yaws = BASE.setdefault("yaws", []); yaws.clear()   # yaws: para onde o corpo olha no fim de cada pedaco (BASE["yaws"])
     for p in partes:
         n = p["saida"]; ini = len(poses); extra = 0.0
         if ultima is not None and p.get("alinha"):                                  # gira a pose para olhar para onde a pose anterior olhava
-            ps0 = pose_da_acao(arm, p["acao"], p["de"]); aplica(arm, ps0); BASE["sc"].view_layers[0].update(); extra = (yaw_ult - yaw_raiz(arm) + 180) % 360 - 180
+            ps0 = pose_da_acao(arm, p["acao"], p["de"]); aplica(arm, ps0); BASE["sc"].view_layers[0].update(); extra = ((yaw_ini if p.get("alinha") == "frente" else yaw_ult) - yaw_raiz(arm) + 180) % 360 - 180   # alinha="frente": olha para a frente inicial (nao herda a torcao do golpe anterior)
         g0 = p.get("giro"); gf = (lambda t, g0=g0, extra=extra: extra + (g0(t) if g0 else 0.0)) if (g0 or extra) else None
         p = dict(p); p["giro"] = gf
         if ultima is not None and emenda > 0:                                        # emenda: da ultima pose para a primeira desta
@@ -100,6 +100,8 @@ def bake(arm, nome, partes, emenda=5):
                 aplica(arm, ps); p["retoque"](arm, t); ps = captura(arm)
             poses.append(ps)
         ultima = poses[-1]; faixas.append((ini + 1, len(poses))); aplica(arm, ultima); BASE["sc"].view_layers[0].update(); yaw_ult = yaw_raiz(arm)
+        if yaw_ini is None: yaw_ini = yaw_ult
+        yaws.append(yaw_ult)
     nova = bpy.data.actions.new(nome); nova.use_fake_user = True; arm.animation_data.action = nova
     for i, ps in enumerate(poses):
         aplica(arm, ps); f = i + 1

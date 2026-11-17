@@ -57,6 +57,7 @@
     return Promise.all(ps).then(function(){pronto=true;});
   }
 
+  var SUBTEX={};
   function criar(o){
     o=o||{};var k=o.escala||.04,r=rngDe(o.seed||(Math.random()*1e9)),grupo=new THREE.Group(),parts=[];
     var lista=(o.magia?SPIRIT:SOUL).filter(function(e){return !(o.semAneis&&e.anel);});
@@ -66,8 +67,8 @@
         if(e.tipo==='sprite'){
           var t2=tex;
           if(e.sub&&tex){/* quadro aleatorio do atlas (UseRandomSubdivision) */
-            var q=e.sub[0]+Math.floor(r()*(e.sub[1]-e.sub[0]+1));t2=tex.clone();t2.needsUpdate=true;
-            t2.repeat.set(1/e.grade,1/e.grade);t2.offset.set((q%e.grade)/e.grade,1-(Math.floor(q/e.grade)+1)/e.grade);
+            var q=e.sub[0]+Math.floor(r()*(e.sub[1]-e.sub[0]+1)),ck=e.tex+'|'+e.grade+'|'+q;t2=SUBTEX[ck];
+            if(!t2){t2=SUBTEX[ck]=tex.clone();t2.needsUpdate=true;t2.repeat.set(1/e.grade,1/e.grade);t2.offset.set((q%e.grade)/e.grade,1-(Math.floor(q/e.grade)+1)/e.grade);}/* [travada] quadro do atlas guardado: nao sobe textura nova a cada tiro */
           }
           mat=new THREE.SpriteMaterial({map:t2,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,depthTest:false,fog:false});
           obj=new THREE.Sprite(mat);
@@ -106,7 +107,7 @@
     }
     avaliar(0);
     return {grupo:grupo,avaliar:avaliar,duracao:fim,vivo:function(t){return t<fim;},
-      liberar:function(){if(grupo.parent)grupo.parent.remove(grupo);parts.forEach(function(p){if(p.mat.map&&p.e.sub)p.mat.map.dispose();p.mat.dispose();});}};
+      liberar:function(){if(grupo.parent)grupo.parent.remove(grupo);}};/* [travada] materiais e quadros do atlas NAO sao descartados: descartar apagava o shader e o proximo tiro recompilava (travadinha em todo golpe) */
   }
   /* disparo no jogo: segue o osso da mao a cada quadro e se apaga sozinho */
   var ATIVOS=[],laco=false,_v=null,_s=null;/* THREE chega depois (modulo), entao os vetores nascem no 1o uso */

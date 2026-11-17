@@ -101,15 +101,15 @@ export const Guardiao = (function(){
   /* ---------- Guerreiro (espada 2 maos), skills 1,3,4,5,6: clipes baked do Blender (tools/blender_fx/guerreiro_clips_export.py -> assets/personagens/guerreiro_clips/<PSA>.glb)
      so o Humano M por enquanto. Mesmo retarget do anexarCast: so rotacoes + movimento (delta) do quadril e do osso raiz. hit/cut = fracao do clipe (medidos no Blender) */
   var W_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter' };
-  var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.116,cut:0.856,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
+  var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.1726,cut:0.7857,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
   var wCache = {};
   G.anexarGuerreiro = function(rig, THREE){
     if(!rig || !rig.clips) return;
     var tipo = rig.tipo || ''; if(!tipo){ try { tipo = localStorage.getItem('isblade.char_type') || ''; } catch(e){} }
     var tipoL = String(tipo).toLowerCase(), outra = !W_PSA[tipoL], psa = 'MFighter';   /* [guerreiro] a skill e da classe: toda raca/sexo usa os clipes do Blender (gravados no Humano M); nas outras, so rotacoes + quadril na escala da raca (como o Guardiao) */
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
-    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
-    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=3').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
+    var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=3', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
+    var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=4').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
     Promise.all([pr, prM]).then(function(ab){
       var list = ab[0], MED = ab[1] || {};
       if(!list || !list.length) return;

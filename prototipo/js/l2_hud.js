@@ -55,13 +55,14 @@ export const L2Hud = {
       this.autoSoulshot = localStorage.getItem(perChar(AUTO_SS_KEY)) === '1';
     } catch (_) {}
 
-    // Purgar placeholders e skills fictícias antigas (ex: "Skill 1" sem ícone que ficavam com ícone de espada)
-    // O usuário solicitou expressamente a barra de skills limpa para arrastar as skills
+    // Purgar apenas placeholders antigos com icone de espada ou itens sem icone nem svg e com nome generico
     var changed = false;
     for (var i = 0; i < 12; i++) {
       var d = this.slots[i];
       if (d && d.type === 'skill') {
-        if (!d.ico || d.ico.indexOf('sword_long') !== -1 || (!d.svg && (!d.name || /^Skill \d+$/i.test(d.name)))) {
+        var isOldPlaceholder = (d.ico && d.ico.indexOf('sword_long') !== -1) ||
+                              (!d.ico && !d.svg && (!d.name || /^Skill \d+$/i.test(d.name)));
+        if (isOldPlaceholder) {
           this.slots[i] = null;
           changed = true;
         }
@@ -182,12 +183,19 @@ export const L2Hud = {
 
     // Slots da Barra de Atalhos (ShortcutWnd)
     var slots = document.querySelectorAll('.l2-sc-slot');
+    var origSkillBtns = document.querySelectorAll('#skills button');
     slots.forEach(function(slotEl, idx) {
       slotEl.addEventListener('click', function(e) {
         e.preventDefault();
         // Se houver uma skill selecionada na janela de skills (toque/clique), equipa no slot
         if (window._selectedSkillToPlace) {
-          self.slots[idx] = Object.assign({}, window._selectedSkillToPlace);
+          var itemToPlace = Object.assign({}, window._selectedSkillToPlace);
+          if (!itemToPlace.svg) {
+            var origBtns = document.querySelectorAll('#skills button');
+            var ob = origBtns[itemToPlace.skillSlot];
+            if (ob && ob.querySelector('.sk-icon')) itemToPlace.svg = ob.querySelector('.sk-icon').innerHTML;
+          }
+          self.slots[idx] = itemToPlace;
           self.saveSlots();
           self.sync();
           window._selectedSkillToPlace = null;
@@ -249,6 +257,11 @@ export const L2Hud = {
             return;
           }
           if (payload.type === 'skill' || payload.type === 'item') {
+            if (payload.type === 'skill' && !payload.svg) {
+              var origBtns = document.querySelectorAll('#skills button');
+              var ob = origBtns[payload.skillSlot];
+              if (ob && ob.querySelector('.sk-icon')) payload.svg = ob.querySelector('.sk-icon').innerHTML;
+            }
             self.slots[idx] = payload;
             self.saveSlots();
             self.sync();
@@ -402,8 +415,11 @@ export const L2Hud = {
           iconEl.innerHTML = '<img src="' + icoPath + '" width="32" height="32" alt="" style="display:block;border-radius:2px;pointer-events:none;" onerror="this.onerror=null;this.parentNode.innerHTML=\'\';">';
         } else if (data.svg) {
           iconEl.innerHTML = '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + data.svg + '</div>';
+        } else if (skBtn && skBtn.querySelector('.sk-icon')) {
+          var recoveredSvg = skBtn.querySelector('.sk-icon').innerHTML;
+          data.svg = recoveredSvg;
+          iconEl.innerHTML = '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;pointer-events:none;">' + recoveredSvg + '</div>';
         } else {
-          // Deixa o slot 100% limpo e livre para o jogador arrastar as skills
           iconEl.innerHTML = '';
         }
         if (autoEl) autoEl.style.display = 'none';

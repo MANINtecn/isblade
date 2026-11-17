@@ -389,7 +389,10 @@ wss.on('connection', ws => {
   let J = null, c = null, msgs = 0;
   const lim = setInterval(() => { msgs = 0; }, 1000);
   ws.isAlive = true; ws.on('pong', () => { ws.isAlive = true; });
-  ws.on('message', buf => { try { tratar(buf); } catch (e) { console.error('ERRO em mensagem', e && e.stack || e); try { ws.close(); } catch (x) {} } });
+  ws.on('message', buf => {
+    ws.isAlive = true;
+    try { tratar(buf); } catch (e) { console.error('ERRO em mensagem:', e && e.stack || e); }
+  });
   const tratar = buf => {
     if(++msgs > 80) return; let m; try { m = JSON.parse(buf); } catch (e) { return; }
     if(m.t === 'join' && !J){
@@ -616,7 +619,13 @@ wss.on('connection', ws => {
   });
   ws.on('error', () => {});
 });
-setInterval(() => { wss.clients.forEach(ws => { if(!ws.isAlive) return ws.terminate(); ws.isAlive = false; ws.ping(); }); }, 15000);
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if(!ws.isAlive) return ws.terminate();
+    ws.isAlive = false;
+    try { ws.ping(); } catch(_) {}
+  });
+}, 30000);
 
 /* ---- laco do servidor: reaparecimento, duelos e fotos do mundo (so quem esta perto, ate AOI m) ---- */
 let tick = 0;

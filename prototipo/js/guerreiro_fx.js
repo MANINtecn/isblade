@@ -18,7 +18,7 @@
     ['estrela', 'onda', 'leque', 'raios', 'hex_brilho'].forEach(function(n){ TX[n] = tl.load('assets/fx/clerigo_' + n + '.png' + v); });
     ['fenda', 'veios'].forEach(function(n){ TX[n] = tl.load('assets/fx/guerreiro_' + n + '.png' + v); });
     TX.raios.wrapS = TX.raios.wrapT = TX.veios.wrapS = TX.veios.wrapT = T.RepeatWrapping;
-    ['halo', 'flare', 'flare_largo', 'losango', 'vento', 'fissura'].forEach(txN);
+    ['halo', 'flare', 'flare_largo', 'losango', 'vento', 'fissura'].forEach(txN); TX.raiosCol = TX.raios.clone(); TX.raiosCol.repeat.set(3, 1.2);
     G.pronto = true;
   };
   /* G.preparar({ renderer, camera, scene, rt: fn -> alvo do bloom, rig: fn -> personagem }) (regra: nada compila na hora da skill) */
@@ -72,7 +72,7 @@
       seq(vida, function(u, t){ s.position.set(x + Math.cos(a) * v * t + .12 * Math.sin(t * 6 + a), y + vz * t - .6 * t * t, z + Math.sin(a) * v * t); s.material.opacity = (1 - u) * (.7 + .3 * Math.sin(t * 20 + a)); }, function(){ some(s); }); })(); }
   }
   function coluna(x, z, H, R, cor, dur, giro){
-    var g = grupo(x, 0, z), m = new T.Mesh(new T.CylinderGeometry(R, R * .8, H, 6, 1, true), aditivo(cor, TX.raios, .85)); m.position.y = H / 2; m.material.map = TX.raios.clone(); m.material.map.needsUpdate = true; m.material.map.repeat.set(3, 1.2); g.add(m);
+    var g = grupo(x, 0, z), m = new T.Mesh(new T.CylinderGeometry(R, R * .8, H, 6, 1, true), aditivo(cor, TX.raios, .85)); m.position.y = H / 2; if(!TX.raiosCol){ TX.raiosCol = TX.raios.clone(); TX.raiosCol.needsUpdate = true; TX.raiosCol.repeat.set(3, 1.2); } m.material.map = TX.raiosCol;   /* [travada] 1 copia so (antes: textura nova a cada coluna, nunca liberada) */ g.add(m);
     seq(dur || .8, function(u, t){ var k = u < .12 ? u / .12 : (u > .75 ? 1 - (u - .75) / .25 : 1); m.scale.set(1 + .1 * (1 - k), Math.max(.01, k), 1); m.position.y = H / 2 * m.scale.y; m.rotation.y = (giro || 2) * t; m.material.map.offset.y -= .05; m.material.opacity = .85 * (u > .75 ? k : 1); }, function(){ some(g); });
   }
   function luzPonto(){ /* sem luz dinamica: adicionar/remover PointLight recompila todos os materiais da cena (trava); o brilho vem dos sprites e do chao */ }
@@ -164,13 +164,13 @@
     m.onBeforeCompile = function(sh){ sh.uniforms.uInf = m.userData.inf; sh.vertexShader = 'uniform float uInf;\n' + sh.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed = vec3( position ) + normal * uInf;'); };
     return m;
   }
-  function malhas(rig){ var L = []; if(rig && rig.root) rig.root.traverse(function(o){ if(o.isSkinnedMesh && o.visible && o.geometry && o.geometry.attributes.normal) L.push(o); }); return L; }
+  function malhas(rig){ var L = []; if(rig && rig.root) rig.root.traverse(function(o){ if(o.isSkinnedMesh && o.visible && !o.userData.gwCopia && o.geometry && o.geometry.attributes.normal) L.push(o);   /* nunca copia as proprias copias (contorno/eco): antes dobrava a cada skill */ }); return L; }
   function escalaRig(rig){ var L = malhas(rig); return L.length ? L[0].matrixWorld.getMaxScaleOnAxis() : 1; }
   /* contorno: casca colada no corpo (mesmo esqueleto = acompanha a animacao); fn(t) -> opacidade; some quando fn devolve < 0 */
   function contornoN(rig, cor, dur, fn){
     if(!rig || !rig.root) return; var L = malhas(rig); if(!L.length) return; if(cor === CARM2) cor = 0xff3c0a;   /* carmesim puro aditivo sobre a pele + bloom puxa para o rosa: brasa no contorno */
     var sc = escalaRig(rig), m = matCasca(cor, 0, .022 / Math.max(sc, 1e-4)), cs = [];
-    L.forEach(function(o){ var c = new T.SkinnedMesh(o.geometry, m); c.bind(o.skeleton, o.bindMatrix); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); c.frustumCulled = false; c.renderOrder = 5; o.parent.add(c); cs.push(c); });
+    L.forEach(function(o){ var c = new T.SkinnedMesh(o.geometry, m); c.userData.gwCopia = true; c.bind(o.skeleton, o.bindMatrix); c.position.copy(o.position); c.quaternion.copy(o.quaternion); c.scale.copy(o.scale); c.frustumCulled = false; c.renderOrder = 5; o.parent.add(c); cs.push(c); });
     seq(dur, function(u, t){ m.opacity = .65 * Math.max(0, Math.min(1, fn ? fn(t, u) : (u < .1 ? u / .1 : 1 - u))); }, function(){ cs.forEach(function(c){ if(c.parent) c.parent.remove(c); }); });
   }
   /* esqueleto parado na pose atual: calcula os ossos uma vez so (nao reenvia a textura de ossos todo quadro); malhas com o mesmo esqueleto dividem a copia */
@@ -183,7 +183,7 @@
     var sc = escalaRig(rig), mc = matCasca(cor, a0, .03 / Math.max(sc, 1e-4)), ms = [mf, mc], sks = [];
     if(!soEspada && !leve()) malhas(rig).forEach(function(o){
       o.updateMatrixWorld(true); var sk = congela(o.skeleton, sks);
-      [mf, mc].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.bind(sk, o.bindMatrix); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); });
+      [mf, mc].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.userData.gwCopia = true; c.bind(sk, o.bindMatrix); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); });
     });
     var swd = rig.swd2h; if(swd){ swd.updateMatrixWorld(true); var me = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .55 * a0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); ms.push(me);
       swd.traverse(function(o){ if(!o.isMesh || !o.geometry) return; var c = new T.Mesh(o.geometry, me); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); }); }

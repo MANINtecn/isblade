@@ -57,25 +57,23 @@
       "pose": "w_n5",
       "icon": "w_lancador",
       "cd": 12,
-      "dmg": 55,
-      "dur": 5.208,
+      "dmg": 90,
+      "dur": 3.5,
       "range": 3.6,
       "half": 1.3,
       "ifr": 0,
       "intr": 2,
-      "hitk": 0.116,
+      "hitk": 0.1726,
       "css": "#ff6a14",
       "hits": [
-        0.116,
-        0.268,
-        0.46,
-        0.616,
-        0.76
+        0.1726,
+        0.3988,
+        0.6429
       ],
       "armor": true,
       "launch": true,
       "unlock": 10,
-      "desc": "Crava a espada no pe do alvo, arranca quebrando o chao em leque e lanca; dois cortes no ar e desce cravando a espada na vertical. 5 golpes."
+      "desc": "Crava a espada no pe do alvo, arranca quebrando o chao em leque e lanca; o corte subindo emenda direto no corte descendo, cravando a espada na vertical na frente do corpo. 3 golpes."
     },
     {
       "name": "Fenda Sismica",

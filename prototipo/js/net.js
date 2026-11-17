@@ -788,16 +788,32 @@ export const Net = (function(){
 
   /* ---------- conexao ---------- */
   function conectar(){
-    if(desligado) return; N.tentando = true; atualizaHud(); var s;
+    if(desligado) return;
+    if(reconectar){ clearTimeout(reconectar); reconectar = 0; }
+    N.tentando = true; atualizaHud(); var s;
     try { s = new WebSocket(urlServidor()); } catch(e){ N.tentando = false; return; }
     ws = s;
     s.onopen = function(){
+      if(reconectar){ clearTimeout(reconectar); reconectar = 0; }
       var S = ctx.getS(); send({ t: 'join', tk: (function(){ try { return localStorage.getItem('isblade.conta_token') || ''; } catch(e){ return ''; } })(), cid: (function(){ try { return localStorage.getItem('isblade_active_character_id') || ''; } catch(e){ return ''; } })(), sid: sessao(), nome: ctx.nome(), raca: ctx.tipo(), cls: /magic/.test(ctx.tipo()) ? 'magic' : 'fighter', arma: ctx.getWPN(), pmax: S.pmax, mapa: N.mapaAlvo, canal: N.canalAlvo | 0, x: r2(S.px), z: r2(S.pz) });
     };
     s.onmessage = function(ev){ try { msg(JSON.parse(ev.data)); } catch(e){ console.warn('net:', e); } };
     s.onclose = function(){
       var estava = N.on; N.on = false; N.tentando = false; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; N.alvo = 0; N.grupo = null; desenhaAlvo(); atualizaHud();
-      if(ws !== s) return; if(estava) ctx.sysMsg('Desconectado do servidor.'); else if(!jaAvisou){ jaAvisou = true; console.log('Net: sem servidor online (jogo segue sozinho).'); }
+      if(ws !== s) return;
+      if(estava){
+        ctx.sysMsg('Conexão perdida. Reconectando ao servidor...');
+        if(reconectar) clearTimeout(reconectar);
+        reconectar = setTimeout(function(){
+          if(!N.on && !desligado){
+            console.log('Net: tentando reconectar...');
+            conectar();
+          }
+        }, 2000);
+      } else if(!jaAvisou){
+        jaAvisou = true;
+        console.log('Net: sem servidor online (jogo segue sozinho).');
+      }
     };
     s.onerror = function(){};
   }
@@ -823,7 +839,7 @@ export const Net = (function(){
     fetch(u, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(d){ N.canais = d.canais || []; if(menuAberto && aba === 'canal') renderMenu(); }).catch(function(){});
   }
   N.entrar = function(mapa, canal){ if(!ctx || desligado) return; N.sair(); N.mapaAlvo = mapa; N.canalAlvo = (canal | 0) || (mapa === 'masmorra' ? 0 : canalPreferido(mapa)); conectar(); };
-  N.sair = function(){ if(ws){ var s = ws; ws = null; try { s.close(); } catch(e){} } N.on = false; N.grupo = null; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; atualizaHud(); renderParty(); };
+  N.sair = function(){ if(reconectar){ clearTimeout(reconectar); reconectar = 0; } if(ws){ var s = ws; ws = null; try { s.close(); } catch(e){} } N.on = false; N.grupo = null; remotos.forEach(function(e, id){ removeRemoto(id); }); remotos.clear(); N.duelo = null; atualizaHud(); renderParty(); };
   N.tick = function(dt){
     if(!ctx || !N.on) return; tEnv += dt; tHud += dt;
     if(tEnv >= 1 / 12){
