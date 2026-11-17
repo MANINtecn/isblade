@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <script>/* [sso] 17/11/2026: a entrada do jogo agora e' o site l2ikarus.com (conta unica). Ja logado: direto ao carregamento -> selecao. Teste local ou ?dev=1: mostra esta capa. */
-(function(){ try { if(/[?&]dev=1/.test(location.search) || /^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname)) return;
+(function(){ var SSO_ATIVO = false; /* ligar junto com Conta.ssoAtivo (js/conta.js) */ try { if(!SSO_ATIVO || /[?&]dev=1/.test(location.search) || /^(localhost|127\.0\.0\.1|192\.168\.)/.test(location.hostname)) return;
   if(localStorage.getItem('isblade.conta_token')){ sessionStorage.setItem('isblade.fluxo', '1'); location.replace('carregando.html'); }
   else location.replace('https://www.l2ikarus.com/?jogar=1'); } catch(e){} })();</script>
 <meta charset="utf-8">
