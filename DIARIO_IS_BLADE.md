@@ -4770,3 +4770,29 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
      - Spawns via `/bot arena` e painel detectam o local do jogador e respeitam o piso local.
   3. **Spawn de Conexão (`posSpawn` em `servidor/server.js`)**:
      - Spawns do canal `pvp` no Coliseu nascem dentro do raio seguro de 9.5m do centro `(0, 0)`.
+
+### [Claude] 17/11 - l2ikarus.com NO AR com o site novo (push no main do repo do site)
+
+- Dono autorizou. Antes de subir: o "Jogar agora" apontava para www.isblade.tecx.pro, que NAO resolve no DNS; corrigido para https://isblade.tecx.pro/login.html (200; quem ja esta logado vai direto ao painel do jogo).
+- Fast-forward do main com o branch l2ikarus-web (19423df..babc608) e push. Vercel publicou em ~1 min; https://www.l2ikarus.com mostra "o primeiro L2 sem target", QR de doacao e vitrine (reserva do Baium). Sem erro de JS no PC e no celular.
+- ATENCAO: no ar, /api/status responde "online:false" e /api/links devolve null -> a ponte do site para a VPS (VPS_API_URL / banco do Essence) parece fora. Login, cadastro, painel, compra de Ikoin e o envio da Galeria dependem dela. Nao foi mexido nesta entrega; conferir com o dono.
+- Pendente: dono testar login/cadastro/Ikoin e subir a 1a imagem na aba GALERIA (Blob criado como Public + token).
+
+### [Claude] 17/11 - Correção Crítica: Carregamento Travado em 0% na Cidade (SyntaxError)
+- **Diagnóstico com Chrome Headless CDP**:
+  - Ao inspecionar `https://isblade.tecx.pro/cidade` em tempo real via Chrome DevTools Protocol, detectou-se a exceção:
+    `SyntaxError: Unexpected token 'function' at line 12405 col 0 url: https://isblade.tecx.pro/cidade`.
+  - Causa raiz: No commit `a9af3c7`, uma chave de fechamento duplicada (`}`) foi inserida logo após a função `closeDiff()`, fechando prematuramente a IIFE do módulo Three.js em `prototipo/cidade.html`.
+  - Como o script principal é um `<script type="module">`, qualquer erro de sintaxe impede a compilação de todo o script, congelando a tela de carregamento no estado estático inicial (0%).
+- **Correções Aplicadas**:
+  1. `prototipo/cidade.html`: Removida a chave de fechamento extra após `closeDiff()`. Validação de sintaxe via `node --check` passou com 100% de sucesso.
+  2. `prototipo/js/solo_detalhe.js`, `prototipo/assets/mundo/solo_detalhe.png` e `prototipo/tools/solo_detalhe.py`: Versionados e adicionados ao repositório para eliminar o erro 404 reportado pelo navegador.
+- **Validação Automatizada**:
+  - Teste automatizado via Chrome headless CDP em servidor local:
+    - `T+1s: 0%`
+    - `T+2s: 5% (Carregando arquitetura da vila: 0/112)`
+    - `T+3s: 36% (Carregando vila: 82/112)`
+    - `T+4s: 80% (Mundo pronto! Entrando em Talking Island...)`
+    - `T+5s: 100% (Entrando no jogo)`
+  - Carregamento 100% restaurado e funcional sem travamentos ou exceções.
+
