@@ -112,9 +112,9 @@ const KITS_GRAU = {
   },
   A: {
     grau: 'A',
-    nome: 'Grau A (Nv 61 · Set Tallum +13 Carmesim)',
+    nome: 'Grau A (Nv 61+ · Set Tallum / Dragon Slayer +16 Hero)',
     minLv: 61,
-    en: 13,
+    en: 16,
     set: {
       helmet: 'tallum_helmet',
       chest:  'tallum_armor',
@@ -126,26 +126,6 @@ const KITS_GRAU = {
       sword:  'dragon_slayer',
       shield: 'gladius',
       escudo: 'shield_imperial',
-      staff:  'sword_of_miracles',
-      book:   'book'
-    }
-  },
-  S: {
-    grau: 'S',
-    nome: 'Grau S (Nv 76 · Set Imperial +16 Dourado/Hero)',
-    minLv: 76,
-    en: 16,
-    set: {
-      helmet: 'imperial_helmet',
-      chest:  'imperial_armor',
-      legs:   null,
-      gloves: 'imperial_gauntlets',
-      boots:  'imperial_boots'
-    },
-    armas: {
-      sword:  'forgotten_blade',
-      shield: 'samurai_longsword',
-      escudo: 'shield_imperial_s',
       staff:  'sword_of_miracles',
       book:   'book'
     }
@@ -385,7 +365,7 @@ function setSexo(c, J, targetId, sexoDesejado){
 function darKit(c, J, grauKey, targetId){
   if(!CTX || !J) return;
   const gNorm = String(grauKey || 'C').toUpperCase();
-  const kitKey = (gNorm === 'NO-GRADE' || gNorm === 'SEM' || gNorm === 'NG') ? 'sem' : (KITS_GRAU[gNorm] ? gNorm : 'C');
+  const kitKey = (gNorm === 'NO-GRADE' || gNorm === 'SEM' || gNorm === 'NG') ? 'sem' : ((gNorm === 'S' || gNorm === 'A') ? 'A' : (KITS_GRAU[gNorm] ? gNorm : 'C'));
   const kit = KITS_GRAU[kitKey] || KITS_GRAU.C;
   const alvo = obterAlvo(c, J, targetId);
 

@@ -353,8 +353,7 @@
             <button class="pa-btn" data-kit="D" style="border-color:#7fd6a0; color:#7fd6a0;">🟢 Grau D (Nv 20 · +4 Azul)</button>
             <button class="pa-btn" data-kit="C" style="border-color:#ffd36a; color:#ffd36a;">🟡 Grau C (Nv 40 · +7 Vívido)</button>
             <button class="pa-btn" data-kit="B" style="border-color:#5aa9ff; color:#93c5fd;">🔵 Grau B (Nv 52 · +10 Púrpura)</button>
-            <button class="pa-btn" data-kit="A" style="border-color:#b45aff; color:#d8b4fe;">🟣 Grau A (Nv 61 · +13 Carmesim)</button>
-            <button class="pa-btn pa-btn-gold" data-kit="S" style="border-color:#f5c451; color:#fde047;">👑 Grau S (Nv 76 · +16 Hero)</button>
+            <button class="pa-btn pa-btn-gold" data-kit="A" style="border-color:#ffd700; color:#ffd700;">🟣 Grau A (Nv 61+ · Tallum / DS +16)</button>
           </div>
         </div>
 
@@ -444,7 +443,7 @@
       </div>
 
       <div class="pa-footer">
-        <span>Comandos: <b>//setlevel [1-85]</b> &middot; <b>//setkit [NG/D/C/B/A/S]</b> &middot; <b>//setnick</b> &middot; <b>//setsex</b></span>
+        <span>Comandos: <b>//setlevel [1-85]</b> &middot; <b>//setkit [NG/D/C/B/A]</b> &middot; <b>//setnick</b> &middot; <b>//setsex</b></span>
         <span>Atalho: <b>[F10]</b></span>
       </div>
     `;

@@ -123,13 +123,7 @@
     { "id": "tallum_helmet", "name": "Tallum Helm", "slot": "helmet", "grau": "A", "set": "tallum", "stats": { "vida": 110, "defesa": 12 } },
     { "id": "tallum_armor", "name": "Tallum Plate Armor", "slot": "chest", "grau": "A", "set": "tallum", "stats": { "vida": 220, "defesa": 24 } },
     { "id": "tallum_gauntlets", "name": "Tallum Gauntlets", "slot": "gloves", "grau": "A", "set": "tallum", "stats": { "dano": 16, "estamina": 18 } },
-    { "id": "tallum_boots", "name": "Tallum Boots", "slot": "boots", "grau": "A", "set": "tallum", "stats": { "estamina": 38, "vida": 55 } },
-    { "id": "imperial_helmet", "name": "Imperial Crusader Helmet", "slot": "helmet", "grau": "S", "set": "imperial", "stats": { "vida": 160, "defesa": 18 } },
-    { "id": "imperial_armor", "name": "Imperial Crusader Breastplate", "slot": "chest", "grau": "S", "set": "imperial", "stats": { "vida": 340, "defesa": 36 } },
-    { "id": "imperial_gauntlets", "name": "Imperial Crusader Gauntlets", "slot": "gloves", "grau": "S", "set": "imperial", "stats": { "dano": 24, "estamina": 26 } },
-    { "id": "imperial_boots", "name": "Imperial Crusader Boots", "slot": "boots", "grau": "S", "set": "imperial", "stats": { "estamina": 55, "vida": 85 } },
-    { "id": "forgotten_blade", "name": "Forgotten Blade", "slot": "weapon", "grau": "S", "weapon": "sword", "modelo": "assets/armas/claymore.glb", "stats": { "dano": 68 } },
-    { "id": "shield_imperial_s", "name": "Imperial Crusader Shield", "slot": "shield", "grau": "S", "weapon": "shield", "modelo": "assets/armas/shield_is.glb", "stats": { "dano": 20, "defesa": 24 } }
+    { "id": "tallum_boots", "name": "Tallum Boots", "slot": "boots", "grau": "A", "set": "tallum", "stats": { "estamina": 38, "vida": 55 } }
   ],
 
   "start": {

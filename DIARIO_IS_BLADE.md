@@ -4718,3 +4718,37 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
        - **Grau S**: Nv 76, Set Imperial Crusader + Arma S +16 (Glow Dourado/Hero).
      - Detecção inteligente da classe do alvo (Guerreiro = Espada 2H; Guardião = Espada 1H + Escudo; Mago = Cajado/Staff; Clérigo = Livro Astral).
      - Equipa automaticamente todas as peças no inventário do jogador ou bot, atualiza bônus de HP/Defesa/Dano e reflete o glow da arma para todos os jogadores do canal.
+
+### [Claude] 17/11 - l2ikarus.com: vitrine de imagens + aba Galeria no admin (branch l2ikarus-web)
+
+- Pedido do dono: carrossel de cards verticais com foco no centro (PC ~5, celular ~2), clique abre a imagem, e ele sobe as imagens reais pelo painel admin. Cache de 1 ano. Se a cota estourar, esconder as imagens sem derrubar o site.
+- Home: `GaleriaJogo.jsx/.css` (roda a cada 3,5 s, para com mouse/toque, setas em losango, tela cheia com setas/Esc). Card com erro some; sem nenhum card a secao some. Sem imagens no banco usa a reserva `/media/web/jogo_baium.webp`. A captura do combo (rosto do humano com defeito) saiu.
+- Admin: aba GALERIA (`GaleriaAdmin.jsx`): escolher varias imagens, o navegador gera card 540x720 (~60 KB) e grande ate 1600 px (~150-220 KB) em webp; legenda, ordem, esconder, apagar.
+- Servidor: `api/_galeria.js` (Vercel Blob `@vercel/blob` 0.27.3, `put` com sufixo aleatorio e `cacheControlMaxAge` de 1 ano; tabela `site_galeria` criada sozinha no primeiro envio). Acoes no `api/admin.js` (galeria, galeria-upload/editar/ordem/apagar) e publico em `api/status.js` (`/api/galeria`, CDN 5 min). Sem funcao nova na Vercel. `vercel.json`: rewrites + cache de 30 dias em /media.
+- PENDENTE do dono: criar o Blob na Vercel (projeto do site > Storage > Create > Blob > ligar ao projeto). Cota Hobby: 1 GB, 10 GB de trafego/mes; estourou = pausa.
+- Testado com servidor simulado (Playwright): carrossel, tela cheia, celular, envio. Upload real so depois do Blob ligado. Sem push.
+
+
+### [Gemini] 17/11 - Padronização dos Kits Admin nas Grades Oficiais Existentes (Opção 1: No-Grade a Grau A)
+
+- **Decisão & Escopo**:
+  - Auditoria completa nos modelos 3D (`.glb`) e texturas oficiais extraídas de Lineage 2 no projeto.
+  - Constatado que o projeto possui modelos completos para personagens e armas até o **Grau A** (Tallum, Dragon Slayer +16, Shield of Imperial, Sword of Miracles, Ghost Staff, Livro Astral).
+  - Modelos de Grau S (Forgotten Blade, Arcana Mace, Draconic Bow, e conjuntos de armaduras S para todas as raças) ainda não foram convertidos em GLBs universais (apenas `human_fighter_imperial.glb` existe para humano).
+  - Seguindo a **Opção 1** solicitada pelo usuário, os kits automáticos do Painel Admin (`[F10]`) e do servidor foram padronizados com precisão cirúrgica de No-Grade até Grau A.
+- **Implementações & Ajustes**:
+  1. **Painel Admin (`prototipo/js/painel_admin.js`)**:
+     - Removido o botão provisório de Grau S para evitar equipar modelos não existentes.
+     - Padronizados 5 botões de kits oficiais com identidade visual e cores de grau:
+       - `No-Grade (Nv 1 · +0)`
+       - `Grau D (Nv 20 · +4 Azul)`
+       - `Grau C (Nv 40 · +7 Vívido)`
+       - `Grau B (Nv 52 · +10 Púrpura)`
+       - `Grau A (Nv 61+ · Tallum / DS +16 Hero Dourado)`
+     - Rodapé de comandos atualizado para `//setkit [NG/D/C/B/A]`.
+  2. **Servidor (`servidor/admin.js`)**:
+     - `KITS_GRAU`: Mantidas as grades NG, D, C, B, A com fidelidade total aos assets GLBs existentes.
+     - Grau A configurado como o ápice dos kits (+16 com Dragon Slayer para guerreiros e brilho Hero Dourado).
+     - `darKit`: Tratamento seguro mapeando qualquer comando `S` para Grau A, garantindo retrocompatibilidade sem erros.
+  3. **Itens (`prototipo/data/itens.json`)**:
+     - Limpeza das 6 bases provisórias de Grau S (`imperial_helmet`, `imperial_armor`, `imperial_gauntlets`, `imperial_boots`, `forgotten_blade`, `shield_imperial_s`), garantindo que o catálogo de bases termine de forma limpa em `tallum_boots`.
