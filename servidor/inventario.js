@@ -198,8 +198,12 @@ function pedido(pers, m){
   if(m.k === 'equip'){
     const it = inv.items.find(i => i.uid === m.uid); if(!it) return 'Item nao encontrado.';
     const b = baseDe(it.base);
+    if(!b) return 'Base de item invalida.';
     if(b.slot === 'weapon' && b.weapon){
       pers.weapon = b.weapon;
+    }
+    if(b.id === 'doom_armor' || (b.set === 'doom' && b.slot === 'chest')){
+      delete inv.equip.legs;
     }
     inv.equip[b.slot] = it.uid; return '';
   }

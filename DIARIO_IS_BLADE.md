@@ -4878,3 +4878,40 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Correcao (`js/guerreiro_fx.js` v5, copia `.antes_travada`): materiais nao sao mais descartados; eco com 1 esqueleto congelado (calcula 1 vez, liberado no fim); texturas no init; `GuerreiroFX.preparar` (arena e cidade) sobe as texturas e compila os shaders dos efeitos (inclusive os do corpo, no alvo do bloom) assim que o personagem existe. Visual sem mudanca.
 - Medido depois: JS dos efeitos 84-322 ms -> 5-16 ms por skill; envios de textura 400-10.500 -> 150-280. AINDA compila 3-11 shaders a cada skill (tambem na 2a vez): causa fora do guerreiro_fx.js, diagnostico em andamento.
 - NAO testado ainda: pes no chao nas outras racas (teste pronto), celular, PvP (o outro jogador ve a skill com o clipe?).
+
+### [Claude] 17/11 - Resolução dos Sets de Armaduras do Anão Artesão (M) e Desbloqueio do Clique Direito no Inventário
+
+- **Contexto e Queixas do Usuário**:
+  - *"os itens nao tao funcionando, nao renderiza nao troca no clic direito ou desequipa, testei o kits nem um renderiza apenas o nograde que ja vem que parece estar chumbado no personagem nao sai por nada, ja tinhamos arrumado isso, e quebrou denovo."*
+  - Na tela do usuário (personagem Anão Artesão Male / `dwarf_m`), ao equipar o Set Doom Plate Armor (Grau B) ou sets de outros graus através do Painel Admin ou inventário, o modelo 3D do personagem permanecia travado no visual No-Grade inicial (`dwarf_m_nograde.glb`). Além disso, ao clicar com o botão direito nas peças do inventário, o item não equipava nem desequipava.
+- **Causas Raízes Identificadas**:
+  1. **Ausência de Modelos 3D de Armadura para `dwarf_m`**:
+     - `ArmaGrau.SET_3D_MODELS.dwarf_m` em `prototipo/js/arma_grau.js` só possuía as chaves `naked` e `sem` apontando para `dwarf_m_nograde.glb`.
+     - Ao equipar armaduras de Grau D, C, B, A ou S, `ArmaGrau.obterModelo3D` caía no fallback `table['sem']`, retornando sempre `dwarf_m_nograde.glb` ("chumbado").
+  2. **Truncamento de UID no Servidor (`servidor/server.js`)**:
+     - Em `servidor/server.js` (linhas 434, 439, 447, 450), os pacotes de `m.t === 'inv'` aplicavam `String(m.uid || '').slice(0, 24)`.
+     - Os kits gerados pelo Painel Admin criavam UIDs com mais de 24 caracteres (ex: `kit_B_chest_1794933224659_0`, 28 caracteres).
+     - Quando o jogador clicava com o botão direito para desequipar ou equipar, o servidor cortava o UID para 24 caracteres, falhava em localizar o item no inventário (`Item nao encontrado`) e abortava a ação silenciosamente.
+  3. **Identificação de Slot no Desequipar do Inventário (`prototipo/js/inventario_ui.js`)**:
+     - `box.oncontextmenu` e `box.ondblclick` dependiam unicamente de `eqUid[item.uid]` para saber qual slot desequipar, sem ler o atributo nativo `data-slot` do Paperdoll.
+  4. **Falta de Atualização Imediata da Armadura 3D ao Receber Pacote `inv` do Servidor**:
+     - `invDoServidor` em `cidade.html` e `arena.html` atualizava a arma e os status, mas não invocava `window.atualizaModeloArmadura3D()`.
+- **Soluções Implementadas**:
+  1. **Geração das Armaduras 3D Oficiais do Anão Artesão (`dwarf_m`)**:
+     - Criado script headless `prototipo/build_mdwarf_armors.py` unindo Blender 5.1 e malhas esqueléticas canônicas (PSKs) do Lineage 2 Interlude extraídas de `Animations/Dwarf.ukx` e texturas de `Systextures/mdwarf.utx`:
+       - `prototipo/assets/personagens/dwarf_m_brigandine.glb` (Grau D · Set Brigandine, 1.77 MB)
+       - `prototipo/assets/personagens/dwarf_m_fullplate.glb` (Grau C · Set Full Plate, 1.94 MB)
+       - `prototipo/assets/personagens/dwarf_m_doom.glb` (Grau B · Set Doom Plate, 1.65 MB)
+       - `prototipo/assets/personagens/dwarf_m_tallum.glb` (Grau A / S · Set Tallum, 1.61 MB)
+     - Modelos exportados com rig completo de 84 ossos, 13 animações oficiais sincronizadas e materiais PBR com reflexos metálicos.
+     - Arquivos copiados para `prototipo/assets/personagens/` e `prototipo/assets_web/personagens/`.
+  2. **Registro e Integração no `ArmaGrau` (`prototipo/js/arma_grau.js`)**:
+     - Tabela `A.SET_3D_MODELS.dwarf_m` atualizada com todos os graus (`D`, `C`, `B`, `A`, `S`).
+  3. **Correção do Truncamento de UID no Servidor (`servidor/server.js`)**:
+     - Limite de corte de `uid` em `server.js` expandido de `24` para `64` caracteres, garantindo que qualquer UID válido seja aceito sem perdas.
+     - `servidor/admin.js` atualizado para gerar UIDs compactos e limpos no padrão criptográfico (`k` + 10 caracteres hexadecimais) com objeto de status completo.
+     - `servidor/inventario.js` blindado com validação de base e desocupação automática do slot `legs` ao equipar armaduras de corpo inteiro (`doom_armor`).
+  4. **Aprimoramento do Clique Direito e Duplo Clique no Inventário (`prototipo/js/inventario_ui.js`)**:
+     - `oncontextmenu` e `ondblclick` agora consultam diretamente o atributo `data-slot` do Paperdoll e o estado `data-eq`, garantindo que desequipar via clique direito funcione com precisão cirúrgica em qualquer item.
+  5. **Sincronia Visual Imediata em `cidade.html` e `arena.html`**:
+     - Função `invDoServidor` atualizada para invocar `window.atualizaModeloArmadura3D()` assim que o inventário chega do servidor, renderizando instantaneamente a armadura 3D equipada.

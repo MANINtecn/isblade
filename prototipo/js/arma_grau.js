@@ -772,7 +772,12 @@
     },
     dwarf_m: {
       naked: 'assets/personagens/dwarf_m.glb?v=9',
-      sem:   'assets/personagens/dwarf_m_nograde.glb?v=2'
+      sem:   'assets/personagens/dwarf_m_nograde.glb?v=2',
+      D:     'assets/personagens/dwarf_m_brigandine.glb?v=2',
+      C:     'assets/personagens/dwarf_m_fullplate.glb?v=2',
+      B:     'assets/personagens/dwarf_m_doom.glb?v=2',
+      A:     'assets/personagens/dwarf_m_tallum.glb?v=2',
+      S:     'assets/personagens/dwarf_m_tallum.glb?v=2'
     },
     darkelf_m: {
       naked: 'assets/personagens/darkelf_m.glb?v=6',

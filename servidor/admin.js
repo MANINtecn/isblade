@@ -417,14 +417,14 @@ function darKit(c, J, grauKey, targetId){
 
   // Cria ou equipa as peças do Set
   const pecasSlots = ['helmet', 'chest', 'legs', 'gloves', 'boots'];
-  const tUid = Date.now();
+  const genUid = () => 'k' + crypto.randomBytes(5).toString('hex');
 
-  pecasSlots.forEach((slot, idx) => {
+  pecasSlots.forEach((slot) => {
     const baseId = kit.set[slot];
     if(baseId){
       let item = inv.items.find(i => i && i.base === baseId);
       if(!item){
-        item = { uid: `kit_${kit.grau}_${slot}_${tUid}_${idx}`, base: baseId, rar: 'raro', en: 0 };
+        item = { uid: genUid(), base: baseId, rar: 'raro', en: 0, stats: {} };
         inv.items.push(item);
       }
       inv.equip[slot] = item.uid;
@@ -437,7 +437,7 @@ function darKit(c, J, grauKey, targetId){
   // Cria ou equipa a Arma com o encantamento do Grau
   let wpnItem = inv.items.find(i => i && i.base === wpnBase);
   if(!wpnItem){
-    wpnItem = { uid: `kit_${kit.grau}_wpn_${tUid}`, base: wpnBase, rar: 'epico', en: kit.en };
+    wpnItem = { uid: genUid(), base: wpnBase, rar: 'epico', en: kit.en, stats: {} };
     inv.items.push(wpnItem);
   } else {
     wpnItem.en = kit.en;
@@ -451,7 +451,7 @@ function darKit(c, J, grauKey, targetId){
   if(shdBase){
     let shdItem = inv.items.find(i => i && i.base === shdBase);
     if(!shdItem){
-      shdItem = { uid: `kit_${kit.grau}_shd_${tUid}`, base: shdBase, rar: 'raro', en: 0 };
+      shdItem = { uid: genUid(), base: shdBase, rar: 'raro', en: 0, stats: {} };
       inv.items.push(shdItem);
     }
     inv.equip.shield = shdItem.uid;

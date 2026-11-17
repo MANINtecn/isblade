@@ -12918,6 +12918,7 @@ function invDoServidor(m){
   var w=findItem(INV.equip.weapon),b=w&&baseOf(w.base);if(b&&b.weapon&&wpnDoItem(b.weapon)!==WPN)setWeapon(wpnDoItem(b.weapon));
   try{Brilho.aplica('eu',function(){return vrm;},w?(w.en|0):0);}catch(_){}/* [ferreiro] brilho da arma a partir de +4 */
   armaGrau(vrm);/* [graus] modelo da arma pelo grau */
+  if(window.atualizaModeloArmadura3D){ try{ window.atualizaModeloArmadura3D(); }catch(_){} }
   applyStats();renderInv();if(m.erro){som(/insuficiente|taxa|nao tem essa adena/i.test(m.erro)?'falta':'impossivel');gestMsg(m.erro);try{Loja.aviso(m.erro);}catch(_){}}
   if(m.aviso){if(/comprou|vendido/.test(m.aviso))som('troca');try{Chat.sistema(m.aviso);Loja.aviso(m.aviso);}catch(_){}}
   try{Loja.atualiza();}catch(_){}

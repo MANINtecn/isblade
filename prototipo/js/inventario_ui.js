@@ -327,9 +327,11 @@
       var item = acha(u);
       if(!item) return;
 
-      if(eqUid[item.uid]){
+      var isEquipped = (t.getAttribute('data-eq') === '1') || !!eqUid[item.uid];
+      var slotEq = t.getAttribute('data-slot') || eqUid[item.uid];
+      if(isEquipped && slotEq){
         // Item equipado no Paperdoll -> Desequipa para a bolsa
-        op.tirar(eqUid[item.uid]);
+        op.tirar(slotEq);
       } else {
         // Item na bolsa -> Equipa no Paperdoll
         op.equip(item.uid);
@@ -358,8 +360,10 @@
       var item = acha(u);
       if(!item) return;
 
-      if(eqUid[item.uid]){
-        op.tirar(eqUid[item.uid]);
+      var isEquipped = (t.getAttribute('data-eq') === '1') || !!eqUid[item.uid];
+      var slotEq = t.getAttribute('data-slot') || eqUid[item.uid];
+      if(isEquipped && slotEq){
+        op.tirar(slotEq);
       } else {
         op.equip(item.uid);
       }
