@@ -17,6 +17,15 @@
       try { var r = rf.call(de, { navigationUI: 'hide' }); if(r && r.then) r.then(trava, trava); else trava(); } catch(e){ trava(); } }
     else trava();
   }
+  /* [giro-toque] 17/11/2026: onde da' para travar (Android: tela cheia + trava), o aviso vira "Toque para jogar": um toque e a tela deita sozinha.
+     iPhone/iPad nao deixam travar: continua "Gire o celular". Usado tambem pelo aviso do mobile.js (#mbgira). */
+  var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var podeTravar = !ios && !!(de.requestFullscreen || de.webkitRequestFullscreen) && !!(screen.orientation && screen.orientation.lock);
+  window.__giroTexto = function(){
+    return podeTravar
+      ? '<b style="display:block;width:64px;height:64px;margin:0 auto 6px;background:#3b82f6;transform:rotate(45deg);box-shadow:0 0 30px rgba(59,130,246,.8)"></b>Toque para jogar<small>A tela deita sozinha e abre em tela cheia.</small>'
+      : '<i>📱</i>Gire o celular<small>O jogo é jogado com o celular deitado (horizontal).</small>';
+  };
   trava();
   ['pointerdown', 'touchend'].forEach(function(ev){ document.addEventListener(ev, telaCheia, { capture: true, passive: true }); });
   document.addEventListener('fullscreenchange', trava);
@@ -28,7 +37,7 @@
     var st = document.createElement('style');
     st.textContent = '#giroAviso{position:fixed;inset:0;z-index:2147483000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#03050c;color:#9fc4ff;font:600 18px system-ui,sans-serif;text-align:center;padding:24px}#giroAviso i{font-size:64px;font-style:normal;animation:giroA 2s ease-in-out infinite}#giroAviso small{font-weight:400;font-size:13px;color:#7f93b4}@keyframes giroA{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}@media (orientation:portrait){#giroAviso{display:flex}}';
     document.head.appendChild(st);
-    var g = document.createElement('div'); g.id = 'giroAviso'; g.innerHTML = '<i>📱</i>Gire o celular<small>O jogo é jogado com o celular deitado (horizontal).</small>'; document.body.appendChild(g);
+    var g = document.createElement('div'); g.id = 'giroAviso'; g.innerHTML = window.__giroTexto(); document.body.appendChild(g);
   }
   if(document.body) aviso(); else document.addEventListener('DOMContentLoaded', aviso);
 })();

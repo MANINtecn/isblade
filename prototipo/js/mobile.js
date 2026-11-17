@@ -67,7 +67,12 @@
   function ini(){
     document.body.classList.add('is-touch');
     var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
-    var g = document.createElement('div'); g.id = 'mbgira'; g.innerHTML = '<i>📱</i>Gire o celular<small>O jogo é jogado com o celular deitado (horizontal).</small>'; document.body.appendChild(g);
+    var g = document.createElement('div'); g.id = 'mbgira'; g.innerHTML = (function(){                    /* [giro-toque] Android: o 1o toque ja entra em tela cheia e deita a tela (abaixo); iPhone nao deixa travar */
+      var d = document.documentElement, ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      return (!ios && (d.requestFullscreen || d.webkitRequestFullscreen) && screen.orientation && screen.orientation.lock)
+        ? '<b style="display:block;width:64px;height:64px;margin:0 auto 6px;background:#3b82f6;transform:rotate(45deg);box-shadow:0 0 30px rgba(59,130,246,.8)"></b>Toque para jogar<small>A tela deita sozinha e abre em tela cheia.</small>'
+        : '<i>📱</i>Gire o celular<small>O jogo é jogado com o celular deitado (horizontal).</small>';
+    })(); document.body.appendChild(g);
     var de = document.documentElement, f = document.createElement('button'); f.id = 'mbfs'; f.type = 'button'; f.textContent = 'tela cheia';
     f.onclick = function(){ try { (de.requestFullscreen || de.webkitRequestFullscreen).call(de); } catch(e){} try { screen.orientation.lock('landscape'); } catch(e){} f.style.display = 'none'; };
     document.addEventListener('fullscreenchange', function(){ f.style.display = document.fullscreenElement ? 'none' : ''; });
