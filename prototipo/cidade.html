@@ -779,6 +779,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mobile.js?v=44"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=1"></script>
+<script src="js/aura_chefe.js?v=1"></script>
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
@@ -3169,6 +3170,7 @@ function prepShaders(raiz,semTex){
   return p||Promise.resolve();
 }
 window.__prepShaders=prepShaders;
+try{if(window.AuraChefe)AuraChefe.init(THREE,scene,prepShaders);}catch(e){console.warn('[aura-chefe] init',e);}/* [aura-chefe] */
 /* <<< CLAUDE [preparo] */
 
 
@@ -11392,7 +11394,7 @@ function mob3dCarregar(tipos){
       new THREE.GLTFLoader().load('assets/mobs/modelos/'+md+'.glb?v=1',function(g){
         g.scene.traverse(function(n){if(!n.isMesh)return;n.frustumCulled=false;n.castShadow=false;
           (Array.isArray(n.material)?n.material:[n.material]).forEach(function(mt){mt.side=THREE.DoubleSide;if(mt.transparent){mt.transparent=false;mt.alphaTest=.45;mt.depthWrite=true;}if(mt.emissive){mt.emissive.setHex(0xffffff);if(mt.map)mt.emissiveMap=mt.map;}mt.emissiveIntensity=.22;});});
-        MOB3D.cache[md]={scene:g.scene,clips:g.animations};try{prepShaders(g.scene);}catch(_){}/* [preparo] mob pronto antes de aparecer */ok();
+        MOB3D.cache[md]={scene:g.scene,clips:g.animations};try{prepShaders(g.scene);}catch(_){}try{if(/^chefe/.test(t)&&window.AuraChefe)AuraChefe.preparar(g.scene,T.css);}catch(_){}/* [aura-chefe] *//* [preparo] mob pronto antes de aparecer */ok();
       },undefined,function(){ok();});
     });
     ps.push(MOB3D.pend[md]);
@@ -11431,7 +11433,7 @@ function mobSrvAtualiza(m,dt){
   var k=Math.min(1,dt*12);m.x+=(m.tx-m.x)*k;m.z+=(m.tz-m.z)*k;var df=m.tf-m.face;while(df>Math.PI)df-=6.2832;while(df<-Math.PI)df+=6.2832;m.face+=df*k;m.t=(m.t||0)+dt;
   var y=getGroundHeight(m.x,m.z,m.ty);m.g.position.set(m.x,y,m.z);/* [pagina-unica] altura do servidor escolhe a camada do mapa */m.g.rotation.y=m.face;m.flash=Math.max(0,(m.flash||0)-dt*4);
   if(m.mats){var ei=.25+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q=0;q<m.mats.length;q++)m.mats[q].emissiveIntensity=ei;}
-  m.bar.position.set(m.x,y+2.45*m.T.size,m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;
+  m.bar.position.set(m.x,y+2.45*m.T.size*(m.esc||1),m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;
   mob3dAnim(m,dt);
   if(m.dead){m.deadT+=dt;if(m.deadT>2.6)removeMob(m);}
 }
@@ -11496,10 +11498,10 @@ function mkMob(type,x,z){
   var m=mkMobBoneco(type,x,z),T=m.T,src=T.modelo&&MOB3D.cache[T.modelo];
   if(!src)return m;
   m.g.children.slice().forEach(function(c){m.g.remove(c);c.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});});
-  var o=mob3dClone(src.scene);o.scale.setScalar(T.altura||1.8);m.g.add(o);
+  var o=mob3dClone(src.scene);m.esc=/^chefe/.test(type)?1.5:1;/* [aura-chefe] chefe de campo 50% maior (so o visual) */o.scale.setScalar((T.altura||1.8)*m.esc);m.g.add(o);
   m.mats=[];o.traverse(function(n){if(n.isMesh&&n.material){n.material=n.material.clone();m.mats.push(n.material);}});
   m.mixer=new THREE.AnimationMixer(o);m.acoes={};src.clips.forEach(function(c){m.acoes[c.name]=m.mixer.clipAction(c);});
-  m.mat={emissiveIntensity:0};m.modelo=o;mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);
+  m.mat={emissiveIntensity:0};m.modelo=o;if(m.esc>1&&window.AuraChefe){try{AuraChefe.liga(m,T.css,src.scene);}catch(e){console.warn('[aura-chefe]',e);}}/* [aura-chefe] contorno + particulas */mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);
   return m;
 }
 function mkMobBoneco(type,x,z){
@@ -11571,7 +11573,7 @@ function mkMobBoneco(type,x,z){
 
 
 function removeMob(m){
-  if(m.mixer){m.mixer.stopAllAction();m.mixer.uncacheRoot(m.modelo);}/* [mob3d-cidade] */
+  if(m.mixer){m.mixer.stopAllAction();m.mixer.uncacheRoot(m.modelo);}/* [mob3d-cidade] */if(m.aura&&window.AuraChefe)AuraChefe.solta(m);/* [aura-chefe] */
 
 
 
@@ -11927,7 +11929,7 @@ function mobStrike(m){
 
 
 function updateMobs(dt){
-  tirosTick(dt);/* [mob3d-cidade] */teleTick(dt);/* [chefes-marcados] */
+  tirosTick(dt);/* [mob3d-cidade] */teleTick(dt);/* [chefes-marcados] */if(window.AuraChefe)AuraChefe.tick(dt,camera,renderer);/* [aura-chefe] */
 
 
 

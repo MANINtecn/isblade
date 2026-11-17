@@ -4604,3 +4604,16 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   - Bots neutros de 1v1 identificados com badge `⚔️ DESAFIANTE [1v1]` e barra de vida dourada.
 - **Painel Admin GM (`prototipo/js/painel_admin.js`)**:
   - Adicionado botão de atalho `⚔️ Duelo 1v1 (1 Bot)` acionando `PainelBots.duelo1v1()`.
+
+### [Claude] 17/11 - Chefes de campo (Nv 20+) maiores e com aura no contorno
+- Pedido do dono: chefes do mapa-mundi maiores e com particula no contorno do modelo.
+- `prototipo/js/aura_chefe.js` (novo): contorno brilhante (rim light/fresnel numa casca presa ao esqueleto, com ruido de chama subindo) + brasas em losango com feixe anamorfico que nascem em vertices da malha animada e sobem. Paleta: branco-quente -> cor do chefe (`css`) -> brasa.
+- `prototipo/cidade.html`: tipos `chefe*` (chefe20_aranha/stakato/formiga, chefe_curuma/fort/blazing) 1,5x maiores (`m.esc`), barra de vida acompanha. So o visual: alcance/colisao do servidor nao mudou.
+- Shaders preparados no carregamento do modelo (regra de preparo); a aura so aparece depois de compilar. Some a mais de 70 m. Copia: `cidade_antes_aura_chefe.html`.
+
+### [Claude] 17/11 - l2ikarus.com: topo "collab" IS Labs x L2 Ikarus (branch l2ikarus-web)
+
+- Pedido do dono: subir a arte para invadir a barra e mostrar logo de cara a parceria IS Labs + L2 Ikarus.
+- Topo novo: arte IS Labs (fortaleza + fagulhas) no alto a esquerda e a arte L2 Ikarus em destaque do centro para a direita, as duas comecando no topo da pagina por tras da barra. Barra transparente no topo e solida ao rolar. Texto "IS Labs x L2 Ikarus", Jogar agora, Criar conta, chips e status do servidor embaixo da arte do L2 Ikarus.
+- Celular: IS Labs no alto, L2 Ikarus logo abaixo sobrepondo de leve, barra fixa de Jogar embaixo.
+- Conferido em 1440, 1280 e 390 px, sem erro e sem rolagem lateral. Commit local, sem push.
