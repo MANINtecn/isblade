@@ -9414,7 +9414,9 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
-  if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange))return;/* [mago] skill de projetil desenha o proprio disparo tambem no PvP/santuario */
+  var soVisual=S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange);/* [mago] skill de projetil desenha o proprio disparo tambem no PvP/santuario */
+  /* [fx-pvp] 17/11/2026: antes era "return" aqui: no PvP (sem mobs e sem chefe) as skills e o ataque basico do proprio jogador NAO desenhavam efeito nenhum.
+     Agora o visual e o som rodam sempre; so a parte de dano em mob/chefe (abaixo de mobsHit) e pulada. O dano no PvP e do servidor (Net.atacou). */
 
 
 
@@ -9479,6 +9481,7 @@ function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.ski
 
 
 
+  if(soVisual)return;/* [fx-pvp] PvP sem mobs/chefe: efeito ja desenhado acima, sem dano local */
   var mobsHit=(DG.on||MUNDO_ABERTO)?hitMobs(an,rng,half):0;/* [pagina-unica] mobs do mundo aberto tambem levam golpe */
 
   /* >>> CLAUDE [guardiao] 2026-10-27 — dano causado em mobs marca combate */ if(mobsHit)Guardiao.tocar('dano causado'); /* <<< CLAUDE [guardiao] */

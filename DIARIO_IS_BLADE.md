@@ -4546,3 +4546,10 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - **Correção de Flutuação dos Bots na Arena (`prototipo/arena.html` & `prototipo/js/guardiao.js`)**:
   - Em `arena.html`, `chaoRemoto` corrigido para retornar sempre `0` (piso nivelado da arena Baium), impedindo que o salto do jogador local (`Torre.altura`) elevasse os bots remotos no ar.
   - Em `guardiao.js`, `bocaEscudo()` desacoplado do escudo do jogador local quando `window.REMOTEFX` estiver ativo.
+
+### [Claude] 17/11 - PvP: efeitos das proprias skills nao apareciam (causa achada e corrigida)
+
+- Sintoma do dono: no PvP com os bots, nenhuma skill propria mostrava efeito (nem em qualidade media) e so algumas dos bots apareciam.
+- Causa: `applyHit` (arena.html e cidade.html) tinha `if(S.dead&&!MOBS.length&&!(projetil/area))return;` ANTES do visual. No mapa PvP (arena.html?mode=dungeon&go=pvp) nao ha mobs nem chefe vivo (S.dead = true), entao saia antes de skillSwingFx / fxBasico / slashArc: skills e ataque basico do proprio jogador ficavam sem efeito (so projetil/area escapavam). Os dos bots passam por skillFxRemoto, por isso alguns apareciam.
+- Correcao [fx-pvp]: virou `soVisual`; o visual e o som rodam sempre e o `return` foi para logo antes do dano local (mobsHit). O dano no PvP continua do servidor.
+- Teste no mapa PvP (servidor local isolado, sem mobs, S.dead true): antes, depois da skill 1 a contagem de efeitos ficava parada (~28 acima da base, so os efeitos de inicio); depois, cada skill gera os seus (22 a 56 acima da base). Observacao: em qualidade alta o navegador de teste (sem placa de video) roda a ~1 qps, por isso nao serve para medir la.

@@ -4341,7 +4341,9 @@ function regenTick(dt){
 }
 /* <<< CLAUDE [regen] */
 function applyHit(an){Net.atacou(an);REGEN.comb=performance.now()/1000;if(an.skill&&an.skill.suporte)return;/* [clerigo] suporte: o servidor escolhe o alvo e avisa (sup) */if(an._tarde&&an.skill&&an.skill.area&&an.skill.area.cura)return;/* [clerigo] glifo: a cura vem do servidor */
-if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange))return;/* [mago] skill de projetil desenha o proprio disparo tambem no PvP/santuario */
+var soVisual=S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange);/* [mago] skill de projetil desenha o proprio disparo tambem no PvP/santuario */
+/* [fx-pvp] 17/11/2026: antes era "return" aqui: no mapa PvP (sem mobs e sem chefe) as skills e o ataque basico do proprio jogador NAO desenhavam efeito nenhum.
+   Agora o visual e o som rodam sempre; so a parte de dano em mob/chefe (a partir de mobsHit) e pulada. O dano no PvP e do servidor (Net.atacou). */
 
   if(an.skill&&an.skill.area&&!an.noRange&&!an._tarde){/* [mago] skills de area com aviso (meteoro, coluna): o efeito comeca agora e o dano cai quando o aviso termina */
     var _al=an.alvo||{x:S.px+Math.sin(S.face)*6,z:S.pz+Math.cos(S.face)*6},_dl=an.skill.area.delay||.8;
@@ -4379,6 +4381,7 @@ if(S.dead&&!MOBS.length&&!(an.skill&&(an.skill.proj||an.skill.area)&&!an.noRange
 
   if(an.skill&&an.skill.pose==='wave'){wring.visible=true;wring.userData.t=0;wring.position.x=S.px;wring.position.z=S.pz;}
 
+  if(soVisual)return;/* [fx-pvp] PvP sem mobs/chefe: efeito ja desenhado acima, sem dano local */
   var mobsHit=DG.on?hitMobs(an,rng,half):0;
   /* >>> CLAUDE [guardiao] 2026-10-27 — dano causado em mobs marca combate */ if(mobsHit)Guardiao.tocar('dano causado'); /* <<< CLAUDE [guardiao] */
 
