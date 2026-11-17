@@ -4839,3 +4839,23 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
   7. `prototipo/selecao.html`:
      - Label de equipamento atualizado para `✝️ Clérigo · Cajado Sagrado`.
 
+
+### [Claude] 17/11 - Auto-liberação de Cursor no Painel de Morte e Higienização de Cache
+
+- **Demanda do Dono**:
+  - Ao morrer e surgir o painel de morte ("Você caiu. Espere um Clérigo usar Ressurreição ou volte para a cidade."), o cursor do mouse continuava preso na mira (Dragon Nest / Pointer Lock), forçando o jogador a apertar a tecla `M` para conseguir clicar em "VOLTAR PARA A CIDADE" ou reviver.
+  - Reiterada a regra mandatória de remoção do emoji de estrelinhas (`✨`) em toda e qualquer interface (incluindo validação de nome em `criacao.html`).
+- **Implementação e Correções**:
+  1. `prototipo/js/ui_janelas.js`:
+     - Integrado `painel_morte` no catálogo oficial do sistema universal de auto-cursor `UIJanelas` (prioridade 98).
+     - Vinculado método `fechar()` acionando automaticamente o botão de retorno à cidade caso o jogador pressione `ESC`.
+  2. `prototipo/cidade.html`:
+     - Função `painelMorte(on)` atualizada: ao exibir o diálogo de morte, chama imediatamente `document.exitPointerLock()` e notifica `UIJanelas.notificar('painel_morte', true)`, liberando o mouse instantaneamente para clique sem requerer `M`.
+     - Ao clicar nos botões ("VOLTAR PARA A CIDADE" ou "RESSUSCITAR AQUI") ou ao reviver (`painelMorte(false)`), notifica `UIJanelas.notificar('painel_morte', false)`, restaurando a mira de combate automaticamente caso nenhuma outra janela esteja aberta.
+     - Eventos de queda do personagem (`S.php <= 0`) atualizados em `hurtPlayer` e no socket de rede para liberar o cursor no exato momento da queda.
+  3. `prototipo/arena.html`:
+     - Queda do personagem em combate (`hurtPlayer` e socket `meHit`) atualizada para executar liberação imediata de ponteiro.
+  4. `prototipo/criacao.html`:
+     - Adicionadas tags de controle de cache (`no-cache, no-store, must-revalidate`) no cabeçalho `<head>` para garantir que a remoção das estrelinhas e nomes limpos sejam carregados instantaneamente pelos navegadores sem cache residual.
+  5. `.claude/skills/estilo-fx-refinado/SKILL.md`:
+     - Título da seção 2.1 higienizado para remover o caractere de estrela restante na documentação.

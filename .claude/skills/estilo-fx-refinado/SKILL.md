@@ -60,7 +60,7 @@ Este documento rege a modelagem 3D (Blender), os shaders procedurais (Three.js) 
 
 ---
 
-## 🌟 2.1 REGRA OBRIGATORIA: OPTICAL LENS FLARE EM TODA HABILIDADE
+## 2.1 REGRA OBRIGATORIA: OPTICAL LENS FLARE EM TODA HABILIDADE
 
 Todo efeito visual de habilidade de personagem **deve conter** o efeito tecnicamente chamado **Optical Lens Flare** (tambem: *Starburst Flare Anamorfico* / *Feixe Radioso de Luz Pura*). Componentes:
 

@@ -47,6 +47,23 @@
       }
     },
     {
+      id: 'painel_morte',
+      nome: 'Painel de Morte (Ressurreição / Voltar para Cidade)',
+      prioridade: 98,
+      el: function(){ return document.getElementById('painelMorte'); },
+      aberta: function(){
+        var el = document.getElementById('painelMorte');
+        return !!(el && el.style.display !== 'none');
+      },
+      fechar: function(){
+        var el = document.getElementById('painelMorte');
+        if(el){
+          var btn = el.querySelector('button');
+          if(btn) btn.click();
+        }
+      }
+    },
+    {
       id: 'painel_admin',
       nome: 'Painel Admin (GM Power)',
       prioridade: 90,

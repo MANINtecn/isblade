@@ -5248,7 +5248,7 @@ function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo 
 
   }
 
-  if(S.php<=0){S.pdead=true;S.pdT=0;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','tente de novo','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});}
+  if(S.php<=0){S.pdead=true;S.pdT=0;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','tente de novo','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});try{if(document.exitPointerLock)document.exitPointerLock();}catch(_){}}
 
   renderHud();
 
@@ -9708,7 +9708,7 @@ Net.init({
   meHit:function(d,ratio,b){
     S.php=Math.max(0,Math.round(S.pmax*ratio));DanoTela.num(d,{x:S.px,y:3.2,z:S.pz},'r','p',b?'BLOQUEOU':'',camera);/* [dano-tela] */SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);
     if(!b&&d>=6&&clipsOn()&&!S.anim&&!S.pdead)playClip(vrm,'hit_small',{once:true,speed:1.5,fade:.05,hold:.4});
-    if(S.php<=0&&!S.pdead){S.pdead=true;S.pdT=0;S.anim=null;S.buf=null;S.guard=false;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','Reaparece em instantes...','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});}
+    if(S.php<=0&&!S.pdead){S.pdead=true;S.pdT=0;S.anim=null;S.buf=null;S.guard=false;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','Reaparece em instantes...','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});try{if(document.exitPointerLock)document.exitPointerLock();}catch(_){}}
     renderHud();
   },
   meResp:function(x,z,ratio,keep){
