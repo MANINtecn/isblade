@@ -47,3 +47,8 @@ trabalho_l2fx/
 analize_concorrente/
 analise_concorrente/
 *.har
+
+# --- copias de seguranca manuais (o git ja e o backup); ficam em ../IS ONLINE_COPIAS_ANTES ---
+*.antes_*
+*_antes_*
+*.copia_disco_*
