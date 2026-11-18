@@ -42,10 +42,13 @@
     /* aquecimento real: dispara UMA vez cada skill (w_n0..w_n6) no mesmo instante em que compila e termina os efeitos na hora (nenhum quadro e desenhado com eles).
        Assim a placa monta os programas EXATOS de cada skill atras da tela de carregamento (so o compile acima deixava 3 a 5 shaders para a 1a skill, que travava) */
     try{
-      var oq = { rig: rig, px: 0, pz: 0, face: 0, an: { hitT: .3, hitList: [{ t: .3 }, { t: .5 }], total: 1.2, lg: 3 } };
-      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, 0, 0, oq); }catch(e){} });
+      var antes = new Set(PREP.scene.children), ax = window.S ? S.px : 0, az = window.S ? S.pz : 0;      /* o que o aquecimento criar sai da cena depois (rochas, fissuras, marcas ficavam no chao da arena) */
+      var oq = { rig: rig, px: -3000, pz: -3000, face: 0, an: { hitT: .3, hitList: [{ t: .3 }, { t: .5 }], total: 1.2, lg: 3 } };
+      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, -3000, -3000, oq); }catch(e){} });
       R.setRenderTarget(rt); R.compile(PREP.scene, PREP.camera); R.setRenderTarget(null); /* PREP.scene: na cidade 'cena' e' um proxy (FXCENA), nao um Object3D */
-      vivos.slice().forEach(function(f){ try{ f(99); }catch(e){} }); vivos.length = 0;          /* encerra tudo e tira os efeitos da cena */
+      vivos.slice().forEach(function(f){ try{ f(99); }catch(e){} }); vivos.length = 0;
+      PREP.scene.children.slice().forEach(function(o){ if(!antes.has(o)) PREP.scene.remove(o); });
+      if(window.RemoteVis) RemoteVis.limpaAquecimento(PREP.scene, antes, ax, az);      /* efeitos com atraso (rochas, fissuras) nascem depois: varre a area do aquecimento por alguns segundos */          /* encerra tudo e tira os efeitos da cena */
     }catch(e){ console.warn('[guerreiro] aquecimento', e); try{ R.setRenderTarget(null); }catch(_){} }
   }
   G.tick = function(dt){ prepTick(); if(TX.veu) TX.veu.offset.y -= dt * .9; for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i](dt)) vivos.splice(i, 1); };

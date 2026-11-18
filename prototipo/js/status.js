@@ -72,11 +72,12 @@
   function gastos(){ return pend.for + pend.int + pend.agi + pend.vit; }
 
   function efeito(k){
-    var e = (P && P.efeitos && P.efeitos[k]) || {};
-    if(k === 'for') return '+' + e.danoPorFor + '% dano físico';
-    if(k === 'int') return '+' + e.danoPorInt + '% dano mágico';
-    if(k === 'agi') return '+' + e.critPorAgi + '% crítico e +' + e.recargaPorAgi + '% recarga';
-    if(k === 'vit') return '+' + e.vidaPorVit + ' vida e +' + e.estaminaPorVit + '% regen. estamina';
+    /* data/progressao.json -> efeitos e' PLANO (danoPct, vidaPorVit, ...), nao por atributo: o texto antigo lia e.danoPorFor etc. e mostrava 'undefined' (corrigido 18/11/2026). Valores por ponto. */
+    var e = (P && P.efeitos) || {}, n = function(v, casas){ return (typeof v === 'number' && isFinite(v)) ? String(+v.toFixed(casas == null ? 2 : casas)) : '?'; };
+    if(k === 'for') return '+' + n(e.danoPct) + '% dano físico por ponto';
+    if(k === 'int') return '+' + n(e.danoPct) + '% dano mágico por ponto';
+    if(k === 'agi') return '+' + n((e.corridaPorAgi || 0) * 100, 2) + '% velocidade de corrida por ponto (máx. ' + n((e.corridaMax || 0) * 100, 0) + '%)';
+    if(k === 'vit') return '+' + n(e.vidaPorVit, 0) + ' vida, +' + n(e.defesaPorVit) + '% defesa e +' + n(e.estaminaPorVit) + '% regen. estamina por ponto';
     return '';
   }
 

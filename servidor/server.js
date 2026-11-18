@@ -210,7 +210,8 @@ const CLASSE_DA_ARMA = { sword: 'guerreiro', shield: 'guardiao', staff: 'mago', 
 function fichaDe(J, t){
   if(J._ficha && t - J._fichaT < 4) return J._ficha;
   let f; try {
-    if(J.isBot) f = Combate.fichaBot(J.lv || 1, CLASSE_DA_ARMA[J.arma] || 'guerreiro', J.arma || 'sword', J.grau, J.en);
+    if(J.isBot && J.espelho) f = Object.assign({}, J.espelho, { classe: CLASSE_DA_ARMA[J.arma] || J.espelho.classe, tipo: J.arma || 'sword' });      /* [paridade] bot com o poder de quem o invocou */
+    else if(J.isBot) f = Combate.fichaBot(J.lv || 1, CLASSE_DA_ARMA[J.arma] || 'guerreiro', J.arma || 'sword', J.grau, J.en);
     else if(J.pers) f = Combate.fichaDePers(Object.assign({ classe: J.pers.classe || CLASSE_DA_ARMA[J.arma] }, J.pers), J.arma || 'sword', Prog.statsDe(J.pers));
   } catch(e){ f = null; }
   if(!f) f = Combate.fichaBot(J.lv || 1, CLASSE_DA_ARMA[J.arma] || 'guerreiro', J.arma || 'sword');
@@ -377,6 +378,9 @@ function ataque(c, A, m){
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
   if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }
   const tipoB = d.golpe ? { b: ((Combate.dados().golpeBasico || {})[d.golpe] || 1) * (1 + (ss || 0)) } : null;      /* [dano-l2] ataque padrao: golpe do combo x soulshot */                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
+  /* [reacao] golpe corpo a corpo de BOT: o dano cai no quadro do golpe (m.atraso s depois do aviso), reconferindo posicao/esquiva/guarda NESSE instante.
+     Antes o dano era instantaneo no aviso: nao dava para esquivar nem bloquear. Humanos nao mudam (m.atraso so vem do fakes.js). */
+  const aplica = (t) => {
   for(const V of c.jog.values()){
     if(V === A || V.morto || t < V.imune || !podeFerir(c, A, V, t)) continue;
     if(d.p0){ const vx = A.x - d.p0.x, vz = A.z - d.p0.z, L = vx * vx + vz * vz, k = L ? Math.max(0, Math.min(1, ((V.x - d.p0.x) * vx + (V.z - d.p0.z) * vz) / L)) : 0;
@@ -385,8 +389,10 @@ function ataque(c, A, m){
     if(d.half < 3.1 && Math.abs(angDif(Math.atan2(dx, dz), A.f)) > d.half + Math.atan2(.45, Math.max(dist, .5)) + .12) continue;
     fere(c, A, V, d.dmg, t, 0, tipoB);
   }
+  };
+  if(m.atraso > 0 && !parte2) setTimeout(() => { if(!A.morto && c.jog.has(A.id)) aplica(agora()); }, Math.min(.8, m.atraso) * 1000); else aplica(t);
 }
-Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir, aliadoDe, curaJog });
+Fakes.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, ataque, fere, podeFerir, aliadoDe, curaJog, ficha: fichaDe });
 Admin.init({ canais, ARENA_PVP, agora, r2, envia, difunde, info, Contas, Prog, Inv, Fakes, pmaxMax });
 
 /* ---- HTTP estatico ---- */

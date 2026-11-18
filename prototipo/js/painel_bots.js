@@ -429,7 +429,7 @@
     elBtn = document.createElement('button');
     elBtn.type = 'button';
     elBtn.id = 'painelBotsBtn';
-    elBtn.title = 'Abrir Painel Mestre de Bots PvP (Tecla B ou F8)';
+    elBtn.title = 'Abrir Painel Mestre de Bots PvP (F10)';
     elBtn.innerHTML = `<span>⚔️ BOTS PVP</span><span class="bot-badge" id="pbBtnBadge">0</span>`;
     elBtn.onclick = function(e){
       e.stopPropagation();
@@ -707,16 +707,13 @@
       executarAcaoPrincipal();
     };
 
-    // Teclas de atalho: ESC, B ou F8
+    // Teclas de atalho: ESC (o F10 abre o painel)
     window.addEventListener('keydown', function(e){
       var t = e.target && e.target.tagName;
       if(t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
       if(e.key === 'Escape' && estado.aberto){
         toggle(false);
-      } else if(e.key === 'F8' || (e.key === 'b' && !e.ctrlKey && !e.altKey && !e.metaKey)){
-        e.preventDefault();
-        toggle();
-      }
+      }      /* F8 e B foram aposentados: tudo no F10 (aba Bots PvP) */
     });
 
     setLv(40);
@@ -863,7 +860,16 @@
   function comecarNoSalao(e, meuTime){
     if(window.Net && Net.setTeam) Net.setTeam(meuTime || '');
     if(typeof window.pvpPonta === 'function') window.pvpPonta(meuTime || '');
-    setTimeout(function(){ if(window.Net && Net.on) dispararBots(e); }, 900);      /* da tempo do servidor saber o time e a nova posicao */
+    setTimeout(function(){
+      if(!(window.Net && Net.on)){ avisar('Sem conexao com o servidor: a guerra nao comecou. Tente de novo no F10.'); return; }
+      dispararBots(e);
+      /* ordem e modo escolhidos antes de existir bot: reaplica nos bots que acabaram de nascer */
+      setTimeout(function(){
+        if(!(window.Net && Net.on)) return;
+        if(estado.ordemAtual && estado.ordemAtual !== 'normal') Net.botCmd({ acao: 'ordem', ordem: estado.ordemAtual });
+        if(e.ia === 'treino') Net.botCmd({ acao: 'modo', modo: 'treino' });
+      }, 1200);
+    }, 900);      /* da tempo do servidor saber o time e a nova posicao */
   }
 
   function executarAcaoPrincipal(){
@@ -888,10 +894,10 @@
     var raw = null; try { raw = sessionStorage.getItem(CHAVE_PEND); } catch(x){}
     if(!raw) return;
     var p = null; try { p = JSON.parse(raw); } catch(x){}
-    if(!p || !p.e || Date.now() - p.t > 90000 || !noSalaoPvp()){ try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){} return; }
+    if(!p || !p.e || Date.now() - p.t > 300000 || !noSalaoPvp()){ try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){} return; }
     var n = 0, iv = setInterval(function(){
       n++;
-      if(n > 180){ clearInterval(iv); try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){} return; }
+      if(n > 600){ clearInterval(iv); try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){} avisar('A guerra de times nao comecou (a arena demorou ou a conta nao e admin). Abra o F10 e inicie de novo.'); return; }
       if(!(window.Net && Net.on && Net.adm && typeof window.pvpPonta === 'function' && window.pvpPronto && window.pvpPronto())) return;
       clearInterval(iv); try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){}
       if(p.time) estado.meuTime = p.time;

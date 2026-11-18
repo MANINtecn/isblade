@@ -476,9 +476,9 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
-<script src="js/guerreiro_fx.js?v=11"></script>
+<script src="js/guerreiro_fx.js?v=14"></script>
 <script src="js/l2_cache.js?v=1"></script>
-<script src="js/remote_vis.js?v=1"></script>
+<script src="js/remote_vis.js?v=3"></script>
 <script src="js/perf_log.js?v=4"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
@@ -493,10 +493,10 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
 <script src="js/ceu_l2.js?v=1"></script>
-<script src="js/status.js?v=30"></script>
+<script src="js/status.js?v=31"></script>
 <script src="js/l2_teleport.js"></script>
-<script src="js/painel_bots.js?v=5"></script>
-<script src="js/painel_admin.js?v=6"></script>
+<script src="js/painel_bots.js?v=6"></script>
+<script src="js/painel_admin.js?v=7"></script>
 <script src="js/ui_janelas.js?v=1"></script>
 </head>
 
@@ -3913,12 +3913,14 @@ function skillFxRemoto(e,i,f,m){
    (ou o seu) nao compile shader nem crie geometria na hora (travada de 100-150 ms no PC, pior no celular). So visual: nao muda tempo, dano nem hitbox. */
 function aquecerSkillsTodas(){
   if(window.__skillsQuentes||typeof DATA==='undefined'||!DATA||!DATA.armas)return;window.__skillsQuentes=true;
-  var t0=performance.now(),pp=SFX.play,ps=SFX.skill;
+  var t0=performance.now(),pp=SFX.play,ps=SFX.skill,antes=new Set(scene.children);
   try{
     SFX.play=SFX.skill=function(){};
     Object.keys(DATA.armas).forEach(function(a){var sks=DATA.armas[a].skills||[];
       for(var i=0;i<sks.length;i++){try{skillFxRemoto({x:-3000,z:-3000,arma:a,id:-1,morto:false},i,0,{_q:1,x:-3000,z:-3000,d:.1});}catch(_){}}});
     renderer.compile(scene,camera);
+    scene.children.slice().forEach(function(o){if(!antes.has(o))scene.remove(o);});/* o que o aquecimento criou sai da cena (ficava no chao) */
+    if(window.RemoteVis)RemoteVis.limpaAquecimento(scene,antes,S.px,S.pz);
   }catch(_){}finally{SFX.play=pp;SFX.skill=ps;}
   console.log('[aquece] skills de todas as armas em '+Math.round(performance.now()-t0)+' ms');
 }

@@ -88,6 +88,7 @@ try {
 const POSE_DUR = 0.95;      // quanto tempo a pose da skill fica no snapshot (o movimento do bot nao a sobrescreve)
 function ataqueBot(c, bot, m){
   if(m && m.k === 's'){ const pose = (POSE_ARMA[bot.arma] || [])[m.i | 0]; if(pose){ bot.aPose = pose; bot.aPoseAte = CTX.agora() + POSE_DUR; bot.a = pose; } }
+  if(m && !m.atraso) m.atraso = m.k === 's' ? 0.42 : 0.3;      // [reacao] so vale para golpe corpo a corpo (server.js ataque): o dano cai neste tempo depois do aviso
   return CTX.ataque(c, bot, m);
 }
 const r2 = v => Math.round(v * 100) / 100;
@@ -98,6 +99,13 @@ const bots = new Map(); // id -> bot
 
 function init(contexto){
   CTX = contexto;
+}
+
+/* [paridade] ficha (nivel, pontos, arma, armadura, encantamento) de quem invocou os bots: o bot luta com o MESMO poder do jogador (so muda a arma/classe).
+   Antes o bot nascia 'otimizado' (conjunto completo do grau, arma +7, todos os pontos em dano): nivel 40 contra nivel 40 mas ele matava em 11 golpes e levava 34. */
+const CbL2 = require('./combate_l2.js');
+function espelhoDe(J){
+  try { if(!CTX || !CTX.ficha || !J || J.isBot) return null; const f = CTX.ficha(J, CTX.agora()); return f ? JSON.parse(JSON.stringify(f)) : null; } catch(e) { return null; }
 }
 
 function canalArenaPvp(){
@@ -341,6 +349,8 @@ function spawnBots(opts){
       fRot = typeof opts.direcaoOlhar === 'number' ? opts.direcaoOlhar : r2(Math.random() * 6.28);
     }
 
+    const espelho = opts.espelho || null;
+    let hpIni = setup.hpBase; if(espelho){ try { hpIni = Math.max(50, CbL2.vidaMax(espelho)); } catch(e) { /* mantem a vida padrao */ } }
     const cPos = clampCoordenadas(bx, bz, canal.mapa);
     bx = cPos.x;
     bz = cPos.z;
@@ -387,8 +397,9 @@ function spawnBots(opts){
       a: 'idle',
       ts: 1,
       guarda: false,
-      pmax: setup.hpBase,
-      hp: setup.hpBase,
+      pmax: hpIni,
+      hp: hpIni,
+      espelho,
       morto: false,
       tMorte: 0,
       imune: t + 1.0,
@@ -509,6 +520,7 @@ function spawnTimes(opts){
 
   // Time Azul (A): nasce no Canto Oeste (cx - distBase) perfilado em formação olhando para Leste
   const spA = spawnBots({
+    espelho: opts.espelho,
     canal,
     x: cx - distBase,
     z: cz,
@@ -525,6 +537,7 @@ function spawnTimes(opts){
 
   // Time Vermelho (B): nasce no Canto Leste (cx + distBase) perfilado em formação olhando para Oeste
   const spB = spawnBots({
+    espelho: opts.espelho,
     canal,
     x: cx + distBase,
     z: cz,
@@ -709,6 +722,14 @@ function tick(t, dt){
         continue;
       }
 
+      // deslize da esquiva em andamento (veja [esquiva-justa])
+      if(bot.rolaAte && t < bot.rolaAte){
+        bot.a = 'roll';
+        bot.x = r2(bot.x + bot.rolaVx * dt);
+        bot.z = r2(bot.z + bot.rolaVz * dt);
+        continue;
+      }
+
       // Modo treino ou ordem de pausa
       if(bot.modo === 'treino' || bot.ordem === 'pausar'){
         bot.a = 'idle';
@@ -784,9 +805,10 @@ function tick(t, dt){
             bot.a = 'c_s3';
             bot.tAtk = t + 1.2;
             ataqueBot(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
-          } else if(Math.random() < 0.25 && t > bot.tAtk){
+          } else if(Math.random() < 0.25 && t > bot.tAtk && t > (bot.tEsquivaCd || 0)){
             bot.a = 'roll';
-            bot.imune = t + 0.35;
+            bot.imune = t + 0.28;
+            bot.tEsquivaCd = t + 3.5;      // healer tambem tem recarga na esquiva
           }
 
           // Corre na direção do Guardião ou Guerreiro aliado mais próximo!
@@ -1020,9 +1042,10 @@ function tick(t, dt){
         // 2. Bloqueio Reativo do Guardião:
         // Se o inimigo iniciou ataque corpo a corpo, o Guardião ergue o escudo!
         const alvoAtacando = alvo.a && (alvo.a.indexOf('slash') >= 0 || alvo.a.indexOf('thrust') >= 0 || alvo.a.indexOf('atk') >= 0);
-        if(isGuardiao && alvoAtacando && dist < 3.2 && !bot.guarda && Math.random() < 0.72){
+        if(isGuardiao && alvoAtacando && dist < 3.2 && !bot.guarda && t > (bot.tGuardaCd || 0) && Math.random() < 0.45){
           bot.guarda = true;
           bot.a = 'guard';
+          bot.tGuardaCd = t + 1.9;      // 0,75 s de guarda + folga: o jogador acha o intervalo (antes a guarda quase nunca caia)
           setTimeout(() => { if(bot) bot.guarda = false; }, 750);
           continue;
         }
@@ -1055,12 +1078,15 @@ function tick(t, dt){
         }
 
         // Esquiva defensiva (roll) quando sob ataque
-        if(bot.atacante && Math.random() < 0.12 && t > bot.tAtk){
+        // [esquiva-justa] 18/11/2026: antes bastava ter sido atingido uma vez (atacante nunca zerava) para ter 12% de chance A CADA 83 ms de rolar: ~35% do tempo invulneravel e
+        // teletransporte de 3,6 m, sem gastar nada. Agora so rola quando o alvo esta mesmo golpeando perto, com recarga de 3,5 s, 35% de chance, e desliza em 0,28 s.
+        if(bot.atacante && alvoAtacando && dist < 5.5 && t > (bot.tEsquivaCd || 0) && t > bot.tAtk && Math.random() < 0.35){
           bot.a = 'roll';
-          bot.imune = t + 0.35;
-          const kRoll = 3.6;
-          bot.x = r2(bot.x + Math.sin(lateralAng) * kRoll);
-          bot.z = r2(bot.z + Math.cos(lateralAng) * kRoll);
+          bot.imune = t + 0.28;
+          bot.tEsquivaCd = t + 3.5;
+          bot.rolaAte = t + 0.28;
+          bot.rolaVx = Math.sin(lateralAng) * 4.2 / 0.28;
+          bot.rolaVz = Math.cos(lateralAng) * 4.2 / 0.28;
           bot.tAtk = t + 0.6;
           bot.comboHits = 0;
           continue;
@@ -1166,7 +1192,7 @@ function comando(c, J, txt){
   if(cmd === '/1v1' || cmd === '/duelo' || sub === '1v1' || sub === 'duelo'){
     const lv = Math.min(85, Math.max(1, parseInt(cmd === '/1v1' || cmd === '/duelo' ? sub : arg2, 10) || J.lv || 40));
     const argClasse = (cmd === '/1v1' || cmd === '/duelo' ? arg2 : arg3) || '';
-    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd: 1, lv, modo: 'pvp', classe: argClasse, playerF: J.f, ia: 'humano' });
+    const sp = spawnBots({ espelho: espelhoDe(J), canal: c, x: J.x, z: J.z, qtd: 1, lv, modo: 'pvp', classe: argClasse, playerF: J.f, ia: 'humano' });
     sis(`⚔️ 1 bot Nv ${lv} (${argClasse || 'desafiante'}) aceitou seu duelo 1v1 e está à sua frente!`);
     return;
   }
@@ -1240,7 +1266,7 @@ function comando(c, J, txt){
   if(sub === 'times' || sub === 'guerra'){
     const qtdPorTime = Math.min(25, Math.max(1, parseInt(arg2, 10) || 5));
     const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
-    const r = spawnTimes({ canal: c, x: J.x, z: J.z, qtdPorTime, lv, comHealer: true });
+    const r = spawnTimes({ espelho: espelhoDe(J), canal: c, x: J.x, z: J.z, qtdPorTime, lv, comHealer: true });
     sis(`🚩 Guerra de Times iniciada! Azul (${r.timeA}) vs Vermelho (${r.timeB}) · Nv ${lv} com Healers em combate!`);
     return;
   }
@@ -1252,7 +1278,7 @@ function comando(c, J, txt){
     const argClasse = (arg3 || 'equilibrada').toLowerCase();
     const qtd = Math.min(30, Math.max(1, parseInt(partes[4], 10) || 5));
     const lv = Math.min(85, Math.max(1, parseInt(partes[5], 10) || J.lv || 40));
-    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, team, modo: 'pvp', classe: argClasse, comHealer: argClasse.includes('healer') || argClasse === 'equilibrada' });
+    const sp = spawnBots({ espelho: espelhoDe(J), canal: c, x: J.x, z: J.z, qtd, lv, team, modo: 'pvp', classe: argClasse, comHealer: argClasse.includes('healer') || argClasse === 'equilibrada' });
     sis(`⚔️ ${sp} bots do ${team === 'A' ? 'Time Azul' : 'Time Vermelho'} (${argClasse}) Nv ${lv} criados!`);
     return;
   }
@@ -1261,7 +1287,7 @@ function comando(c, J, txt){
   if(sub === 'healer' || sub === 'clerigo'){
     const qtd = Math.min(20, Math.max(1, parseInt(arg2, 10) || 2));
     const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
-    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, classe: 'clerigo', modo: 'pvp' });
+    const sp = spawnBots({ espelho: espelhoDe(J), canal: c, x: J.x, z: J.z, qtd, lv, classe: 'clerigo', modo: 'pvp' });
     sis(`✝️ ${sp} bots Clérigos / Healers Nv ${lv} criados ao seu redor!`);
     return;
   }
@@ -1271,7 +1297,7 @@ function comando(c, J, txt){
     const classe = (arg2 || 'guerreiro').toLowerCase();
     const qtd = Math.min(30, Math.max(1, parseInt(arg3, 10) || 5));
     const lv = Math.min(85, Math.max(1, parseInt(partes[4], 10) || J.lv || 40));
-    const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, lv, classe, modo: 'pvp' });
+    const sp = spawnBots({ espelho: espelhoDe(J), canal: c, x: J.x, z: J.z, qtd, lv, classe, modo: 'pvp' });
     sis(`⚔️ ${sp} bots da classe ${classe.toUpperCase()} Nv ${lv} criados ao seu redor!`);
     return;
   }
@@ -1284,7 +1310,7 @@ function comando(c, J, txt){
     const emBaium = (cArena && cArena.jog) ? [...cArena.jog.values()].some(j => !j.isBot && noSalaoBaium(j.x, j.z)) : false;
     const ax = emBaium ? BAIUM_C.x : 0;
     const az = emBaium ? BAIUM_C.z : 0;
-    const sp = spawnBots({ canal: cArena, x: ax, z: az, qtd, modo: 'pvp', lv, comHealer: true });
+    const sp = spawnBots({ espelho: espelhoDe(J), canal: cArena, x: ax, z: az, qtd, modo: 'pvp', lv, comHealer: true });
     sis(`⚔️ ${sp} bots Nv ${lv} foram criados na Arena PvP! Vá até a Arena para lutar.`);
     return;
   }
@@ -1296,7 +1322,7 @@ function comando(c, J, txt){
     const cCid = canalCidade();
     const cx = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
     const cz = Math.hypot(J.x, J.z) > 96 ? J.z : 105;
-    const sp = spawnBots({ canal: cCid, x: cx, z: cz, qtd, modo: 'pvp', lv, comHealer: true });
+    const sp = spawnBots({ espelho: espelhoDe(J), canal: cCid, x: cx, z: cz, qtd, modo: 'pvp', lv, comHealer: true });
     sis(`⚔️ ${sp} bots Nv ${lv} criados no campo aberto fora da muralha!`);
     return;
   }
@@ -1345,7 +1371,7 @@ function comando(c, J, txt){
   const lvNum = parseInt(arg2, 10);
   const lv = isNaN(lvNum) ? (J.lv || 40) : Math.min(85, Math.max(1, lvNum));
 
-  const sp = spawnBots({ canal: c, x: J.x, z: J.z, qtd, modo: 'pvp', lv, comHealer: true });
+  const sp = spawnBots({ espelho: espelhoDe(J), canal: c, x: J.x, z: J.z, qtd, modo: 'pvp', lv, comHealer: true });
   sis(`⚔️ ${sp} bots Nv ${lv} criados ao seu redor! Boa luta!`);
 }
 
@@ -1372,6 +1398,7 @@ function executa(c, J, m){
     }
 
     const r = spawnTimes({
+      espelho: m.paridade === false ? null : espelhoDe(J),
       canal,
       x,
       z,
@@ -1402,6 +1429,7 @@ function executa(c, J, m){
     }
 
     const criados = spawnBots({
+      espelho: m.paridade === false ? null : espelhoDe(J),
       canal,
       x,
       z,

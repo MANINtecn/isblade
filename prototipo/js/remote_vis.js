@@ -52,5 +52,19 @@
     var agora = performance.now(); if(agora - janela > 400){ janela = agora; usados = 0; }
     usados++; return usados <= (touch() ? 2 : 5);
   }
-  window.RemoteVis = { init: init, aviso: aviso, tick: tick, cota: cota };
+  /* o aquecimento das skills dispara efeitos: os do Guerreiro nascem NA POSICAO DO JOGADOR (usam S.px/ponta da espada), os das outras armas em (-3000,-3000). Alguns (rochas, fissuras, marcas)
+     nascem com atraso e nao somem sozinhos. Varre por ~8 s essas duas areas e tira da cena SO o que nao existia antes (antes = conjunto dos filhos da cena no inicio) e e' malha/sprite/pontos
+     sem esqueleto (jogadores sao Group, nunca entram). */
+  function limpaAquecimento(cena_, antes, cx, cz){
+    var n = 0, iv = setInterval(function(){
+      n++; cena_.children.slice().forEach(function(o){
+        if(antes && antes.has(o)) return;
+        if(!(o.isMesh || o.isSprite || o.isPoints) || o.isSkinnedMesh) return;
+        var x = o.position.x, z = o.position.z;
+        if((Math.abs(x + 3000) < 300 && Math.abs(z + 3000) < 300) || (Math.abs(x - cx) < 30 && Math.abs(z - cz) < 30)) cena_.remove(o);
+      });
+      if(n > 32) clearInterval(iv);
+    }, 250);
+  }
+  window.RemoteVis = { init: init, aviso: aviso, tick: tick, cota: cota, limpaAquecimento: limpaAquecimento };
 })();

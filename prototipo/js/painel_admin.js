@@ -447,7 +447,7 @@
             <button class="pa-btn pa-btn-gold" id="pa-btn-bots-times">🚩 Guerra 5v5 (Healers)</button>
             <button class="pa-btn pa-btn-gold" id="pa-btn-bots-spawn">⚔️ Spawn 10 Bots</button>
             <button class="pa-btn pa-btn-kill" id="pa-btn-bots-limpar">🛑 Limpar Bots</button>
-            <button class="pa-btn" id="pa-btn-bots-painel">⚙️ Painel Mestre (B/F8)</button>
+            <button class="pa-btn" id="pa-btn-bots-painel">⚙️ Painel Mestre</button>
           </div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;margin:6px 0 4px;text-transform:uppercase;">Time do GM / Jogador:</div>
           <div class="pa-grid-btns">
@@ -912,7 +912,7 @@
 
   window.PainelAdmin = {
     abrir: function(){ toggle(true); },
-    abrirAba: function(n){ toggle(true); aba(n); },       /* F8/B/botao BOTS PVP: abre o F10 ja na aba de bots */
+    abrirAba: function(n){ toggle(true); aba(n); },       /* abre o F10 ja na aba de bots */
     fechar: function(){ toggle(false); },
     isOpen: function(){ return !!aberto; },
     toggle: toggle,
