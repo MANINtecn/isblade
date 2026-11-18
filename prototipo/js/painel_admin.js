@@ -133,6 +133,14 @@
       }
       .pa-close:hover { color: #ff6b6b; }
 
+      /* abas: GM Poder | Bots PvP (o antigo F8 virou aba do F10) */
+      .pa-tabs { display:flex; gap:4px; padding:8px 14px 0; border-bottom:1px solid rgba(212,175,55,.35); background:rgba(0,0,0,.25); }
+      .pa-tab { background:transparent; border:1px solid transparent; border-bottom:none; color:#9aa4bd; font-weight:700; font-size:12px; letter-spacing:.04em; padding:7px 16px; border-radius:7px 7px 0 0; cursor:pointer; }
+      .pa-tab:hover { color:#fff; }
+      .pa-tab.on { background:rgba(212,175,55,.14); color:#ffd166; border-color:rgba(212,175,55,.5); }
+      .pa-bots-host { overflow-y:auto; display:none; flex:1; min-height:0; }
+      .pa-bots-host #painelBotsModal { position:static !important; transform:none !important; width:100% !important; border:none !important; box-shadow:none !important; border-radius:0 !important; background:transparent !important; display:block; }
+      .pa-bots-host #painelBotsModal .pb-header-actions #pbBtnFechar, .pa-bots-host #painelBotsModal .pb-titulo { display:none; }
       .pa-body {
         padding: 16px 20px;
         overflow-y: auto;
@@ -302,6 +310,12 @@
         </div>
         <button class="pa-close" id="pa-btn-fechar" title="Fechar">&times;</button>
       </div>
+
+      <div class="pa-tabs">
+        <button type="button" class="pa-tab on" data-aba="gm">👑 GM Poder</button>
+        <button type="button" class="pa-tab" data-aba="bots">⚔️ Bots PvP</button>
+      </div>
+      <div class="pa-bots-host" id="pa-bots-host"></div>
 
       <div class="pa-body">
         <!-- 0. CONTROLE DE ALVO (TARGET / GM) -->
@@ -727,10 +741,8 @@
         Net.botCmd({ acao: 'limpar', tudo: true });
       }
     };
-    document.getElementById('pa-btn-bots-painel').onclick = function(){
-      som('click');
-      if(window.PainelBots && PainelBots.toggle) PainelBots.toggle(true);
-    };
+    document.getElementById('pa-btn-bots-painel').onclick = function(){ som('click'); aba('bots'); };
+    container.querySelectorAll('.pa-tab').forEach(function(t){ t.onclick = function(){ som('click'); aba(t.dataset.aba); }; });
     document.getElementById('pa-btn-gm-time-a').onclick = function(){
       som('click');
       if(window.Net && Net.setTeam) Net.setTeam('A');
@@ -763,11 +775,20 @@
     cmd('setlevel', { lv: lv, alvo: obterAlvoId() });
   }
 
+  /* aba 'gm' (poderes) ou 'bots' (painel mestre de bots, antes o F8): o painel de bots e' encaixado aqui dentro */
+  function aba(nome){
+    renderModal();
+    var host = container.querySelector('#pa-bots-host'), corpo = container.querySelector('.pa-body'), bots = nome === 'bots' && window.PainelBots && PainelBots.embutir;
+    container.querySelectorAll('.pa-tab').forEach(function(t){ t.classList.toggle('on', t.dataset.aba === (bots ? 'bots' : 'gm')); });
+    if(bots){ corpo.style.display = 'none'; host.style.display = 'block'; PainelBots.embutir(host); }
+    else { corpo.style.display = ''; host.style.display = 'none'; if(window.PainelBots && PainelBots.desembutir) PainelBots.desembutir(); }
+  }
   function toggle(forca){
     renderModal();
     aberto = typeof forca === 'boolean' ? forca : !aberto;
     container.style.display = aberto ? 'flex' : 'none';
     som(aberto ? 'open' : 'click');
+    if(!aberto) aba('gm');                                         /* ao fechar volta para a aba GM e solta o painel de bots */
     if(aberto){
       try { if(document.exitPointerLock) document.exitPointerLock(); } catch(e){}
       atualizarListaAlvos();
@@ -886,6 +907,7 @@
 
   window.PainelAdmin = {
     abrir: function(){ toggle(true); },
+    abrirAba: function(n){ toggle(true); aba(n); },       /* F8/B/botao BOTS PVP: abre o F10 ja na aba de bots */
     fechar: function(){ toggle(false); },
     isOpen: function(){ return !!aberto; },
     toggle: toggle,

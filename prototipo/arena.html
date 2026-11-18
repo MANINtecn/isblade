@@ -492,8 +492,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/ceu_l2.js?v=1"></script>
 <script src="js/status.js?v=30"></script>
 <script src="js/l2_teleport.js"></script>
-<script src="js/painel_bots.js?v=2"></script>
-<script src="js/painel_admin.js?v=3"></script>
+<script src="js/painel_bots.js?v=3"></script>
+<script src="js/painel_admin.js?v=4"></script>
 <script src="js/ui_janelas.js?v=1"></script>
 </head>
 
@@ -6343,7 +6343,7 @@ function startBaiumDirectFight(){
   if(!TORRE_MODE){/* [duelo-toi] posiciona na arena do 3o andar: Baium no centro-norte, jogador ao sul */
     var _cx=-28.4,_cz=-53.85;
     ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});DG.pvpTorre=true;Torre.fecharPorta();
-    Torre.ativar(S,3);Torre.teleporta(S,_cx,_cz+10,3);S.face=Math.PI;S.ex=_cx;S.ez=_cz-6;
+    Torre.ativar(S,3);Torre.teleporta(S,_cx,_cz+10,3);S.face=Math.PI;S.ex=_cx;S.ez=_cz-6;torreGuardaSalao();
   }
   banner('TRONO DO IMPERADOR BAIUM','Raid Boss Lv 75 despertou!','#f5c451');
   renderHud();
@@ -6573,8 +6573,13 @@ function pvpStart(){/* [pvp-torre] a arena de PvP e o circulo gigante do Baium (
   var dif=$('#diff');if(dif)dif.classList.remove('open');
   banner('ARENA PVP','Arena livre: todos contra todos. Clique num jogador para grupo/duelo.','#ff6b6b');pvpExitBtn(true);renderHud();
   ARENA=1e6;ARENA_DECOR.forEach(function(m){m.visible=false;});var _bd=document.getElementById('btnFightBaiumDirect');if(_bd)_bd.style.display='none';DG.pvpTorre=true;Torre.fecharPorta();Torre.ativar(S,3);S.face=Math.PI/2;
-  Net.entrar('pvp');
+  Net.entrar('pvp');torreGuardaSalao();
 }
+/* [salao] duelo e PvP SEMPRE no salao do Baium (3o andar). Se por qualquer motivo o jogador ficar fora dele (2o andar / escadaria, porta fechada), leva para dentro nos primeiros segundos */
+function torreGuardaSalao(){var n=0,iv=setInterval(function(){n++;try{if(n>10||!(DG.pvpTorre&&Torre.on)||DG.run){if(n>10||!DG.pvpTorre)clearInterval(iv);return;}
+  if(Torre.andarAtual()!==3||!Torre.noSalao(2)){var x=-28.4+(Math.random()*6-3),z=-53.85+10+(Math.random()*4-2);console.warn('[salao] jogador fora do salao (andar '+Torre.andarAtual()+'); levando para dentro');Torre.teleporta(S,x,z,3);S.vx=0;S.vz=0;}
+  }catch(e){clearInterval(iv);}},1000);}
+window.torreGuardaSalao=torreGuardaSalao;
 function pvpSair(){Net.sair();DG.pvp=false;pvpExitBtn(false);if(DG.deCidade){returnToCity();return;}dgHub();Net.entrar('masmorra');}window.pvpStart=pvpStart;window.pvpSair=pvpSair;
 /* <<< CLAUDE [net] */
 

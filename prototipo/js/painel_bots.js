@@ -864,8 +864,28 @@
     } catch(e){}
   }
 
+  /* o painel de bots agora mora DENTRO do F10 (aba Bots PvP); o PainelAdmin chama embutir(host) / desembutir() */
+  var embutido = false;
+  function embutir(host){
+    if(!elModal) criarInterface();
+    if(elModal.parentNode !== host) host.appendChild(elModal);
+    embutido = true; estado.aberto = true; elModal.style.display = 'block';
+    try { document.exitPointerLock(); } catch(e){}
+    if(window.Net && Net.on) Net.botCmd({ acao: 'status' });
+    if(window.UIJanelas) UIJanelas.notificar('painel_bots', true);
+  }
+  function desembutir(){
+    if(!embutido) return; embutido = false; estado.aberto = false;
+    if(elModal) elModal.style.display = 'none';
+    if(window.UIJanelas) UIJanelas.notificar('painel_bots', false);
+  }
   function toggle(forcar){
-    estado.aberto = typeof forcar === 'boolean' ? forcar : !estado.aberto;
+    var abrir = typeof forcar === 'boolean' ? forcar : !estado.aberto;
+    if(window.PainelAdmin && PainelAdmin.abrirAba){                    /* unificado: abre/fecha o F10 na aba de bots */
+      if(abrir) PainelAdmin.abrirAba('bots'); else if(PainelAdmin.fechar) PainelAdmin.fechar();
+      return;
+    }
+    estado.aberto = abrir;
     if(!elModal) criarInterface();
 
     elModal.style.display = estado.aberto ? 'block' : 'none';
@@ -918,6 +938,8 @@
       executarAcaoPrincipal();
     },
     atualizaInfo: atualizaInfo,
+    embutir: embutir,
+    desembutir: desembutir,
     get estado(){ return estado; }
   };
 
