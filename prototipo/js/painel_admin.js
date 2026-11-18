@@ -297,6 +297,8 @@
     btnTrigger.innerHTML = '👑 GM [F10]';
     btnTrigger.title = 'Abrir Painel de Administração / GM Power (Tecla F10)';
     btnTrigger.onclick = function(){ toggle(); };
+    /* botao escondido para os jogadores (ainda nao ha trava de super admin): so o atalho F10 abre. Para ver o botao no seu navegador: localStorage.isblade_gm_botoes='1' */
+    try { if(localStorage.getItem('isblade_gm_botoes') !== '1') btnTrigger.style.display = 'none'; } catch(e){ btnTrigger.style.display = 'none'; }
     document.body.appendChild(btnTrigger);
 
     // 2. Modal do Painel

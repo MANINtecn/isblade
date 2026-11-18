@@ -435,6 +435,8 @@
       e.stopPropagation();
       toggle();
     };
+    /* botao escondido para os jogadores (ainda nao ha trava de super admin): so F8/B/F10 abrem. Para ver o botao no seu navegador: localStorage.isblade_gm_botoes='1' */
+    try { if(localStorage.getItem('isblade_gm_botoes') !== '1') elBtn.style.display = 'none'; } catch(e){ elBtn.style.display = 'none'; }
     document.body.appendChild(elBtn);
     elBadge = document.getElementById('pbBtnBadge');
 
