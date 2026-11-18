@@ -11,7 +11,7 @@ const script = u => new Promise((ok, er) => { const e = document.createElement('
 let THREE;                                                            // ?three=128 testa o three global antigo (selecao.html); sem isso, o vendor.js (arena/cidade/criacao)
 if (Q.get('three') === '128') { await script('/lib/three.min.js'); await script('/lib/GLTFLoader.js'); THREE = window.THREE; } else THREE = await import('/lib/vendor.js');
 const bruto = THREE.GLTFLoader.prototype.load;                       // carga sem troca de URL
-AssetsWeb.instala(THREE.GLTFLoader);
+AssetsWeb.instala(THREE.GLTFLoader, Q.get('three') === '128' ? undefined : THREE);
 const out = document.getElementById('out'), M = window.ASSETS_WEB.m, soh = Q.get('so');
 const nomes = Object.keys(M).filter(k => !soh || k.includes(soh));
 const carrega = (fn, u) => new Promise((ok, er) => fn.call(new THREE.GLTFLoader(), u, ok, undefined, er));

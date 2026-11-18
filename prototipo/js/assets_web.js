@@ -6,17 +6,21 @@
          AssetsWeb.instala(THREE.GLTFLoader);   logo depois do import. Com o three global (selecao.html) instala sozinho.
          AssetsWeb.url(u) -> URL de entrega;  AssetsWeb.busca(u, opcoes) -> fetch com queda para a origem (GLB lido por fetch + parse). */
 (function(){
-  var M = (window.ASSETS_WEB && window.ASSETS_WEB.m) || {}, desl = false;
+  var M = (window.ASSETS_WEB && window.ASSETS_WEB.m) || {}, K = (window.ASSETS_WEB && window.ASSETS_WEB.k) || {}, desl = false;
   try { desl = /[?&]brutos=1/.test(location.search) || localStorage.getItem('isblade_assets_brutos') === '1'; } catch(_){}
-  var A = window.AssetsWeb = { falhas: [], trocas: 0, ligado: !desl };
+  var A = window.AssetsWeb = { falhas: [], trocas: 0, ligado: !desl, ktx: false, pronto: null };      /* ktx: o transcodificador KTX2 esta pronto (so paginas que passam o THREE do vendor.js a instala) */
 
+  function chave(u){ var q = u.indexOf('?'); return (q < 0 ? u : u.slice(0, q)).replace(/^\.\//, ''); }
   A.url = function(u){
     if(desl || typeof u !== 'string' || !window.MeshoptDecoder) return u;              /* sem decodificador nao da para ler a entrega */
-    var q = u.indexOf('?'), p = (q < 0 ? u : u.slice(0, q)).replace(/^\.\//, ''), h = M[p];
+    var p = chave(u), h = M[p];
+    if(h && K[p] && !A.ktx) return u;                                                  /* entrega com textura KTX2 so vale se esta pagina sabe ler KTX2 */
     return h ? 'assets_web/' + p.slice(7) + '?h=' + h : u;                             /* as chaves comecam sempre com 'assets/' */
   };
+  A.espera = function(u){ return (!desl && A.pronto && !fim && typeof u === 'string' && K[chave(u)]) ? A.pronto : null; };   /* promessa enquanto o KTX2 ainda esta subindo */
 
   A.busca = function(u, op){
+    var w = A.espera(u); if(w) return w.then(function(){ return A.busca(u, op); });
     var n = A.url(u);
     if(n === u) return fetch(u, op);
     A.trocas++;
@@ -24,12 +28,27 @@
       .catch(function(e){ console.warn('[assets-web] entrega falhou, usando a origem:', u, e); A.falhas.push(u); return fetch(u, op); });
   };
 
-  A.instala = function(L){
+  /* KTX2 (Basis): textura comprimida direto na placa de video (4 a 8x menos memoria que PNG/WebP decodificado). O three do jogo (vendor.js) nao traz o KTX2Loader:
+     ele fica em lib/ktx2_loader.js (importa o vendor.js) com o transcodificador em lib/basis/. Se nao subir, as paginas usam a origem (PNG/JPG), como antes. */
+  var kloader = null, fim = false;                                                      /* fim: o KTX2 acabou de subir (ou falhou): nao ha mais o que esperar */
+  function sobeKtx(T){
+    if(A.pronto || desl || !T || !T.WebGLRenderer || typeof document === 'undefined') return;
+    A.pronto = import(new URL('lib/ktx2_loader.js', document.baseURI).href).then(function(m){
+      var r = new T.WebGLRenderer({ canvas: document.createElement('canvas') });       /* so para o detectSupport ler as extensoes da placa; some logo depois */
+      var l = new m.KTX2Loader().setTranscoderPath(new URL('lib/basis/', document.baseURI).href).setWorkerLimit(2);
+      l.detectSupport(r); try { r.dispose(); r.forceContextLoss(); } catch(_){}
+      kloader = l; A.ktx = true; fim = true;
+    }).catch(function(e){ A.ktx = false; fim = true; console.warn('[assets-web] KTX2 indisponivel, usando a origem:', e); });
+  }
+  A.instala = function(L, T){
     if(!L || !L.prototype || L.prototype.__assetsWeb) return;
+    sobeKtx(T);
     var P = L.prototype, load = P.load, parse = P.parse; P.__assetsWeb = true;
-    function dec(l){ if(window.MeshoptDecoder && l.setMeshoptDecoder && !l.meshoptDecoder) l.setMeshoptDecoder(window.MeshoptDecoder); }
+    function dec(l){ if(window.MeshoptDecoder && l.setMeshoptDecoder && !l.meshoptDecoder) l.setMeshoptDecoder(window.MeshoptDecoder); if(kloader && l.setKTX2Loader && !l.ktx2Loader) l.setKTX2Loader(kloader); }
     P.load = function(u, ok, prog, err){
-      var l = this, n = A.url(u); dec(l);
+      var l = this, w = A.espera(u);
+      if(w) return void w.then(function(){ P.load.call(l, u, ok, prog, err); });
+      var n = A.url(u); dec(l);
       if(n === u) return load.call(l, u, ok, prog, err);
       A.trocas++;
       return load.call(l, n, ok, prog, function(e){

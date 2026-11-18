@@ -1,5 +1,5 @@
 {
-"total": 32564483,
+"total": 33087343,
 "itens": [
 {
 "u": "assets/audio/heavy_swing.wav",
@@ -48,7 +48,7 @@
 },
 {
 "u": "assets_web/cenario/env_banner_pole_01.glb?h=8057288c36",
-"b": 11860,
+"b": 23840,
 "e": 1
 },
 {
@@ -153,7 +153,7 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_port_dock.glb?h=beab155a6a",
-"b": 65408,
+"b": 76548,
 "e": 1
 },
 {
@@ -183,7 +183,7 @@
 },
 {
 "u": "assets_web/cenario/env_arena_wall_01.glb?h=e87af23c03",
-"b": 93044,
+"b": 195596,
 "e": 1
 },
 {
@@ -193,7 +193,7 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_tree_02.glb?h=07fb2bb03a",
-"b": 88832,
+"b": 83092,
 "e": 1
 },
 {
@@ -203,7 +203,7 @@
 },
 {
 "u": "assets_web/cenario/env_arena_floor_01.glb?h=354137577f",
-"b": 107240,
+"b": 206024,
 "e": 1
 },
 {
@@ -228,7 +228,7 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_tree_01.glb?h=f93ae9ff1a",
-"b": 110732,
+"b": 104812,
 "e": 1
 },
 {
@@ -248,7 +248,7 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_tree_legend.glb?h=af484a56c9",
-"b": 174296,
+"b": 183012,
 "e": 1
 },
 {
@@ -258,7 +258,7 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_centertop.glb?h=a71e9766af",
-"b": 165432,
+"b": 152576,
 "e": 1
 },
 {
@@ -268,27 +268,27 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_gate.glb?h=45b18210d8",
-"b": 164408,
+"b": 186320,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_wall_b.glb?h=d6f8b0b758",
-"b": 140264,
+"b": 155232,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_wall_d.glb?h=27edfdc753",
-"b": 140516,
+"b": 155484,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_wall_c.glb?h=a0e6cdcf95",
-"b": 141308,
+"b": 156276,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_wall_a.glb?h=28986b0d6f",
-"b": 141144,
+"b": 156112,
 "e": 1
 },
 {
@@ -318,12 +318,12 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_house_02.glb?h=77f2510b01",
-"b": 247152,
+"b": 274272,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_church.glb?h=316bf7a67f",
-"b": 292760,
+"b": 278832,
 "e": 1
 },
 {
@@ -333,42 +333,42 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_shop_03.glb?h=53c2997f19",
-"b": 251124,
+"b": 287484,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_lighthouse.glb?h=135b1ab58b",
-"b": 305504,
+"b": 322196,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_house_03.glb?h=2ca0a3aa8f",
-"b": 317372,
+"b": 325368,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_house_01.glb?h=b934be363b",
-"b": 299132,
+"b": 322636,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_house_04.glb?h=e9d708b106",
-"b": 314172,
+"b": 334052,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_shop_01.glb?h=6d25ff9e27",
-"b": 306868,
+"b": 334008,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_agit.glb?h=aeea14fc32",
-"b": 328232,
+"b": 377632,
 "e": 1
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_shop_02.glb?h=4d6342ef33",
-"b": 347028,
+"b": 388924,
 "e": 1
 },
 {
@@ -413,7 +413,7 @@
 },
 {
 "u": "assets_web/talking_island/assembled_glb/ti_fighter_hall.glb?h=1cc3391221",
-"b": 480288,
+"b": 476648,
 "e": 1
 },
 {
@@ -508,7 +508,7 @@
 },
 {
 "u": "assets_web/baium/baium_boss.glb?h=d6023914ed",
-"b": 3333380,
+"b": 3523100,
 "e": 0
 },
 {

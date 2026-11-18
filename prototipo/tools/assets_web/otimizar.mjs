@@ -2,13 +2,14 @@
    Le os GLB de prototipo/assets/ (a ORIGEM, que o Blender exporta e ninguem edita a mao depois) e grava a versao de entrega em prototipo/assets_web/:
      - malhas e animacoes comprimidas com meshopt (malha sem quantizar: os numeros continuam float, entao colisao/fusao de pecas nao mudam;
        rotacao das animacoes em 16 bits: diferenca medida < 0,001). NAO usar resample(): piorou a precisao (0,003) e nao reduziu o arquivo;
-     - texturas embutidas em WebP, com teto de 2048 px.
+     - texturas embutidas em WebP (personagens/armas) ou KTX2 Basis (mapas, cidade, mobs, chefe; ver KTX2_ALVO), com teto de 2048 px.
    O jogo troca a URL sozinho (js/assets_web.js) usando js/assets_manifesto.js; se a versao de entrega falhar, cai no arquivo de origem.
    Uso (na pasta prototipo):   node tools/assets_web/otimizar.mjs            converte so o que mudou
                                node tools/assets_web/otimizar.mjs --tudo     refaz tudo
                                node tools/assets_web/otimizar.mjs assets/maps/fortress/fortress.glb   so os arquivos citados */
-import { NodeIO, PropertyType } from '@gltf-transform/core';
-import { ALL_EXTENSIONS, EXTMeshoptCompression, EXTTextureWebP } from '@gltf-transform/extensions';
+import { NodeIO, PropertyType, Document } from '@gltf-transform/core';
+import { ALL_EXTENSIONS, EXTMeshoptCompression, EXTTextureWebP, KHRTextureBasisu } from '@gltf-transform/extensions';
+import { encodeToKTX2 } from 'ktx2-encoder';
 import { dedup, reorder } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 import sharp from 'sharp';
@@ -18,9 +19,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSAO_PIPELINE = 2;          // subir quando mudar as opcoes abaixo: refaz tudo
+const VERSAO_PIPELINE = 3;          // subir quando mudar as opcoes abaixo: refaz tudo
 const TETO_TEXTURA = 2048;          // px (lado maior)
 const QUALIDADE_WEBP = 86;
+const KTX2_ALVO = /^assets\/(maps|talking_island|mobs|baium|cenario)\//;   // texturas grandes (mapas, cidade, mobs, chefe): KTX2 (Basis ETC1S) = 4 a 8x menos memoria de video. Personagens e armas ficam em WebP (so ~4 MB de video por personagem)
+const KTX2_QUALIDADE = 170, KTX2_ESFORCO = 2;   // ETC1S: qualidade 1-255, esforco 0-6 (so a lentidao da conversao)
 const GANHO_MINIMO = 0.10;          // se nao ficar pelo menos 10% menor, o jogo continua usando a origem
 const IGNORA = /(^|\/)(raw_|test_|extracted|umodel)|backup|_antes_|baium_export|\/talking_island\/models\//i;
 
@@ -50,6 +53,28 @@ async function texturasWebp(doc) {    // PNG/JPEG embutidos -> WebP (com teto de
   return n;
 }
 
+const decodificaImagem = async b => { const { data, info } = await sharp(b).ensureAlpha().raw().toBuffer({ resolveWithObject: true }); return { width: info.width, height: info.height, data: new Uint8ClampedArray(data) }; };
+function slotsDaTextura(t) {
+  const raiz = Document.fromGraph(t.getGraph()).getRoot();
+  return t.getGraph().listParentEdges(t).filter(e => e.getParent() !== raiz).map(e => e.getName());
+}
+async function texturasKtx2(doc) {    // PNG/JPEG/WebP embutidos -> KTX2 ETC1S com mipmaps (cor e emissiva em sRGB); teto de 2048 px
+  let n = 0; const log = console.log;
+  for (const t of doc.getRoot().listTextures()) {
+    const img = t.getImage(), mime = t.getMimeType();
+    if (!img || !/image\/(png|jpeg|webp)/.test(mime)) continue;
+    let b = Buffer.from(img); const md = await sharp(b).metadata();
+    if (Math.max(md.width || 0, md.height || 0) > TETO_TEXTURA) b = await sharp(b).resize(TETO_TEXTURA, TETO_TEXTURA, { fit: 'inside' }).png().toBuffer();
+    const sl = slotsDaTextura(t), srgb = !sl.length || sl.some(x => /baseColor|emissive/i.test(x));
+    console.log = () => {};                                     // o codificador despeja uma linha por fatia
+    let out; try { out = await encodeToKTX2(new Uint8Array(b), { isUASTC: false, qualityLevel: KTX2_QUALIDADE, compressionLevel: KTX2_ESFORCO, generateMipmap: true, isSetKTX2SRGBTransferFunc: srgb, imageDecoder: decodificaImagem, enableDebug: false }); } finally { console.log = log; }
+    t.setImage(out).setMimeType('image/ktx2');
+    if (t.getURI()) t.setURI(t.getURI().replace(/\.(png|jpe?g|webp)$/i, '.ktx2'));
+    n++;
+  }
+  return n;
+}
+
 await MeshoptDecoder.ready; await MeshoptEncoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
 
@@ -71,7 +96,9 @@ for (const src of alvo) {
       dedup({ propertyTypes: [PropertyType.ACCESSOR, PropertyType.TEXTURE] }),      // nao junta material nem malha: o jogo mexe neles por peca
       reorder({ encoder: MeshoptEncoder, target: 'size' }),
     );
-    if (await texturasWebp(doc)) doc.createExtension(EXTTextureWebP).setRequired(true);
+    const ktx = KTX2_ALVO.test(src);
+    if (ktx) { if (await texturasKtx2(doc)) doc.createExtension(KHRTextureBasisu).setRequired(true); }
+    else if (await texturasWebp(doc)) doc.createExtension(EXTTextureWebP).setRequired(true);
     doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.FILTER });
     const out = await io.writeBinary(doc);
     if (out.byteLength > bytes.length * (1 - GANHO_MINIMO)) {
@@ -80,8 +107,8 @@ for (const src of alvo) {
       console.log('  = ' + src + '  (sem ganho, fica a origem)');
     } else {
       fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, out);
-      man.arquivos[src] = { h, de: bytes.length, para: out.byteLength };
-      console.log('  ' + mb(bytes.length).padStart(6) + ' -> ' + mb(out.byteLength).padStart(5) + ' MB  ' + src);
+      man.arquivos[src] = ktx ? { h, de: bytes.length, para: out.byteLength, k: 1 } : { h, de: bytes.length, para: out.byteLength };
+      console.log('  ' + mb(bytes.length).padStart(6) + ' -> ' + mb(out.byteLength).padStart(5) + ' MB  ' + (ktx ? '[KTX2] ' : '') + src);
     }
     feitos++;
   } catch (e) {
@@ -99,8 +126,8 @@ fs.mkdirSync(SAIDA, { recursive: true });
 const ord = {}; for (const k of Object.keys(man.arquivos).sort()) ord[k] = man.arquivos[k];
 man.arquivos = ord;
 fs.writeFileSync(ARQ_JSON, JSON.stringify(man, null, 1) + '\n');
-const m = {}; for (const [k, v] of Object.entries(ord)) if (!v.manter) m[k] = v.h;
-fs.writeFileSync(ARQ_JS, '/* GERADO por tools/assets_web/otimizar.mjs - nao editar a mao */\nwindow.ASSETS_WEB=' + JSON.stringify({ m }) + ';\n');
+const m = {}, kk = {}; for (const [k, v] of Object.entries(ord)) if (!v.manter) { m[k] = v.h; if (v.k) kk[k] = 1; }
+fs.writeFileSync(ARQ_JS, '/* GERADO por tools/assets_web/otimizar.mjs - nao editar a mao */\nwindow.ASSETS_WEB=' + JSON.stringify({ m, k: kk }) + ';\n');
 
 // a tela de carregamento (assets/precarga.json) tem de baixar a MESMA URL que o jogo vai pedir; a lista de arquivos nao muda aqui (isso e do tools/gerar_precarga.py)
 try {

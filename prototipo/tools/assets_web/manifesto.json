@@ -1,5 +1,5 @@
 {
- "versao": 2,
+ "versao": 3,
  "arquivos": {
   "assets/armaduras/armor_chest_01.glb": {
    "h": "8afa38dd49",
@@ -84,27 +84,32 @@
   "assets/baium/baium_boss.glb": {
    "h": "d6023914ed",
    "de": 13522856,
-   "para": 3333380
+   "para": 3523100,
+   "k": 1
   },
   "assets/cenario/env_arena_floor_01.glb": {
    "h": "354137577f",
    "de": 328460,
-   "para": 107240
+   "para": 206024,
+   "k": 1
   },
   "assets/cenario/env_arena_ring_01.glb": {
    "h": "b129e89487",
    "de": 2482092,
-   "para": 1188540
+   "para": 1690184,
+   "k": 1
   },
   "assets/cenario/env_arena_wall_01.glb": {
    "h": "e87af23c03",
    "de": 278504,
-   "para": 93044
+   "para": 195596,
+   "k": 1
   },
   "assets/cenario/env_banner_pole_01.glb": {
    "h": "8057288c36",
    "de": 35552,
-   "para": 11860
+   "para": 23840,
+   "k": 1
   },
   "assets/fx/shuriken_vento.glb": {
    "h": "d04ddfc4f4",
@@ -134,162 +139,194 @@
   "assets/maps/baium_house/mini_toi.glb": {
    "h": "a98602cdc0",
    "de": 16734584,
-   "para": 4247504
+   "para": 3952084,
+   "k": 1
   },
   "assets/maps/blazing_swamp/blazing_swamp.glb": {
    "h": "89c4dc15d7",
    "de": 2907188,
-   "para": 1792052
+   "para": 2231996,
+   "k": 1
   },
   "assets/maps/curuma/curuma.glb": {
    "h": "53c3ce32ca",
    "de": 3731088,
-   "para": 2559392
+   "para": 2646856,
+   "k": 1
   },
   "assets/maps/fortress/fortress.glb": {
    "h": "73779dd603",
    "de": 8060156,
-   "para": 5273464
+   "para": 6288252,
+   "k": 1
   },
   "assets/mobs/modelos/anjo.glb": {
    "h": "2b6a983976",
    "de": 1358608,
-   "para": 497856
+   "para": 567844,
+   "k": 1
   },
   "assets/mobs/modelos/aranha_curuma.glb": {
    "h": "bd55e41a76",
    "de": 652516,
-   "para": 373004
+   "para": 374556,
+   "k": 1
   },
   "assets/mobs/modelos/arcanjo.glb": {
    "h": "fd7da45c91",
    "de": 2259500,
-   "para": 1141016
+   "para": 1184500,
+   "k": 1
   },
   "assets/mobs/modelos/basilisco_fort.glb": {
    "h": "0a20ebcace",
    "de": 1296632,
-   "para": 427652
+   "para": 450772,
+   "k": 1
   },
   "assets/mobs/modelos/cao.glb": {
    "h": "43d340a444",
    "de": 525488,
-   "para": 278856
+   "para": 280532,
+   "k": 1
   },
   "assets/mobs/modelos/cavaleiro.glb": {
    "h": "087b8951b5",
    "de": 1370464,
-   "para": 566088
+   "para": 616488,
+   "k": 1
   },
   "assets/mobs/modelos/chefe_blazing.glb": {
    "h": "07a50615ac",
    "de": 1928116,
-   "para": 851564
+   "para": 895644,
+   "k": 1
   },
   "assets/mobs/modelos/chefe_curuma.glb": {
    "h": "e8144fe690",
    "de": 1155532,
-   "para": 397628
+   "para": 451512,
+   "k": 1
   },
   "assets/mobs/modelos/chefe_fort.glb": {
    "h": "04b87812f6",
    "de": 1518816,
-   "para": 584288
+   "para": 626344,
+   "k": 1
   },
   "assets/mobs/modelos/comandante.glb": {
    "h": "24a16e222c",
    "de": 1366540,
-   "para": 564220
+   "para": 633344,
+   "k": 1
   },
   "assets/mobs/modelos/erinia.glb": {
    "h": "9c5b4a8916",
    "de": 1259392,
-   "para": 562016
+   "para": 592220,
+   "k": 1
   },
   "assets/mobs/modelos/esqueleto.glb": {
    "h": "9cb2921d5b",
    "de": 1273272,
-   "para": 551868
+   "para": 552424,
+   "k": 1
   },
   "assets/mobs/modelos/fantasma.glb": {
    "h": "e911d188f7",
    "de": 633028,
-   "para": 339540
+   "para": 357612,
+   "k": 1
   },
   "assets/mobs/modelos/formiga_fort.glb": {
    "h": "b98d4e6a80",
    "de": 583236,
-   "para": 315136
+   "para": 325620,
+   "k": 1
   },
   "assets/mobs/modelos/golem_lava.glb": {
    "h": "802d5e328d",
    "de": 913068,
-   "para": 262860
+   "para": 322652,
+   "k": 1
   },
   "assets/mobs/modelos/guarda_real.glb": {
    "h": "9509a030cd",
    "de": 843476,
-   "para": 352528
+   "para": 388920,
+   "k": 1
   },
   "assets/mobs/modelos/lamina.glb": {
    "h": "3fda36eea4",
    "de": 1592856,
-   "para": 561956
+   "para": 579364,
+   "k": 1
   },
   "assets/mobs/modelos/magmagoil.glb": {
    "h": "199d40eae4",
    "de": 624512,
-   "para": 143168
+   "para": 198468,
+   "k": 1
   },
   "assets/mobs/modelos/ol_mahum_fort.glb": {
    "h": "7ced03b512",
    "de": 661176,
-   "para": 324712
+   "para": 340364,
+   "k": 1
   },
   "assets/mobs/modelos/olho_fort.glb": {
    "h": "ab7f6aa59e",
    "de": 535096,
-   "para": 183672
+   "para": 193208,
+   "k": 1
   },
   "assets/mobs/modelos/overlord.glb": {
    "h": "0054a7e45b",
    "de": 1095288,
-   "para": 385792
+   "para": 424412,
+   "k": 1
   },
   "assets/mobs/modelos/salamandra_fogo.glb": {
    "h": "6a563523c8",
    "de": 479224,
-   "para": 263912
+   "para": 269656,
+   "k": 1
   },
   "assets/mobs/modelos/sapo_curuma.glb": {
    "h": "04ddc57421",
    "de": 372756,
-   "para": 182520
+   "para": 183316,
+   "k": 1
   },
   "assets/mobs/modelos/stakato_curuma.glb": {
    "h": "f357e92744",
    "de": 716948,
-   "para": 355944
+   "para": 371860,
+   "k": 1
   },
   "assets/mobs/modelos/stalker_curuma.glb": {
    "h": "c17eefc475",
    "de": 1182932,
-   "para": 383472
+   "para": 432000,
+   "k": 1
   },
   "assets/mobs/modelos/vidente.glb": {
    "h": "fe91b595a4",
    "de": 1406664,
-   "para": 475912
+   "para": 552916,
+   "k": 1
   },
   "assets/mobs/modelos/wyrm_fogo.glb": {
    "h": "dd93c28c12",
    "de": 1564120,
-   "para": 593564
+   "para": 611788,
+   "k": 1
   },
   "assets/mobs/modelos/xama.glb": {
    "h": "f5d826b413",
    "de": 747256,
-   "para": 385928
+   "para": 401660,
+   "k": 1
   },
   "assets/personagens/bastard_sword.glb": {
    "h": "1e9d6b370e",
@@ -659,107 +696,128 @@
   "assets/talking_island/assembled_glb/ti_agit.glb": {
    "h": "aeea14fc32",
    "de": 1524252,
-   "para": 328232
+   "para": 377632,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_centertop.glb": {
    "h": "a71e9766af",
    "de": 691664,
-   "para": 165432
+   "para": 152576,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_church.glb": {
    "h": "316bf7a67f",
    "de": 1172372,
-   "para": 292760
+   "para": 278832,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_fighter_hall.glb": {
    "h": "1cc3391221",
    "de": 1958112,
-   "para": 480288
+   "para": 476648,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_gate.glb": {
    "h": "45b18210d8",
    "de": 715724,
-   "para": 164408
+   "para": 186320,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_house_01.glb": {
    "h": "b934be363b",
    "de": 1371060,
-   "para": 299132
+   "para": 322636,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_house_02.glb": {
    "h": "77f2510b01",
    "de": 1084020,
-   "para": 247152
+   "para": 274272,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_house_03.glb": {
    "h": "2ca0a3aa8f",
    "de": 1359804,
-   "para": 317372
+   "para": 325368,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_house_04.glb": {
    "h": "e9d708b106",
    "de": 1387256,
-   "para": 314172
+   "para": 334052,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_lighthouse.glb": {
    "h": "135b1ab58b",
    "de": 1236572,
-   "para": 305504
+   "para": 322196,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_port_dock.glb": {
    "h": "beab155a6a",
    "de": 194384,
-   "para": 65408
+   "para": 76548,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_shop_01.glb": {
    "h": "6d25ff9e27",
    "de": 1452112,
-   "para": 306868
+   "para": 334008,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_shop_02.glb": {
    "h": "4d6342ef33",
    "de": 1621496,
-   "para": 347028
+   "para": 388924,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_shop_03.glb": {
    "h": "53c2997f19",
    "de": 1210644,
-   "para": 251124
+   "para": 287484,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_tree_01.glb": {
    "h": "f93ae9ff1a",
    "de": 448600,
-   "para": 110732
+   "para": 104812,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_tree_02.glb": {
    "h": "07fb2bb03a",
    "de": 316020,
-   "para": 88832
+   "para": 83092,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_tree_legend.glb": {
    "h": "af484a56c9",
    "de": 560424,
-   "para": 174296
+   "para": 183012,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_wall_a.glb": {
    "h": "28986b0d6f",
    "de": 764600,
-   "para": 141144
+   "para": 156112,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_wall_b.glb": {
    "h": "d6f8b0b758",
    "de": 763088,
-   "para": 140264
+   "para": 155232,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_wall_c.glb": {
    "h": "a0e6cdcf95",
    "de": 764440,
-   "para": 141308
+   "para": 156276,
+   "k": 1
   },
   "assets/talking_island/assembled_glb/ti_wall_d.glb": {
    "h": "27edfdc753",
    "de": 763756,
-   "para": 140516
+   "para": 155484,
+   "k": 1
   }
  }
 }

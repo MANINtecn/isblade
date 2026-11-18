@@ -1271,13 +1271,13 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 <script src="lib/meshopt_decoder.js"></script>
 <script src="js/assets_manifesto.js"></script>
-<script src="js/assets_web.js?v=1"></script>
+<script src="js/assets_web.js?v=2"></script>
 <script type="module">
 
 
 
 import * as THREE from './lib/vendor.js';
-window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader);      /* [assets-web] troca a origem pela entrega (meshopt + WebP); regras em REGRAS_ASSETS_WEB.md */
+window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [assets-web] troca a origem pela entrega (meshopt + WebP/KTX2); regras em REGRAS_ASSETS_WEB.md */
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 

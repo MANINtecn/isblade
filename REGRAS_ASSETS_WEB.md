@@ -28,13 +28,14 @@ node tools/assets_web/verificar.mjs
 2. O segundo abre cada modelo num navegador sem janela, com o three.js do jogo, e compara origem e entrega: malhas, vértices, ossos, nomes dos nós, texturas e animações.
 3. Só entra no commit se o verificador disser que **todos** estão iguais. Origem, entrega, manifesto e pré-carga vão no mesmo commit.
 
-Primeira vez na máquina: `npm install` dentro de `prototipo/tools/assets_web`.
+Primeira vez na máquina: `npm install` dentro de `prototipo/tools/assets_web`. Se mudar `KTX2_ALVO`/qualidade, subir `VERSAO_PIPELINE` e rodar com `--tudo`. `node tools/assets_web/medir_texturas.mjs` mostra texturas e memória de vídeo por grupo.
 
 ## 3. O que a entrega faz hoje
 
 - Malha e animação comprimidas com **meshopt**. A malha não é quantizada (os números continuam float), então colisão, grade de caminhada e fusão de peças do `mapa_vivo.js` não mudam.
 - Rotação das animações em 16 bits. Diferença máxima medida: 0,0005 (o verificador reprova acima de 0,001).
-- Texturas embutidas em **WebP** (qualidade 86), com teto de 2048 px.
+- Texturas embutidas em **WebP** (qualidade 86) nos personagens e armas (cada personagem usa so ~4 MB de memoria de video), com teto de 2048 px.
+- **KTX2 (Basis ETC1S, mipmaps)** em `assets/maps`, `talking_island`, `mobs`, `baium` e `cenario` (lista `KTX2_ALVO` no `otimizar.mjs`): a placa recebe a textura comprimida (BC7/ASTC/ETC2), ~4x menos memoria de video (Curuma: 375 texturas em BC7). O download fica parecido com o WebP. Quem le: `lib/ktx2_loader.js` (KTX2Loader do three r182 ligado ao `vendor.js`) + `lib/basis/` (transcodificador). Paginas com o three global antigo (r128) pedem a origem desses arquivos sozinhas.
 - **Não usar `resample()`** nas animações: testado em 16/11, piorou a precisão (0,003) e não reduziu o arquivo.
 - Não juntar materiais nem malhas na conversão: o jogo mexe neles por peça.
 
@@ -79,7 +80,7 @@ Ordem revista em 16/11 depois do HAR do concorrente: os modelos deles vão **sem
 
 1. **Animações compartilhadas.** Cada armadura do mesmo corpo repete as mesmas 144 animações (cerca de 6 MB por arquivo na entrega). Separar em um arquivo de animação por raça/sexo. Mexe em como o personagem é montado: fazer com teste no jogo.
 2. **Mapas e cidade em peças.** Hoje o `mapa_vivo.js` carrega o mapa inteiro num GLB (Fortaleza: 5,0 MB; mini_toi: 4,1 MB). Cortar em peças por região e carregar por distância.
-3. **Texturas KTX2 (Basis).** WebP reduz o download, mas na placa de vídeo a textura continua descomprimida. KTX2 reduz a memória de vídeo, que é o que pesa no celular. Precisa de: `KTX2Loader` dentro do `vendor.js` (hoje não tem) e o codificador da Khronos instalado.
+3. ~~Texturas KTX2~~ **FEITO em 17/11** para mapas, cidade, mobs e chefe (ver seção 3). Falta medir no celular de verdade e decidir se personagens também vão (hoje não vale: ~4 MB de vídeo cada).
 4. **WAV para OGG** e **PNG/JPG soltos para WebP** (11,7 MB da pré-carga essencial ainda são imagens e sons soltos).
 5. **Decodificação fora da thread principal** (workers) para carregar modelo sem travar o quadro.
 6. **Arquivos com hash no nome e cache longo**, no lugar de `?v=N` manual em 25 scripts.
