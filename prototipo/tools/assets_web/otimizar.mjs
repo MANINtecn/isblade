@@ -10,7 +10,7 @@
 import { NodeIO, PropertyType, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, EXTMeshoptCompression, EXTTextureWebP, KHRTextureBasisu } from '@gltf-transform/extensions';
 import { encodeToKTX2 } from 'ktx2-encoder';
-import { dedup, reorder } from '@gltf-transform/functions';
+import { dedup, reorder, prune } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 import sharp from 'sharp';
 import { execFileSync } from 'node:child_process';
@@ -19,11 +19,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VERSAO_PIPELINE = 3;          // subir quando mudar as opcoes abaixo: refaz tudo
+const VERSAO_PIPELINE = 4;          // subir quando mudar as opcoes abaixo: refaz tudo
 const TETO_TEXTURA = 2048;          // px (lado maior)
 const QUALIDADE_WEBP = 86;
 const KTX2_ALVO = /^assets\/(maps|talking_island|mobs|baium|cenario)\//;   // texturas grandes (mapas, cidade, mobs, chefe): KTX2 (Basis ETC1S) = 4 a 8x menos memoria de video. Personagens e armas ficam em WebP (so ~4 MB de video por personagem)
 const KTX2_QUALIDADE = 170, KTX2_ESFORCO = 2;   // ETC1S: qualidade 1-255, esforco 0-6 (so a lentidao da conversao)
+const PODAR = (() => { try { return JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'anims_podar.json'), 'utf8')).remover.map(r => new RegExp(r)); } catch (_) { return []; } })();   // clips que ficam fora da entrega (anims_podar.json)
 const GANHO_MINIMO = 0.10;          // se nao ficar pelo menos 10% menor, o jogo continua usando a origem
 const IGNORA = /(^|\/)(raw_|test_|extracted|umodel)|backup|_antes_|baium_export|\/talking_island\/models\//i;
 
@@ -57,6 +58,9 @@ const decodificaImagem = async b => { const { data, info } = await sharp(b).ensu
 function slotsDaTextura(t) {
   const raiz = Document.fromGraph(t.getGraph()).getRoot();
   return t.getGraph().listParentEdges(t).filter(e => e.getParent() !== raiz).map(e => e.getName());
+}
+function podaAnimacoes(doc) {         // tira da entrega os clips listados em anims_podar.json (a origem nao muda)
+  let n = 0; for (const a of doc.getRoot().listAnimations()) if (PODAR.some(r => r.test(a.getName()))) { a.dispose(); n++; } return n;
 }
 async function texturasKtx2(doc) {    // PNG/JPEG/WebP embutidos -> KTX2 ETC1S com mipmaps (cor e emissiva em sRGB); teto de 2048 px
   let n = 0; const log = console.log;
@@ -92,7 +96,9 @@ for (const src of alvo) {
   try {
     const doc = await io.readBinary(new Uint8Array(bytes));
     doc.setLogger({ debug() {}, info() {}, warn() {}, error(m) { console.error(m); } });
+    const podados = podaAnimacoes(doc);
     await doc.transform(
+      ...(podados ? [prune({ propertyTypes: [PropertyType.ACCESSOR, PropertyType.BUFFER], keepLeaves: true })] : []),     // solta os dados das animacoes tiradas
       dedup({ propertyTypes: [PropertyType.ACCESSOR, PropertyType.TEXTURE] }),      // nao junta material nem malha: o jogo mexe neles por peca
       reorder({ encoder: MeshoptEncoder, target: 'size' }),
     );
@@ -108,7 +114,7 @@ for (const src of alvo) {
     } else {
       fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.writeFileSync(dst, out);
       man.arquivos[src] = ktx ? { h, de: bytes.length, para: out.byteLength, k: 1 } : { h, de: bytes.length, para: out.byteLength };
-      console.log('  ' + mb(bytes.length).padStart(6) + ' -> ' + mb(out.byteLength).padStart(5) + ' MB  ' + (ktx ? '[KTX2] ' : '') + src);
+      console.log('  ' + mb(bytes.length).padStart(6) + ' -> ' + mb(out.byteLength).padStart(5) + ' MB  ' + (ktx ? '[KTX2] ' : '') + (podados ? '[-' + podados + ' anims] ' : '') + src);
     }
     feitos++;
   } catch (e) {

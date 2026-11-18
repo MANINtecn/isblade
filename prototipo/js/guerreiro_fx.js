@@ -39,6 +39,14 @@
     try{ R.setRenderTarget(rt); if(R.compileAsync) R.compileAsync(g, PREP.camera, PREP.scene); else R.compile(g, PREP.camera, PREP.scene); }catch(e){ console.warn('[guerreiro] shaders', e); }
     try{ R.setRenderTarget(null); }catch(_){}
     G._amostras = g;   /* fica guardado: os materiais nao sao descartados, entao os shaders nao somem */
+    /* aquecimento real: dispara UMA vez cada skill (w_n0..w_n6) no mesmo instante em que compila e termina os efeitos na hora (nenhum quadro e desenhado com eles).
+       Assim a placa monta os programas EXATOS de cada skill atras da tela de carregamento (so o compile acima deixava 3 a 5 shaders para a 1a skill, que travava) */
+    try{
+      var oq = { rig: rig, px: 0, pz: 0, face: 0, an: { hitT: .3, hitList: [{ t: .3 }, { t: .5 }], total: 1.2, lg: 3 } };
+      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, 0, 0, oq); }catch(e){} });
+      R.setRenderTarget(rt); R.compile(cena, PREP.camera, PREP.scene); R.setRenderTarget(null);
+      vivos.slice().forEach(function(f){ try{ f(99); }catch(e){} }); vivos.length = 0;          /* encerra tudo e tira os efeitos da cena */
+    }catch(e){ console.warn('[guerreiro] aquecimento', e); try{ R.setRenderTarget(null); }catch(_){} }
   }
   G.tick = function(dt){ prepTick(); if(TX.veu) TX.veu.offset.y -= dt * .9; for(var i = vivos.length - 1; i >= 0; i--) if(vivos[i](dt)) vivos.splice(i, 1); };
   function seq(dur, fn, fimFn){ var t = 0; vivos.push(function(dt){ t += dt; fn(Math.min(1, t / dur), t); if(t >= dur){ if(fimFn) fimFn(); return true; } return false; }); }
@@ -179,15 +187,16 @@
     sk._src = src; sk.update = function(){ if(feito) return; feito = true; up.call(sk); }; lista.push(sk); return sk; }
   /* eco do corpo: copia da pose ATUAL (ossos congelados) com brilho na silhueta e um pouco de miolo; some em `vida` s */
   function ecoN(rig, cor, vida, a0, soEspada){
-    if(!rig) return; var g = new T.Group(); cena.add(g); var mf = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .18 * a0, blending: T.AdditiveBlending, depthWrite: false });
-    var sc = escalaRig(rig), mc = matCasca(cor, a0, .03 / Math.max(sc, 1e-4)), ms = [mf, mc], sks = [];
-    if(!soEspada && !leve()) malhas(rig).forEach(function(o){
+    if(!rig) return; var g = new T.Group(); cena.add(g); var corpo = !soEspada && !leve(), mf = null, mc = null, me = null;     /* sombra so da espada: nao cria os materiais do corpo (eram 2 a mais a cada 0,03 s) */
+    if(corpo){ mf = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .18 * a0, blending: T.AdditiveBlending, depthWrite: false }); mc = matCasca(cor, a0, .03 / Math.max(escalaRig(rig), 1e-4)); }
+    var sks = [];
+    if(corpo) malhas(rig).forEach(function(o){
       o.updateMatrixWorld(true); var sk = congela(o.skeleton, sks);
       [mf, mc].forEach(function(mm){ var c = new T.SkinnedMesh(o.geometry, mm); c.userData.gwCopia = true; c.bind(sk, o.bindMatrix); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); });
     });
-    var swd = rig.swd2h; if(swd){ swd.updateMatrixWorld(true); var me = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .55 * a0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); ms.push(me);
+    var swd = rig.swd2h; if(swd){ swd.updateMatrixWorld(true); me = new T.MeshBasicMaterial({ color: cor, transparent: true, opacity: .55 * a0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide });
       swd.traverse(function(o){ if(!o.isMesh || !o.geometry) return; var c = new T.Mesh(o.geometry, me); c.matrixAutoUpdate = false; c.matrix.copy(o.matrixWorld); c.frustumCulled = false; g.add(c); }); }
-    seq(vida, function(u){ var k = 1 - u; mf.opacity = .18 * a0 * k; mc.opacity = a0 * k; if(ms[2]) ms[2].opacity = .55 * a0 * k * k; }, function(){ cena.remove(g); sks.forEach(function(k){ k.dispose(); }); });
+    seq(vida, function(u){ var k = 1 - u; if(mf) mf.opacity = .18 * a0 * k; if(mc) mc.opacity = a0 * k; if(me) me.opacity = .55 * a0 * k * k; }, function(){ cena.remove(g); sks.forEach(function(k){ k.dispose(); }); });
   }
   /* sombra da espada: uma copia da lamina a cada `passo` s durante `dur` s */
   function sombrasN(rig, dur, passo, cor, vida, a0, atraso){ var t = -(atraso || 0), prox = 0; vivos.push(function(dt){ t += dt; if(t < 0) return false; if(t >= prox){ prox += passo * (leve() ? 2 : 1); ecoN(rig, cor, vida, a0, true); } return t >= dur; }); }

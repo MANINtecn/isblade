@@ -1,0 +1,15 @@
+{
+  "_nota": "Animacoes que NAO vao para a entrega (assets_web). A origem (assets/) fica intacta: tirou daqui, o clip volta na proxima conversao. Cada item e uma expressao regular sobre o nome do clip. Decidido com o dono em 18/11/2026: manter arco (Bow), pesca, nado, sentar, 7 emotes (cumprimentar, dancar, aplaudir, rir, vitoria, sim, nao), arma de uma mao/duas maos/punho e magia; tirar o resto. Montaria: a montaria leva as proprias animacoes quando existir.",
+  "remover": [
+    "^Action",
+    "^Armature[|]",
+    "_Dual$",
+    "_Pole$",
+    "^Strider",
+    "^Wyvern",
+    "^Chair",
+    "^SwimDeath",
+    "^Damagefly",
+    "^Social_(nod|sad|unaware|waiting_a|SpWait0[12])$"
+  ]
+}

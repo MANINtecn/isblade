@@ -1,5 +1,5 @@
 {
- "versao": 3,
+ "versao": 4,
  "arquivos": {
   "assets/armaduras/armor_chest_01.glb": {
    "h": "8afa38dd49",
@@ -506,12 +506,12 @@
   "assets/personagens/human_fighter_brigandine.glb": {
    "h": "67facfc881",
    "de": 10031592,
-   "para": 6449820
+   "para": 5832340
   },
   "assets/personagens/human_fighter_doom.glb": {
    "h": "6ed1cabae7",
    "de": 9546172,
-   "para": 6440892
+   "para": 5823416
   },
   "assets/personagens/human_fighter_female.glb": {
    "h": "3469b3e2aa",
@@ -526,7 +526,7 @@
   "assets/personagens/human_fighter_fullplate.glb": {
    "h": "05d91a2bde",
    "de": 10007740,
-   "para": 6433364
+   "para": 5815884
   },
   "assets/personagens/human_fighter_imperial.glb": {
    "h": "8fd2c3e013",
@@ -536,7 +536,7 @@
   "assets/personagens/human_fighter_nograde.glb": {
    "h": "6f6cf5721a",
    "de": 9960256,
-   "para": 6400024
+   "para": 5782544
   },
   "assets/personagens/magic_f.glb": {
    "h": "6557a5d768",

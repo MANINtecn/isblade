@@ -8,7 +8,7 @@
 (function(){
   var M = (window.ASSETS_WEB && window.ASSETS_WEB.m) || {}, K = (window.ASSETS_WEB && window.ASSETS_WEB.k) || {}, desl = false;
   try { desl = /[?&]brutos=1/.test(location.search) || localStorage.getItem('isblade_assets_brutos') === '1'; } catch(_){}
-  var A = window.AssetsWeb = { falhas: [], trocas: 0, ligado: !desl, ktx: false, pronto: null };      /* ktx: o transcodificador KTX2 esta pronto (so paginas que passam o THREE do vendor.js a instala) */
+  var A = window.AssetsWeb = { falhas: [], trocas: 0, ligado: !desl, ktx: false, pronto: null, pend: 0 };      /* ktx: o transcodificador KTX2 esta pronto (so paginas que passam o THREE do vendor.js a instala) */
 
   function chave(u){ var q = u.indexOf('?'); return (q < 0 ? u : u.slice(0, q)).replace(/^\.\//, ''); }
   A.url = function(u){
@@ -45,9 +45,13 @@
     sobeKtx(T);
     var P = L.prototype, load = P.load, parse = P.parse; P.__assetsWeb = true;
     function dec(l){ if(window.MeshoptDecoder && l.setMeshoptDecoder && !l.meshoptDecoder) l.setMeshoptDecoder(window.MeshoptDecoder); if(kloader && l.setKTX2Loader && !l.ktx2Loader) l.setKTX2Loader(kloader); }
-    P.load = function(u, ok, prog, err){
+    function conta(ok, err){                                                           /* conta o que esta em andamento: A.pend e A.quieto() (tela de carregamento espera tudo chegar) */
+      A.pend++; var f = false; function fim(){ if(!f){ f = true; A.pend--; } }
+      return [function(){ fim(); return ok && ok.apply(this, arguments); }, function(){ fim(); return err && err.apply(this, arguments); }];
+    }
+    function carrega(u, ok, prog, err){
       var l = this, w = A.espera(u);
-      if(w) return void w.then(function(){ P.load.call(l, u, ok, prog, err); });
+      if(w) return void w.then(function(){ carrega.call(l, u, ok, prog, err); });
       var n = A.url(u); dec(l);
       if(n === u) return load.call(l, u, ok, prog, err);
       A.trocas++;
@@ -55,8 +59,15 @@
         console.warn('[assets-web] entrega falhou, usando a origem:', u, e); A.falhas.push(u);
         load.call(l, u, ok, prog, err);
       });
-    };
-    P.parse = function(){ dec(this); return parse.apply(this, arguments); };
+    }
+    P.load = function(u, ok, prog, err){ var c = conta(ok, err); return carrega.call(this, u, c[0], prog, c[1]); };
+    P.parse = function(d, path, ok, err){ dec(this); if(typeof ok !== 'function') return parse.apply(this, arguments); var c = conta(ok, err); return parse.call(this, d, path, c[0], c[1]); };
+  };
+
+  /* A tela de carregamento so sai quando nenhum modelo esta mais chegando (e fica assim por ~1,2 s: da tempo de montar e mandar para a placa de video). Limite: max ms. */
+  A.quieto = function(cb, max){
+    var t0 = Date.now(), calmo = 0, lim = max || 30000;
+    (function v(){ calmo = A.pend === 0 ? calmo + 1 : 0; if(calmo >= 12 || Date.now() - t0 > lim) return cb(); setTimeout(v, 100); })();
   };
 
   if(window.THREE && window.THREE.GLTFLoader) A.instala(window.THREE.GLTFLoader);        /* three global (selecao.html) */

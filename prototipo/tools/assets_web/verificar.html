@@ -56,12 +56,14 @@ function difAnim(a, b) {                                             // maior di
 }
 function libera(g) { g.scene.traverse(o => { if (o.isMesh) { o.geometry.dispose(); (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { for (const k in m) if (m[k] && m[k].isTexture) m[k].dispose(); m.dispose(); }); } }); }
 
+const PODAR = (await (await fetch('/tools/assets_web/anims_podar.json')).json()).remover.map(r => new RegExp(r));   // clips que a entrega tira de proposito (anims_podar.json)
 const res = { total: nomes.length, ok: 0, problemas: [], three: THREE.REVISION };
 for (let i = 0; i < nomes.length; i++) {
   const u = nomes[i]; out.textContent = (i + 1) + '/' + nomes.length + ' ' + u; const p = [];
   try {
     const a = await carrega(bruto, u), fa = AssetsWeb.falhas.length, b = await carrega(THREE.GLTFLoader.prototype.load, u);
     if (AssetsWeb.falhas.length !== fa) p.push('a entrega nao abriu (caiu na origem)');
+    a.animations = a.animations.filter(c => !PODAR.some(r => r.test(c.name)));
     const ra = resumo(a), rb = resumo(b);
     for (const k of ['malhas', 'skinned', 'vert', 'tri', 'ossos', 'mats', 'anims']) if (ra[k] !== rb[k]) p.push(k + ' ' + ra[k] + ' -> ' + rb[k]);
     if (ra.nos.join('|') !== rb.nos.join('|')) p.push('nomes dos nos mudaram');

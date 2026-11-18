@@ -49,6 +49,11 @@ window.arenaSoltaLoading = arenaSoltaLoading;
 setTimeout(function(){ arenaSoltaLoading(); }, 90000);      /* seguranca: se o destino nao carregar, nao trava a tela */
 function finishArenaLoading(){
   if(arenaLoadingFinished) return;
+  if(window.AssetsWeb && AssetsWeb.quieto && !window.__quietoOk){      /* [carregamento] espera os modelos chegarem antes de abrir o jogo */
+    if(!window.__quietoEsp){ window.__quietoEsp = true; var st0 = document.getElementById('l2LoadingStatus'); if(st0) st0.textContent = 'Preparando o mundo...';
+      AssetsWeb.quieto(function(){ window.__quietoOk = true; finishArenaLoading(); }); }
+    return;
+  }
   arenaLoadingFinished = true;
   var fill = document.getElementById('l2LoadingBarFill');
   var txt = document.getElementById('l2LoadingPercent');
@@ -470,7 +475,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
-<script src="js/guerreiro_fx.js?v=7"></script>
+<script src="js/guerreiro_fx.js?v=10"></script>
 <script src="js/perf_log.js?v=4"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
@@ -712,7 +717,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 <script src="lib/meshopt_decoder.js"></script>
 <script src="js/assets_manifesto.js"></script>
-<script src="js/assets_web.js?v=2"></script>
+<script src="js/assets_web.js?v=3"></script>
 <script type="module">
 
 import * as THREE from './lib/vendor.js';
