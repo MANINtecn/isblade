@@ -389,6 +389,7 @@ export const Net = (function(){
   function msg(m){
     var e; if(m.t !== 's'){ N.hist.push(m.t + ' ' + JSON.stringify(m).slice(0, 90)); if(N.hist.length > 60) N.hist.shift(); }
     if(m.t === 'w'){
+      N.adm = !!m.adm;      /* [trava-admin] o servidor diz se esta conta e' super admin (F10/F8/B so abrem para ela; o servidor tambem recusa os comandos) */
       N.on = true; N.tentando = false; N.id = m.id; if(m.sid) N.sid = m.sid; if(m.prog && ctx.prog) ctx.prog(m.prog, true); N.grupo = m.grp || null; N.eu = m.eu; N.canal = m.canal; N.mapa = m.mapa; N.duelo = null; jaAvisou = false;
       m.jog.forEach(addRemoto); ctx.onEntrou(m); atualizaHud(); ctx.sysMsg((m.mapa === 'pvp' ? 'Arena PvP' : 'Cidade') + ' - canal ' + m.canal + (m.eu.team ? ' - Time ' + (m.eu.team === 'A' ? 'Azul' : 'Vermelho') : ''));
     } else if(m.t === 's'){

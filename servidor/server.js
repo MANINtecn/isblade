@@ -45,6 +45,7 @@ const { Baium, baiumOk } = require('./baium');      /* [baium-servidor] a luta d
 const Moradores = require('./moradores').cria({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [moradores] NPCs com rotina e conversa na cidade */
 const Clas = require('./clas')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados') });      /* [cla] clas simples (sigla sobre o nome, chat @) */
 const Fakes = require('./fakes');                                                                     /* [fakes] bots de PvP (comandos /bot e painel) */
+const Admins = require('./admins')({ dir: process.env.DATA_DIR || path.join(__dirname, 'dados'), liberaTodos: process.env.AUTH === '0' });      /* [trava-admin] quem pode usar os poderes de GM */
 const Admin = require('./admin');                                                                     /* [admin] poderes de GM (setlevel, ress, heal, god, speed, adena) */                       /* [mobs-servidor] mobs dos mapas abertos no servidor (todos veem os mesmos) */                         /* inventario e adena com autoridade do servidor */
 const XP_SALAS = { shade: 1, caster: 1, brute: 1, mini_boss: 1, boss: 1 };      /* [auditoria 13/11] tipos da DG antiga por salas: os unicos aceitos na mensagem xp */
 function ganhaXp(J, v){
@@ -430,13 +431,13 @@ wss.on('connection', ws => {
       }
       const mapa = MAPAS[m.mapa] ? m.mapa : 'cidade', sid = pers ? pers.id : String(m.sid || ('s' + proxId)).slice(0, 24), mate = colega(mapa, sid); const gJoin = [...grupos.values()].find(x => x.membros.has(sid));
       c = mapa === 'masmorra' ? canalMasmorra(gJoin ? gJoin.id : 0) : (mate && mate.canalRef && mate.canalRef.jog.size < (mapa === 'pvp' ? CAP_PVP : CAP)) ? mate.canalRef : canalLivre(mapa, m.canal | 0);
-      J = { id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
+      J = { contaChave: Admins.chaveDaConta(conta), id: proxId++, ws, nome: String(m.nome || 'Heroi').slice(0, 16), raca: String(m.raca || 'fighter').slice(0, 20), cls: String(m.cls || 'fighter').slice(0, 12), arma: SKILLS[m.arma] ? m.arma : 'sword',
             sid, pers, lv: pers ? pers.level : 1, cid: pers ? pers.id : '', party: 0, canalRef: null, mapa, x: 0, z: 0, f: Math.PI, a: 'idle', ts: 1, guarda: false, pmax: Math.max(50, Math.min(pers ? pmaxMax(pers) : 5000, m.pmax | 0 || 100)), hp: 0, morto: false, tMorte: 0, imune: 0, ultB: 0, cd: {}, abates: 0, mortes: 0, ultSt: agora(), ultChat: 0, team: '', duelo: null, pedidoDe: 0, pedidoT: 0 };
       const sp = posSpawn(c, J); J.x = sp.x; J.z = sp.z; J.f = Math.PI;
       if((mapa === 'cidade' || MAPAS[mapa].aberto) && typeof m.x === 'number' && typeof m.z === 'number' && Math.abs(m.x) < 3000 && Math.abs(m.z) < 3000){ J.x = m.x; J.z = m.z; }      /* na cidade o jogador ja esta no mundo: a posicao inicial e a dele */
       J.hp = J.pmax; J.canalRef = c; J.canal = c.n; c.jog.set(J.id, J); J.enV = Inv.encArma(pers);
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
-      envia(J, { t: 'w', id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
+      envia(J, { t: 'w', adm: Admins.ehAdmin(J.contaChave) ? 1 : 0, id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
       if(pers && Inv.garante(pers)){ Contas.grava(); envia(J, { t: 'inv', inv: pers.inv }); }
       if(ANUNCIO) envia(J, { t: 'anuncio', txt: ANUNCIO });                 /* [anuncio] */
@@ -585,6 +586,10 @@ wss.on('connection', ws => {
       }
     }
     else if(m.t === 'roll'){ J.imune = agora() + .34; }
+    else if((m.t === 'bot_cmd' || m.t === 'admin_cmd' || m.t === 'set_team') && !Admins.ehAdmin(J.contaChave)){         /* [trava-admin] so super admin */
+      const t = agora(); if(t - (J.ultNegaAdm || 0) > 3){ J.ultNegaAdm = t; envia(J, { t: 'chat', n: 'Sistema', m: 'Sem permissão de administrador.' + (J.contaChave ? ' (conta: ' + J.contaChave + ')' : ''), c: 's' }); }
+      console.log(`[admin] NEGADO ${m.t} de ${J.nome} (${J.contaChave || 'sem conta'})`);
+    }
     else if(m.t === 'set_team'){                                    /* [times] definir Time Azul ('A'), Vermelho ('B') ou Neutro ('') */
       const team = (m.team === 'A' || m.team === 'B') ? m.team : '';
       J.team = team;
@@ -606,7 +611,9 @@ wss.on('connection', ws => {
         const nomeTime = team === 'A' ? 'Time Azul' : (team === 'B' ? 'Time Vermelho' : 'Neutro (Sem Time)');
         envia(J, { t: 'chat', n: 'Sistema', m: `Você agora faz parte do ${nomeTime}.`, c: 's' }); return;
       }
-      if(txt && Admin.ehComando(txt)){ Admin.comando(c, J, txt); return; }
+      if(txt && Admin.ehComando(txt)){
+        if(!Admins.ehAdmin(J.contaChave)){ envia(J, { t: 'chat', n: 'Sistema', m: 'Sem permissão de administrador.' + (J.contaChave ? ' (conta: ' + J.contaChave + ')' : ''), c: 's' }); console.log(`[admin] NEGADO comando de ${J.nome} (${J.contaChave || 'sem conta'}): ${txt.slice(0, 40)}`); return; }
+        Admin.comando(c, J, txt); return; }
       if(txt && (txt.startsWith('/bot') || txt.startsWith('/fake') || txt === '/painel' || txt.startsWith('/1v1') || txt.startsWith('/duelo'))){ Fakes.comando(c, J, txt); return; }
       if(txt && m.c === 'g'){ const g = grupoDe(J); if(!g) envia(J, { t: 'chat', n: 'Sistema', m: 'Voce nao esta em um grupo.', c: 's' }); else for(const mm of g.membros.values()) if(mm.J) envia(mm.J, { t: 'chat', n: J.nome, m: txt, c: 'g' }); }
       else if(txt && m.c === 'c'){ const C = Clas.de(J.pers); if(!C) envia(J, { t: 'chat', n: 'Sistema', m: 'Você não está em um clã.', c: 's' }); else for(const o of membrosOnline(C)) envia(o, { t: 'chat', n: J.nome, m: txt, c: 'c' }); }      /* [cla] chat do cla (@) */

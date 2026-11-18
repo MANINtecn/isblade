@@ -787,7 +787,10 @@
   }
   function toggle(forca){
     renderModal();
-    aberto = typeof forca === 'boolean' ? forca : !aberto;
+    var querAbrir = typeof forca === 'boolean' ? forca : !aberto;
+    /* [trava-admin] so super admin (o servidor confirma ao entrar). Os outros: nada abre; o servidor responde no chat com a conta deles */
+    if(querAbrir && !(window.Net && Net.adm)){ try { if(window.Net && Net.adminCmd) Net.adminCmd({ acao: 'info' }); } catch(e){} return; }
+    aberto = querAbrir;
     container.style.display = aberto ? 'flex' : 'none';
     som(aberto ? 'open' : 'click');
     if(!aberto) aba('gm');                                         /* ao fechar volta para a aba GM e solta o painel de bots */

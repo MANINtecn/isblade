@@ -93,3 +93,6 @@ var SRV_PADRAO = 'wss://play.l2ikarus.com/ws';
 ## Limites atuais (lembrete)
 - A posição dos jogadores ainda é do cliente; o servidor só limita a velocidade. Dano, alcance, recarga, guarda e esquiva são do servidor.
 - Nada é gravado: se o servidor reiniciar, os canais zeram (grupos e duelos se perdem).
+
+## Trava de super admin (18/11/2026)
+Os poderes de GM (F10, F8/B, comandos `//` do chat, `bot_cmd`, `set_team`) so funcionam para as contas listadas em `<DATA_DIR>/admins.txt` (na VPS: `C:\IS-sync\servidor\dados\admins.txt`, fora do git). Uma conta por linha, `#` comenta; o servidor le o arquivo de novo a cada 5 s (nao precisa reiniciar). Chave da conta: login do jogo em minusculo, ou `site:<login do site>` em minusculo. Quem nao esta na lista aperta F10 e o chat mostra `(conta: ...)`: e' essa chave que vai no arquivo. Alternativa: variavel de ambiente `ADMINS="conta1,conta2"`. `AUTH=0` (teste local sem conta) libera todo mundo. Sem o arquivo ninguem e' admin (incluindo o dono) ate criar a lista.
