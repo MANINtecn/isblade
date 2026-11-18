@@ -44,7 +44,7 @@
     try{
       var oq = { rig: rig, px: 0, pz: 0, face: 0, an: { hitT: .3, hitList: [{ t: .3 }, { t: .5 }], total: 1.2, lg: 3 } };
       ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, 0, 0, oq); }catch(e){} });
-      R.setRenderTarget(rt); R.compile(cena, PREP.camera, PREP.scene); R.setRenderTarget(null);
+      R.setRenderTarget(rt); R.compile(PREP.scene, PREP.camera); R.setRenderTarget(null); /* PREP.scene: na cidade 'cena' e' um proxy (FXCENA), nao um Object3D */
       vivos.slice().forEach(function(f){ try{ f(99); }catch(e){} }); vivos.length = 0;          /* encerra tudo e tira os efeitos da cena */
     }catch(e){ console.warn('[guerreiro] aquecimento', e); try{ R.setRenderTarget(null); }catch(_){} }
   }

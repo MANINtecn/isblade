@@ -84,12 +84,15 @@ const r2 = v => Math.round(v * 100) / 100, agora = () => Date.now() / 1000;
 const angDif = (a, b) => { let d = a - b; while(d > Math.PI) d -= 2 * Math.PI; while(d < -Math.PI) d += 2 * Math.PI; return d; };
 function posSpawn(c, J){
   if(c.mapa === 'pvp'){
-    const emBaium = (c && c.jog) ? [...c.jog.values()].some(j => !j.isBot && Math.hypot(j.x - (-28.4), j.z - (-53.85)) < 25) : false;
-    const areX = emBaium ? ARENA_PVP.x : 0;
-    const areZ = emBaium ? ARENA_PVP.z : 0;
-    const areR = emBaium ? ARENA_PVP.r : 9.5;
-    const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * areR;
-    return { x: r2(areX + Math.sin(a) * r), z: r2(areZ + Math.cos(a) * r) };
+    const emBaium = (c && c.jog) ? [...c.jog.values()].some(j => !j.isBot && Fakes.noSalaoBaium(j.x, j.z)) : false;
+    if(emBaium){          /* salao do Baium: nunca no altar/pilares do meio. Com time: na ponta do time (Azul oeste, Vermelho leste); sem time: num anel longe do centro */
+      const C = Fakes.BAIUM_C, time = J && (J.team === 'A' || J.team === 'B') ? J.team : '';
+      if(time){ const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * 5; return { x: r2(C.x + (time === 'A' ? -1 : 1) * Fakes.BAIUM_LADO + Math.sin(a) * r), z: r2(C.z + Math.cos(a) * r) }; }
+      const a = Math.random() * 6.283, r = Fakes.BAIUM_ANEL[0] + Math.random() * (Fakes.BAIUM_ANEL[1] - Fakes.BAIUM_ANEL[0]);
+      return { x: r2(C.x + Math.sin(a) * r), z: r2(C.z + Math.cos(a) * r) };
+    }
+    const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * 9.5;
+    return { x: r2(Math.sin(a) * r), z: r2(Math.cos(a) * r) };
   }
   const s = MAPAS.cidade.spawn, a = Math.random() * 6.283, r = Math.random() * s.r; return { x: s.x + Math.sin(a) * r, z: s.z + Math.cos(a) * r };
 }
@@ -685,7 +688,7 @@ setInterval(() => {
     const W = lista.length ? mundoDe(c) : null; if(W) W.tick(t, TICK / 1000, lista);      /* [mobs-servidor] */
     if(c.baium && lista.length) c.baium.tick(t, TICK / 1000, lista);                       /* [baium-servidor] */
     for(const A of lista){
-      const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), B.a, B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null, estadoPk(B, t)]); }
+      const p = []; for(const B of lista){ if(B === A) continue; if(Math.abs(B.x - A.x) > AOI || Math.abs(B.z - A.z) > AOI) continue; p.push([B.id, r2(B.x), r2(B.z), r2(B.f), (B.aPoseAte > t ? B.aPose : B.a), B.hp, B.guarda ? 1 : 0, B.morto ? 1 : 0, B.ts, typeof B.y === 'number' ? r2(B.y) : null, estadoPk(B, t)]); }
       envia(A, { t: 's', n: tick, p }); if(MOR && c.mapa === 'cidade' && A.ws.readyState === 1) A.ws.send(MOR); if(W && tick % 2 === 0) envia(A, { t: 'ms', m: W.snap(A, AOI) });      /* mobs a 6/s (o jogo suaviza) */
     }
   }

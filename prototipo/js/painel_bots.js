@@ -820,43 +820,85 @@
     }
   }
 
+  /* [tvt-puxa-jogador] guerra de times e bots de time so fazem sentido no salao do Baium (arena de PvP): de qualquer outro lugar, o jogador e' levado para la
+     e SO DEPOIS os bots nascem (o pedido fica em sessionStorage e e' retomado quando a arena abre e o servidor confirma que e' admin). Ele entra no time escolhido ('Meu time'). */
+  var CHAVE_PEND = 'isblade.bots_pendente';
+  function noSalaoPvp(){ return /arena\.html/.test(location.pathname) && /[?&]go=pvp/.test(location.search); }
+  function querSalao(){ return estado.tipoJogo === 'tvt' || estado.tipoJogo === 'azul' || estado.tipoJogo === 'vermelho'; }
+
+  function dispararBots(e){
+    if(e.tipoJogo === 'tvt'){
+      // Guerra TvT Azul vs Vermelho
+      Net.botCmd({
+        acao: 'spawn_times',
+        qtdPorTime: e.qtd,
+        lv: e.lv,
+        local: 'arena',
+        comHealer: true,
+        classeA: e.classe,
+        classeB: e.classe,
+        ia: e.ia
+      });
+    } else {
+      // Invocação avulsa ou 1v1
+      var team = '';
+      if(e.tipoJogo === 'azul') team = 'A';
+      else if(e.tipoJogo === 'vermelho') team = 'B';
+
+      Net.botCmd({
+        acao: 'spawn',
+        qtd: e.qtd,
+        lv: e.lv,
+        local: (e.tipoJogo === 'azul' || e.tipoJogo === 'vermelho') ? 'arena' : e.local,
+        modo: e.ia === 'treino' ? 'treino' : 'pvp',
+        team: team,
+        classe: e.classe,
+        comHealer: e.qtd > 2,
+        ia: e.ia
+      });
+    }
+  }
+
+  /* ja no salao: entra no time, vai para a ponta dele e comeca */
+  function comecarNoSalao(e, meuTime){
+    if(window.Net && Net.setTeam) Net.setTeam(meuTime || '');
+    if(typeof window.pvpPonta === 'function') window.pvpPonta(meuTime || '');
+    setTimeout(function(){ if(window.Net && Net.on) dispararBots(e); }, 900);      /* da tempo do servidor saber o time e a nova posicao */
+  }
+
   function executarAcaoPrincipal(){
     if(!window.Net || !Net.on){
       avisar('Conectando ao servidor...');
       return;
     }
-
-    if(estado.tipoJogo === 'tvt'){
-      // Guerra TvT Azul vs Vermelho
-      Net.botCmd({
-        acao: 'spawn_times',
-        qtdPorTime: estado.qtd,
-        lv: estado.lv,
-        local: estado.local,
-        comHealer: true,
-        classeA: estado.classe,
-        classeB: estado.classe,
-        ia: estado.ia
-      });
-    } else {
-      // Invocação avulsa ou 1v1
-      var team = '';
-      if(estado.tipoJogo === 'azul') team = 'A';
-      else if(estado.tipoJogo === 'vermelho') team = 'B';
-
-      Net.botCmd({
-        acao: 'spawn',
-        qtd: estado.qtd,
-        lv: estado.lv,
-        local: estado.local,
-        modo: estado.ia === 'treino' ? 'treino' : 'pvp',
-        team: team,
-        classe: estado.classe,
-        comHealer: estado.qtd > 2,
-        ia: estado.ia
-      });
+    var e = { tipoJogo: estado.tipoJogo, qtd: estado.qtd, lv: estado.lv, classe: estado.classe, ia: estado.ia, local: estado.local };
+    if(querSalao()){
+      if(noSalaoPvp()){ comecarNoSalao(e, estado.meuTime); return; }
+      try { sessionStorage.setItem(CHAVE_PEND, JSON.stringify({ t: Date.now(), e: e, time: estado.meuTime || '' })); } catch(x){}
+      avisar('Levando você para a Arena PvP (salão do Baium)... a guerra começa quando chegar.');
+      var rota = 'arena.html?mode=dungeon&go=pvp';
+      if(window.L2Teleport && L2Teleport.teleportTo) L2Teleport.teleportTo('Arena PvP de Guerra', rota); else window.location.href = rota;
+      return;
     }
+    dispararBots(e);
   }
+
+  /* chegou na arena com um pedido guardado: espera conexao + admin + mapa pronto e executa (some em 90 s) */
+  function retomaPendente(){
+    var raw = null; try { raw = sessionStorage.getItem(CHAVE_PEND); } catch(x){}
+    if(!raw) return;
+    var p = null; try { p = JSON.parse(raw); } catch(x){}
+    if(!p || !p.e || Date.now() - p.t > 90000 || !noSalaoPvp()){ try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){} return; }
+    var n = 0, iv = setInterval(function(){
+      n++;
+      if(n > 180){ clearInterval(iv); try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){} return; }
+      if(!(window.Net && Net.on && Net.adm && typeof window.pvpPonta === 'function' && window.pvpPronto && window.pvpPronto())) return;
+      clearInterval(iv); try { sessionStorage.removeItem(CHAVE_PEND); } catch(x){}
+      if(p.time) estado.meuTime = p.time;
+      comecarNoSalao(p.e, p.time);
+    }, 500);
+  }
+  setTimeout(retomaPendente, 600);
 
   function avisar(txt){
     try {

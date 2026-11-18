@@ -77,6 +77,19 @@ CLASSES_MAP.book = CLASSES_MAP.clerigo;
 
 const COMBOS_BASICOS = ['sweep', 'thrust', 'spin'];
 const sorteio = a => a[Math.floor(Math.random() * a.length)];
+
+/* [pose-bot] pose real de cada skill por arma (data/armas/*.json -> skills[i].pose): o cliente dos outros jogadores toca o clipe certo e o aviso do golpe.
+   Antes o bot mandava 'slash1/thrust/spin' (varios nao existem no modelo = ficava parado) e a animacao sumia no quadro seguinte (movimento voltava a 'run'). */
+const POSE_ARMA = {};
+try {
+  const fsP = require('fs'), pathP = require('path'), dirP = pathP.join(__dirname, '..', 'prototipo', 'data', 'armas');
+  fsP.readdirSync(dirP).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fsP.readFileSync(pathP.join(dirP, f), 'utf8')); if(j.id && j.skills) POSE_ARMA[j.id] = j.skills.map(sk => sk.pose || ''); });
+} catch(e) { /* sem dados: cai no comportamento antigo */ }
+const POSE_DUR = 0.95;      // quanto tempo a pose da skill fica no snapshot (o movimento do bot nao a sobrescreve)
+function ataqueBot(c, bot, m){
+  if(m && m.k === 's'){ const pose = (POSE_ARMA[bot.arma] || [])[m.i | 0]; if(pose){ bot.aPose = pose; bot.aPoseAte = CTX.agora() + POSE_DUR; bot.a = pose; } }
+  return CTX.ataque(c, bot, m);
+}
 const r2 = v => Math.round(v * 100) / 100;
 
 let CTX = null;
@@ -226,16 +239,19 @@ function setupPorNivel(racaBase, armaTipo, lv){
 }
 
 /* Cria bots com configuração completa por nível e equipamento */
+/* Salão do Baium (3o andar da Torre): piso plano e livre num disco de ~55 m em volta de (-28.4, -53.85) (medido no walkgrid, 18/11/2026).
+   No meio ficam o altar e 4 pilares a ~17 m: ninguém nasce ali. Cada time nasce numa ponta (BAIUM_LADO m do centro, no eixo oeste-leste). */
+const BAIUM_C = { x: -28.4, z: -53.85 }, BAIUM_LADO = 34, BAIUM_RMAX = 52, BAIUM_ANEL = [28, 38];
+/* o ponto esta no salao do Baium (e nao no Coliseu antigo, que fica em 0,0 com 16 m) */
+const noSalaoBaium = (x, z) => Math.hypot(x - BAIUM_C.x, z - BAIUM_C.z) < 58 && Math.hypot(x, z) > 16;
 // Raio e limites seguros de navegação para evitar queda ou flutuação fora do chão
 function clampCoordenadas(x, z, mapa){
   if(mapa === 'pvp'){
     // Detecta se a arena em uso é o Coliseu clássico (centro 0,0) ou o Salão do Baium / Torre (-28.4, -53.85)
-    const distBaium = Math.hypot(x - (-28.4), z - (-53.85));
-    const distColiseu = Math.hypot(x, z);
-    const emBaium = distBaium < 25 && distBaium < distColiseu;
-    const areX = emBaium ? -28.4 : 0;
-    const areZ = emBaium ? -53.85 : 0;
-    const rMax = emBaium ? 19.5 : 12.8; // Coliseu tem anel em 13.5m; 12.8m garante piso 100% sólido sem flutuar
+    const emBaium = noSalaoBaium(x, z);
+    const areX = emBaium ? BAIUM_C.x : 0;
+    const areZ = emBaium ? BAIUM_C.z : 0;
+    const rMax = emBaium ? BAIUM_RMAX : 12.8; // Coliseu tem anel em 13.5m; 12.8m garante piso 100% sólido sem flutuar
     const dx = x - areX, dz = z - areZ;
     const d = Math.hypot(dx, dz);
     if(d > rMax && d > 0.0001){
@@ -460,10 +476,10 @@ function spawnTimes(opts){
     // Detecta se estamos no Coliseu clássico (0,0) ou no Salão de Baium / Torre (-28.4, -53.85)
     let emBaium = false;
     if(typeof opts.x === 'number' && typeof opts.z === 'number'){
-      emBaium = Math.hypot(opts.x - (-28.4), opts.z - (-53.85)) < 25;
+      emBaium = noSalaoBaium(opts.x, opts.z);
     } else {
       for(const jog of canal.jog.values()){
-        if(!jog.isBot && Math.hypot(jog.x - (-28.4), jog.z - (-53.85)) < 25){
+        if(!jog.isBot && noSalaoBaium(jog.x, jog.z)){
           emBaium = true;
           break;
         }
@@ -471,9 +487,9 @@ function spawnTimes(opts){
     }
 
     if(emBaium){
-      cx = -28.4;
-      cz = -53.85;
-      distBase = 13.5;
+      cx = BAIUM_C.x;      // Azul na ponta oeste, Vermelho na ponta leste do salao: 2 x BAIUM_LADO m um do outro
+      cz = BAIUM_C.z;
+      distBase = BAIUM_LADO;
     } else {
       // Coliseu clássico (centro 0, 0, raio 13.5m)
       cx = 0;
@@ -767,7 +783,7 @@ function tick(t, dt){
           if(bot.skills.includes(2) && (!bot.cd['book2'] || t > bot.cd['book2'])){
             bot.a = 'c_s3';
             bot.tAtk = t + 1.2;
-            CTX.ataque(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
+            ataqueBot(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
           } else if(Math.random() < 0.25 && t > bot.tAtk){
             bot.a = 'roll';
             bot.imune = t + 0.35;
@@ -827,7 +843,7 @@ function tick(t, dt){
             bot.a = 'c_s6';
             bot.tSkill = t + 4.5;
             bot.tAtk = t + 2.5;
-            CTX.ataque(c, bot, { k: 's', i: 5, al: aliadoCaido.id, f: bot.f, p: 1 });
+            ataqueBot(c, bot, { k: 's', i: 5, al: aliadoCaido.id, f: bot.f, p: 1 });
           }
           continue;
         }
@@ -837,7 +853,7 @@ function tick(t, dt){
           if(bot.skills.includes(2) && (!bot.cd['book2'] || t > bot.cd['book2'])){
             bot.a = 'c_s3';
             bot.tAtk = t + 1.2;
-            CTX.ataque(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
+            ataqueBot(c, bot, { k: 's', i: 2, al: bot.id, f: bot.f, p: 1 });
             continue;
           } else {
             bot.a = 'c_s1';
@@ -869,7 +885,7 @@ function tick(t, dt){
           bot.a = 'c_s5';
           bot.tSkill = t + 8.0;
           bot.tAtk = t + 1.2;
-          CTX.ataque(c, bot, { k: 's', i: 4, f: bot.f, p: 1 });
+          ataqueBot(c, bot, { k: 's', i: 4, f: bot.f, p: 1 });
           continue;
         }
 
@@ -890,15 +906,15 @@ function tick(t, dt){
               if(menorPctHp < 0.45 && bot.skills.includes(2) && (!bot.cd['book2'] || t > bot.cd['book2'])){
                 // Aliado em perigo grave: Escudo Astral
                 bot.a = 'c_s3';
-                CTX.ataque(c, bot, { k: 's', i: 2, al: aliadoFerido.id, f: bot.f, p: 1 });
+                ataqueBot(c, bot, { k: 's', i: 2, al: aliadoFerido.id, f: bot.f, p: 1 });
               } else if(aliadosPerto >= 2 && bot.skills.includes(1) && (!bot.cd['book1'] || t > bot.cd['book1'])){
                 // Glifo de Cura no chão
                 bot.a = 'c_s2';
-                CTX.ataque(c, bot, { k: 's', i: 1, x: aliadoFerido.x, z: aliadoFerido.z, f: bot.f, p: 1 });
+                ataqueBot(c, bot, { k: 's', i: 1, x: aliadoFerido.x, z: aliadoFerido.z, f: bot.f, p: 1 });
               } else {
                 // Cura Mirada
                 bot.a = 'c_s1';
-                CTX.ataque(c, bot, { k: 's', i: 0, al: aliadoFerido.id, f: bot.f, p: 1 });
+                ataqueBot(c, bot, { k: 's', i: 0, al: aliadoFerido.id, f: bot.f, p: 1 });
                 if(CTX.curaJog) CTX.curaJog(c, bot, aliadoFerido, 70, t);
               }
             } else {
@@ -1066,7 +1082,7 @@ function tick(t, dt){
           if(isHealerCombat){
             // Ataque de luz do clérigo
             bot.a = 'c_s1';
-            CTX.ataque(c, bot, { k: 'b', id: 'thrust', f: bot.f });
+            ataqueBot(c, bot, { k: 'b', id: 'thrust', f: bot.f });
           } else if(usaSkill){
             // Filtra skills que não estão em cooldown no servidor
             const skillsProntas = bot.skills.filter(i => {
@@ -1080,16 +1096,16 @@ function tick(t, dt){
               const anims = isMago ? ['m_s1', 'm_s2', 'm_s3', 'm_s4'] : ['slash1', 'slash2', 'slash3', 'slash4', 'thrust', 'spin'];
               bot.a = anims[skIdx % anims.length];
               bot.tAtk = t + 0.95;
-              CTX.ataque(c, bot, { k: 's', i: skIdx, f: bot.f, p: 1 });
+              ataqueBot(c, bot, { k: 's', i: skIdx, f: bot.f, p: 1 });
             } else {
               const golpe = COMBOS_BASICOS[(bot.combo++) % COMBOS_BASICOS.length];
               bot.a = bot.combo % 2 ? 'slash1' : 'slash2';
-              CTX.ataque(c, bot, { k: 'b', id: golpe, f: bot.f });
+              ataqueBot(c, bot, { k: 'b', id: golpe, f: bot.f });
             }
           } else {
             const golpe = COMBOS_BASICOS[(bot.combo++) % COMBOS_BASICOS.length];
             bot.a = bot.combo % 2 ? 'slash1' : 'slash2';
-            CTX.ataque(c, bot, { k: 'b', id: golpe, f: bot.f });
+            ataqueBot(c, bot, { k: 'b', id: golpe, f: bot.f });
           }
         }
       }
@@ -1265,9 +1281,9 @@ function comando(c, J, txt){
     const qtd = Math.min(30, Math.max(1, parseInt(arg2, 10) || 10));
     const lv = Math.min(85, Math.max(1, parseInt(arg3, 10) || J.lv || 40));
     const cArena = canalArenaPvp();
-    const emBaium = (cArena && cArena.jog) ? [...cArena.jog.values()].some(j => !j.isBot && Math.hypot(j.x - (-28.4), j.z - (-53.85)) < 25) : false;
-    const ax = emBaium ? -28.4 : 0;
-    const az = emBaium ? -53.85 : 0;
+    const emBaium = (cArena && cArena.jog) ? [...cArena.jog.values()].some(j => !j.isBot && noSalaoBaium(j.x, j.z)) : false;
+    const ax = emBaium ? BAIUM_C.x : 0;
+    const az = emBaium ? BAIUM_C.z : 0;
     const sp = spawnBots({ canal: cArena, x: ax, z: az, qtd, modo: 'pvp', lv, comHealer: true });
     sis(`⚔️ ${sp} bots Nv ${lv} foram criados na Arena PvP! Vá até a Arena para lutar.`);
     return;
@@ -1346,10 +1362,9 @@ function executa(c, J, m){
     let x = J.x, z = J.z;
 
     if(m.local === 'arena' || c.mapa === 'pvp'){
-      canal = canalArenaPvp() || c;
-      const emBaium = Math.hypot(J.x - (-28.4), J.z - (-53.85)) < 25;
-      x = emBaium ? -28.4 : 0;
-      z = emBaium ? -53.85 : 0;
+      canal = canalArenaPvp() || c;      // a arena de PvP e' sempre o salao do Baium (a posicao do jogador pode ainda nao ter chegado ao servidor)
+      x = BAIUM_C.x;
+      z = BAIUM_C.z;
     } else if(m.local === 'campo' || c.mapa === 'cidade'){
       canal = canalCidade() || c;
       x = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
@@ -1375,9 +1390,11 @@ function executa(c, J, m){
 
     if(m.local === 'arena' || c.mapa === 'pvp'){
       canal = canalArenaPvp() || c;
-      const emBaium = Math.hypot(J.x - (-28.4), J.z - (-53.85)) < 25;
-      x = emBaium ? -28.4 : 0;
-      z = emBaium ? -53.85 : 0;
+      x = BAIUM_C.x;
+      z = BAIUM_C.z;
+      if(qtd === 1 && noSalaoBaium(J.x, J.z)){ x = J.x; z = J.z; }                                  // duelo 1v1: o bot nasce na frente do jogador, nao no altar
+      else if(m.team === 'A' || m.team === 'B'){ x = BAIUM_C.x + (m.team === 'A' ? -BAIUM_LADO : BAIUM_LADO); }   // time avulso: na ponta do time
+      else { const a = Math.random() * 6.283, r = BAIUM_ANEL[0] + Math.random() * (BAIUM_ANEL[1] - BAIUM_ANEL[0]); x = BAIUM_C.x + Math.sin(a) * r; z = BAIUM_C.z + Math.cos(a) * r; }   // livre: num ponto do anel, longe do altar
     } else if(m.local === 'campo'){
       canal = canalCidade();
       x = Math.hypot(J.x, J.z) > 96 ? J.x : 0;
@@ -1431,6 +1448,7 @@ function executa(c, J, m){
 
 module.exports = {
   init,
+  noSalaoBaium, BAIUM_C, BAIUM_LADO, BAIUM_ANEL,
   spawnBots,
   spawnTimes,
   limparBots,

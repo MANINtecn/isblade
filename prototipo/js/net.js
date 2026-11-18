@@ -316,6 +316,8 @@ export const Net = (function(){
     try { localStorage.setItem('isblade.dgid.' + N.sid, String(id)); } catch(e){}
     ctx.banner('O LIDER ENTROU NA DUNGEON', 'Voce esta sendo levado junto...', '#7fe08a'); ctx.irDg(key);
   }
+  N._remotos = remotos;      /* so para depuracao/testes */
+  N.hostil = function(e){ return !!e && !(e.team && N.eu && N.eu.team === e.team) && !noGrupo(e.id); };      /* [vis-remota] so inimigo ganha marca de aviso no chao */
   function noGrupo(id){ return !!(N.grupo && N.grupo.m && N.grupo.m.some(function(m){ return m.id === id; })); }
   function criaTag(e){
     var cv = document.createElement('canvas'); cv.width = 512; cv.height = 144;
@@ -345,11 +347,17 @@ export const Net = (function(){
     var e = remotos.get(id); if(!e) return; ctx.scene.remove(e.grp); if(window.Brilho) Brilho.tira('r' + id);
     if(e.teamRing){ e.grp.remove(e.teamRing); if(e.teamRing.geometry) e.teamRing.geometry.dispose(); if(e.teamRing.material) e.teamRing.material.dispose(); e.teamRing = null; }
     e.grp.traverse(function(o){ if(o.material && o.material.map && o === (e.tag && e.tag.sp)) { o.material.map.dispose(); o.material.dispose(); } });
+    /* [l2-cache] geometrias e texturas do modelo sao COMPARTILHADAS (js/l2_cache.js): so os materiais copiados deste jogador sao descartados */
+    e.grp.traverse(function(o){ if(o.isMesh && o.material && o !== (e.tag && e.tag.sp)){ (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ try{ m.dispose(); }catch(_){} }); } });
     remotos.delete(id);
   }
   function tocar(e, nome){
-    var r = e.rig; if(!r || !r.drv || !r.clips) return; var c = nome; if(!r.clips[c]) c = /^g_/.test(c) ? (/atk|skill/.test(c) ? 'slash1' : 'idle') : 'idle'; if(!r.clips[c]) return;
-    if(e.curA === c) return; e.curA = c; ctx.playClip(r, c, { once: ONCE.test(c), speed: e.ts || 1, fade: .12, hold: ONCE.test(c) ? 0 : 0 });
+    var r = e.rig; if(!r || !r.drv || !r.clips) return; var c = nome, vel = e.ts || 1;
+    /* [pose-remota] o bot (e quem manda o nome da pose) usa w_n0/g_s1/c_s2...: converte para o clipe real do modelo, com a velocidade da pose; sem isso a skill do outro ficava parada */
+    if(!r.clips[c] && ctx.clipDaPose && /^[wgmc]_[sn]?\d|^dash$/.test(c)){ var q = ctx.clipDaPose(c, e); if(q && r.clips[q.c]){ c = q.c; vel = q.sp || vel; } }
+    if(!r.clips[c] && /^[wgmc]_[sn]?\d|^dash$/.test(c)) c = r.clips.slash2 ? 'slash2' : (r.clips.slash1 ? 'slash1' : c);      /* conjurador sem clipe de cast na raca: golpe generico (melhor que ficar parado) */
+    if(!r.clips[c]) c = /^g_/.test(c) ? (/atk|skill/.test(c) ? 'slash1' : 'idle') : 'idle'; if(!r.clips[c]) return;
+    if(e.curA === c && !(e.curP !== nome && ONCE.test(c))) return; e.curA = c; e.curP = nome; ctx.playClip(r, c, { once: ONCE.test(c), speed: vel, fade: .12, hold: ONCE.test(c) ? 0 : 0 });
   }
   function atualizaRemotos(dt){
     tVis -= dt; var recalc = tVis <= 0; if(recalc) tVis = .4; var S = ctx.getS(), lista = null;
@@ -851,7 +859,7 @@ export const Net = (function(){
     if(N.duelo && N.duelo.seg > 0){ N.duelo.seg = Math.max(0, (N.duelo.ini - Date.now()) / 1000); }
     if(pedido && Date.now() > pedido.ate) pedido = null;
     if(tHud > .5){ tHud = 0; atualizaHud(); renderParty(); if(menuAberto) renderMenu(); }
-    atualizaRemotos(dt); atualizaAlvo(); atualizaCoroas();
+    atualizaRemotos(dt); atualizaAlvo(); atualizaCoroas(); if(window.RemoteVis) RemoteVis.tick(dt);
   };
   /* chamados pelo jogo */
   N.inv = function(k, uid, slot){ if(!N.on) return false; send({ t: 'inv', k: k, uid: uid || '', slot: slot || '' }); return true; };      /* inventario: o servidor decide */
