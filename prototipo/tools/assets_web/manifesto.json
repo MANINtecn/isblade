@@ -358,10 +358,50 @@
    "de": 2580648,
    "para": 1115404
   },
+  "assets/personagens/darkelf_f_brigandine.glb": {
+   "h": "81ab69e331",
+   "de": 2576152,
+   "para": 1131784
+  },
+  "assets/personagens/darkelf_f_doom.glb": {
+   "h": "552fa3fb79",
+   "de": 2341212,
+   "para": 1176084
+  },
+  "assets/personagens/darkelf_f_fullplate.glb": {
+   "h": "5e05270b69",
+   "de": 2670132,
+   "para": 1219596
+  },
+  "assets/personagens/darkelf_f_tallum.glb": {
+   "h": "4dc6c70299",
+   "de": 2117168,
+   "para": 1120620
+  },
   "assets/personagens/darkelf_m.glb": {
    "h": "80617a4f09",
    "de": 2472176,
    "para": 1063588
+  },
+  "assets/personagens/darkelf_m_brigandine.glb": {
+   "h": "7589efc532",
+   "de": 2456984,
+   "para": 1056240
+  },
+  "assets/personagens/darkelf_m_doom.glb": {
+   "h": "c4de0cfe84",
+   "de": 2396440,
+   "para": 1150544
+  },
+  "assets/personagens/darkelf_m_fullplate.glb": {
+   "h": "dc0b33f4e9",
+   "de": 2597080,
+   "para": 1183736
+  },
+  "assets/personagens/darkelf_m_tallum.glb": {
+   "h": "2f36474485",
+   "de": 2089440,
+   "para": 1081432
   },
   "assets/personagens/dragon_slayer.glb": {
    "h": "a61135b47c",
@@ -463,10 +503,30 @@
    "de": 1815868,
    "para": 831188
   },
+  "assets/personagens/elf_m_brigandine.glb": {
+   "h": "dbbb2cdad3",
+   "de": 2108096,
+   "para": 864724
+  },
+  "assets/personagens/elf_m_doom.glb": {
+   "h": "cb5a236919",
+   "de": 2047704,
+   "para": 958976
+  },
+  "assets/personagens/elf_m_fullplate.glb": {
+   "h": "01441f2c74",
+   "de": 2248344,
+   "para": 992176
+  },
   "assets/personagens/elf_m_nograde.glb": {
    "h": "cc2e63bac0",
    "de": 2019716,
    "para": 853704
+  },
+  "assets/personagens/elf_m_tallum.glb": {
+   "h": "9a1aafaee1",
+   "de": 1739960,
+   "para": 889872
   },
   "assets/personagens/full_plate_shield.glb": {
    "h": "293010b9fb",
@@ -518,10 +578,30 @@
    "de": 2075724,
    "para": 968604
   },
+  "assets/personagens/human_fighter_female_brigandine.glb": {
+   "h": "a74d0a3dfd",
+   "de": 1864196,
+   "para": 981436
+  },
+  "assets/personagens/human_fighter_female_doom.glb": {
+   "h": "e49e6fa546",
+   "de": 1830300,
+   "para": 1014144
+  },
+  "assets/personagens/human_fighter_female_fullplate.glb": {
+   "h": "504e03c049",
+   "de": 1792784,
+   "para": 975384
+  },
   "assets/personagens/human_fighter_female_nograde.glb": {
    "h": "690dc63e0d",
    "de": 1866264,
    "para": 967892
+  },
+  "assets/personagens/human_fighter_female_tallum.glb": {
+   "h": "ce3ffaebda",
+   "de": 1818240,
+   "para": 995920
   },
   "assets/personagens/human_fighter_fullplate.glb": {
    "h": "05d91a2bde",
@@ -543,20 +623,60 @@
    "de": 2440628,
    "para": 1144576
   },
+  "assets/personagens/magic_f_brigandine.glb": {
+   "h": "dac0930153",
+   "de": 2612408,
+   "para": 1172092
+  },
+  "assets/personagens/magic_f_doom.glb": {
+   "h": "516731426a",
+   "de": 2155180,
+   "para": 1207664
+  },
+  "assets/personagens/magic_f_fullplate.glb": {
+   "h": "3955ddaaaa",
+   "de": 2526860,
+   "para": 1182064
+  },
   "assets/personagens/magic_f_nograde.glb": {
    "h": "79692c9913",
    "de": 2518008,
    "para": 1162000
+  },
+  "assets/personagens/magic_f_tallum.glb": {
+   "h": "6f5ed7d813",
+   "de": 2226440,
+   "para": 1192992
   },
   "assets/personagens/magic_m.glb": {
    "h": "31b10b0530",
    "de": 2390632,
    "para": 1103676
   },
+  "assets/personagens/magic_m_brigandine.glb": {
+   "h": "e2583877b5",
+   "de": 2425740,
+   "para": 1144772
+  },
+  "assets/personagens/magic_m_doom.glb": {
+   "h": "782c5648b4",
+   "de": 2131536,
+   "para": 1155428
+  },
+  "assets/personagens/magic_m_fullplate.glb": {
+   "h": "b417de907b",
+   "de": 2250144,
+   "para": 1162576
+  },
   "assets/personagens/magic_m_nograde.glb": {
    "h": "cb6e451d6a",
    "de": 2482044,
    "para": 1138732
+  },
+  "assets/personagens/magic_m_tallum.glb": {
+   "h": "a87c1f096b",
+   "de": 2250136,
+   "para": 1162568
   },
   "assets/personagens/mago_cast/FDarkElf.glb": {
    "h": "f086cca918",
@@ -648,20 +768,60 @@
    "de": 2135124,
    "para": 982176
   },
+  "assets/personagens/orc_f_brigandine.glb": {
+   "h": "589900067d",
+   "de": 2320008,
+   "para": 1049816
+  },
+  "assets/personagens/orc_f_doom.glb": {
+   "h": "a24c651a72",
+   "de": 2250288,
+   "para": 1081096
+  },
+  "assets/personagens/orc_f_fullplate.glb": {
+   "h": "cb93f8b12c",
+   "de": 2358796,
+   "para": 1058804
+  },
   "assets/personagens/orc_f_nograde.glb": {
    "h": "28a8ed914d",
    "de": 2152136,
    "para": 1016952
+  },
+  "assets/personagens/orc_f_tallum.glb": {
+   "h": "b38a052738",
+   "de": 2027592,
+   "para": 1030456
   },
   "assets/personagens/orc_m.glb": {
    "h": "e0b04e397b",
    "de": 2030264,
    "para": 949948
   },
+  "assets/personagens/orc_m_brigandine.glb": {
+   "h": "d95265e2bd",
+   "de": 2378560,
+   "para": 1040436
+  },
+  "assets/personagens/orc_m_doom.glb": {
+   "h": "ac3b0592a4",
+   "de": 1883780,
+   "para": 985616
+  },
+  "assets/personagens/orc_m_fullplate.glb": {
+   "h": "31c093f217",
+   "de": 2280548,
+   "para": 1021324
+  },
   "assets/personagens/orc_m_nograde.glb": {
    "h": "bad6e2ad60",
    "de": 2138472,
    "para": 991328
+  },
+  "assets/personagens/orc_m_tallum.glb": {
+   "h": "db1971e549",
+   "de": 1883796,
+   "para": 985632
   },
   "assets/personagens/round_shield.glb": {
    "h": "dc6b47155a",

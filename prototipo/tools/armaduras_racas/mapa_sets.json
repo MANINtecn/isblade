@@ -1,0 +1,740 @@
+{
+ "human_fighter_female": {
+  "ukx": "Fighter.ukx",
+  "prefixo": "FFighter",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "FFighter_m003_u",
+     "textura": "FFighter_m003_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "FFighter_m001_l",
+     "textura": "FFighter_m001_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "FFighter_m006_u",
+     "textura": "FFighter_m006_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "FFighter_m006_l",
+     "textura": "FFighter_m006_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "FFighter_m006_g",
+     "textura": "FFighter_m006_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "FFighter_m006_b",
+     "textura": "FFighter_m006_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "FFighter_m012_u",
+     "textura": "FFighter_m012_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "FFighter_m012_g",
+     "textura": "FFighter_m012_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "FFighter_m012_b",
+     "textura": "FFighter_m012_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "FFighter_m012_u",
+     "textura": "FFighter_m012_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "FFighter_m012_l",
+     "textura": "FFighter_m012_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "FFighter_m012_g",
+     "textura": "FFighter_m012_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "FFighter_m012_b",
+     "textura": "FFighter_m012_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "magic_m": {
+  "ukx": "Magic.ukx",
+  "prefixo": "MMagic",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "MMagic_m002_u",
+     "textura": "MMagic_m002_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "MMagic_m005_l",
+     "textura": "MMagic_m005_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "MMagic_m008_u",
+     "textura": "MMagic_m008_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "MMagic_m005_l",
+     "textura": "MMagic_m005_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "MMagic_m008_g",
+     "textura": "MMagic_m008_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "MMagic_m005_b",
+     "textura": "MMagic_m005_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "MMagic_m013_u",
+     "textura": "MMagic_m013_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "MMagic_m013_g",
+     "textura": "MMagic_m013_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "MMagic_m013_b",
+     "textura": "MMagic_m013_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "MMagic_m013_u",
+     "textura": "MMagic_m013_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "MMagic_m013_l",
+     "textura": "MMagic_m013_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "MMagic_m013_g",
+     "textura": "MMagic_m013_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "MMagic_m013_b",
+     "textura": "MMagic_m013_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "magic_f": {
+  "ukx": "Magic.ukx",
+  "prefixo": "FMagic",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "FMagic_m002_u",
+     "textura": "FMagic_m002_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "FMagic_m002_l",
+     "textura": "FMagic_m002_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "FMagic_m008_u",
+     "textura": "FMagic_m008_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "FMagic_m008_l",
+     "textura": "FMagic_m008_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "FMagic_m008_g",
+     "textura": "FMagic_m008_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "FMagic_m008_b",
+     "textura": "FMagic_m008_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "FMagic_m012_u",
+     "textura": "FMagic_m012_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "FMagic_m012_g",
+     "textura": "FMagic_m012_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "FMagic_m012_b",
+     "textura": "FMagic_m012_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "FMagic_m012_u",
+     "textura": "FMagic_m012_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "FMagic_m012_l",
+     "textura": "FMagic_m012_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "FMagic_m012_g",
+     "textura": "FMagic_m012_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "FMagic_m012_b",
+     "textura": "FMagic_m012_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "elf_m": {
+  "ukx": "Elf.ukx",
+  "prefixo": "MElf",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "MElf_m002_u",
+     "textura": "MElf_m002_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "MElf_m002_l",
+     "textura": "MElf_m002_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "MElf_m007_u",
+     "textura": "MElf_m007_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "MElf_m007_l",
+     "textura": "MElf_m007_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "MElf_m007_g",
+     "textura": "MElf_m007_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "MElf_m007_b",
+     "textura": "MElf_m007_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "MElf_m011_u",
+     "textura": "MElf_m011_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "MElf_m011_g",
+     "textura": "MElf_m011_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "MElf_m011_b",
+     "textura": "MElf_m011_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "MElf_m004_u",
+     "textura": "MElf_m004_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "MElf_m011_l",
+     "textura": "MElf_m011_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "MElf_m011_g",
+     "textura": "MElf_m011_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "MElf_m011_b",
+     "textura": "MElf_m011_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "elf_f": {
+  "ukx": "Elf.ukx",
+  "prefixo": "FElf",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "FElf_m002_u",
+     "textura": "FElf_m002_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "FElf_m004_l",
+     "textura": "FElf_m004_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "FElf_m007_u",
+     "textura": "FElf_m007_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "FElf_m003_l",
+     "textura": "FElf_m003_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "FElf_m007_g",
+     "textura": "FElf_m007_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "FElf_m003_b",
+     "textura": "FElf_m003_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "FElf_m011_u",
+     "textura": "FElf_m011_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "FElf_m011_g",
+     "textura": "FElf_m011_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "FElf_m011_b",
+     "textura": "FElf_m011_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "FElf_m004_u",
+     "textura": "FElf_m004_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "FElf_m008_l",
+     "textura": "FElf_m008_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "FElf_m008_g",
+     "textura": "FElf_m008_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "FElf_m011_b",
+     "textura": "FElf_m011_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "orc_m": {
+  "ukx": "Orc.ukx",
+  "prefixo": "MOrc",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "MOrc_m003_u",
+     "textura": "MOrc_m003_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "MOrc_m003_l",
+     "textura": "MOrc_m003_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "MOrc_m005_u",
+     "textura": "MOrc_m005_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "MOrc_m005_l",
+     "textura": "MOrc_m005_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "MOrc_m005_g",
+     "textura": "MOrc_m005_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "MOrc_m005_b",
+     "textura": "MOrc_m005_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "MOrc_m007_u",
+     "textura": "MOrc_m007_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "MOrc_m007_g",
+     "textura": "MOrc_m007_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "MOrc_m007_b",
+     "textura": "MOrc_m007_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "MOrc_m007_u",
+     "textura": "MOrc_m007_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "MOrc_m007_l",
+     "textura": "MOrc_m007_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "MOrc_m007_g",
+     "textura": "MOrc_m007_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "MOrc_m007_b",
+     "textura": "MOrc_m007_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "orc_f": {
+  "ukx": "Orc.ukx",
+  "prefixo": "FOrc",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "FOrc_m003_u",
+     "textura": "FOrc_m003_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "FOrc_m003_l",
+     "textura": "FOrc_m003_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "FOrc_m005_u",
+     "textura": "FOrc_m005_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "FOrc_m005_l",
+     "textura": "FOrc_m005_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "FOrc_m005_g",
+     "textura": "FOrc_m005_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "FOrc_m005_b",
+     "textura": "FOrc_m005_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "FOrc_m007_u",
+     "textura": "FOrc_m007_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "FOrc_m007_g",
+     "textura": "FOrc_m007_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "FOrc_m007_b",
+     "textura": "FOrc_m007_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "FOrc_m007_u",
+     "textura": "FOrc_m007_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "FOrc_m007_l",
+     "textura": "FOrc_m007_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "FOrc_m007_g",
+     "textura": "FOrc_m007_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "FOrc_m007_b",
+     "textura": "FOrc_m007_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "darkelf_m": {
+  "ukx": "DarkElf.ukx",
+  "prefixo": "MDarkElf",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "MDarkElf_m005_u",
+     "textura": "MDarkElf_m005_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "MDarkElf_m005_l",
+     "textura": "MDarkElf_m005_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "MDarkElf_m004_u",
+     "textura": "MDarkElf_m004_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "MDarkElf_m004_l",
+     "textura": "MDarkElf_m004_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "MDarkElf_m004_g",
+     "textura": "MDarkElf_m004_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "MDarkElf_m004_b",
+     "textura": "MDarkElf_m004_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "MDarkElf_m003_u",
+     "textura": "MDarkElf_m003_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "MDarkElf_m003_g",
+     "textura": "MDarkElf_m003_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "MDarkElf_m007_b",
+     "textura": "MDarkElf_m007_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "MDarkElf_m010_u",
+     "textura": "MDarkElf_m010_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "MDarkElf_m007_l",
+     "textura": "MDarkElf_m007_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "MDarkElf_m010_g",
+     "textura": "MDarkElf_m010_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "MDarkElf_m007_b",
+     "textura": "MDarkElf_m007_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ },
+ "darkelf_f": {
+  "ukx": "DarkElf.ukx",
+  "prefixo": "FDarkElf",
+  "graus": {
+   "D": {
+    "u": {
+     "malha": "FDarkElf_m005_u",
+     "textura": "FDarkElf_m005_t19_u",
+     "item": "58"
+    },
+    "l": {
+     "malha": "FDarkElf_m005_l",
+     "textura": "FDarkElf_m005_t19_l",
+     "item": "59"
+    },
+    "g": null,
+    "b": null
+   },
+   "C": {
+    "u": {
+     "malha": "FDarkElf_m009_u",
+     "textura": "FDarkElf_m009_t43_u",
+     "item": "352"
+    },
+    "l": {
+     "malha": "FDarkElf_m009_l",
+     "textura": "FDarkElf_m009_t43_l",
+     "item": "2378"
+    },
+    "g": {
+     "malha": "FDarkElf_m009_g",
+     "textura": "FDarkElf_m009_t43_g",
+     "item": "2449"
+    },
+    "b": {
+     "malha": "FDarkElf_m009_b",
+     "textura": "FDarkElf_m009_t43_b",
+     "item": "2425"
+    }
+   },
+   "B": {
+    "u": {
+     "malha": "FDarkElf_m004_u",
+     "textura": "FDarkElf_m004_t1004_u",
+     "item": "7861"
+    },
+    "l": null,
+    "g": {
+     "malha": "FDarkElf_m004_g",
+     "textura": "FDarkElf_m004_t1004_g",
+     "item": "7862"
+    },
+    "b": {
+     "malha": "FDarkElf_m010_b",
+     "textura": "FDarkElf_m010_t1004_b",
+     "item": "7863"
+    }
+   },
+   "A": {
+    "u": {
+     "malha": "FDarkElf_m006_u",
+     "textura": "FDarkElf_m006_t88_u",
+     "item": "6373"
+    },
+    "l": {
+     "malha": "FDarkElf_m010_l",
+     "textura": "FDarkElf_m010_t88_l",
+     "item": "6374"
+    },
+    "g": {
+     "malha": "FDarkElf_m006_g",
+     "textura": "FDarkElf_m006_t88_g",
+     "item": "6375"
+    },
+    "b": {
+     "malha": "FDarkElf_m010_b",
+     "textura": "FDarkElf_m010_t88_b",
+     "item": "6376"
+    }
+   }
+  }
+ }
+}

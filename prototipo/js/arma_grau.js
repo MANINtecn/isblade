@@ -748,27 +748,57 @@
     },
     human_fighter_female: {
       naked: 'assets/personagens/human_fighter_female.glb?v=9',
-      sem:   'assets/personagens/human_fighter_female_nograde.glb?v=2'
+      sem:   'assets/personagens/human_fighter_female_nograde.glb?v=2',
+      D:     'assets/personagens/human_fighter_female_brigandine.glb?v=1',
+      C:     'assets/personagens/human_fighter_female_fullplate.glb?v=1',
+      B:     'assets/personagens/human_fighter_female_doom.glb?v=1',
+      A:     'assets/personagens/human_fighter_female_tallum.glb?v=1',
+      S:     'assets/personagens/human_fighter_female_tallum.glb?v=1'
     },
     magic_m: {
       naked: 'assets/personagens/magic_m.glb?v=9',
-      sem:   'assets/personagens/magic_m_nograde.glb?v=2'
+      sem:   'assets/personagens/magic_m_nograde.glb?v=2',
+      D:     'assets/personagens/magic_m_brigandine.glb?v=1',
+      C:     'assets/personagens/magic_m_fullplate.glb?v=1',
+      B:     'assets/personagens/magic_m_doom.glb?v=1',
+      A:     'assets/personagens/magic_m_tallum.glb?v=1',
+      S:     'assets/personagens/magic_m_tallum.glb?v=1'
     },
     magic_f: {
       naked: 'assets/personagens/magic_f.glb?v=9',
-      sem:   'assets/personagens/magic_f_nograde.glb?v=2'
+      sem:   'assets/personagens/magic_f_nograde.glb?v=2',
+      D:     'assets/personagens/magic_f_brigandine.glb?v=1',
+      C:     'assets/personagens/magic_f_fullplate.glb?v=1',
+      B:     'assets/personagens/magic_f_doom.glb?v=1',
+      A:     'assets/personagens/magic_f_tallum.glb?v=1',
+      S:     'assets/personagens/magic_f_tallum.glb?v=1'
     },
     elf_m: {
       naked: 'assets/personagens/elf_m.glb?v=9',
-      sem:   'assets/personagens/elf_m_nograde.glb?v=2'
+      sem:   'assets/personagens/elf_m_nograde.glb?v=2',
+      D:     'assets/personagens/elf_m_brigandine.glb?v=1',
+      C:     'assets/personagens/elf_m_fullplate.glb?v=1',
+      B:     'assets/personagens/elf_m_doom.glb?v=1',
+      A:     'assets/personagens/elf_m_tallum.glb?v=1',
+      S:     'assets/personagens/elf_m_tallum.glb?v=1'
     },
     orc_m: {
       naked: 'assets/personagens/orc_m.glb?v=9',
-      sem:   'assets/personagens/orc_m_nograde.glb?v=2'
+      sem:   'assets/personagens/orc_m_nograde.glb?v=2',
+      D:     'assets/personagens/orc_m_brigandine.glb?v=1',
+      C:     'assets/personagens/orc_m_fullplate.glb?v=1',
+      B:     'assets/personagens/orc_m_doom.glb?v=1',
+      A:     'assets/personagens/orc_m_tallum.glb?v=1',
+      S:     'assets/personagens/orc_m_tallum.glb?v=1'
     },
     orc_f: {
       naked: 'assets/personagens/orc_f.glb?v=9',
-      sem:   'assets/personagens/orc_f_nograde.glb?v=2'
+      sem:   'assets/personagens/orc_f_nograde.glb?v=2',
+      D:     'assets/personagens/orc_f_brigandine.glb?v=1',
+      C:     'assets/personagens/orc_f_fullplate.glb?v=1',
+      B:     'assets/personagens/orc_f_doom.glb?v=1',
+      A:     'assets/personagens/orc_f_tallum.glb?v=1',
+      S:     'assets/personagens/orc_f_tallum.glb?v=1'
     },
     dwarf_m: {
       naked: 'assets/personagens/dwarf_m.glb?v=9',
@@ -781,11 +811,21 @@
     },
     darkelf_m: {
       naked: 'assets/personagens/darkelf_m.glb?v=6',
-      sem:   'assets/personagens/darkelf_m.glb?v=6'
+      sem:   'assets/personagens/darkelf_m.glb?v=6',
+      D:     'assets/personagens/darkelf_m_brigandine.glb?v=1',
+      C:     'assets/personagens/darkelf_m_fullplate.glb?v=1',
+      B:     'assets/personagens/darkelf_m_doom.glb?v=1',
+      A:     'assets/personagens/darkelf_m_tallum.glb?v=1',
+      S:     'assets/personagens/darkelf_m_tallum.glb?v=1'
     },
     darkelf_f: {
       naked: 'assets/personagens/darkelf_f.glb?v=6',
-      sem:   'assets/personagens/darkelf_f.glb?v=6'
+      sem:   'assets/personagens/darkelf_f.glb?v=6',
+      D:     'assets/personagens/darkelf_f_brigandine.glb?v=1',
+      C:     'assets/personagens/darkelf_f_fullplate.glb?v=1',
+      B:     'assets/personagens/darkelf_f_doom.glb?v=1',
+      A:     'assets/personagens/darkelf_f_tallum.glb?v=1',
+      S:     'assets/personagens/darkelf_f_tallum.glb?v=1'
     }
   };
   A.SET_3D_MODELS.darkelf = A.SET_3D_MODELS.darkelf_f;

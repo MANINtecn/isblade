@@ -143,6 +143,12 @@ function grauPorNivel(lv){
 }
 
 /* Configura Modelo 3D (armadura), Arma, Encantamento e Skills conforme Nível */
+/* modelo (.glb) do conjunto da raca para o grau: <raca>_brigandine (D), _fullplate (C), _doom (B), _tallum (A/S); sem grau = _nograde */
+function comSet(base, grau){
+  const suf = { D: 'brigandine', C: 'fullplate', B: 'doom', A: 'tallum', S: 'tallum' }[grau];
+  if(!suf && base.indexOf('darkelf') === 0) return base;      // elfo negro: o corpo base e' o 'sem grau' (nao existe darkelf_*_nograde.glb)
+  return base + '_' + (suf || 'nograde');
+}
 function setupPorNivel(racaBase, armaTipo, lv){
   const grau = grauPorNivel(lv);
 
@@ -167,23 +173,23 @@ function setupPorNivel(racaBase, armaTipo, lv){
     else if(grau === 'D') raca = 'dwarf_f_brigandine';
     else raca = 'dwarf_f_nograde';
   } else if(racaBase === 'human_f'){
-    raca = (grau === 'D' || grau === 'C') ? 'human_fighter_brigandine' : 'human_fighter_female_nograde';
+    raca = comSet('human_fighter_female', grau);
   } else if(racaBase === 'magic_m'){
-    raca = 'magic_m_nograde';
+    raca = comSet('magic_m', grau);
   } else if(racaBase === 'magic_f'){
-    raca = 'magic_f_nograde';
+    raca = comSet('magic_f', grau);
   } else if(racaBase === 'orc_m'){
-    raca = 'orc_m_nograde';
+    raca = comSet('orc_m', grau);
   } else if(racaBase === 'orc_f'){
-    raca = 'orc_f_nograde';
+    raca = comSet('orc_f', grau);
   } else if(racaBase === 'elf_m'){
-    raca = 'elf_m_nograde';
+    raca = comSet('elf_m', grau);
   } else if(racaBase === 'dwarf_m'){
-    raca = 'dwarf_m_nograde';
+    raca = comSet('dwarf_m', grau);
   } else if(racaBase === 'darkelf_f'){
-    raca = 'darkelf_f';
+    raca = comSet('darkelf_f', grau);      // set = armaduras do elfo no corpo do elfo negro (as malhas proprias sao ilegiveis no cliente)
   } else if(racaBase === 'darkelf_m'){
-    raca = 'darkelf_m';
+    raca = comSet('darkelf_m', grau);
   }
 
   // 2. Armas e Encantamentos por Grau
