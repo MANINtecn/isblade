@@ -33,6 +33,7 @@
   var kloader = null, fim = false;                                                      /* fim: o KTX2 acabou de subir (ou falhou): nao ha mais o que esperar */
   function sobeKtx(T){
     if(A.pronto || desl || !T || !T.WebGLRenderer || typeof document === 'undefined') return;
+    if(/[?&]semktx=1/.test(location.search)){ A.ktx = false; fim = true; A.pronto = Promise.resolve(); console.warn('[assets-web] ?semktx=1: texturas KTX2 desligadas (usa PNG/JPG da origem; malhas continuam otimizadas)'); return; }      /* teste A/B no celular: separa o problema de textura KTX2 do de malha meshopt */
     A.pronto = import(new URL('lib/ktx2_loader.js', document.baseURI).href).then(function(m){
       var r = new T.WebGLRenderer({ canvas: document.createElement('canvas') });       /* so para o detectSupport ler as extensoes da placa; some logo depois */
       var l = new m.KTX2Loader().setTranscoderPath(new URL('lib/basis/', document.baseURI).href).setWorkerLimit(2);
