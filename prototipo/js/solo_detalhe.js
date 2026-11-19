@@ -17,7 +17,7 @@ window.SoloDetalhe = (function(){
     D.tex = U.tSDet.value = t; return t;
   }
   D.aplica = function(THREE, mat, opt){
-    if(!mat || mat.userData.soloDet) return mat;
+    if(!mat || mat.userData.soloDet || (window.__OFF && __OFF.solo)) return mat;
     opt = opt || {}; textura(THREE); mat.userData.soloDet = 1;
     var antes = mat.onBeforeCompile, chave = mat.customProgramCacheKey ? mat.customProgramCacheKey() : '', baixa = !!opt.baixa;
     mat.onBeforeCompile = function(sh, rd){

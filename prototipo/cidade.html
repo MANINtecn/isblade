@@ -786,7 +786,8 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/guerreiro_fx.js?v=14"></script>
 <script src="js/l2_cache.js?v=1"></script>
 <script src="js/remote_vis.js?v=3"></script>
-<script src="js/perf_log.js?v=4"></script>
+<script src="js/diag_off.js?v=1"></script>
+<script src="js/perf_log.js?v=5"></script>
 <script src="js/mira_toque.js?v=1"></script>
 <script src="js/chat.js?v=3"></script>
 <script src="js/musica.js?v=1"></script>
@@ -3527,6 +3528,7 @@ islandMesh.receiveShadow = true;
 scene.add(islandMesh);
 /* [mundo] 09/11/2026: terreno real de fora da muralha (mapa-mundi do Blender). A placa da cidade fica so dentro da muralha (fora dela afunda e some). */
 if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).then(function(){
+  if (window.PerfLog) PerfLog.marca('mundo_ok');      /* sem esta marca no log = terreno do mundo aberto NAO carregou (so a placa marrom da cidade aparece) */
   var pa = islandGeo.attributes.position; for (var ii = 0; ii < pa.count; ii++) { if (Math.hypot(pa.getX(ii), pa.getZ(ii)) > 92) pa.setY(ii, pa.getY(ii) - 8); }
   pa.needsUpdate = true; islandGeo.computeVertexNormals();
   /* 13/11: silhuetas do horizonte voltam (no ponto real dos mapas; js/horizonte.js) */
@@ -3537,7 +3539,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
   if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer, preparar: prepShaders })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
-}).catch(function(e){ console.warn('mundo', e); });
+}).catch(function(e){ console.warn('mundo', e); if (window.PerfLog) PerfLog.marca('mundo_falhou', { m: String(e && e.message || e).slice(0, 120) }); });
 
 
 

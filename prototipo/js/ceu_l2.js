@@ -60,7 +60,7 @@ window.CeuL2 = (function(){
   ].join('\n');
 
   C.init = function(THREE, scene, camera){
-    if(dome) return C; T3 = THREE; cam = camera; _alto = new THREE.Color(); _dia = new THREE.Color();
+    if(dome || (window.__OFF && __OFF.ceu)) return C; T3 = THREE; cam = camera; _alto = new THREE.Color(); _dia = new THREE.Color();
     var baixa = !!(window.QUAL && QUAL.nivel === 'baixa');
     mat = new THREE.ShaderMaterial({ vertexShader: VS, fragmentShader: FS, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
       uniforms: { uHor: { value: new THREE.Color(0x78b8e0) }, uAlto: { value: new THREE.Color(0x2a63a8) }, uNoite: { value: 0 }, uT: { value: 0 }, uNuv: { value: baixa ? 0 : 1 } } });

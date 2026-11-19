@@ -12,6 +12,7 @@ window.Horizonte = (function(){
      distancia, escala e altura sao reduzidas juntas. Some quando o jogador chega perto (o mapa real carrega). */
   var REAL = { toi: 'torre', blazing: 'pantano', fortress: 'fortress', curuma: 'curuma' };
   H.init = function(THREE, scene, camera, saidas){
+    if(window.__OFF && __OFF.horizonte) return;
     H.scene = scene; H.camera = camera;
     fetch('assets/mundo/mundo_grade.json').then(function(r){ return r.json(); }).catch(function(){ return null; }).then(function(mg){
       saidas.forEach(function(s){

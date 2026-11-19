@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnostico do mapa (celular)</title>
+<style>body{background:#0e1420;color:#e8eefc;font:16px system-ui,sans-serif;margin:0;padding:16px}h1{font-size:20px}p{color:#9fb0cc}a{display:block;margin:10px 0;padding:14px;border-radius:10px;background:#1b2740;color:#ffd77a;text-decoration:none;font-weight:600}small{display:block;color:#9fb0cc;font-weight:400;margin-top:4px}</style></head>
+<body>
+<h1>Diagnostico do mapa fora da cidade</h1>
+<p>Abra cada link, va para o MESMO lugar fora da muralha e tire um print (de dia e de noite). Depois mande os prints e o log de desempenho (Config &gt; LOG DE DESEMPENHO). No log procure as marcas <b>mundo_ok</b> (terreno carregou), <b>mundo_falhou</b>, <b>shader_erro</b> e <b>console_aviso/erro</b>.</p>
+<a href="cidade.html">1. Normal (como esta hoje)</a>
+<a href="cidade.html?brutos=1">2. Arquivos originais<small>sem malha/textura comprimida</small></a>
+<a href="cidade.html?semktx=1">3. So sem textura KTX2<small>malhas continuam otimizadas</small></a>
+<a href="cidade.html?off=solo">4. Sem detalhe do chao</a>
+<a href="cidade.html?off=horizonte">5. Sem silhuetas do horizonte</a>
+<a href="cidade.html?off=ceu">6. Sem cupula do ceu</a>
+<a href="cidade.html?off=fusao">7. Sem juncao das pecas dos mapas</a>
+<a href="cidade.html?off=solo,horizonte,ceu,fusao">8. Tudo desligado (visual basico)</a>
+</body></html>

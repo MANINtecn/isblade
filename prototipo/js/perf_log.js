@@ -34,6 +34,10 @@
     window.addEventListener('pagehide', salva); window.addEventListener('resize', function(){ P.marca('resize', { janela: innerWidth + 'x' + innerHeight }); });
     try { R.domElement.addEventListener('webglcontextlost', function(){ P.marca('contexto_webgl_perdido'); }); } catch(e){}
     try { var orig = R.render.bind(R); R.render = function(a, b){ orig(a, b); var r = R.info.render; fC += r.calls; fT += r.triangles; }; } catch(e){}      /* soma as passadas de um quadro (o bloom usa varias); nao mexe no autoReset do jogo */
+    /* 19/11/2026: o que o console avisa/erra (ex.: 'mundo' = terreno do mundo aberto nao carregou) e erro de shader (Mali) vao para o log, para o celular contar o que o PC nao mostra */
+    try { var nC = 0, cw = console.warn, ce = console.error; var reg = function(tipo, a){ if(nC++ < 30){ try { P.marca('console_' + tipo, { m: Array.prototype.slice.call(a).map(function(x){ return String((x && x.message) || x).slice(0, 110); }).join(' | ').slice(0, 200) }); } catch(_){} } };
+      console.warn = function(){ reg('aviso', arguments); return cw.apply(console, arguments); }; console.error = function(){ reg('erro', arguments); return ce.apply(console, arguments); }; } catch(e){}
+    try { var nS = 0; if(R.debug) R.debug.onShaderError = function(gl, prog, vs, fs){ if(nS++ < 6){ var l = ''; try { l = gl.getProgramInfoLog(prog) || ''; } catch(_){} P.marca('shader_erro', { log: String(l).slice(0, 200) }); } }; } catch(e){}
     P.marca('inicio', { qualidade: window.QUAL && QUAL.nivel, ratio: window.QUAL && QUAL.ratio });
     requestAnimationFrame(passo);
   };
