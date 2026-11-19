@@ -92,30 +92,47 @@ window.MapaVivo = (function(){
     return [m.type, c(m.color), c(m.emissive), t(m.map), t(m.normalMap), t(m.emissiveMap), t(m.roughnessMap), t(m.metalnessMap), t(m.aoMap), t(m.alphaMap), m.roughness, m.metalness, m.opacity, m.emissiveIntensity, m.alphaTest, m.side, m.vertexColors ? 1 : 0, m.flatShading ? 1 : 0].join('|');
   }
   function chaveAttr(g){
-    var n = Object.keys(g.attributes).sort(), s = n.map(function(k){ var a = g.attributes[k]; return k + ':' + a.itemSize + ':' + (a.normalized ? 1 : 0) + ':' + a.array.constructor.name; }).join(',');
+    var n = Object.keys(g.attributes).sort(), s = n.map(function(k){ var a = g.attributes[k]; return k + ':' + a.itemSize; }).join(',');
     return s + '|' + (g.index ? 'i' : 'n') + '|' + (Object.keys(g.morphAttributes || {}).length ? 'm' : '');
   }
+  var TILE_PADRAO = 100;      /* celular basico (opt.baixa): 250 m (menos chamadas de desenho; os mapas tem ~100 mil triangulos, o gargalo e' a chamada e nao o triangulo) */
   function funde(lista, raiz){
+    TILE_PADRAO = opt.baixa ? 250 : 100;
     raiz.updateMatrixWorld(true);
     var grupos = new Map(), resto = [], out = [];
+    var cat = { transp: 0, arr: 0, outros: 0 };
     lista.forEach(function(o){
       var m = o.material;
+      if(window.__MV_LOG){ if(m && !Array.isArray(m) && (m.transparent || m.opacity < 1)) cat.transp++; else if(Array.isArray(m)) cat.arr++; else if(o.isSkinnedMesh || (o.geometry.groups && o.geometry.groups.length)) cat.outros++; }
       if(o.isSkinnedMesh || Array.isArray(m) || !m || m.transparent || m.opacity < 1 || !o.geometry.attributes.position || (o.geometry.morphAttributes && Object.keys(o.geometry.morphAttributes).length) || (o.geometry.groups && o.geometry.groups.length)){ resto.push(o); return; }
       var bs = o.geometry.boundingSphere || (o.geometry.computeBoundingSphere(), o.geometry.boundingSphere), cw = bs.center.clone().applyMatrix4(o.matrixWorld);      /* quadra de TILE m pelo centro da peca: mantem o descarte do que esta fora da tela */
-      var k = chaveMat(m) + '#' + chaveAttr(o.geometry) + '#' + Math.floor(cw.x / (window.__MV_TILE || 100)) + ',' + Math.floor(cw.z / (window.__MV_TILE || 100)), L = grupos.get(k); if(!L){ L = []; grupos.set(k, L); } L.push(o);
+      var k = chaveMat(m) + '#' + chaveAttr(o.geometry) + '#' + Math.floor(cw.x / (window.__MV_TILE || TILE_PADRAO)) + ',' + Math.floor(cw.z / (window.__MV_TILE || TILE_PADRAO)), L = grupos.get(k); if(!L){ L = []; grupos.set(k, L); } L.push(o);
     });
-    var antes = lista.length;
+    var antes = lista.length; if(window.__MV_LOG) console.log('[mapa-vivo] fusao: nao fundiveis ' + JSON.stringify(cat) + ', grupos fundidos ' + grupos.size);
     grupos.forEach(function(L){
       if(L.length < 2){ resto.push(L[0]); return; }
-      var nomes = Object.keys(L[0].geometry.attributes), nv = 0, ni = 0, i, j;
-      var geos = L.map(function(o){ var g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; return g; });
-      var G = new THREE.BufferGeometry();
-      nomes.forEach(function(n){ var a0 = geos[0].attributes[n], C = a0.array.constructor, arr = new C(nv * a0.itemSize), off = 0; geos.forEach(function(g){ arr.set(g.attributes[n].array, off); off += g.attributes[n].array.length; }); G.setAttribute(n, new THREE.BufferAttribute(arr, a0.itemSize, a0.normalized)); });
+      /* [fusao-quantizada] 19/11/2026: a entrega (assets_web) vem em meshopt com atributos QUANTIZADOS (Int8/Int16 normalizados) e/ou INTERCALADOS; o codigo antigo copiava o array cru e quebrava
+         ('offset is out of bounds') -> a fusao falhava em silencio e a Fortaleza ficava com 1578 chamadas de desenho (celular: 6-9 fps). Agora le cada atributo ja desnormalizado
+         (getX..getW) para Float32, aplica a matriz do mundo na posicao e a normal-matriz nas normais, e junta. */
+      var nomes = Object.keys(L[0].geometry.attributes), nv = 0, ni = 0, i, j, mw = new THREE.Matrix4(), nm = new THREE.Matrix3(), v = new THREE.Vector3();
+      L.forEach(function(o){ var g = o.geometry; nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; });
+      var G = new THREE.BufferGeometry(), G_ = ['getX', 'getY', 'getZ', 'getW'];
+      nomes.forEach(function(nome){
+        var s0 = L[0].geometry.attributes[nome].itemSize, arr = new Float32Array(nv * s0), off = 0;
+        L.forEach(function(o){
+          var a = o.geometry.attributes[nome], n = a.count, base = off; mw.copy(o.matrixWorld); nm.getNormalMatrix(mw);
+          for(i = 0; i < n; i++){ for(j = 0; j < s0; j++) arr[base + i * s0 + j] = a[G_[j]](i); }
+          if(nome === 'position'){ for(i = 0; i < n; i++){ v.set(arr[base + i * 3], arr[base + i * 3 + 1], arr[base + i * 3 + 2]).applyMatrix4(mw); arr[base + i * 3] = v.x; arr[base + i * 3 + 1] = v.y; arr[base + i * 3 + 2] = v.z; } }
+          else if(nome === 'normal'){ for(i = 0; i < n; i++){ v.set(arr[base + i * 3], arr[base + i * 3 + 1], arr[base + i * 3 + 2]).applyMatrix3(nm).normalize(); arr[base + i * 3] = v.x; arr[base + i * 3 + 1] = v.y; arr[base + i * 3 + 2] = v.z; } }
+          off += n * s0;
+        });
+        G.setAttribute(nome, new THREE.BufferAttribute(arr, s0));
+      });
       var idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni), vo = 0, io = 0;
-      geos.forEach(function(g){ var cnt = g.attributes.position.count; if(g.index){ var ia = g.index.array; for(j = 0; j < ia.length; j++) idx[io++] = ia[j] + vo; } else { for(j = 0; j < cnt; j++) idx[io++] = vo + j; } vo += cnt; });
+      L.forEach(function(o){ var g = o.geometry, cnt = g.attributes.position.count; if(g.index){ var ia = g.index.array; for(j = 0; j < ia.length; j++) idx[io++] = ia[j] + vo; } else { for(j = 0; j < cnt; j++) idx[io++] = vo + j; } vo += cnt; });
       G.setIndex(new THREE.BufferAttribute(idx, 1)); G.computeBoundingSphere();
       var me = new THREE.Mesh(G, L[0].material); me.name = 'MAPA_FUSAO'; me.castShadow = false; me.receiveShadow = L[0].receiveShadow; me.visible = false; raiz.add(me); out.push(me);
-      L.forEach(function(o){ if(o.parent) o.parent.remove(o); o.geometry.dispose(); }); geos.forEach(function(g){ g.dispose(); });
+      L.forEach(function(o){ if(o.parent) o.parent.remove(o); o.geometry.dispose(); });
     });
     return resto.concat(out);
   }
@@ -141,7 +158,7 @@ window.MapaVivo = (function(){
             L.push(t); }); });
         } });
         lg(M, 'texturas: ' + tot + ' referencias, ' + dup + ' repetidas juntadas');
-        var n0 = fila.length; try{ if(!window.__MV_SEM_FUSAO) fila = funde(fila, g.scene); }catch(e){ console.warn('[mapa-vivo] fusao', e); } lg(M, 'pecas: ' + n0 + ' -> ' + fila.length + ' (chamadas de desenho)');
+        var n0 = fila.length, tF = performance.now(); try{ if(!window.__MV_SEM_FUSAO) fila = funde(fila, g.scene); }catch(e){ console.warn('[mapa-vivo] fusao', e); } lg(M, 'pecas: ' + n0 + ' -> ' + fila.length + ' (chamadas de desenho) em ' + Math.round(performance.now() - tF) + ' ms');
         if(window.SoloDetalhe) fila.forEach(function(o){ (Array.isArray(o.material) ? o.material : [o.material]).forEach(function(m){ SoloDetalhe.seTerreno(THREE, m, { baixa: opt.baixa }); }); });   /* [solo-detalhe] chao do mapa nitido de perto (antes do preparo de shaders abaixo) */
         var gr = new THREE.Group(); gr.add(g.scene); gr.position.set(M.X.x, M.X.y, M.X.z); gr.rotation.y = M.X.r; gr.name = 'MAPA_' + M.id;
         scene.add(gr); gr.updateMatrixWorld(true); gr.traverse(function(o){ o.matrixAutoUpdate = false; });
