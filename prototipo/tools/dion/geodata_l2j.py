@@ -8,6 +8,7 @@ GEO = r"C:/TECX SOFTHOUSE/L2 IKARUS INTERCROW/L2 essence Sourcer + Geodata/geoda
 
 def le_tile(tx, ty, caminho=None):
     d = open(caminho or GEO % (tx, ty), 'rb').read(); p = 0; mv = memoryview(d)
+    capas = {}
     chao = np.zeros((2048, 2048), np.int16); topo = np.zeros((2048, 2048), np.int16); cam = np.ones((2048, 2048), np.uint8); nswe = np.zeros((2048, 2048), np.uint8)
     for bx in range(256):
         for by in range(256):
@@ -24,8 +25,10 @@ def le_tile(tx, ty, caminho=None):
                     n = d[p]; p += 1; v = np.frombuffer(mv[p:p + 2 * n], '<i2').astype(np.int32); p += 2 * n
                     h = ((v & 0xFFF0).astype(np.int16) >> 1).astype(np.int16); cx, cy = x0 + c // 8, y0 + c % 8
                     chao[cx, cy] = h.min(); topo[cx, cy] = h.max(); cam[cx, cy] = n; nswe[cx, cy] = (v[np.argmin(h)] & 0xF)
+                    if n > 1: capas[(cx, cy)] = sorted(zip(h.tolist(), (v & 0xF).tolist()))
             else: raise ValueError('tipo de bloco desconhecido %d em %d,%d (offset %d)' % (t, bx, by, p))
     assert p == len(d), 'sobrou/faltou %d bytes' % (len(d) - p)
+    le_tile.capas = capas      # {(celulaX, celulaY): [(altura uu, nswe) ... ordenado]} so das celulas com 2+ camadas
     return chao, topo, cam, nswe
 
 if __name__ == '__main__':

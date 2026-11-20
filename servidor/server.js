@@ -20,7 +20,7 @@ const SiteDB = require('./site_db')({ dir: process.env.DATA_DIR || path.join(__d
 const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 17;                                                   /* m/s: base 6.2 m/s, sprint 11.5 m/s, esquiva 4.6 m em 0.4 s; folga de latencia */
-const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } }, curuma: { aberto: 1 }, fortress: { aberto: 1 }, pantano: { aberto: 1 } };
+const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } }, curuma: { aberto: 1 }, fortress: { aberto: 1 }, pantano: { aberto: 1 }, dion: { aberto: 1 } };
 /* [mapas-multi] 08/11/2026 (dono: todos os mapas multijogador): Cruma, Fortaleza e Pantano tem canais como a cidade (50 por canal); o jogador entra onde o
    jogo o coloca (posicao inicial vem do cliente) e manda a altura (y) para os outros o desenharem no relevo. Ninguem fere ninguem la (PvP com flag vem depois);
    mobs continuam de cada jogador ate a Fase 6. */     /* masmorra = instancia SOLO (dungeon, duelo com o Baium): um canal por jogador */
@@ -63,7 +63,7 @@ function enviaProg(J){ if(J.pers) envia(J, Object.assign({ t: 'prog' }, Prog.inf
 const pmaxMax = p => Prog.pmaxMax(p || { level: 1 });                 /* vida maxima aceita: base + equipamento + nivel + vitalidade (o cliente nao pode declarar mais que isso) */
 
 /* ---- estado ---- */
-let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [], curuma: [], fortress: [], pantano: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
+let proxId = 1; const canais = { cidade: [], pvp: [], masmorra: [], curuma: [], fortress: [], pantano: [], dion: [] };           /* canal: { mapa, n, jog: Map(id -> J) } */
 function canalLivre(mapa, pedido){
   const L = canais[mapa];
   const cap = mapa === 'pvp' ? CAP_PVP : (mapa === 'masmorra' ? 1 : CAP);
@@ -79,7 +79,7 @@ function canalMasmorra(gid){
   for(const c of L) if(c.jog.size === 0){ c.gid = gid || 0; c.dg = null; c.dgsW = null; c.baium = null; return c; }
   const c = { mapa: 'masmorra', n: L.length + 1, jog: new Map(), gid: gid || 0 }; L.push(c); return c;
 }
-const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra, canais.curuma, canais.fortress, canais.pantano);
+const todosCanais = () => [].concat(canais.cidade, canais.pvp, canais.masmorra, canais.curuma, canais.fortress, canais.pantano, canais.dion);
 const r2 = v => Math.round(v * 100) / 100, agora = () => Date.now() / 1000;
 const angDif = (a, b) => { let d = a - b; while(d > Math.PI) d -= 2 * Math.PI; while(d < -Math.PI) d += 2 * Math.PI; return d; };
 function posSpawn(c, J){
@@ -162,6 +162,7 @@ function fimPk(c, A, V, inocente){
 }
 /* [mobs-servidor] mundo de mobs do canal (mapas abertos) */
 function mundoDe(c){
+  if(c.mapa === 'dion') return null;                                  /* [dion] 20/11: Dion ainda sem monstros (cidade); os do lado de fora entram depois */
   if(c.mapa === 'masmorra') return c.dgsW || null;                    /* [dg-servidor] ondas da DG da Torre simuladas aqui */
   if(!MAPAS[c.mapa].aberto && c.mapa !== 'cidade') return null;      /* [campo] a cidade tem o Campo de Talking Island (mobs do mundo aberto) */
   if(!c.mundo){

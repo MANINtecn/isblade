@@ -5148,3 +5148,10 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Pintura (as mascaras originais nao vem no cliente): terra clara DI_S5 / escura DI_S4+DI_S10 por ruido; capim DI_G2+DI_G3 em manchas, mais forte em vales; rocha DI_C5+DI_C em declive e nas margens do canyon; variacao larga de tom. Texturas de t_dion.utx (26, 256 px) exportadas para tools/dion/raw_dion/tex (fora do git).
 - `dion_view.html` (visualizador: ?az=&el=&d=&x=&y=&z=&quieto=1). Previas em `assets/dion/previa_*.png` (testado em Chrome headless, sem erros).
 - Falta: caminhos/praca de pedra (G_floor01), casas/arvores/muros (23 mil props, etapa C), colisao/andavel (nswe da geodata), musica e sons, portas, celular (KTX2, fundir, cortar por distancia), integrar no jogo.
+
+### [Claude] 20/11 - Dion: cidade montada e jogavel (mapa aberto `dion`)
+- `montar_cidade.py`: ~22 mil props do mapa 20_22 (casas, arvores, muros) na posicao/giro/escala reais -> `assets/dion/dion_cidade_20_22.glb`. `unir_glb.mjs` junta cidade + chao em `assets/maps/dion/dion.glb` (54 MB; ainda sem KTX2/meshopt, falta passar pelo assets_web para o celular).
+- `gerar_walkgrid_dion.py`: chao andavel e paredes direto da geodata L2J (1024x1024 celulas de 0,64 m, andares/pontes como camadas) -> `dion_walkgrid.bin/.json`.
+- Integrado em `arena.html?mapa=dion` (MAPAS_ABERTOS), servidor (canal `dion`, sem mobs ainda), `net.js` v55, musica `nt_dion.ogg`.
+- Bug achado: o spawn [0,0,0.3] caia numa celula bloqueada (poste) e a altura real da praca e' ~ -23 m (nao 0); jogador nao andava. Spawn agora [0,3,-23.1], chao_min -110. Teste Playwright: anda com W, casas/arvores/muros renderizam.
+- Falta: 2 requisicoes 404 no console (identificar), caminhos de pedra, portas, sons por zona, limite do mundo (serra/agua/neblina/aviso), otimizar para celular (KTX2/meshopt/LOD/chunks), mobs, entrada pelo hub.

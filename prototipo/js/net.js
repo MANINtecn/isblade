@@ -48,7 +48,7 @@ export const Net = (function(){
   function send(o){ if(o && o.t === 'atk' && (ctrlPk || N.pkModo) && ABERTOS[N.mapa]) o.pk = 1; if(ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
   /* [pk] PvP estilo L2 nos mapas abertos: atacar quem nao e PK so forcando (Ctrl segurado no PC ou o botao PK, que liga/desliga, no celular e no PC).
      Nome roxo = flag (bateu em alguem ha pouco), vermelho = PK (karma). O servidor decide tudo (server.js [pk]). */
-  var ABERTOS = { curuma: 1, fortress: 1, pantano: 1 }, ctrlPk = false, pkBtn = null;
+  var ABERTOS = { curuma: 1, fortress: 1, pantano: 1, dion: 1 }, ctrlPk = false, pkBtn = null;
   N.pkModo = false; N.pkSt = 0; N.karma = 0;
   window.addEventListener('keydown', function(e){ if(e.key === 'Control') ctrlPk = true; });
   window.addEventListener('keyup', function(e){ if(e.key === 'Control') ctrlPk = false; });
@@ -78,7 +78,7 @@ export const Net = (function(){
   function atualizaHud(){
     if(!hudEl) return;
     if(!N.on){ hudEl.textContent = N.tentando ? 'Conectando...' : ''; return; }
-    var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : ({ curuma: 'Torre de Cruma', fortress: 'Fortaleza', pantano: 'Pântano Flamejante' })[N.mapa] || 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
+    var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : ({ curuma: 'Torre de Cruma', fortress: 'Fortaleza', pantano: 'Pântano Flamejante', dion: 'Dion' })[N.mapa] || 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
     var duelo = N.duelo ? '<br><span style="color:#ffd166">Duelo com ' + N.duelo.nome + (N.duelo.seg > 0 ? ' em ' + Math.ceil(N.duelo.seg) + '...' : '  (H desiste)') + '</span>' : '';
     if(N.mapa === 'masmorra'){ hudEl.innerHTML = ''; return; } var ajuda = N.mapa === 'cidade' && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
     var pk = N.pkSt === 2 ? '<br><span style="color:#ff3b3b">PK · karma ' + N.karma + '</span>' : (N.pkSt === 1 ? '<br><span style="color:#a77bff">Em combate PvP (nome roxo)</span>' : '');

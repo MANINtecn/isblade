@@ -38,7 +38,7 @@ function updateArenaLoading(msg){
 }
 
 /* [sem-santuario] teleporte direto: nos modos mapa aberto / torre / duelo a tela de carregamento fica ate o destino estar pronto (o santuario nunca aparece) */
-var arenaHold = /[?&](mapa=(fortress|blazing_swamp|curuma|torre)|mode=duel)/.test(location.search);
+var arenaHold = /[?&](mapa=(fortress|blazing_swamp|curuma|dion|torre)|mode=duel)/.test(location.search);
 function arenaSoltaLoading(){
   arenaHold = false;
   if(!arenaLoadingFinished) return;
@@ -727,7 +727,7 @@ import * as THREE from './lib/vendor.js';
 window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [assets-web] troca a origem pela entrega (meshopt + WebP/KTX2); regras em REGRAS_ASSETS_WEB.md */
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=28';
-import { Net } from './js/net.js?v=54';
+import { Net } from './js/net.js?v=55';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -744,7 +744,7 @@ function ckSet(k,v){try{localStorage.setItem(ck(k),v);}catch(_){}}
 /* <<< CLAUDE [perchar] */
 
 import { Torre } from './js/torre.js?v=10';
-var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
+var TORRE_MODE=/[?&]mapa=torre/.test(location.search);var MAPA_ABERTO=(location.search.match(/[?&]mapa=(fortress|blazing_swamp|curuma|dion)/)||[])[1]||null;/* [mapas-abertos] */var TORRE_DG=!/[?&]dg=classica/.test(location.search);/* DG da torre: portal -> dificuldade -> torre (?dg=classica volta as salas antigas) */window.Torre=Torre;/* >>> CLAUDE [torre] mapa da torre do Baium (3 andares); ?mapa=torre&cenario=0 */
 /* <<< CLAUDE [guardiao] */
 import { MuHud } from './js/mu_hud.js?v=44';
 
@@ -9611,11 +9611,12 @@ function torreStart(){
   banner('TORRE DO BAIUM','Suba os 3 andares ate o Baium','#f5c451');
   setTimeout(function(){if(window.arenaSoltaLoading)arenaSoltaLoading();},700);/* [sem-santuario] */
 }
-/* >>> CLAUDE [mapas-abertos] 02/11/2026: ?mapa=fortress|blazing_swamp|curuma (portais da cidade). Exploracao livre no mapa (mesmo motor de chao da torre), sem chefe nem mobs por enquanto; portal branco leva de volta a cidade. */
+/* >>> CLAUDE [mapas-abertos] 02/11/2026: ?mapa=fortress|blazing_swamp|curuma|dion (portais da cidade). Exploracao livre no mapa (mesmo motor de chao da torre), sem chefe nem mobs por enquanto; portal branco leva de volta a cidade. */
 var MAPAS_ABERTOS={
   fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd,nevoa:1.0,niveis:'15-30'},
   blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,nevoa:.62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060,niveis:'30-45'},
-  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CRUMA',ceu:0x9fbdd3,nevoa:1.15,niveis:'1-15'}
+  curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CRUMA',ceu:0x9fbdd3,nevoa:1.15,niveis:'1-15'},
+  dion:{pasta:'dion',glb:'dion.glb',grid:'dion_walkgrid',spawn:[0,3,-23.1],chao_min:-110,nome:'DION',ceu:0x9ec3e6,nevoa:1.3,niveis:'1-20'}      /* [dion] 20/11/2026: terreno (geodata L2) + casas/arvores do mapa 20_22; centro = praca */
 };
 window.__dbgA={scene:scene,camera:camera,renderer:renderer};/* debug */
 /* >>> CLAUDE [spots] 08/11/2026: spots de mobs dos mapas abertos (data/spots.json, gerado por tools/spots). Grupos por faixa de nivel (mais longe da entrada = mais forte),
@@ -9738,8 +9739,8 @@ try{PerfLog.init(renderer,scene,function(){var o={pg:'arena'};try{var st=Net.sta
 try{Chat.init({enviar:function(t,c){if(!Net.chat(t,c))Chat.sistema('Sem conexao com o servidor: a mensagem nao foi enviada.');}});}catch(_){}/* [chat] Enter abre; # = grupo */
 try{Loja.init({estado:lojaEstado,comprar:function(l,id,q){Net.loja('comprar',{loja:l,id:id,qtd:q});},vender:function(uid){Net.loja('vender',{uid:uid});},encantar:function(uid){Net.loja('encantar',{uid:uid});},arm:function(k,o){Net.arm(k,o);},desc:function(i){var b=baseOf(i.base),r=ITM.rarities[i.rar]||{};return {nome:b?b.name:i.base,cor:r.css,raridade:r.name};},usar:usarConsumivel,equip:function(id){var b=baseOf(id);if(!b||(b.weapon&&b.weapon!==WPN))return null;return {nome:b.name,slot:b.slot,grau:b.grau||'sem',tag:grauTag(b),stats:statTxt(b.stats),tipo:ITM.slots[b.slot],ico:window.InvUI?InvUI.icone(b,{tam:30}):''};}});}catch(_){}/* [loja] tecla H = pocao; [graus] equipamento a venda */
 try{Expedicao.init({pagina:'arena',mapa:MAPA_ABERTO,S:function(){return S;}});}catch(_){}/* [expedicao] tutorial ate o Nv 20 (js/expedicao.js) */
-setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Cruma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
-try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
+setTimeout(function(){try{Chat.sistema('Você entrou em: '+((function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'Arena PvP - Casa do Baium';if(/[?&]mode=duel/.test(q))return 'Casa do Baium';var m=/[?&]mapa=(fortress|blazing_swamp|curuma|dion)/.exec(q);if(m)return {fortress:'Fortaleza',blazing_swamp:'Pântano Flamejante',curuma:'Torre de Cruma'}[m[1]];if(/[?&]go=/.test(q))return 'Torre do Baium';return 'Santuário';})())+'.');}catch(_){}},2500);/* [chat] aviso de zona */
+try{Musica.init({lugar:function(){var q=location.search;if(/[?&]go=pvp/.test(q))return 'pvp';var m=/[?&]mapa=(fortress|blazing_swamp|curuma|dion)/.exec(q);if(m)return m[1];if(BOSS_ON&&!S.dead)return 'chefe';return 'torre';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 try{SomL2.ambiente('dungeon');}catch(_){}/* [ambiente-zonas] Torre do Baium e DGs: vento fundo, gotas, tremor ao longe */
 Net.init({
   suporte:suporteRecebe,alvoSuporte:alvoSuporte,/* [clerigo] fase 2 */
@@ -9766,7 +9767,7 @@ Net.init({
   onEntrou:function(m){if(m.mapa==='pvp'){S.px=m.eu.x;S.pz=m.eu.z;S.face=m.eu.f;if(DG.pvpTorre&&Torre.on)Torre.teleporta(S,m.eu.x,m.eu.z,3);S.vx=0;S.vz=0;S.anim=null;S.pdead=false;S.php=S.pmax;renderHud();}}
 });
 /* <<< CLAUDE [net] */
-if(!/[?&]go=pvp/.test(location.search))Net.entrar(MAPA_ABERTO?({curuma:'curuma',fortress:'fortress',blazing_swamp:'pantano'})[MAPA_ABERTO]:'masmorra');/* [mapas-multi] mapa aberto = canal compartilhado *//* [servidor] instancia solo da masmorra/duelo: o servidor guarda nivel e xp */
+if(!/[?&]go=pvp/.test(location.search))Net.entrar(MAPA_ABERTO?({curuma:'curuma',fortress:'fortress',blazing_swamp:'pantano',dion:'dion'})[MAPA_ABERTO]:'masmorra');/* [mapas-multi] mapa aberto = canal compartilhado *//* [servidor] instancia solo da masmorra/duelo: o servidor guarda nivel e xp */
 requestAnimationFrame(frame);
 })();
 
