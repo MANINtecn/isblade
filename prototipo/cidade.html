@@ -3527,8 +3527,10 @@ islandMesh.receiveShadow = true;
 
 scene.add(islandMesh);
 /* [mundo] 09/11/2026: terreno real de fora da muralha (mapa-mundi do Blender). A placa da cidade fica so dentro da muralha (fora dela afunda e some). */
-if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).then(function(){
-  if (window.PerfLog) PerfLog.marca('mundo_ok');      /* sem esta marca no log = terreno do mundo aberto NAO carregou (so a placa marrom da cidade aparece) */
+if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' || /[?&]terreno=simples/.test(location.search) }).then(function(){
+  if (window.PerfLog) PerfLog.marca('mundo_ok');
+  /* diagnostico (19/11): o terreno foi MANDADO para a placa? (conta os desenhos do three) e algum programa de shader acusou erro? Se desenhos > 0 e o chao some, e' a placa (Mali) que nao mostra o shader */
+  try { var _me = MundoCampo.mesh; if (_me) { _me.onAfterRender = function(){ _me.userData.n = (_me.userData.n | 0) + 1; }; setTimeout(function(){ var _pr = (renderer.info.programs || []).filter(function(p){ return p.diagnostics; }).length; if (window.PerfLog) PerfLog.marca('terreno_estado', { desenhos: _me.userData.n | 0, visivel: !!_me.visible, mat: _me.material && _me.material.type, progs_com_erro: _pr, tris: _me.geometry.index ? _me.geometry.index.count / 3 : 0 }); }, 8000); } } catch (_e) {}      /* sem esta marca no log = terreno do mundo aberto NAO carregou (so a placa marrom da cidade aparece) */
   var pa = islandGeo.attributes.position; for (var ii = 0; ii < pa.count; ii++) { if (Math.hypot(pa.getX(ii), pa.getZ(ii)) > 92) pa.setY(ii, pa.getY(ii) - 8); }
   pa.needsUpdate = true; islandGeo.computeVertexNormals();
   /* 13/11: silhuetas do horizonte voltam (no ponto real dos mapas; js/horizonte.js) */
