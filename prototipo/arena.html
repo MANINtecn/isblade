@@ -82,7 +82,7 @@ function returnToCity(){
     if(document.exitPointerLock) document.exitPointerLock();
   }catch(_){}
   if(window.L2Teleport){
-    window.L2Teleport.teleportTo('Vila de Talking Island', 'cidade.html');
+    window.L2Teleport.teleportTo('Dion', 'arena.html?mapa=dion');
     return;
   }
   try{
@@ -92,9 +92,9 @@ function returnToCity(){
       screen.style.opacity = '1';
       screen.style.pointerEvents = 'all';
       var status = document.getElementById('l2LoadingStatus');
-      if(status) status.textContent = 'Retornando à Vila de Talking Island...';
+      if(status) status.textContent = 'Retornando a Dion...';
       var title = document.getElementById('l2LoadingTitle');
-      if(title) title.textContent = 'TALKING ISLAND · VILA INICIAL';
+      if(title) title.textContent = 'DION';
       var bar = document.getElementById('l2LoadingBarFill');
       if(bar) bar.style.width = '100%';
       var pct = document.getElementById('l2LoadingPercent');
@@ -102,15 +102,15 @@ function returnToCity(){
     }
   }catch(_){}
   setTimeout(function(){
-    window.location.href = 'cidade.html';
+    window.location.href = 'arena.html?mapa=dion';
   }, 350);
 }
 window.returnToCity = returnToCity;
 document.addEventListener('click', function(e){
-  var a = e.target.closest && e.target.closest('a[href="cidade.html"]');
+  var a = e.target.closest && e.target.closest('a[href="arena.html?mapa=dion"]');
   if(a && window.L2Teleport){
     e.preventDefault();
-    window.L2Teleport.teleportTo('Vila de Talking Island', 'cidade.html');
+    window.L2Teleport.teleportTo('Dion', 'arena.html?mapa=dion');
   }
 });
 
@@ -639,7 +639,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 </div>
 
-<a href="cidade.html" id="cityBtn" class="ui" title="Sair do Duelo e Voltar para a Ilha de Talking" style="right:142px;top:12px;height:36px;padding:0 14px;line-height:36px;text-align:center;text-decoration:none;font-weight:800;font-size:11.5px;letter-spacing:.05em;color:var(--gold);background:var(--panel);border:1.5px solid var(--gold);border-radius:6px;pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 16px rgba(0,0,0,.85);z-index:90">🏰 Sair para a Vila</a>
+<a href="arena.html?mapa=dion" id="cityBtn" class="ui" title="Sair do Duelo e Voltar para Dion" style="right:142px;top:12px;height:36px;padding:0 14px;line-height:36px;text-align:center;text-decoration:none;font-weight:800;font-size:11.5px;letter-spacing:.05em;color:var(--gold);background:var(--panel);border:1.5px solid var(--gold);border-radius:6px;pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 16px rgba(0,0,0,.85);z-index:90">🏰 Sair para a Vila</a>
 
 <button id="cfgBtn" class="ui" title="Configuracoes (Esc solta o mouse)">&#9881;</button>
 
@@ -727,7 +727,7 @@ import * as THREE from './lib/vendor.js';
 window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [assets-web] troca a origem pela entrega (meshopt + WebP/KTX2); regras em REGRAS_ASSETS_WEB.md */
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 import { Guardiao } from './js/guardiao.js?v=28';
-import { Net } from './js/net.js?v=55';
+import { Net } from './js/net.js?v=56';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -5280,7 +5280,7 @@ function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo 
 }
 
 function resetDuel(){
-  if(MAPA_ABERTO){if(!S._morteEnv){S._morteEnv=1;try{Net.morte();}catch(_){}banner('VOCE MORREU','Voltando para Talking Island...','#ff4d6d');setTimeout(returnToCity,2200);}return;}/* [morte-l2] 08/11/2026: mapa aberto = perde um pouco de XP (servidor) e volta para a cidade; na DG continua recomecando a sala */
+  if(MAPA_ABERTO){if(!S._morteEnv){S._morteEnv=1;try{Net.morte();}catch(_){}banner('VOCE MORREU','Voltando para Dion...','#ff4d6d');setTimeout(returnToCity,2200);}return;}/* [morte-l2] 08/11/2026: mapa aberto = perde um pouco de XP (servidor) e volta para a cidade; na DG continua recomecando a sala */
   if(DG.cleared){
     if(!DG.on) returnToCity();
     else sairDg();
@@ -6439,7 +6439,7 @@ function dgHub(){
 
   var dif=$('#diff');if(dif)dif.classList.remove('open');
 
-  banner('SANTUARIO','Portal Norte: Masmorra  |  Portal Sul: Talking Island','#e8f0ff');
+  banner('SANTUARIO','Portal Norte: Masmorra  |  Portal Sul: Dion','#e8f0ff');
 
   renderHud();
 
@@ -6798,7 +6798,7 @@ function updatePortal(dt){
         if(DG.portalLabel === 'enter'){
           pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse para <b>Escolher Dificuldade da Masmorra</b>';
         } else if(DG.portalLabel === 'exit'){
-          pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar à Talking Island</b>';
+          pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar a Dion</b>';
         } else {
           pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para a <b>Próxima Sala</b>';
         }
@@ -6819,7 +6819,7 @@ function updatePortal(dt){
       nearSomething = true;
       if(pPrompt){
         pPrompt.style.display = 'block';
-        pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar à Cidade de Talking Island</b>';
+        pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar a Dion</b>';
       }
     }
   }
@@ -6838,7 +6838,7 @@ function renderHud(){
 
     $('#ehpfill').style.width='0%';
 
-    $('#ehptxt').textContent='Santuario  -  Portal Norte: Masmorra | Portal Sul: Talking Island';
+    $('#ehptxt').textContent='Santuario  -  Portal Norte: Masmorra | Portal Sul: Dion';
     var bCity = document.getElementById('btnReturnCity');
     if(bCity) bCity.style.display = 'block';
 
@@ -7012,7 +7012,7 @@ window.usarConsumivel = usarConsumivel;/* [barra-l2] a barra de atalhos (l2_hud.
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
   if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');if(!som('pocao'))try{SFX.play('ui');}catch(_){}renderHud();}
-  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
+  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Dion...','#9fd8ff');setTimeout(function(){location.href='arena.html?mapa=dion';},1200);}
 }
 function som(n){try{return !!(window.SomL2&&SomL2.ui(n));}catch(_){return false;}}/* [sons-l2] som de interface do L2 (js/sons_l2.js); false = usa o som antigo */
 function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario chega junto) */
@@ -9616,7 +9616,7 @@ var MAPAS_ABERTOS={
   fortress:{pasta:'fortress',glb:'fortress.glb',grid:'fortress_walkgrid',spawn:[0,27,3.5],chao_min:-36.4,nome:'FORTALEZA',ceu:0xa9bccd,nevoa:1.0,niveis:'15-30'},
   blazing_swamp:{pasta:'blazing_swamp',glb:'blazing_swamp.glb',grid:'blazing_swamp_walkgrid',spawn:[14.9,-43.9,3.7],chao_min:-30.8,nome:'PANTANO FLAMEJANTE',ceu:0x8a6a62,nevoa:.62,luzCeu:0xffd7c0,luzChao:0x4a2a20,sol:0xffa060,niveis:'30-45'},
   curuma:{pasta:'curuma',glb:'curuma.glb',grid:'curuma_walkgrid',spawn:[-50,12,-195],chao_min:-222.9,nome:'TORRE DE CRUMA',ceu:0x9fbdd3,nevoa:1.15,niveis:'1-15'},
-  dion:{pasta:'dion',glb:'dion.glb',grid:'dion_walkgrid',spawn:[0,3,-23.1],chao_min:-110,nome:'DION',ceu:0x9ec3e6,nevoa:1.3,niveis:'1-20'}      /* [dion] 20/11/2026: terreno (geodata L2) + casas/arvores do mapa 20_22; centro = praca */
+  dion:{pasta:'dion',glb:'dion.glb',grid:'dion_walkgrid',spawn:[0,3,-23.1],chao_min:-110,nome:'DION',ceu:0x9ec3e6,nevoa:1.3,fogIni:70,fogFim:230,niveis:'1-20'}      /* [dion] 20/11/2026: terreno (geodata L2) + casas/arvores do mapa 20_22; centro = praca */
 };
 window.__dbgA={scene:scene,camera:camera,renderer:renderer};/* debug */
 /* >>> CLAUDE [spots] 08/11/2026: spots de mobs dos mapas abertos (data/spots.json, gerado por tools/spots). Grupos por faixa de nivel (mais longe da entrada = mais forte),
@@ -9665,7 +9665,8 @@ function mapaAbertoStart(){
   Torre.ativar(S,1);
   /* luz e ceu de dia (o arena e noturno); cada mapa com seu clima */
   var cor=C.ceu||0x9ab8d0;scene.background=new THREE.Color(cor);if(scene.fog)scene.fog.color.set(cor);
-  if(scene.fog&&C.nevoa){scene.fog.near=QUAL.nevoa[0]*C.nevoa;scene.fog.far=Math.min(camera.far*.98,QUAL.nevoa[1]*C.nevoa);}/* [nevoa] por zona: pantano fechado, curuma mais limpa */
+  if(C.fogFim){/* [dion] neblina propria: esconde a borda do mapa e o que o celular nao precisa desenhar */if(!scene.fog)scene.fog=new THREE.Fog(cor,C.fogIni,C.fogFim);scene.fog.color.set(cor);var _kf=QUAL.nivel==='baixa'?.62:1;scene.fog.near=C.fogIni*_kf;scene.fog.far=C.fogFim*_kf;camera.far=C.fogFim*_kf+30;camera.updateProjectionMatrix();}
+  if(scene.fog&&C.nevoa&&!C.fogFim){scene.fog.near=QUAL.nevoa[0]*C.nevoa;scene.fog.far=Math.min(camera.far*.98,QUAL.nevoa[1]*C.nevoa);}/* [nevoa] por zona: pantano fechado, curuma mais limpa */
   var _hl=new THREE.HemisphereLight(C.luzCeu||0xdfe8ff,C.luzChao||0x6a5f50,C.luzInt||1.7);scene.add(_hl);
   var _dl=new THREE.DirectionalLight(C.sol||0xfff2dd,C.solInt||1.6);_dl.position.set(120,200,80);scene.add(_dl);
   try{CeuL2.init(THREE,scene,camera);CeuL2.automatico(scene,{corDia:cor,luzes:[{luz:_hl,int:C.luzInt||1.7},{luz:_dl,int:C.solInt||1.6,sol:1},{luz:key,int:key.intensity}]});}catch(e){console.warn('ceu',e);}/* [ceu] dia/noite (mesma hora da cidade) */

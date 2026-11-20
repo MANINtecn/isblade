@@ -134,7 +134,7 @@ const temKarma = J => ((J.pers && J.pers.karma) | 0) > 0, temFlag = (J, t) => (J
 const estadoPk = (J, t) => temKarma(J) ? 2 : (temFlag(J, t) ? 1 : 0);
 /* [pagina-unica] o canal da cidade tem o mundo aberto inteiro: dentro da muralha (raio 96 m) e zona segura (so duelo); fora vale a regra dos mapas abertos */
 const FORA_MURALHA = 96;
-const abertoAqui = (c, J) => !!MAPAS[c.mapa].aberto || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA);
+const abertoAqui = (c, J) => (!!MAPAS[c.mapa].aberto && c.mapa !== 'dion') || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA);
 const emDuelo = (A, V, t) => { const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim); };
 /* [clerigo] quem pode receber cura/buff (como no L2: qualquer jogador; na arena PvP so o proprio grupo; nunca o adversario do duelo). Ajudar quem esta em PvP flaga (ajudaFlag). */
 const aliadoDe = (c, A, V, t) => V === A || (A.team && V.team ? A.team === V.team : (c.mapa === 'pvp' ? !!(A.party && A.party === V.party) : !emDuelo(A, V, t)));
@@ -228,7 +228,7 @@ function fere(c, A, V, base, t, pid, tipo){
   if((A.preceAte || 0) > t) dano = Math.round(dano * (1 + (A.preceAtk || 0)));                  /* [clerigo] Prece: +ataque */
   if((V.preceAte || 0) > t) dano = Math.max(1, Math.round(dano / (1 + (V.preceDef || 0))));      /* [clerigo] Prece: +defesa */
   if(V.escudo && V.escudo.ate > t && V.escudo.hp > 0){ const ab = Math.min(V.escudo.hp, dano); V.escudo.hp -= ab; dano -= ab; difunde(c, { t: 'sup', k: 'escudo', v: V.id, hp: V.escudo.hp, max: V.escudo.max }); if(V.escudo.hp <= 0) V.escudo = null; }      /* [clerigo] Escudo Astral absorve */
-  const duelo = c.mapa === 'cidade' && emDuelo(A, V, t), aberto = !duelo && abertoAqui(c, A) && abertoAqui(c, V), inocente = aberto && !temKarma(V) && !temFlag(V, t);
+  const duelo = (c.mapa === 'cidade' || c.mapa === 'dion') && emDuelo(A, V, t), aberto = !duelo && abertoAqui(c, A) && abertoAqui(c, V), inocente = aberto && !temKarma(V) && !temFlag(V, t);
   if(aberto && !temKarma(V)) A.flagAte = t + FLAG_S;                 /* [pk] bateu em quem nao e PK: fica roxo */
   V.hp = Math.max(duelo ? 1 : 0, V.hp - dano); V.pvpHitT = t;                    /* duelo nao mata: o ultimo golpe so decide o vencedor */
   if(V.isBot) V.atacante = A.id;                                                  /* [fakes] bot revida quem o atacou */
@@ -629,10 +629,10 @@ wss.on('connection', ws => {
       else if(txt && m.c === 'c'){ const C = Clas.de(J.pers); if(!C) envia(J, { t: 'chat', n: 'Sistema', m: 'Você não está em um clã.', c: 's' }); else for(const o of membrosOnline(C)) envia(o, { t: 'chat', n: J.nome, m: txt, c: 'c' }); }      /* [cla] chat do cla (@) */
       else if(txt) difunde(c, { t: 'chat', n: J.nome, m: txt, team: J.team }); } }
     else if(m.t === 'ping') envia(J, { t: 'pong', c: m.c });
-    else if(m.t === 'duel' && c.mapa === 'cidade' && !J.duelo){                          /* desafia outro jogador (precisa estar perto) */
+    else if(m.t === 'duel' && (c.mapa === 'cidade' || c.mapa === 'dion') && !J.duelo){                          /* desafia outro jogador (precisa estar perto) */
       const V = c.jog.get(m.to | 0); if(!V || V === J || V.duelo || Math.hypot(V.x - J.x, V.z - J.z) > 20) return;
       V.pedidoDe = J.id; V.pedidoT = agora() + DUELO_PEDIDO_S; envia(V, { t: 'duelreq', de: J.id, nome: J.nome }); envia(J, { t: 'duelsent', para: V.id, nome: V.nome });
-    } else if(m.t === 'duelok' && c.mapa === 'cidade' && !J.duelo){
+    } else if(m.t === 'duelok' && (c.mapa === 'cidade' || c.mapa === 'dion') && !J.duelo){
       const A = c.jog.get(J.pedidoDe | 0); J.pedidoDe = 0; if(!A || A.duelo || agora() > J.pedidoT) return; const ini = agora() + DUELO_CONTAGEM;
       A.duelo = { com: J.id, inicio: ini, fim: 0, reset: 0 }; J.duelo = { com: A.id, inicio: ini, fim: 0, reset: 0 }; A.hp = A.pmax; J.hp = J.pmax;
       difunde(c, { t: 'duelstart', a: A.id, b: J.id, na: A.nome, nb: J.nome, seg: DUELO_CONTAGEM });

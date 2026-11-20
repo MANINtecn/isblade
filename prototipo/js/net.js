@@ -54,7 +54,7 @@ export const Net = (function(){
   window.addEventListener('keyup', function(e){ if(e.key === 'Control') ctrlPk = false; });
   window.addEventListener('blur', function(){ ctrlPk = false; });
   function pkBotao(){
-    var mostra = N.on && !!ABERTOS[N.mapa];
+    var mostra = N.on && !!ABERTOS[N.mapa] && N.mapa !== 'dion';       /* Dion e cidade de paz: so duelo */
     if(!pkBtn && mostra){
       pkBtn = document.createElement('button'); pkBtn.type = 'button'; pkBtn.id = 'pkBtn';
       pkBtn.style.cssText = 'position:fixed;right:12px;bottom:92px;z-index:61;pointer-events:auto;font:800 12px system-ui,sans-serif;letter-spacing:.08em;padding:7px 12px;border-radius:6px;cursor:pointer';
@@ -80,7 +80,7 @@ export const Net = (function(){
     if(!N.on){ hudEl.textContent = N.tentando ? 'Conectando...' : ''; return; }
     var nome = N.mapa === 'pvp' ? 'Arena PvP' : (N.mapa === 'masmorra' ? 'Masmorra (instância sua)' : ({ curuma: 'Torre de Cruma', fortress: 'Fortaleza', pantano: 'Pântano Flamejante', dion: 'Dion' })[N.mapa] || 'Cidade'), t = N.eu && N.eu.team ? ' · Time ' + (N.eu.team === 'A' ? 'Azul' : 'Vermelho') : '';
     var duelo = N.duelo ? '<br><span style="color:#ffd166">Duelo com ' + N.duelo.nome + (N.duelo.seg > 0 ? ' em ' + Math.ceil(N.duelo.seg) + '...' : '  (H desiste)') + '</span>' : '';
-    if(N.mapa === 'masmorra'){ hudEl.innerHTML = ''; return; } var ajuda = N.mapa === 'cidade' && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
+    if(N.mapa === 'masmorra'){ hudEl.innerHTML = ''; return; } var ajuda = (N.mapa === 'cidade' || N.mapa === 'dion') && !N.duelo ? '<br><span style="opacity:.65">J desafia para duelo</span>' : '';
     var pk = N.pkSt === 2 ? '<br><span style="color:#ff3b3b">PK · karma ' + N.karma + '</span>' : (N.pkSt === 1 ? '<br><span style="color:#a77bff">Em combate PvP (nome roxo)</span>' : '');
     hudEl.innerHTML = nome + ' · canal ' + N.canal + ' · ' + (remotos.size + 1) + ' online' + t + duelo + ajuda + pk; pkBotao();
   }
@@ -836,7 +836,7 @@ export const Net = (function(){
       if(k === 'tab'){ ev.preventDefault(); if(N.on) selecionaMaisPerto(); return; }      /* Tab: o T e skill (slot 4) */
       if(k === 'p' || k === 'x'){ alterna(); return; } if(k === 'escape' && menuAberto){ alterna(false); return; } if(k === 'escape' && N.alvo){ selecionar(0); return; }
       if(!N.on) return;
-      if(k === 'j' && N.mapa === 'cidade' && !N.duelo){ var al = maisProximo(20); if(al) send({ t: 'duel', to: al.id }); else ctx.sysMsg('Ninguem por perto para desafiar (ate 20 m)'); }
+      if(k === 'j' && (N.mapa === 'cidade' || N.mapa === 'dion') && !N.duelo){ var al = maisProximo(20); if(al) send({ t: 'duel', to: al.id }); else ctx.sysMsg('Ninguem por perto para desafiar (ate 20 m)'); }
       else if(k === 'u'){ var tp = (pedGrupo && Date.now() < pedGrupo.ate && (!pedDuelo || pedGrupo.ate >= pedDuelo.ate)) ? 'grupo' : ((pedDuelo && Date.now() < pedDuelo.ate) ? 'duelo' : ''); if(tp) aceitar(tp); }
       else if(k === 'n'){ var tn = (pedGrupo && Date.now() < pedGrupo.ate && (!pedDuelo || pedGrupo.ate >= pedDuelo.ate)) ? 'grupo' : ((pedDuelo && Date.now() < pedDuelo.ate) ? 'duelo' : ''); if(tn) recusar(tn); }
       else if(k === 'h' && N.duelo) send({ t: 'dueldesiste' });

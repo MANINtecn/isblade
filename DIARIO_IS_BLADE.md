@@ -5155,3 +5155,12 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Integrado em `arena.html?mapa=dion` (MAPAS_ABERTOS), servidor (canal `dion`, sem mobs ainda), `net.js` v55, musica `nt_dion.ogg`.
 - Bug achado: o spawn [0,0,0.3] caia numa celula bloqueada (poste) e a altura real da praca e' ~ -23 m (nao 0); jogador nao andava. Spawn agora [0,3,-23.1], chao_min -110. Teste Playwright: anda com W, casas/arvores/muros renderizam.
 - Falta: 2 requisicoes 404 no console (identificar), caminhos de pedra, portas, sons por zona, limite do mundo (serra/agua/neblina/aviso), otimizar para celular (KTX2/meshopt/LOD/chunks), mobs, entrada pelo hub.
+
+### [Claude] 20/11 - Dion: celular, neblina e cidade de paz
+- `tools/assets_web/dividir_glb.mjs`: reparte cada primitiva do mapa em celulas de 110 m (845 -> 1732 pecas) para o motor so desenhar o que esta no campo de visao. `otimizar.mjs` gerou `assets_web/maps/dion` (KTX2 + meshopt: 55 -> 24 MB). Medido no jogo (Playwright/SwiftShader): media 469 chamadas / 208 mil tri; baixa 341 / 156 mil. Ainda alto para celular fraco: proximo passo e atlas das texturas de UV 0-1 (393 pecas) para baixar as chamadas.
+- Limite do mundo so com neblina (sem serra/agua): `fogIni/fogFim` na entrada `dion` de MAPAS_ABERTOS (70-230 m; na qualidade baixa x0,62) e camera.far = fim+30. A neblina tem a cor do ceu, entao a borda do tile some na neblina.
+- Cidade de paz com duelo: servidor trata `dion` como `cidade` (so duelo combinado, sem PK; `abertoAqui` falso); cliente: tecla J desafia em Dion e o botao PK nao aparece. net.js v56.
+- 404 do console = `favicon.ico` (inofensivo).
+- Portas: no L2 as portas de casa de Dion sao cenario fixo (so os portoes do castelo abrem, por cerco), entao ficam como estao.
+- Hub: `selecao.html` ainda entra em `cidade.html` (Talking Island, com NPCs/lojas). Trocar para Dion exige decidir o destino dos NPCs (pendente).
+- [Claude] 20/11 - Entrada em Dion: `selecao.html` agora abre `arena.html?mapa=dion` (hub). Em arena.html, morte, botao/portal "voltar" e pergaminho levam a Dion (antes Talking Island/cidade.html). `cidade.html` continua no repo mas fora do fluxo; NPCs/lojas/gatekeeper dela ainda nao existem em Dion (a portar depois).
