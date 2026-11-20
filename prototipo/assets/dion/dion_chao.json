@@ -1,0 +1,23 @@
+{
+ "tile": [
+  20,
+  22
+ ],
+ "origem_uu": [
+  16169.0,
+  146880.0,
+  -1966.0
+ ],
+ "escala_uu_por_unidade": 50,
+ "cantos_uu": [
+  0,
+  131072,
+  32768,
+  163840
+ ],
+ "grade": 257,
+ "passo_celulas": 8,
+ "altura_min_m": -45.715293884277344,
+ "altura_max_m": 7.639999866485596,
+ "nota": "jogo: X=(ux-OX)/50, Y=(uz-OZ)/50, Z=(uy-OY)/50"
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-br"><head><meta charset="utf-8"><title>Dion (visualizador)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html,body{margin:0;height:100%;background:#0b0f18;overflow:hidden;font:12px system-ui;color:#cfe}#i{position:fixed;left:10px;top:8px;opacity:.85}</style></head><body>
+<div id="i">Dion (geodata real do L2) &middot; arraste = girar &middot; roda = zoom &middot; <span id="s">carregando...</span></div>
+<script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script>
+<script>
+var Q = new URLSearchParams(location.search);
+var R = new THREE.WebGLRenderer({ antialias: true }); R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.setSize(innerWidth, innerHeight); R.outputEncoding = THREE.sRGBEncoding; document.body.appendChild(R.domElement);
+var S = new THREE.Scene(); S.background = new THREE.Color(0x9ec3e6); S.fog = new THREE.Fog(0x9ec3e6, 400, 1800);
+var C = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, .5, 4000);
+S.add(new THREE.HemisphereLight(0xdfe8ff, 0x7a6a50, 1.1)); var L = new THREE.DirectionalLight(0xfff2dd, 1.4); L.position.set(-200, 300, -120); S.add(L);
+var tgt = new THREE.Vector3(0, 0, 0), az = +Q.get('az') || 0.8, el = +Q.get('el') || 0.9, dist = +Q.get('d') || 700;
+if (Q.get('x')) tgt.set(+Q.get('x'), +Q.get('y') || 0, +Q.get('z') || 0);
+new THREE.GLTFLoader().load('assets/dion/dion_chao.glb', function (g) {
+  g.scene.traverse(function (o) { if (o.isMesh) { o.material.side = THREE.DoubleSide; } }); S.add(g.scene);
+  var cam = null; document.getElementById('s').textContent = 'pronto'; window.__ok = 1;
+}, undefined, function (e) { document.getElementById('s').textContent = 'ERRO ' + e; window.__ok = -1; });
+var drag = false, px = 0, py = 0;
+addEventListener('pointerdown', function (e) { drag = true; px = e.clientX; py = e.clientY; }); addEventListener('pointerup', function () { drag = false; });
+addEventListener('pointermove', function (e) { if (!drag) return; az -= (e.clientX - px) * .008; el = Math.max(.05, Math.min(1.5, el + (e.clientY - py) * .008)); px = e.clientX; py = e.clientY; });
+addEventListener('wheel', function (e) { dist = Math.max(10, Math.min(1500, dist * (e.deltaY > 0 ? 1.1 : .9))); });
+addEventListener('resize', function () { R.setSize(innerWidth, innerHeight); C.aspect = innerWidth / innerHeight; C.updateProjectionMatrix(); });
+(function loop() { requestAnimationFrame(loop); if (!drag && !window.__still && !Q.get('quieto')) az += .002;
+  C.position.set(tgt.x + Math.sin(az) * Math.cos(el) * dist, tgt.y + Math.sin(el) * dist, tgt.z + Math.cos(az) * Math.cos(el) * dist); C.lookAt(tgt); R.render(S, C); })();
+</script></body></html>
