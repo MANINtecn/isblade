@@ -82,7 +82,7 @@ function returnToCity(){
     if(document.exitPointerLock) document.exitPointerLock();
   }catch(_){}
   if(window.L2Teleport){
-    window.L2Teleport.teleportTo('Dion', 'arena.html?mapa=dion');
+    window.L2Teleport.teleportTo('Vila de Talking Island', 'cidade.html');
     return;
   }
   try{
@@ -92,9 +92,9 @@ function returnToCity(){
       screen.style.opacity = '1';
       screen.style.pointerEvents = 'all';
       var status = document.getElementById('l2LoadingStatus');
-      if(status) status.textContent = 'Retornando a Dion...';
+      if(status) status.textContent = 'Retornando à Vila de Talking Island...';
       var title = document.getElementById('l2LoadingTitle');
-      if(title) title.textContent = 'DION';
+      if(title) title.textContent = 'TALKING ISLAND · VILA INICIAL';
       var bar = document.getElementById('l2LoadingBarFill');
       if(bar) bar.style.width = '100%';
       var pct = document.getElementById('l2LoadingPercent');
@@ -102,15 +102,15 @@ function returnToCity(){
     }
   }catch(_){}
   setTimeout(function(){
-    window.location.href = 'arena.html?mapa=dion';
+    window.location.href = 'cidade.html';
   }, 350);
 }
 window.returnToCity = returnToCity;
 document.addEventListener('click', function(e){
-  var a = e.target.closest && e.target.closest('a[href="arena.html?mapa=dion"]');
+  var a = e.target.closest && e.target.closest('a[href="cidade.html"]');
   if(a && window.L2Teleport){
     e.preventDefault();
-    window.L2Teleport.teleportTo('Dion', 'arena.html?mapa=dion');
+    window.L2Teleport.teleportTo('Vila de Talking Island', 'cidade.html');
   }
 });
 
@@ -639,7 +639,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 </div>
 
-<a href="arena.html?mapa=dion" id="cityBtn" class="ui" title="Sair do Duelo e Voltar para Dion" style="right:142px;top:12px;height:36px;padding:0 14px;line-height:36px;text-align:center;text-decoration:none;font-weight:800;font-size:11.5px;letter-spacing:.05em;color:var(--gold);background:var(--panel);border:1.5px solid var(--gold);border-radius:6px;pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 16px rgba(0,0,0,.85);z-index:90">🏰 Sair para a Vila</a>
+<a href="cidade.html" id="cityBtn" class="ui" title="Sair do Duelo e Voltar para a Ilha de Talking" style="right:142px;top:12px;height:36px;padding:0 14px;line-height:36px;text-align:center;text-decoration:none;font-weight:800;font-size:11.5px;letter-spacing:.05em;color:var(--gold);background:var(--panel);border:1.5px solid var(--gold);border-radius:6px;pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 16px rgba(0,0,0,.85);z-index:90">🏰 Sair para a Vila</a>
 
 <button id="cfgBtn" class="ui" title="Configuracoes (Esc solta o mouse)">&#9881;</button>
 
@@ -5280,7 +5280,7 @@ function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo 
 }
 
 function resetDuel(){
-  if(MAPA_ABERTO){if(!S._morteEnv){S._morteEnv=1;try{Net.morte();}catch(_){}banner('VOCE MORREU','Voltando para Dion...','#ff4d6d');setTimeout(returnToCity,2200);}return;}/* [morte-l2] 08/11/2026: mapa aberto = perde um pouco de XP (servidor) e volta para a cidade; na DG continua recomecando a sala */
+  if(MAPA_ABERTO){if(!S._morteEnv){S._morteEnv=1;try{Net.morte();}catch(_){}banner('VOCE MORREU','Voltando para Talking Island...','#ff4d6d');setTimeout(returnToCity,2200);}return;}/* [morte-l2] 08/11/2026: mapa aberto = perde um pouco de XP (servidor) e volta para a cidade; na DG continua recomecando a sala */
   if(DG.cleared){
     if(!DG.on) returnToCity();
     else sairDg();
@@ -6439,7 +6439,7 @@ function dgHub(){
 
   var dif=$('#diff');if(dif)dif.classList.remove('open');
 
-  banner('SANTUARIO','Portal Norte: Masmorra  |  Portal Sul: Dion','#e8f0ff');
+  banner('SANTUARIO','Portal Norte: Masmorra  |  Portal Sul: Talking Island','#e8f0ff');
 
   renderHud();
 
@@ -6798,7 +6798,7 @@ function updatePortal(dt){
         if(DG.portalLabel === 'enter'){
           pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse para <b>Escolher Dificuldade da Masmorra</b>';
         } else if(DG.portalLabel === 'exit'){
-          pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar a Dion</b>';
+          pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar à Talking Island</b>';
         } else {
           pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para a <b>Próxima Sala</b>';
         }
@@ -6819,7 +6819,7 @@ function updatePortal(dt){
       nearSomething = true;
       if(pPrompt){
         pPrompt.style.display = 'block';
-        pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar a Dion</b>';
+        pPrompt.innerHTML = 'Pressione <b>[E]</b> ou atravesse o portal para <b>Retornar à Talking Island</b>';
       }
     }
   }
@@ -6838,7 +6838,7 @@ function renderHud(){
 
     $('#ehpfill').style.width='0%';
 
-    $('#ehptxt').textContent='Santuario  -  Portal Norte: Masmorra | Portal Sul: Dion';
+    $('#ehptxt').textContent='Santuario  -  Portal Norte: Masmorra | Portal Sul: Talking Island';
     var bCity = document.getElementById('btnReturnCity');
     if(bCity) bCity.style.display = 'block';
 
@@ -7012,7 +7012,7 @@ window.usarConsumivel = usarConsumivel;/* [barra-l2] a barra de atalhos (l2_hud.
 function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
   if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');if(!som('pocao'))try{SFX.play('ui');}catch(_){}renderHud();}
-  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Dion...','#9fd8ff');setTimeout(function(){location.href='arena.html?mapa=dion';},1200);}
+  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
 }
 function som(n){try{return !!(window.SomL2&&SomL2.ui(n));}catch(_){return false;}}/* [sons-l2] som de interface do L2 (js/sons_l2.js); false = usa o som antigo */
 function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario chega junto) */

@@ -801,7 +801,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/moradores.js?v=2"></script>
 <script src="js/solo_detalhe.js?v=2"></script>
 <script src="js/mundo_campo.js?v=6"></script>
-<script src="js/mapa_vivo.js?v=16"></script>
+<script src="js/mapa_vivo.js?v=19"></script>
 <script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
@@ -3277,7 +3277,7 @@ function getGroundHeight(x, z, yh) {
 
 
   var dist = Math.hypot(x, z);
-  if (dist > 92 && window.MundoCampo && MundoCampo.pronto) { var hm = MundoCampo.altura(x, z); if (window.MapaVivo && MapaVivo.on) { var hv = MapaVivo.chao(x, z, yh !== undefined ? yh : (hm !== null ? hm : undefined)); if (hv !== null) return hv; }/* [pagina-unica] chao do mapa (Cruma, Fortaleza, Pantano) */ if (hm !== null) return hm; }/* [mundo] fora da muralha: terreno do mapa-mundi (js/mundo_campo.js) */
+  if (dist > 92 && window.MundoCampo && MundoCampo.pronto) { var hm = MundoCampo.altura(x, z); if (window.MapaVivo && MapaVivo.on) { var hv = MapaVivo.chao(x, z, yh !== undefined ? yh : (hm !== null ? hm : ((typeof S !== 'undefined' && S && typeof S.py === 'number') ? S.py : undefined)));      /* [dion] fora da grade do mundo nao ha terreno de dica: usa a altura do proprio jogador */ if (hv !== null) return hv; }/* [pagina-unica] chao do mapa (Cruma, Fortaleza, Pantano) */ if (hm !== null) return hm; }/* [mundo] fora da muralha: terreno do mapa-mundi (js/mundo_campo.js) */
 
 
 
@@ -3539,7 +3539,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   if (/[?&]malha=1/.test(location.search)) MundoCampo.verMalha(true);/* [malha] */
   if (window.Lagos) Lagos.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).catch(function(e){ console.warn('lagos', e); });/* [lagos] bacias fechadas do terreno, com agua propria (nao e o mar) */
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
-  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer, preparar: prepShaders })) { var _lc = /[?&]local=(curuma|fortress|pantano)/.exec(location.search), _sp = _lc && MapaVivo.spawn(_lc[1]); if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
+  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer, preparar: prepShaders })) { var _lc = /[?&]local=(curuma|fortress|pantano|dion)/.exec(location.search) || (/[?&]talking=1/.test(location.search) ? null : [0, 'dion']), _sp = _lc && MapaVivo.spawn(_lc[1]);      /* [dion] 21/11: sem ?local= o jogo comeca em Dion (a vila de Talking Island so com ?talking=1) */ if (_sp && _lc[1] === 'dion') { window.__DION_ESPERA = true; MapaVivo.precarrega('dion'); var _wd = setInterval(function () { if (MapaVivo.pronto('dion') || performance.now() > 90000) { clearInterval(_wd); S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; S.vx = 0; S.vz = 0; MUNDO_ULT = [S.px, S.pz]; window.__DION_PRONTO = true; } }, 150); } else if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); if (window.PerfLog) PerfLog.marca('mundo_falhou', { m: String(e && e.message || e).slice(0, 120) }); });
 
@@ -18367,7 +18367,7 @@ Net.init({
   onEntrou:function(m){if(m.mapa==='pvp'){S.px=m.eu.x;S.pz=m.eu.z;S.face=m.eu.f;S.vx=0;S.vz=0;S.anim=null;S.pdead=false;S.php=S.pmax;renderHud();}}
 });
 /* <<< CLAUDE [net] */
-(function(){var t0=Date.now();if(!/[?&]local=/.test(location.search)){Net.entrar('cidade');return;}var w=setInterval(function(){if(MUNDO_ABERTO||Date.now()-t0>30000){clearInterval(w);Net.entrar('cidade');}},200);})();/* [pagina-unica] ?local=: entra no servidor ja na entrada do mapa (o servidor limita a velocidade: teleporte depois nao vale) */
+(function(){var t0=Date.now();if(/[?&]talking=1/.test(location.search)){Net.entrar('cidade');return;}var w=setInterval(function(){if((MUNDO_ABERTO&&(!window.__DION_ESPERA||window.__DION_PRONTO))||Date.now()-t0>100000){clearInterval(w);Net.entrar('cidade');}},200);})();/* [pagina-unica] ?local=: entra no servidor ja na entrada do mapa (o servidor limita a velocidade: teleporte depois nao vale) */
 requestAnimationFrame(frame);
 
 })();

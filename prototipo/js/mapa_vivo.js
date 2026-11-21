@@ -10,6 +10,7 @@ window.MapaVivo = (function(){
   var CFG = V.CFG = {
     curuma:   { pasta: 'curuma',        glb: 'curuma.glb',        grid: 'curuma_walkgrid',        chaoMin: -222.9, nome: 'Torre de Cruma',     niveis: '1-15',  spawn: [-50, 12, -195], regiao: 1 },
     fortress: { pasta: 'fortress',      glb: 'fortress.glb',      grid: 'fortress_walkgrid',      chaoMin: -36.4,  nome: 'Fortaleza',          niveis: '15-30', spawn: [0, 27, 3.5],    regiao: 2 },
+    dion:     { pasta: 'dion',          glb: 'dion.glb',          grid: 'dion_walkgrid',          chaoMin: -110,   nome: 'Dion',               niveis: 'Cidade', spawn: [36, -21, -22.7], regiao: 9, fixo: { pos: [1500, 0, 0], rotY: 0, x0: -323, x1: 332, z0: -316, z1: 339 } },      /* [dion] 21/11/2026: cidade-base (substitui Talking Island); fora da grade do mundo, em x ~1500 */
     pantano:  { pasta: 'blazing_swamp', glb: 'blazing_swamp.glb', grid: 'blazing_swamp_walkgrid', chaoMin: -30.8,  nome: 'Pantano Flamejante', niveis: '30-45', spawn: [14.9, -43.9, 3.7], regiao: 3 }
   };
   var ALTURA = 2.0, RAIO = .5, PASSO = 1.04;
@@ -195,12 +196,14 @@ window.MapaVivo = (function(){
   V.init = function(T, sc, o){
     THREE = T; scene = sc; opt = o || {}; var D = window.MundoCampo && MundoCampo.dados; if(!D || !D.mapas) return false;
     Object.keys(CFG).forEach(function(id){
-      var P = D.mapas[id]; if(!P) return; var C = CFG[id];
+      var C = CFG[id], P = D.mapas[id] || (C.fixo && { pos: C.fixo.pos, rotY: C.fixo.rotY }); if(!P) return;
       var M = V.mapas[id] = { id: id, C: C, estado: 0, tok: 0, pts: [], dReg: 1e9, X: { x: P.pos[0], y: P.pos[1], z: P.pos[2], r: P.rotY, c: Math.cos(P.rotY), s: Math.sin(P.rotY) } };
       M.centro = mundo(M, C.spawn[0], C.spawn[1]);
     });
     /* pontos de amostra da regiao de cada mapa (a cada 12 m) para medir a distancia ate a borda dela */
     var porReg = {}; for(var id in CFG) porReg[CFG[id].regiao] = id;
+    Object.keys(CFG).forEach(function(id){ var C = CFG[id], M = V.mapas[id]; if(!C.fixo || !M) return;      /* mapa fora da grade do mundo: pontos de amostra = o proprio retangulo dele */
+      for(var lx = C.fixo.x0; lx <= C.fixo.x1; lx += 12) for(var lz = C.fixo.z0; lz <= C.fixo.z1; lz += 12){ var w = mundo(M, lx, lz); M.pts.push(w[0], w[1]); } });
     for(var x = D.x0; x < D.x0 + D.nx * D.passo; x += 12) for(var z = D.z0; z < D.z0 + D.nz * D.passo; z += 12){ var r = MundoCampo.regiao(x, z); if(r >= 1 && r <= 3 && V.mapas[porReg[r]]) V.mapas[porReg[r]].pts.push(x, z); }
     V.on = true; return true;
   };
@@ -210,6 +213,7 @@ window.MapaVivo = (function(){
     if(!V.on) return; V.px = x; V.pz = z;
     var pre = opt.baixa ? 300 : 450, perto = opt.baixa ? 130 : 200, longe = perto + 160, now = performance.now(), fora = Math.hypot(x, z) > 90, ocupado = false, id;
     if(now - tReg > 400){ tReg = now;
+      for(id in V.mapas){ var Mm = V.mapas[id]; if(Mm.mantem && Mm.dReg < 60) Mm.mantem = false; }      /* o jogador chegou: dali em diante vale a regra normal */
       for(id in V.mapas){ var M0 = V.mapas[id], P = M0.pts, md = 1e18; for(var k = 0; k < P.length; k += 2){ var dd = (P[k] - x) * (P[k] - x) + (P[k + 1] - z) * (P[k + 1] - z); if(dd < md) md = dd; } M0.dReg = Math.sqrt(md); }
     }
     for(id in V.mapas){ var Mq = V.mapas[id]; if(Mq.estado === 1) ocupado = true; if(Mq.fila) sobe(Mq); }
@@ -219,15 +223,17 @@ window.MapaVivo = (function(){
         if(opt.baixa) for(var o in V.mapas) if(o !== id && V.mapas[o].estado !== 0 && V.mapas[o].dReg > 40) solta(V.mapas[o]);      /* celular basico: um mapa so na memoria da placa */
         carrega(M); ocupado = true; }
       else if(M.estado === 0 && fora && d < pre && !M.bytes && !M.bpend && !(M.erroT && now - M.erroT < 15000)){ var baixando = false; for(var q in V.mapas) if(V.mapas[q].bpend) baixando = true; if(!baixando) baixa(M); }
-      else if(M.estado === 2 && d > longe) solta(M);
-      else if(M.estado === 1 && d > longe + 100) solta(M);                         /* o carregamento em curso e descartado */
+      else if(M.estado === 2 && d > longe && !M.mantem) solta(M);
+      else if(M.estado === 1 && d > longe + 100 && !M.mantem) solta(M);                         /* o carregamento em curso e descartado */
       else if(M.estado === 0 && M.bytes && d > pre + 150) M.bytes = null;           /* afastou-se: larga os bytes baixados */
     }
   };
+  /* [dion] carrega um mapa agora, sem esperar o jogador chegar perto (a cidade-base: o jogador nasce nela); fica na memoria ate o jogador entrar nela */
+  V.precarrega = function(id){ var M = V.mapas[id]; if(!M) return false; M.mantem = true; if(M.estado === 0) carrega(M); return true; };
   V.info = function(){ var o = {}; for(var id in V.mapas){ var M = V.mapas[id]; o[id] = { estado: M.estado, bytes: !!M.bytes, baixando: !!M.bpend, fila: M.fila ? M.fila.length : 0, usavel: !!M.usavel, dReg: Math.round(M.dReg) }; } return o; };
   V.pronto = function(id){ var M = V.mapas[id]; return !!(M && (M.estado === 2 || M.usavel)); };
   V.porRegiao = function(r){ for(var id in CFG) if(CFG[id].regiao === r) return id; return null; };
-  function foraDaRegiao(M, x, z){ return !!(window.MundoCampo && MundoCampo.pronto && MundoCampo.regiao(x, z) !== M.C.regiao && MundoCampo.anda(x, z)); }
+  function foraDaRegiao(M, x, z){ if(M.C.fixo) return false; return !!(window.MundoCampo && MundoCampo.pronto && MundoCampo.regiao(x, z) !== M.C.regiao && MundoCampo.anda(x, z)); }
   V.chao = function(x, z, y){
     var best = null;
     for(var id in V.mapas){

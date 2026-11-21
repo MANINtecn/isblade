@@ -134,7 +134,7 @@ const temKarma = J => ((J.pers && J.pers.karma) | 0) > 0, temFlag = (J, t) => (J
 const estadoPk = (J, t) => temKarma(J) ? 2 : (temFlag(J, t) ? 1 : 0);
 /* [pagina-unica] o canal da cidade tem o mundo aberto inteiro: dentro da muralha (raio 96 m) e zona segura (so duelo); fora vale a regra dos mapas abertos */
 const FORA_MURALHA = 96;
-const abertoAqui = (c, J) => (!!MAPAS[c.mapa].aberto && c.mapa !== 'dion') || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA);
+const abertoAqui = (c, J) => (!!MAPAS[c.mapa].aberto && c.mapa !== 'dion') || (c.mapa === 'cidade' && Math.hypot(J.x, J.z) > FORA_MURALHA && !(J.x > 1100 && J.x < 1900));      /* [dion] 21/11: Dion (x ~1500 no mundo da cidade) e zona de paz: so duelo */
 const emDuelo = (A, V, t) => { const d = A.duelo; return !!(d && d.com === V.id && V.duelo && V.duelo.com === A.id && t >= d.inicio && !d.fim); };
 /* [clerigo] quem pode receber cura/buff (como no L2: qualquer jogador; na arena PvP so o proprio grupo; nunca o adversario do duelo). Ajudar quem esta em PvP flaga (ajudaFlag). */
 const aliadoDe = (c, A, V, t) => V === A || (A.team && V.team ? A.team === V.team : (c.mapa === 'pvp' ? !!(A.party && A.party === V.party) : !emDuelo(A, V, t)));
