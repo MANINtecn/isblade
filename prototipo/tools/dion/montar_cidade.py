@@ -11,6 +11,9 @@ from lib_malha import ler_gltf, matriz_ue
 TILE = sys.argv[1] if len(sys.argv) > 1 else '20_22'
 OX, OY, OZ = 16169.0, 146880.0, -1966.0
 TEXMAX = 512
+import os
+FLIPY = -1.0 if os.environ.get('FLIPY') == '1' else 1.0
+SAIDA_GLB = os.environ.get('SAIDA_GLB') or ('../../assets/dion/dion_cidade_%s.glb' % TILE)
 IGNORA = ('dummy', 'zoneportal', 'antiportal', 'theme_transparency', 'invisible', 'collision', 'light_glow', 'flare')
 
 atores = json.load(open('raw_dion/atores_%s.json' % TILE))
@@ -54,11 +57,11 @@ for a in atores['StaticMeshActor'] + atores.get('Mover', []):      # portas e po
     for p in prims:
         if p['mat'].lower().startswith(IGNORA): continue
         pos = p['pos'].astype(np.float64) * 100.0
-        ue = np.stack([pos[:, 0], pos[:, 2], pos[:, 1]], 1)              # glTF -> UE (gx, gz, gy)
+        ue = np.stack([pos[:, 0], FLIPY * pos[:, 2], pos[:, 1]], 1)              # glTF -> UE (gx, +-gz, gy)
         ue = (ue * esc * e3) @ M + loc
         game = np.stack([(ue[:, 0] - OX) / 50.0, (ue[:, 2] - OZ) / 50.0, (ue[:, 1] - OY) / 50.0], 1).astype(np.float32)
         if p['nor'] is not None:
-            nr = (np.stack([p['nor'][:, 0], p['nor'][:, 2], p['nor'][:, 1]], 1).astype(np.float64) / e3) @ M
+            nr = (np.stack([p['nor'][:, 0], FLIPY * p['nor'][:, 2], p['nor'][:, 1]], 1).astype(np.float64) / e3) @ M
             nr = np.stack([nr[:, 0], nr[:, 2], nr[:, 1]], 1).astype(np.float32)
         else: nr = np.zeros_like(game); nr[:, 1] = 1
         uv = p['uv'] if p['uv'] is not None else np.zeros((len(game), 2), np.float32)
@@ -103,6 +106,6 @@ gltf = {'asset': {'version': '2.0', 'generator': 'montar_cidade.py'}, 'scene': 0
 js = json.dumps(gltf, separators=(',', ':')).encode(); js += b' ' * ((4 - len(js) % 4) % 4)
 while len(blob) % 4: blob.append(0)
 glb = struct.pack('<4sII', b'glTF', 2, 12 + 8 + len(js) + 8 + len(blob)) + struct.pack('<I4s', len(js), b'JSON') + js + struct.pack('<I4s', len(blob), b'BIN\x00') + bytes(blob)
-open('../../assets/dion/dion_cidade_%s.glb' % TILE, 'wb').write(glb)
+open(SAIDA_GLB, 'wb').write(glb)
 print('GLB %.1f MB | %d materiais (%d sem textura) | %d texturas | %d vertices, %d triangulos' % (len(glb) / 1048576, len(materiais), len(sem_tex), len(imagens), verts, tris))
 print('sem textura (primeiros):', sem_tex[:15])

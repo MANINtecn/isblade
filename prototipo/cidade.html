@@ -4655,6 +4655,7 @@ function malhaComando(t){
   t=String(t||'').trim().toLowerCase();
   if(t==='/malha'){var on=MundoCampo.verMalha();Chat.sistema(on?'Malha ligada: VERMELHO = nao se anda, AZUL = dentro de um mapa (vale a malha dele). /malha de novo desliga.':'Malha desligada.');return true;}
   if(t==='/travas'){Chat.sistema(MALHA.lista.length?('Pontos sem passagem anotados ('+MALHA.lista.length+'): '+MALHA.lista.slice(-6).map(function(p){return '('+p.x+', '+p.z+') '+p.mot;}).join(' | ')):'Nenhum ponto sem passagem anotado ainda.');return true;}
+  if(t==='/pos'){var dx=S.px-1500,dy=S.py||0;Chat.sistema('Posicao: mundo ('+S.px.toFixed(1)+', '+S.pz.toFixed(1)+', y '+dy.toFixed(1)+') | Dion local ('+dx.toFixed(1)+', '+S.pz.toFixed(1)+') | olhando '+(((S.face||0)*57.2958)%360).toFixed(0)+' graus');return true;}/* [dion] ajuda a apontar peca fora do lugar */
   if(t==='/travas limpar'){MALHA.lista=[];try{localStorage.removeItem('isblade.malha_travas');}catch(_){}Chat.sistema('Lista de pontos apagada.');return true;}
   return false;
 }
