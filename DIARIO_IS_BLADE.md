@@ -5164,3 +5164,9 @@ oll), guarda com escudo/espada, combos basicos (sweep, 	hrust, spin) e uso de sk
 - Portas: no L2 as portas de casa de Dion sao cenario fixo (so os portoes do castelo abrem, por cerco), entao ficam como estao.
 - Hub: `selecao.html` ainda entra em `cidade.html` (Talking Island, com NPCs/lojas). Trocar para Dion exige decidir o destino dos NPCs (pendente).
 - [Claude] 20/11 - Entrada em Dion: `selecao.html` agora abre `arena.html?mapa=dion` (hub). Em arena.html, morte, botao/portal "voltar" e pergaminho levam a Dion (antes Talking Island/cidade.html). `cidade.html` continua no repo mas fora do fluxo; NPCs/lojas/gatekeeper dela ainda nao existem em Dion (a portar depois).
+
+### [Claude] 21/11 - Dion: feedback do primeiro teste
+- Portas e portoes (27 `Mover`: 6 portas de casa H_Door_MV_01, portoes do castelo e do forte) agora entram na cidade, fechados (`montar_cidade.py`, 2020 instancias).
+- Ruas/praca: o chao ganhou piso de pedra `G_floor01` ao redor das construcoes da cidade onde o terreno e plano (`montar_chao.py`); a mascara real de pintura do L2 nao vem no cliente, entao e uma regra. Ajustar se ficar fraco.
+- Cadeia de montagem do mapa: `montar_chao.py` -> `montar_cidade.py` -> `unir_glb.mjs assets/maps/dion/dion.glb chao cidade` -> `dividir_glb.mjs ... 110` -> `otimizar.mjs`.
+- Personagem congelado (sem correr/pose) relatado no PC: NAO reproduzido localmente (idle -> run troca certo com human_fighter, human_f, elf_f). Pecas flutuantes perto de placas: nao reproduzidas no visualizador; falta o local exato.

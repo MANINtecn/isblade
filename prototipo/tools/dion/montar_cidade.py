@@ -44,11 +44,11 @@ def malha(nome):
 
 por_mat = {}      # material -> listas
 n_inst = 0; n_pular = 0
-for a in atores['StaticMeshActor']:
+for a in atores['StaticMeshActor'] + atores.get('Mover', []):      # portas e portoes (Mover) entram fechados, como no L2
     try: prims = malha(a['malha'])
     except KeyError: n_pular += 1; continue
     esc = float(a['esc']) if a.get('esc') else 1.0
-    M = matriz_ue(*a['rot']); loc = np.array([a['x'], a['y'], a['z']], np.float64)
+    M = matriz_ue(*(a.get('rot') or [0, 0, 0])); loc = np.array([a['x'], a['y'], a['z']], np.float64)
     for p in prims:
         if p['mat'].lower().startswith(IGNORA): continue
         pos = p['pos'].astype(np.float64) * 100.0

@@ -41,6 +41,7 @@ idx = np.stack([a, b, c, b, d, c], -1).reshape(-1).astype(np.uint32)
 def tex(nome):
     return np.asarray(Image.open('raw_dion/tex/t_dion/Texture/%s.png' % nome).convert('RGB'), np.float32)
 T = {k: tex(k) for k in ('DI_S4', 'DI_S5', 'DI_S10', 'DI_G2', 'DI_G3', 'DI_C5', 'DI_C')}
+T['G_floor01'] = tex('G_floor01')
 
 def amostra(img, tam_m, mx, my):
     h, w = img.shape[:2]
@@ -68,6 +69,16 @@ rel = ndi.gaussian_filter(Hh, 40) - ndi.gaussian_filter(Hh, 220)            # va
 F1 = fbm((TEX, TEX), (300, 120, 40, 14))
 F2 = fbm((TEX, TEX), (200, 70, 22))
 F3 = fbm((TEX, TEX), (500, 160))
+# --- ruas e praca de pedra (G_floor01): chao proximo das construcoes da cidade (as mascaras de pintura do L2 nao vem no cliente)
+atores = json.load(open('raw_dion/atores_20_22.json'))['StaticMeshActor']
+rua_raiz = np.zeros((TEX, TEX), np.uint8)
+for at in atores:
+    nm = at['malha'].lower()
+    if not (nm.startswith(('dion_nv', 'o_well', 'o_tank', 'o_loadlamp', 'dion_house', 'h_')) ): continue
+    px_ = int((at['x'] - UX0) / 32768 * TEX); py_ = int((at['y'] - UY0) / 32768 * TEX)
+    cv2.circle(rua_raiz, (px_, py_), int(11.0 / metros_px), 255, -1)
+rua = ndi.gaussian_filter(rua_raiz.astype(np.float32) / 255.0, 6.0 / metros_px)
+rua = suave(.30, .75, rua) * suave(.22, .06, inc)                         # so onde o terreno e plano
 rocha = np.maximum(suave(.38, .85, inc), suave(900, 2400, rel))
 verde = suave(.50, .72, F1) * suave(.45, -.10, inc) * (.55 + .45 * suave(60, -180, rel))
 terra2 = suave(.35, .65, F2)
@@ -90,6 +101,8 @@ for y0 in range(0, TEX, LIN):
     r = rocha[s, :, None]
     cor = terra * (1 - v) + capim * v
     cor = cor * (1 - r) + pedra * r
+    pav = rua[s, :, None] * (1 - r)
+    cor = cor * (1 - pav * .92) + amostra(T['G_floor01'], 4.0, mx, my) * pav * .92
     cor *= (.82 + .36 * F3[s, :, None])                                    # variacao larga de tom
     img[s] = cor
 img = np.clip(img, 0, 255).astype(np.uint8)
