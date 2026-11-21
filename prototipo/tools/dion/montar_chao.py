@@ -83,27 +83,30 @@ rocha = np.maximum(suave(.38, .85, inc), suave(900, 2400, rel))
 verde = suave(.50, .72, F1) * suave(.45, -.10, inc) * (.55 + .45 * suave(60, -180, rel))
 terra2 = suave(.35, .65, F2)
 
+# --- pintura REAL do L2: as mascaras alfa das camadas vem em textures/T_20_22.utx (UModel -> raw_dion/terreno_utx). Ordem e textura de cada camada = ordem dos imports do mapa.
+def alfa(nome):
+    a = np.asarray(Image.open('raw_dion/terreno_utx/T_20_22/Texture/20_22_%s.png' % nome).convert('L'), np.float32) / 255.0
+    return cv2.resize(a, (TEX, TEX), interpolation=cv2.INTER_CUBIC).clip(0, 1)
+def tex2(nome):
+    import glob
+    f = glob.glob('raw_dion/tex_brush/**/%s.png' % nome, recursive=True)
+    return np.asarray(Image.open(f[0]).convert('RGB'), np.float32)
+T['GUG03'] = tex2('GUG03')
+CAMADAS = [('DI_S4', 'S1', 7.0), ('DI_S10', 'S2', 9.0), ('DI_G2', 'G', 5.0), ('DI_G2', 'G1', 6.0), ('DI_G3', 'G2', 7.0), ('DI_C5', 'C', 9.0), ('DI_S5', 'R', 6.0), ('G_floor01', 'ST01', 4.0), ('GUG03', 'S1_C', 6.0)]
+AL = [alfa(a) for _, a, _ in CAMADAS]
+luz = np.load('raw_dion/luz_20_22.npy')[4].astype(np.float32); luz = cv2.resize(luz, (TEX, TEX), interpolation=cv2.INTER_CUBIC) / max(1.0, np.percentile(luz, 95))   # sombras de casas/arvores (13h30)
 img = np.zeros((TEX, TEX, 3), np.float32)
 LIN = 256
 for y0 in range(0, TEX, LIN):
-    ys = np.arange(y0, y0 + LIN)
-    xs = np.arange(TEX)
+    ys = np.arange(y0, y0 + LIN); xs = np.arange(TEX)
     XX, YY = np.meshgrid(xs, ys)
     mx = ((XX + .5) * 32768 / TEX + UX0) / 50.0
     my = ((YY + .5) * 32768 / TEX + UY0) / 50.0
     s = slice(y0, y0 + LIN)
-    claro = amostra(T['DI_S5'], 7.0, mx, my)
-    escuro = .5 * amostra(T['DI_S4'], 6.0, mx, my) + .5 * amostra(T['DI_S10'], 9.0, mx, my)
-    terra = claro * (1 - terra2[s, :, None]) + escuro * terra2[s, :, None]
-    capim = .6 * amostra(T['DI_G2'], 5.0, mx, my) + .4 * amostra(T['DI_G3'], 7.0, mx, my)
-    pedra = .6 * amostra(T['DI_C5'], 9.0, mx, my) + .4 * amostra(T['DI_C'], 12.0, mx, my)
-    v = verde[s, :, None]
-    r = rocha[s, :, None]
-    cor = terra * (1 - v) + capim * v
-    cor = cor * (1 - r) + pedra * r
-    pav = rua[s, :, None] * (1 - r)
-    cor = cor * (1 - pav * .92) + amostra(T['G_floor01'], 4.0, mx, my) * pav * .92
-    cor *= (.82 + .36 * F3[s, :, None])                                    # variacao larga de tom
+    cor = amostra(T['DI_S4'], 7.0, mx, my)
+    for (tn, _, esc), a_ in zip(CAMADAS, AL):
+        cor = cor * (1 - a_[s, :, None]) + amostra(T[tn], esc, mx, my) * a_[s, :, None]
+    cor *= (.80 + .40 * np.clip(luz[s, :, None], 0, 1.15)) * (.94 + .12 * F3[s, :, None])
     img[s] = cor
 img = np.clip(img, 0, 255).astype(np.uint8)
 Image.fromarray(img).save('raw_dion/dion_cor_4096.png')

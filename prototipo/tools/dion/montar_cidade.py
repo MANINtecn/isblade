@@ -47,16 +47,18 @@ n_inst = 0; n_pular = 0
 for a in atores['StaticMeshActor'] + atores.get('Mover', []):      # portas e portoes (Mover) entram fechados, como no L2
     try: prims = malha(a['malha'])
     except KeyError: n_pular += 1; continue
+    if a.get('apagado'): n_pular += 1; continue
     esc = float(a['esc']) if a.get('esc') else 1.0
+    e3 = np.array(a['esc3'] if a.get('esc3') else (1.0, 1.0, 1.0), np.float64)       # DrawScale3D (espelha/estica nos eixos locais da UE)
     M = matriz_ue(*(a.get('rot') or [0, 0, 0])); loc = np.array([a['x'], a['y'], a['z']], np.float64)
     for p in prims:
         if p['mat'].lower().startswith(IGNORA): continue
         pos = p['pos'].astype(np.float64) * 100.0
         ue = np.stack([pos[:, 0], pos[:, 2], pos[:, 1]], 1)              # glTF -> UE (gx, gz, gy)
-        ue = (ue * esc) @ M + loc
+        ue = (ue * esc * e3) @ M + loc
         game = np.stack([(ue[:, 0] - OX) / 50.0, (ue[:, 2] - OZ) / 50.0, (ue[:, 1] - OY) / 50.0], 1).astype(np.float32)
         if p['nor'] is not None:
-            nr = np.stack([p['nor'][:, 0], p['nor'][:, 2], p['nor'][:, 1]], 1).astype(np.float64) @ M
+            nr = (np.stack([p['nor'][:, 0], p['nor'][:, 2], p['nor'][:, 1]], 1).astype(np.float64) / e3) @ M
             nr = np.stack([nr[:, 0], nr[:, 2], nr[:, 1]], 1).astype(np.float32)
         else: nr = np.zeros_like(game); nr[:, 1] = 1
         uv = p['uv'] if p['uv'] is not None else np.zeros((len(game), 2), np.float32)

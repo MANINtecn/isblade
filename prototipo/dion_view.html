@@ -16,6 +16,7 @@ if (Q.get('cidade') !== '0') new THREE.GLTFLoader().load(Q.get('glb') || 'assets
   var n = 0, t = 0; g.scene.traverse(function (o) { if (o.isMesh) { n++; t += o.geometry.index.count / 3; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { m.side = THREE.DoubleSide; }); } });
   S.add(g.scene); document.getElementById('s').textContent += ' | cidade ' + n + ' malhas, ' + Math.round(t / 1000) + ' mil tri'; window.__cidade = 1;
 }, undefined, function (e) { document.getElementById('s').textContent += ' | ERRO cidade ' + e; window.__cidade = -1; });
+if (Q.get('extra')) new THREE.GLTFLoader().load(Q.get('extra'), function (g) { g.scene.traverse(function (o) { if (o.isMesh) { (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { m.side = THREE.DoubleSide; }); } }); S.add(g.scene); document.getElementById('s').textContent += ' | extra ok'; }, undefined, function (e) { document.getElementById('s').textContent += ' | ERRO extra ' + e; });
 new THREE.GLTFLoader().load('assets/dion/dion_chao.glb', function (g) {
   g.scene.traverse(function (o) { if (o.isMesh) { o.material.side = THREE.DoubleSide; } }); S.add(g.scene);
   var cam = null; document.getElementById('s').textContent = 'pronto'; window.__ok = 1;

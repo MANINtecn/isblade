@@ -20,7 +20,7 @@ for t in tiles:
         if not isinstance(loc, tuple): loc = (None, None, None)
         if c == 'StaticMeshActor':
             if 'StaticMesh' not in pr or loc[0] is None: falhas += 1; continue
-            out[c].append({'n': e['nome'], 'malha': ref(pr['StaticMesh']), 'x': loc[0], 'y': loc[1], 'z': loc[2], 'rot': pr.get('Rotation', (0, 0, 0)), 'esc': pr.get('DrawScale', 1.0), 'grupo': pr.get('Group')})
+            out[c].append({'n': e['nome'], 'malha': ref(pr['StaticMesh']), 'x': loc[0], 'y': loc[1], 'z': loc[2], 'rot': pr.get('Rotation', (0, 0, 0)), 'esc': pr.get('DrawScale', 1.0), 'esc3': pr.get('DrawScale3D'), 'apagado': bool(pr.get('bDeleteMe') or pr.get('bPendingDelete')), 'grupo': pr.get('Group')})
         elif c == 'AmbientSoundObject':
             out[c].append({'n': e['nome'], 'som': ref(pr.get('AmbientSound', 0)), 'x': loc[0], 'y': loc[1], 'z': loc[2], 'raio': pr.get('SoundRadius'), 'vol': pr.get('SoundVolume'), 'aleat': pr.get('AmbientRandom'), 'grupo': pr.get('Group')})
         elif c == 'MusicVolume':
