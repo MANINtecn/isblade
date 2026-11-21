@@ -85,15 +85,16 @@ for nome, d in sorted(por_mat.items()):
     pos = np.concatenate(d['pos']); nor = np.concatenate(d['nor']); uv = np.concatenate(d['uv']); idx = np.concatenate(d['idx']); tris += len(idx) // 3; verts += len(pos)
     caminho, opaco = textura_de(nome); mat = {'name': nome, 'pbrMetallicRoughness': {'metallicFactor': 0, 'roughnessFactor': 1}, 'doubleSided': True}
     if caminho:
-        if caminho not in usadas:
-            im = Image.open(caminho); tem_alfa = im.mode in ('RGBA', 'LA', 'P') and ('A' in im.getbands() or 'transparency' in im.info)
+        sol = (not opaco) and bool(re.search(r'wall|floor|roof|intop', nome, re.I))      # parede/piso/telhado sem mapa de opacidade: o alfa da textura L2 e' lixo (ex. di_wall11a: 92% 'transparente') e sumia com a parede
+        if (caminho, sol) not in usadas:
+            im = Image.open(caminho); tem_alfa = (not sol) and im.mode in ('RGBA', 'LA', 'P') and ('A' in im.getbands() or 'transparency' in im.info)
             im = im.convert('RGBA' if tem_alfa else 'RGB')
             if tem_alfa and np.asarray(im.getchannel('A')).min() > 250: im = im.convert('RGB'); tem_alfa = False
             if max(im.size) > TEXMAX: im.thumbnail((TEXMAX, TEXMAX), Image.LANCZOS)
             b = io.BytesIO(); (im.save(b, 'PNG') if tem_alfa else im.save(b, 'JPEG', quality=86)); vi = add_view(b.getvalue())
-            imagens.append({'bufferView': vi, 'mimeType': 'image/png' if tem_alfa else 'image/jpeg'}); texturas.append({'source': len(imagens) - 1, 'sampler': 0}); usadas[caminho] = (len(texturas) - 1, tem_alfa)
-        ti, alfa = usadas[caminho]; mat['pbrMetallicRoughness']['baseColorTexture'] = {'index': ti}
-        if alfa or opaco: mat['alphaMode'] = 'MASK'; mat['alphaCutoff'] = 0.5
+            imagens.append({'bufferView': vi, 'mimeType': 'image/png' if tem_alfa else 'image/jpeg'}); texturas.append({'source': len(imagens) - 1, 'sampler': 0}); usadas[(caminho, sol)] = (len(texturas) - 1, tem_alfa)
+        ti, alfa = usadas[(caminho, sol)]; mat['pbrMetallicRoughness']['baseColorTexture'] = {'index': ti}
+        if alfa or (opaco and not sol): mat['alphaMode'] = 'MASK'; mat['alphaCutoff'] = 0.5
     else: sem_tex.append(nome); mat['pbrMetallicRoughness']['baseColorFactor'] = [0.6, 0.6, 0.6, 1]
     materiais.append(mat)
     ap = add_acc(add_view(pos.tobytes(), 34962), 5126, len(pos), 'VEC3', pos.min(0).tolist(), pos.max(0).tolist())

@@ -66,7 +66,7 @@ def add_acc(vi, comp, cnt, tipo, mn=None, mx=None):
     acessores.append(a); return len(acessores) - 1
 for nome, dd in sorted(por_mat.items()):
     pos = np.concatenate(dd['pos']); nor = np.concatenate(dd['nor']); uv = np.concatenate(dd['uv']); idx = np.concatenate(dd['idx'])
-    im = Image.open(png[nome.lower()]); tem_alfa = 'A' in im.getbands(); im = im.convert('RGBA' if tem_alfa else 'RGB')
+    im = Image.open(png[nome.lower()]); tem_alfa = 'A' in im.getbands() and not re.search(r'wall|floor|roof|intop', nome, re.I); im = im.convert('RGBA' if tem_alfa else 'RGB')
     if max(im.size) > 512: im.thumbnail((512, 512), Image.LANCZOS)
     b = io.BytesIO(); (im.save(b, 'PNG') if tem_alfa else im.save(b, 'JPEG', quality=86)); vi = add_view(b.getvalue())
     imagens.append({'bufferView': vi, 'mimeType': 'image/png' if tem_alfa else 'image/jpeg'}); texturas.append({'source': len(imagens) - 1, 'sampler': 0})
