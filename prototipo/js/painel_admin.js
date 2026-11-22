@@ -138,6 +138,10 @@
       .pa-tab { background:transparent; border:1px solid transparent; border-bottom:none; color:#9aa4bd; font-weight:700; font-size:12px; letter-spacing:.04em; padding:7px 16px; border-radius:7px 7px 0 0; cursor:pointer; }
       .pa-tab:hover { color:#fff; }
       .pa-tab.on { background:rgba(212,175,55,.14); color:#ffd166; border-color:rgba(212,175,55,.5); }
+      .pa-mobs-host { overflow-y:auto; display:none; flex:1; min-height:0; padding:14px 18px; color:#dfe6f5; font-size:12px; }
+      .pa-mobs-host select, .pa-mobs-host input[type=number] { background:#0e1424; color:#fff; border:1px solid rgba(212,175,55,.5); border-radius:6px; padding:6px 8px; font-size:12px; }
+      .pa-mobs-host label { display:flex; flex-direction:column; gap:3px; color:#9aa4bd; font-size:11px; }
+      .pa-mobs-linha { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px; align-items:flex-end; }
       .pa-bots-host { overflow-y:auto; display:none; flex:1; min-height:0; }
       .pa-bots-host #painelBotsModal { position:static !important; transform:none !important; width:100% !important; border:none !important; box-shadow:none !important; border-radius:0 !important; background:transparent !important; display:block; }
       .pa-bots-host #painelBotsModal .pb-header-actions #pbBtnFechar, .pa-bots-host #painelBotsModal .pb-titulo { display:none; }
@@ -316,8 +320,10 @@
       <div class="pa-tabs">
         <button type="button" class="pa-tab on" data-aba="gm">👑 GM Poder</button>
         <button type="button" class="pa-tab" data-aba="bots">⚔️ Bots PvP</button>
+        <button type="button" class="pa-tab" data-aba="mobs">👹 Mobs / Bosses</button>
       </div>
       <div class="pa-bots-host" id="pa-bots-host"></div>
+      <div class="pa-mobs-host" id="pa-mobs-host"></div>
 
       <div class="pa-body">
         <!-- 0. CONTROLE DE ALVO (TARGET / GM) -->
@@ -778,10 +784,41 @@
   }
 
   /* aba 'gm' (poderes) ou 'bots' (painel mestre de bots, antes o F8): o painel de bots e' encaixado aqui dentro */
+  /* [gm] aba Mobs / Bosses: escolhe o mob (lista do dungeon.json), quantidade e raio; "Spawn aqui" nasce na posicao do GM em Dion; "Fixar" grava o spot (volta a nascer) */
+  var MOBS_DADOS = null;
+  function montaMobs(host){
+    if(host.dataset.ok) return; host.dataset.ok = '1';
+    host.innerHTML = '<div style="opacity:.7">carregando a lista de mobs...</div>';
+    fetch('data/dungeon.json?v=' + Date.now()).then(function(x){ return x.json(); }).then(function(D){
+      MOBS_DADOS = D.mobs || {}; var grupos = { 'Chefes / Bosses': [], 'Cruma (nv 1-15)': [], 'Fortaleza (nv 15-30)': [], 'Pantano (nv 30-45)': [], 'Torre / Hallate': [], 'Dungeon antiga': [], 'Outros': [] };
+      Object.keys(MOBS_DADOS).forEach(function(k){
+        var m = MOBS_DADOS[k], nome = m.name + ' · ' + k + ' · ' + m.hp + ' HP' + (m.xp ? ' · ' + m.xp + ' xp' : ''), g;
+        if(/^chefe|^mini_boss/.test(k)) g = 'Chefes / Bosses'; else if(/_curuma$/.test(k)) g = 'Cruma (nv 1-15)'; else if(/_fort$/.test(k)) g = 'Fortaleza (nv 15-30)';
+        else if(/fogo|magmagoil|wyrm|golem_lava/.test(k)) g = 'Pantano (nv 30-45)'; else if(/^(fantasma|esqueleto|vidente|lamina|cao|guarda_real|cavaleiro|erinia|comandante|anjo|xama|overlord|arcanjo)$/.test(k)) g = 'Torre / Hallate';
+        else if(/^(shade|brute|caster)$/.test(k)) g = 'Dungeon antiga'; else g = 'Outros';
+        grupos[g].push('<option value="' + k + '">' + nome + '</option>');
+      });
+      var opts = ''; Object.keys(grupos).forEach(function(g){ if(grupos[g].length) opts += '<optgroup label="' + g + ' (' + grupos[g].length + ')">' + grupos[g].join('') + '</optgroup>'; });
+      host.innerHTML = '<div style="margin-bottom:10px;color:#ffd166;font-weight:700">Povoar Dion: ande ate o lugar e use os botoes. So funciona dentro de Dion.</div>' +
+        '<div class="pa-mobs-linha"><label style="flex:1;min-width:260px">Mob / Boss<select id="pm-tipo" style="width:100%">' + opts + '</select></label>' +
+        '<label>Quantidade<input id="pm-qtd" type="number" min="1" max="12" value="3" style="width:70px"></label>' +
+        '<label>Raio (m)<input id="pm-raio" type="number" min="1" max="30" value="5" style="width:70px"></label>' +
+        '<label>Agressivos (%)<input id="pm-agr" type="number" min="0" max="100" value="0" style="width:80px"></label></div>' +
+        '<div class="pa-mobs-linha"><label style="flex-direction:row;align-items:center;gap:6px;color:#dfe6f5"><input id="pm-fixo" type="checkbox" checked> Fixar spot (salva e volta a nascer)</label></div>' +
+        '<div class="pa-grid-btns"><button class="pa-btn pa-btn-gold" id="pm-spawn">👹 Spawn aqui</button><button class="pa-btn" id="pm-lista">📋 Listar spots de Dion</button></div>' +
+        '<div class="pa-mobs-linha" style="margin-top:14px"><label>Remover spots num raio (m) ao redor de voce<input id="pm-rem-raio" type="number" min="2" max="400" value="12" style="width:90px"></label><button class="pa-btn" id="pm-remover" style="border-color:#ff6b6b;color:#ff9a9a">🗑️ Remover aqui</button></div>' +
+        '<div style="opacity:.65;margin-top:10px;line-height:1.5">Chefes nascem 1 por spot e voltam em ~5 min. Mobs comuns voltam em ~45 s. A mensagem de resultado aparece no chat.</div>';
+      var v = function(id){ return document.getElementById(id); };
+      v('pm-spawn').onclick = function(){ som('click'); cmd('mob_spawn', { tipo: v('pm-tipo').value, qtd: +v('pm-qtd').value || 1, raio: +v('pm-raio').value || 5, agr: (+v('pm-agr').value || 0) / 100, fixo: v('pm-fixo').checked }); };
+      v('pm-lista').onclick = function(){ som('click'); cmd('mob_lista', {}); };
+      v('pm-remover').onclick = function(){ som('click'); cmd('mob_remover', { raio: +v('pm-rem-raio').value || 12 }); };
+    }).catch(function(e){ host.innerHTML = '<div style="color:#ff9a9a">nao consegui ler data/dungeon.json: ' + e + '</div>'; delete host.dataset.ok; });
+  }
   function aba(nome){
     renderModal();
-    var host = container.querySelector('#pa-bots-host'), corpo = container.querySelector('.pa-body'), bots = nome === 'bots' && window.PainelBots && PainelBots.embutir;
-    container.querySelectorAll('.pa-tab').forEach(function(t){ t.classList.toggle('on', t.dataset.aba === (bots ? 'bots' : 'gm')); });
+    var host = container.querySelector('#pa-bots-host'), mh = container.querySelector('#pa-mobs-host'), corpo = container.querySelector('.pa-body'), bots = nome === 'bots' && window.PainelBots && PainelBots.embutir, mobs = nome === 'mobs';
+    container.querySelectorAll('.pa-tab').forEach(function(t){ t.classList.toggle('on', t.dataset.aba === (mobs ? 'mobs' : (bots ? 'bots' : 'gm'))); });
+    mh.style.display = mobs ? 'block' : 'none'; if(mobs){ corpo.style.display = 'none'; host.style.display = 'none'; if(window.PainelBots && PainelBots.desembutir) PainelBots.desembutir(); montaMobs(mh); return; }
     if(bots){ corpo.style.display = 'none'; host.style.display = 'block'; PainelBots.embutir(host); }
     else { corpo.style.display = ''; host.style.display = 'none'; if(window.PainelBots && PainelBots.desembutir) PainelBots.desembutir(); }
   }

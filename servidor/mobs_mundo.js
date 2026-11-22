@@ -13,11 +13,15 @@ const CFG = {                                                   /* mapa do servi
   curuma:   { spots: 'curuma',        pasta: 'curuma',        grid: 'curuma_walkgrid',        chaoMin: -222.9 },
   fortress: { spots: 'fortress',      pasta: 'fortress',      grid: 'fortress_walkgrid',      chaoMin: -36.4 },
   pantano:  { spots: 'blazing_swamp', pasta: 'blazing_swamp', grid: 'blazing_swamp_walkgrid', chaoMin: -30.8 },
+  dion:     { spots: 'dion',          pasta: 'dion',          grid: 'dion_walkgrid',          chaoMin: -110 },                      /* [dion] 22/11/2026: cidade-base; spots colocados pelo GM no F10 (dados/dion_spots.json) */
   torre:    { pasta: 'baium_house', grid: 'mini_toi_walkgrid', chaoMin: -1e9 }                       /* [dg-servidor] andares da Torre do Baium (DGs) */
 };
 const ALT = 2.0, PASSO = 1.04, FOCO_S = 6, BONUS_PT = [1, 1, 1.3, 1.39, 1.5, 1.54, 1.58];      /* XP total da party pelo numero de membros perto (estilo L2) */
 let SP = null, DG = null; const GRADES = {};
-function carrega(){ try { SP = J('data/spots.json'); DG = J('data/dungeon.json'); } catch(e){ console.error('mobs_mundo: dados', e.message); } }
+const ARQ_DION = path.join(process.env.DATA_DIR || path.join(__dirname, 'dados'), 'dion_spots.json');
+function spotsDion(){ try { const a = JSON.parse(fs.readFileSync(ARQ_DION, 'utf8')); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
+function salvaSpotsDion(lista){ try { fs.mkdirSync(path.dirname(ARQ_DION), { recursive: true }); fs.writeFileSync(ARQ_DION, JSON.stringify(lista, null, 1)); } catch(e){ console.error('mobs_mundo: nao salvou dion_spots', e.message); } }
+function carrega(){ try { SP = J('data/spots.json'); DG = J('data/dungeon.json'); SP.dion = { dif: 'dion', respawn: 45, ativa: 80, solta: 110, spots: spotsDion().map(q => Object.assign({}, q, { adm: 1 })) }; } catch(e){ console.error('mobs_mundo: dados', e.message); } }
 carrega();
 
 /* [campo] 09/11/2026: Campo de Talking Island (mundo aberto): relevo e spots vem do mapa-mundi (prototipo/assets/mundo/mundo_grade.*, tools/blender_mundo/exporta_mundo.py).
@@ -68,7 +72,7 @@ function posMapas(){
   try { POSMAPAS = JSON.parse(fs.readFileSync(path.join(RAIZ, 'assets', 'mundo', 'mundo_grade.json'), 'utf8')).mapas || {}; } catch(e){ POSMAPAS = {}; }
   return POSMAPAS;
 }
-function xfDe(mapa){ const P = posMapas()[mapa]; if(!P) return null; return { x: P.pos[0], y: P.pos[1], z: P.pos[2], c: Math.cos(P.rotY), s: Math.sin(P.rotY) }; }
+function xfDe(mapa){ const P = posMapas()[mapa] || (mapa === 'dion' ? { pos: [1500, 0, 0], rotY: 0 } : null); if(!P) return null; return { x: P.pos[0], y: P.pos[1], z: P.pos[2], c: Math.cos(P.rotY), s: Math.sin(P.rotY) }; }
 const praMundo = (X, x, z) => [x * X.c + z * X.s + X.x, -x * X.s + z * X.c + X.z];
 const praLocal = (X, x, z) => { const dx = x - X.x, dz = z - X.z; return [dx * X.c - dz * X.s, dx * X.s + dz * X.c]; };
 class Mundo {
@@ -85,6 +89,29 @@ class Mundo {
     this.L = (this.M ? this.M.spots : []).map(s => ({ s, v: Array.from({ length: s.chefe ? 1 : Math.max(2, s.n | 0) }, () => ({ m: null, t: 0 })) }));
   }
   ok(){ return !!(this.M && this.G); }
+  /* [gm] F10 > Mobs: cria um spot de mob/boss onde o GM esta (coordenadas do MUNDO). fixo = grava em dados/dion_spots.json (volta a nascer apos reiniciar). */
+  adminNasce(tipo, x, z, y, qtd, raio, agr, fixo){
+    const T = DG && DG.mobs && DG.mobs[tipo]; if(!T) return { erro: 'mob desconhecido: ' + tipo };
+    const h = this.G.chao(x, z, y); if(h === null) return { erro: 'sem chao andavel aqui' };
+    const chefe = /^chefe|mini_boss/.test(tipo), n = chefe ? 1 : Math.max(1, Math.min(12, qtd | 0 || 1));
+    const s = { tipo, n, raio: Math.max(n > 1 ? 2 : .5, Math.min(30, +raio || 4)), agr: Math.max(0, Math.min(1, +agr || 0)), x, z, h, dif: this.difMapa, adm: 1 };
+    if(chefe){ s.chefe = 1; s.resp = 300; }
+    const sp = { s, v: Array.from({ length: n }, () => ({ m: null, t: 0 })) }; this.L.push(sp);
+    for(const vg of sp.v) this.nasce(sp, vg, []);
+    if(fixo){ const X = this.xf, l = X ? praLocal(X, x, z) : [x, z]; const a = spotsDion(); a.push({ tipo, n, raio: s.raio, agr: s.agr, x: Math.round(l[0] * 10) / 10, z: Math.round(l[1] * 10) / 10, h: Math.round((h - (X ? X.y : 0)) * 100) / 100, dif: s.dif, chefe: chefe ? 1 : undefined, resp: chefe ? 300 : undefined }); salvaSpotsDion(a); }
+    return { ok: 1, n, tipo, nome: T.name, fixo: !!fixo, chefe };
+  }
+  /* tira os spots do GM num raio (e os mobs vivos deles) */
+  adminRemove(x, z, raio){
+    let n = 0; const X = this.xf;
+    this.L = this.L.filter(sp => {
+      if(!sp.s.adm || Math.hypot(sp.s.x - x, sp.s.z - z) > raio) return true;
+      for(const vg of sp.v) if(vg.m){ this.mobs.delete(vg.m.id); vg.m = null; } n++; return false;
+    });
+    const a = spotsDion().filter(q => { const w = X ? praMundo(X, q.x, q.z) : [q.x, q.z]; return Math.hypot(w[0] - x, w[1] - z) > raio; });
+    salvaSpotsDion(a); return n;
+  }
+  adminLista(){ return this.L.filter(sp => sp.s.adm).map(sp => ({ tipo: sp.s.tipo, n: sp.s.n, x: Math.round(sp.s.x * 10) / 10, z: Math.round(sp.s.z * 10) / 10, chefe: !!sp.s.chefe })); }
   /* ponto livre no chao do spot */
   ponto(s){ for(let k = 0; k < 30; k++){ const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * s.raio, x = s.x + Math.cos(a) * d, z = s.z + Math.sin(a) * d, h = this.G.chao(x, z, s.h); if(h !== null && Math.abs(h - s.h) < 1.5) return [x, z, h]; } return null; }
   nasce(sp, vg, jog){
@@ -93,7 +120,7 @@ class Mundo {
     const m = { id: this.novoId ? this.novoId() : this.prox++, dif: s.dif || this.difMapa, tipo: s.tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp,
       agr: !!(s.chefe || T.agressivo || Math.random() < (s.agr || 0)), engaj: false, volta: false, vt: 0, st: 0, stT: 0, alvo: 0, dano: new Map(), foco: null, morto: false, mT: 0, chefe: !!s.chefe };
     this.mobs.set(m.id, m); vg.m = m;
-    if(s.chefe && this.aviso && (s.resp || 300) >= 200) this.aviso(T.name + ' apareceu em ' + (s.local || ({ curuma: 'Cruma', fortress: 'Fortaleza', pantano: 'Pantano Flamejante' })[this.mapa] || 'Talking Island') + '!');
+    if(s.chefe && this.aviso && (s.resp || 300) >= 200) this.aviso(T.name + ' apareceu em ' + (s.local || ({ curuma: 'Cruma', fortress: 'Fortaleza', pantano: 'Pantano Flamejante', dion: 'Dion' })[this.mapa] || 'Talking Island') + '!');
   }
   /* jogadores vivos do canal (lista de J do server.js) */
   tick(t, dt, jog){
@@ -319,6 +346,7 @@ class Mundos {
   hit(Jg, id, d, t){ for(const W of this.subs) if(W.mobs.has(id)) return W.hit(Jg, id, d, t); return null; }
   taunt(Jg, r, t){ let n = 0; for(const W of this.subs) n += W.taunt(Jg, r, t); return n; }
   dono(m){ return this.subs[0].dono(m); }
+  sub(mapa){ return this.subs.find(W => W.mapa === mapa) || null; }
   snap(P, aoi){ let o = []; for(const W of this.subs) o = o.concat(W.snap(P, aoi)); return o; }
 }
 const mundoAberto = () => new Mundos([['campo', null]].concat(Object.keys(CFG).map(k => [k, xfDe(k)]).filter(q => q[1])));

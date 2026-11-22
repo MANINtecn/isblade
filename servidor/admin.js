@@ -738,6 +738,24 @@ function executa(c, J, m){
       teleport(c, J, m.destino, m.x, m.z);
       break;
 
+    case 'mob_spawn':
+    case 'mob_remover':
+    case 'mob_lista': {                                   /* [gm] F10 > Mobs: povoar Dion na posicao do GM */
+      const W = c && c.mundo && c.mundo.sub ? c.mundo.sub('dion') : null;
+      if(!W){ sis(J, 'Mobs: o canal desta area nao tem o mundo de Dion.'); break; }
+      if(!(J.x > 1100 && J.x < 1900)){ sis(J, 'Mobs: so da para povoar dentro de Dion (voce esta fora).'); break; }
+      if(acao === 'mob_spawn'){
+        const r = W.adminNasce(String(m.tipo || ''), J.x, J.z, typeof J.y === 'number' ? J.y : -22, m.qtd, m.raio, m.agr, !!m.fixo);
+        sis(J, r.erro ? ('Mobs: ' + r.erro) : ('Mobs: ' + r.n + 'x ' + r.nome + (r.chefe ? ' (boss)' : '') + ' em (' + J.x.toFixed(0) + ', ' + J.z.toFixed(0) + ')' + (r.fixo ? ' - spot FIXO salvo' : ' - temporario (volta ao reiniciar so se fixo)')));
+      } else if(acao === 'mob_remover'){
+        const n = W.adminRemove(J.x, J.z, Math.max(2, Math.min(400, +m.raio || 12)));
+        sis(J, 'Mobs: ' + n + ' spot(s) removido(s) num raio de ' + (+m.raio || 12) + ' m.');
+      } else {
+        const L = W.adminLista(); sis(J, 'Mobs de Dion: ' + L.length + ' spot(s)' + (L.length ? ' | ' + L.slice(0, 8).map(q => q.n + 'x ' + q.tipo + (q.chefe ? '*' : '') + ' (' + q.x + ',' + q.z + ')').join(' | ') : ''));
+      }
+      break;
+    }
+
     case 'info':
       CTX.envia(J, {
         t: 'admin_info',
