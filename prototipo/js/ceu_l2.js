@@ -7,7 +7,7 @@
          CeuL2.atualiza(corHorizonte, noite)           a pagina chama no seu ciclo (ou CeuL2.automatico({...}) para os mapas abertos)
    Qualidade baixa: sem nuvens (so o degrade e as estrelas). */
 window.CeuL2 = (function(){
-  var C = {}, CICLO = 240, dome = null, mat = null, cam = null, T3 = null, t0 = performance.now();
+  var C = {}, CICLO = 2400, dome = null, mat = null, cam = null, T3 = null, t0 = performance.now();
   var PAL = null;
   function pal(){
     if(PAL) return PAL; var c = function(h){ return new T3.Color(h); };

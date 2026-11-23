@@ -789,10 +789,11 @@
   function montaMobs(host){
     if(host.dataset.ok) return; host.dataset.ok = '1';
     host.innerHTML = '<div style="opacity:.7">carregando a lista de mobs...</div>';
-    fetch('data/dungeon.json?v=' + Date.now()).then(function(x){ return x.json(); }).then(function(D){
+    Promise.all([fetch('data/dungeon.json?v=' + Date.now()).then(function(x){ return x.json(); }), fetch('data/progressao.json?v=' + Date.now()).then(function(x){ return x.json(); }).catch(function(){ return {}; })]).then(function(R){
+      var D = R[0], NV = (R[1] && R[1].mobsNivel) || {}, nvDe = function(k){ for(var t in NV){ if(NV[t] && NV[t][k] && NV[t][k].length) return NV[t][k][0]; } return 0; };
       MOBS_DADOS = D.mobs || {}; var grupos = { 'Chefes / Bosses': [], 'Cruma (nv 1-15)': [], 'Fortaleza (nv 15-30)': [], 'Pantano (nv 30-45)': [], 'Torre / Hallate': [], 'Dungeon antiga': [], 'Outros': [] };
       Object.keys(MOBS_DADOS).forEach(function(k){
-        var m = MOBS_DADOS[k], nome = m.name + ' · ' + k + ' · ' + m.hp + ' HP' + (m.xp ? ' · ' + m.xp + ' xp' : ''), g;
+        var m = MOBS_DADOS[k], nome = 'Nv ' + (nvDe(k) || '?') + ' · ' + m.name + ' · ' + k + ' · ' + m.hp + ' HP' + (m.xp ? ' · ' + m.xp + ' xp' : ''), g;
         if(/^chefe|^mini_boss/.test(k)) g = 'Chefes / Bosses'; else if(/_curuma$/.test(k)) g = 'Cruma (nv 1-15)'; else if(/_fort$/.test(k)) g = 'Fortaleza (nv 15-30)';
         else if(/fogo|magmagoil|wyrm|golem_lava/.test(k)) g = 'Pantano (nv 30-45)'; else if(/^(fantasma|esqueleto|vidente|lamina|cao|guarda_real|cavaleiro|erinia|comandante|anjo|xama|overlord|arcanjo)$/.test(k)) g = 'Torre / Hallate';
         else if(/^(shade|brute|caster)$/.test(k)) g = 'Dungeon antiga'; else g = 'Outros';
@@ -807,10 +808,18 @@
         '<div class="pa-mobs-linha"><label style="flex-direction:row;align-items:center;gap:6px;color:#dfe6f5"><input id="pm-fixo" type="checkbox" checked> Fixar spot (salva e volta a nascer)</label></div>' +
         '<div class="pa-grid-btns"><button class="pa-btn pa-btn-gold" id="pm-spawn">👹 Spawn aqui</button><button class="pa-btn" id="pm-lista">📋 Listar spots de Dion</button></div>' +
         '<div class="pa-mobs-linha" style="margin-top:14px"><label>Remover spots num raio (m) ao redor de voce<input id="pm-rem-raio" type="number" min="2" max="400" value="12" style="width:90px"></label><button class="pa-btn" id="pm-remover" style="border-color:#ff6b6b;color:#ff9a9a">🗑️ Remover aqui</button></div>' +
+        '<div class="pa-sec-title" style="margin:16px 0 8px;color:#ffd166">🧙 NPCs e objetos de Dion</div>' +
+        '<div class="pa-mobs-linha"><label style="flex:1;min-width:240px">Colocar 2,5 m a sua frente<select id="po-tipo" style="width:100%"><optgroup label="NPCs (dialogo, loja, armazem)"><option value="npc_clarissa">Clarissa · Gatekeeper</option><option value="npc_altran">Altran · Ferreiro</option><option value="npc_mammon">Mammon · Selos</option><option value="npc_wilford">Wilford · Armazem</option><option value="npc_galladucci">Galladucci · Comerciante</option></optgroup><optgroup label="Efeitos"><option value="feixe">Feixe de luz dourado (da praca de Talking)</option></optgroup></select></label>' +
+        '<label>Raio p/ remover (m)<input id="po-raio" type="number" min="1" max="400" value="6" style="width:80px"></label></div>' +
+        '<div class="pa-grid-btns"><button class="pa-btn pa-btn-gold" id="po-spawn">➕ Colocar aqui</button><button class="pa-btn" id="po-lista">📋 Listar objetos</button><button class="pa-btn" id="po-remover" style="border-color:#ff6b6b;color:#ff9a9a">🗑️ Remover objetos aqui</button></div>' +
+        '<div style="opacity:.65;margin-top:10px;line-height:1.5">Os objetos ficam salvos no servidor e todos os jogadores veem. O NPC nasce virado para voce.</div>' +
         '<div style="opacity:.65;margin-top:10px;line-height:1.5">Chefes nascem 1 por spot e voltam em ~5 min. Mobs comuns voltam em ~45 s. A mensagem de resultado aparece no chat.</div>';
       var v = function(id){ return document.getElementById(id); };
       v('pm-spawn').onclick = function(){ som('click'); cmd('mob_spawn', { tipo: v('pm-tipo').value, qtd: +v('pm-qtd').value || 1, raio: +v('pm-raio').value || 5, agr: (+v('pm-agr').value || 0) / 100, fixo: v('pm-fixo').checked }); };
       v('pm-lista').onclick = function(){ som('click'); cmd('mob_lista', {}); };
+      v('po-spawn').onclick = function(){ som('click'); var S_ = window.__dbgS || window.S || {}, f = S_.face || 0; cmd('obj_spawn', { tipo: v('po-tipo').value, x: (S_.px || 0) + Math.sin(f) * 2.5, z: (S_.pz || 0) + Math.cos(f) * 2.5, y: S_.py, rot: f + Math.PI }); };
+      v('po-lista').onclick = function(){ som('click'); cmd('obj_lista', {}); };
+      v('po-remover').onclick = function(){ som('click'); cmd('obj_remover', { raio: +v('po-raio').value || 6 }); };
       v('pm-remover').onclick = function(){ som('click'); cmd('mob_remover', { raio: +v('pm-rem-raio').value || 12 }); };
     }).catch(function(e){ host.innerHTML = '<div style="color:#ff9a9a">nao consegui ler data/dungeon.json: ' + e + '</div>'; delete host.dataset.ok; });
   }

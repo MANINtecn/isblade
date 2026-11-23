@@ -20,7 +20,7 @@ const SiteDB = require('./site_db')({ dir: process.env.DATA_DIR || path.join(__d
 const AUTH = process.env.AUTH !== '0';                              /* MMO: so entra no mundo quem tem conta e personagem dela (AUTH=0 so para teste local sem conta) */
 const RAIZ = path.join(__dirname, '..', 'prototipo'), TICK = 1000 / 12, RESP_S = 4;
 const VMAX = 17;                                                   /* m/s: base 6.2 m/s, sprint 11.5 m/s, esquiva 4.6 m em 0.4 s; folga de latencia */
-const MAPAS = { cidade: { spawn: { x: 0, z: 6, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } }, curuma: { aberto: 1 }, fortress: { aberto: 1 }, pantano: { aberto: 1 }, dion: { aberto: 1 } };
+const MAPAS = { cidade: { spawn: { x: 1572, z: -42, r: 4 } }, pvp: { spawn: { x: 0, z: 0, r: 3 } }, masmorra: { spawn: { x: 0, z: 6, r: 4 } }, curuma: { aberto: 1 }, fortress: { aberto: 1 }, pantano: { aberto: 1 }, dion: { aberto: 1 } };
 /* [mapas-multi] 08/11/2026 (dono: todos os mapas multijogador): Cruma, Fortaleza e Pantano tem canais como a cidade (50 por canal); o jogador entra onde o
    jogo o coloca (posicao inicial vem do cliente) e manda a altura (y) para os outros o desenharem no relevo. Ninguem fere ninguem la (PvP com flag vem depois);
    mobs continuam de cada jogador ate a Fase 6. */     /* masmorra = instancia SOLO (dungeon, duelo com o Baium): um canal por jogador */
@@ -449,6 +449,7 @@ wss.on('connection', ws => {
       for(const g of grupos.values()) if(g.membros.has(sid)){ const mm = g.membros.get(sid); mm.J = J; mm.ausente = 0; mm.nome = J.nome; J.party = g.id; envieGrupo(g); }      /* voltou (outra pagina/queda): reata o grupo */
       envia(J, { t: 'w', adm: Admins.ehAdmin(J.contaChave) ? 1 : 0, id: J.id, sid: J.sid, grp: (() => { const g = [...grupos.values()].find(x => x.membros.has(J.sid)); return g ? estadoGrupo(g) : null; })(), prog: pers ? Prog.info(pers) : null, mapa, canal: c.n, cap: CAP, jog: [...c.jog.values()].filter(o => o !== J).map(info), eu: info(J) });
       if(c.mapa === 'masmorra' && c.dg && c.gid){ const gg = grupos.get(c.gid); if(gg && gg.lider !== J.sid){ envia(J, { t: 'dg', k: 'start', key: c.dg.key, de: 0 }); if(c.dg.boss) envia(J, { t: 'dg', k: 'boss', de: 0 }); if(c.dg.clear) envia(J, { t: 'dg', k: 'clear', de: 0 }); } }
+      if(mapa === 'cidade'){ try { envia(J, { t: 'dion_obj', lista: Admin.objetosDion() }); } catch(e){} }      /* [dion] NPCs e feixes colocados pelo GM */
       if(pers && Inv.garante(pers)){ Contas.grava(); envia(J, { t: 'inv', inv: pers.inv }); }
       if(ANUNCIO) envia(J, { t: 'anuncio', txt: ANUNCIO });                 /* [anuncio] */
       enviaCla(J);                                                   /* [cla] */

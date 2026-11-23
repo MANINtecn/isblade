@@ -468,7 +468,7 @@
   var GK_DATA = {
     id: 'clarissa',
     name: 'Clarissa',
-    subTitle: 'Gatekeeper de Talking Island',
+    subTitle: 'Gatekeeper de Dion',
     avatar: '🔮',
     greeting: 'Que as bênçãos de Einhasad iluminem seu caminho.<br><br>Posso dobrar as linhas ley do espaço para transportá-lo instantaneamente aos recantos de Aden ou aos perigos da Torre da Insolência.<br><br>Para onde deseja viajar?',
     options: [
@@ -551,7 +551,7 @@
         }
       },
       {
-        label: 'Perguntar sobre o Portal de Talking Island',
+        label: 'Perguntar sobre o Portal de Dion',
         action: function(renderSub){
           var subHtml = `
             <div class="l2-html-header">
@@ -685,7 +685,7 @@
         }
       },
       {
-        label: 'Sobre o Aço de Talking Island',
+        label: 'Sobre o Aço de Dion',
         action: function(renderSub){
           var subHtml = `
             <div class="l2-html-header">
@@ -693,7 +693,7 @@
               <span class="l2-html-sub">&lt;Tradições dos Ferreiros&gt;</span>
             </div>
             <div class="l2-html-text">
-              "Talking Island é cercada pelo mar infinito de Aden. Dizem que os depósitos de ferro sob as colinas do norte foram abençoados pelos Titãs da Terra antes da era do Imperador Shunaiman.<br><br>
+              "Dion é cercada pelo mar infinito de Aden. Dizem que os depósitos de ferro sob as colinas do norte foram abençoados pelos Titãs da Terra antes da era do Imperador Shunaiman.<br><br>
               Qualquer arma temperada nestas águas corta com a leveza de uma pluma e o peso de um rochedo! Trate sua lâmina com respeito e ela jamais falhará no calor da batalha."
             </div>
           `;
@@ -784,7 +784,7 @@
     name: 'Wilford',
     subTitle: 'Guarda-Volumes do Armazém',
     avatar: '📦',
-    greeting: 'Saudações, honorável viajante!<br><br>Bem-vindo ao Armazém Central de Talking Island. Sob a custódia da Guilda dos Anões de Ferro, nenhum ladrão ou monstro tocará nos seus tesouros mais preciosos.<br><br>Como posso servi-lo hoje?',
+    greeting: 'Saudações, honorável viajante!<br><br>Bem-vindo ao Armazém Central de Dion. Sob a custódia da Guilda dos Anões de Ferro, nenhum ladrão ou monstro tocará nos seus tesouros mais preciosos.<br><br>Como posso servi-lo hoje?',
     options: [
       {
         label: 'Armazém Privado (Depositar / Retirar)',
@@ -826,7 +826,7 @@
     name: 'Galladucci',
     subTitle: 'Comerciante de Equipamentos',
     avatar: '🪙',
-    greeting: 'Bem-vindo ao empório de armas e armaduras de Talking Island!<br><br>Se você deseja desafiar os monstros de Cruma ou da Fortaleza, precisará de lâminas bem afiadas e proteção reforçada.<br><br>O que deseja hoje?',
+    greeting: 'Bem-vindo ao empório de armas e armaduras de Dion!<br><br>Se você deseja desafiar os monstros de Cruma ou da Fortaleza, precisará de lâminas bem afiadas e proteção reforçada.<br><br>O que deseja hoje?',
     options: [
       {
         label: 'Comprar e Vender Equipamentos',
@@ -1210,12 +1210,32 @@
   // API GLOBAL DE INICIALIZAÇÃO E ATUALIZAÇÃO
   // =========================================================================
 
+  var SCENE_REF = null, LOADER_REF = null;
+  var DEFS = {
+    clarissa: function(){ return { data: GK_DATA, modelPath: 'assets/personagens/npc_clarissa.glb', targetH: 2.22, pedestalY: 0.08, nameY: 2.58, nameScaleX: 2.4, nameScaleY: 0.60, subColor: '#00d5ff', nameColor: '#f5c451', decor: createGatekeeperDecor(), fallbackColor: 0x00a2ff }; },
+    altran: function(){ return { data: BLACKSMITH_DATA, modelPath: 'assets/personagens/npc_altran.glb', targetH: 1.68, nameY: 2.05, nameScaleX: 2.1, nameScaleY: 0.52, subColor: '#ff9d42', nameColor: '#f5c451', decor: createAnvilProp(), fallbackColor: 0x995522 }; },
+    mammon: function(){ return { data: MAMMON_DATA, modelPath: 'assets/personagens/npc_mammon.glb', targetH: 1.85, nameY: 2.25, nameScaleX: 2.5, nameScaleY: 0.60, subColor: '#c084fc', nameColor: '#f5c451', decor: createMammonDecor(), fallbackColor: 0x6611aa }; },
+    wilford: function(){ return { data: WAREHOUSE_DATA, modelPath: 'assets/personagens/npc_wilford.glb', targetH: 1.68, nameY: 2.05, nameScaleX: 2.4, nameScaleY: 0.55, subColor: '#38bdf8', nameColor: '#f5c451', decor: createWarehouseDecor(), fallbackColor: 0x2563eb }; },
+    galladucci: function(){ return { data: TRADER_DATA, modelPath: 'assets/personagens/npc_galladucci.glb', targetH: 2.28, nameY: 2.65, nameScaleX: 2.6, nameScaleY: 0.60, subColor: '#4ade80', nameColor: '#f5c451', decor: createTraderDecor(), fallbackColor: 0x16a34a }; }
+  };
   window.L2Npcs = {
     npcs: npcs,
     list: function(){ return npcs; },
     perto: function(){ return !!currentNPCNear && !activeDialog; },      /* [Claude] NPC perto com o aviso de falar (a cidade nao esconde o aviso; o botao do celular vira FALAR) */
+    /* [dion] 22/11/2026: o GM coloca cada NPC onde quiser (F10 > Mobs / Bosses > NPCs e objetos): criar('clarissa'|'altran'|'mammon'|'wilford'|'galladucci', x, y, z, rotY) -> objeto; remover(objeto) */
+    tipos: ['clarissa', 'altran', 'mammon', 'wilford', 'galladucci'],
+    criar: function(tipo, x, y, z, rotY){
+      if(!SCENE_REF || !LOADER_REF || !DEFS[tipo]) return null;
+      var cfg = DEFS[tipo](); cfg.x = x; cfg.y = y || 0; cfg.z = z; cfg.rotY = rotY || 0;
+      loadNpc(SCENE_REF, LOADER_REF, cfg); return npcs[npcs.length - 1];
+    },
+    remover: function(o){
+      if(!o) return; try { if(o.group && o.group.parent) o.group.parent.remove(o.group); } catch(e){}
+      var i = npcs.indexOf(o); if(i >= 0) npcs.splice(i, 1);
+    },
     init: function(scene, gltfLoader){
-      initUI();
+      initUI(); SCENE_REF = scene; LOADER_REF = gltfLoader;
+      if(!/[?&]talking=1/.test(location.search)) return;      /* Dion: nenhum NPC nasce sozinho na vila antiga; o GM coloca (dion_objetos.js) */
 
       // 1. Gatekeeper Clarissa (Na frente do Portal Dimensional: x = -11.5, z = -11.5)
       // Escala oficial L2: Humana feminina clássica com chapéu pontudo (~2.22m + pedestal)

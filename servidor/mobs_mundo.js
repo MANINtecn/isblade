@@ -20,7 +20,7 @@ const ALT = 2.0, PASSO = 1.04, FOCO_S = 6, BONUS_PT = [1, 1, 1.3, 1.39, 1.5, 1.5
 let SP = null, DG = null; const GRADES = {};
 const ARQ_DION = path.join(process.env.DATA_DIR || path.join(__dirname, 'dados'), 'dion_spots.json');
 function spotsDion(){ try { const a = JSON.parse(fs.readFileSync(ARQ_DION, 'utf8')); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
-function salvaSpotsDion(lista){ try { fs.mkdirSync(path.dirname(ARQ_DION), { recursive: true }); fs.writeFileSync(ARQ_DION, JSON.stringify(lista, null, 1)); } catch(e){ console.error('mobs_mundo: nao salvou dion_spots', e.message); } }
+function salvaSpotsDion(lista){ try { fs.mkdirSync(path.dirname(ARQ_DION), { recursive: true }); fs.writeFileSync(ARQ_DION, JSON.stringify(lista, null, 1)); return { ok: 1, arq: ARQ_DION, n: lista.length }; } catch(e){ console.error('mobs_mundo: nao salvou dion_spots', e.message); return { erro: e.message, arq: ARQ_DION }; } }
 function carrega(){ try { SP = J('data/spots.json'); DG = J('data/dungeon.json'); SP.dion = { dif: 'dion', respawn: 45, ativa: 80, solta: 110, spots: spotsDion().map(q => Object.assign({}, q, { adm: 1 })) }; } catch(e){ console.error('mobs_mundo: dados', e.message); } }
 carrega();
 
@@ -98,8 +98,8 @@ class Mundo {
     if(chefe){ s.chefe = 1; s.resp = 300; }
     const sp = { s, v: Array.from({ length: n }, () => ({ m: null, t: 0 })) }; this.L.push(sp);
     for(const vg of sp.v) this.nasce(sp, vg, []);
-    if(fixo){ const X = this.xf, l = X ? praLocal(X, x, z) : [x, z]; const a = spotsDion(); a.push({ tipo, n, raio: s.raio, agr: s.agr, x: Math.round(l[0] * 10) / 10, z: Math.round(l[1] * 10) / 10, h: Math.round((h - (X ? X.y : 0)) * 100) / 100, dif: s.dif, chefe: chefe ? 1 : undefined, resp: chefe ? 300 : undefined }); salvaSpotsDion(a); }
-    return { ok: 1, n, tipo, nome: T.name, fixo: !!fixo, chefe };
+    if(fixo){ const X = this.xf, l = X ? praLocal(X, x, z) : [x, z]; const a = spotsDion(); this.ultSalvo = null; a.push({ tipo, n, raio: s.raio, agr: s.agr, x: Math.round(l[0] * 10) / 10, z: Math.round(l[1] * 10) / 10, h: Math.round((h - (X ? X.y : 0)) * 100) / 100, dif: s.dif, chefe: chefe ? 1 : undefined, resp: chefe ? 300 : undefined }); this.ultSalvo = salvaSpotsDion(a); }
+    return { ok: 1, n, tipo, nome: T.name, fixo: !!fixo, chefe, salvo: this.ultSalvo };
   }
   /* tira os spots do GM num raio (e os mobs vivos deles) */
   adminRemove(x, z, raio){
@@ -111,12 +111,13 @@ class Mundo {
     const a = spotsDion().filter(q => { const w = X ? praMundo(X, q.x, q.z) : [q.x, q.z]; return Math.hypot(w[0] - x, w[1] - z) > raio; });
     salvaSpotsDion(a); return n;
   }
+  adminArq(){ return { arq: ARQ_DION, existe: fs.existsSync(ARQ_DION), salvos: spotsDion().length }; }
   adminLista(){ return this.L.filter(sp => sp.s.adm).map(sp => ({ tipo: sp.s.tipo, n: sp.s.n, x: Math.round(sp.s.x * 10) / 10, z: Math.round(sp.s.z * 10) / 10, chefe: !!sp.s.chefe })); }
   /* ponto livre no chao do spot */
   ponto(s){ for(let k = 0; k < 30; k++){ const a = Math.random() * 6.283, d = Math.sqrt(Math.random()) * s.raio, x = s.x + Math.cos(a) * d, z = s.z + Math.sin(a) * d, h = this.G.chao(x, z, s.h); if(h !== null && Math.abs(h - s.h) < 1.5) return [x, z, h]; } return null; }
   nasce(sp, vg, jog){
     const s = sp.s, T = DG.mobs[s.tipo]; if(!T) return; const p = this.ponto(s); if(!p) return;
-    for(const P of jog) if(Math.hypot(P.x - p[0], P.z - p[1]) < 9) return;           /* nao nasce colado em ninguem */
+    for(const P of jog) if(Math.hypot(P.x - p[0], P.z - p[1]) < (s.adm ? 2.5 : 9)) return;           /* nao nasce colado em ninguem (spots do GM: so 2,5 m, para voltarem a nascer perto de quem acabou de entrar) */
     const m = { id: this.novoId ? this.novoId() : this.prox++, dif: s.dif || this.difMapa, tipo: s.tipo, T, x: p[0], z: p[1], y: p[2], hx: p[0], hz: p[1], hy: p[2], f: Math.random() * 6.283, hp: T.hp, max: T.hp,
       agr: !!(s.chefe || T.agressivo || Math.random() < (s.agr || 0)), engaj: false, volta: false, vt: 0, st: 0, stT: 0, alvo: 0, dano: new Map(), foco: null, morto: false, mT: 0, chefe: !!s.chefe };
     this.mobs.set(m.id, m); vg.m = m;

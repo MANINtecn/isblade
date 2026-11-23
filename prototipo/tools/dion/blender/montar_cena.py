@@ -30,10 +30,23 @@ try:
     for o in raiz: o.scale = (esc, esc, esc); o.location = (72, 42, -45.4)        # praca (spawn) em coordenadas do Blender (x, -z, y)
     print('personagem de referencia: altura original %.2f -> 2,25 m (escala %.4f)' % (altura, esc))
 except Exception as e: print('sem personagem', e)
-bpy.context.scene.render.engine = 'BLENDER_WORKBENCH'
+if os.environ.get('MOTOR') == 'EEVEE':
+    try: bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+    except TypeError as e: print('eevee indisponivel', e); bpy.context.scene.render.engine = 'BLENDER_WORKBENCH'
+    sol = bpy.data.lights.new('SOL', 'SUN'); sol.energy = 4.0; so = bpy.data.objects.new('SOL', sol); bpy.context.scene.collection.objects.link(so); so.rotation_euler = (math.radians(50), 0, math.radians(35))
+    for m in bpy.data.materials:
+        if m.use_nodes:
+            for n in m.node_tree.nodes:
+                if n.type == 'BSDF_PRINCIPLED':
+                    try: n.inputs['Roughness'].default_value = 1.0; n.inputs['Specular IOR Level'].default_value = 0.0
+                    except Exception: pass
+else:
+    bpy.context.scene.render.engine = 'BLENDER_WORKBENCH'
 sh = bpy.context.scene.display.shading; sh.light = 'FLAT'; sh.color_type = 'TEXTURE'; sh.show_backface_culling = False
-bpy.context.scene.render.resolution_x = 1100; bpy.context.scene.render.resolution_y = 620
-bpy.context.scene.world = bpy.data.worlds.new('w'); bpy.context.scene.world.color = (0.6, 0.75, 0.9)
+bpy.context.scene.render.resolution_x = int(os.environ.get('RES_X', 1100)); bpy.context.scene.render.resolution_y = int(os.environ.get('RES_Y', 620))
+bpy.context.scene.world = bpy.data.worlds.new('w'); bpy.context.scene.world.color = (0.62, 0.78, 0.95)
+if os.environ.get('MOTOR') == 'EEVEE':
+    bpy.context.scene.world.use_nodes = True; _bg = bpy.context.scene.world.node_tree.nodes.get('Background'); _bg.inputs['Color'].default_value = (0.55, 0.75, 1.0, 1); _bg.inputs['Strength'].default_value = 1.1
 cam = bpy.data.objects.new('CAM', bpy.data.cameras.new('CAM')); bpy.context.scene.collection.objects.link(cam); bpy.context.scene.camera = cam
 cam.data.lens = 28; cam.data.clip_end = 2000
 os.makedirs(pasta, exist_ok=True)

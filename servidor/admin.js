@@ -1,5 +1,6 @@
 'use strict';
 const crypto = require('crypto');
+const fs = require('fs'), path = require('path');
 /* ==========================================================================
    ADMIN / GM POWERS - IS BLADE (17/11/2026)
    Sistema completo de administração e controle de jogo (GM):
@@ -19,9 +20,17 @@ const crypto = require('crypto');
    ========================================================================== */
 
 let CTX = null;
+/* [gm] objetos de Dion colocados pelo GM (NPCs e feixe de luz): dados/dion_objetos.json, em coordenadas do MUNDO da cidade */
+const ARQ_OBJ = path.join(process.env.DATA_DIR || path.join(__dirname, 'dados'), 'dion_objetos.json');
+const TIPOS_OBJ = ['npc_clarissa', 'npc_altran', 'npc_mammon', 'npc_wilford', 'npc_galladucci', 'feixe'];
+function lerObj(){ try { const a = JSON.parse(fs.readFileSync(ARQ_OBJ, 'utf8')); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
+function salvaObj(a){ try { fs.mkdirSync(path.dirname(ARQ_OBJ), { recursive: true }); fs.writeFileSync(ARQ_OBJ, JSON.stringify(a, null, 1)); return null; } catch(e){ return e.message; } }
+const objetosDion = () => lerObj();
+function difundeCidade(msg){ try { for(const cc of (CTX.canais.cidade || [])) CTX.difunde(cc, msg); } catch(e){} }
+
 
 const DESTINOS = {
-  cidade: { nome: 'Talking Island (Cidade)', x: 0, z: 6 },
+  cidade: { nome: 'Dion (Cidade)', x: 1572, z: -42 },
   arena: { nome: 'Arena PvP (Coliseu)', x: -28.4, z: -53.85 },
   curuma: { nome: 'Torre de Cruma', x: -53.7, z: -42.7 },
   fortress: { nome: 'Fortaleza', x: -51.0, z: 51.5 },
@@ -738,6 +747,27 @@ function executa(c, J, m){
       teleport(c, J, m.destino, m.x, m.z);
       break;
 
+    case 'obj_spawn':
+    case 'obj_remover':
+    case 'obj_lista': {
+      if(!(J.x > 800 && J.x < 2250)){ sis(J, 'Objetos: so da para colocar dentro de Dion (voce esta fora).'); break; }
+      const a = lerObj();
+      if(acao === 'obj_spawn'){
+        const tipo = String(m.tipo || ''); if(TIPOS_OBJ.indexOf(tipo) < 0){ sis(J, 'Objetos: tipo desconhecido (' + tipo + ').'); break; }
+        const uid = a.reduce((q, o) => Math.max(q, o.uid | 0), 0) + 1, rot = typeof m.rot === 'number' ? m.rot : (typeof J.f === 'number' ? J.f : 0);
+        const px = (typeof m.x === 'number' && typeof m.z === 'number' && Math.hypot(m.x - J.x, m.z - J.z) < 12) ? m.x : J.x, pz = (px === m.x) ? m.z : J.z, py = (px === m.x && typeof m.y === 'number') ? m.y : (typeof J.y === 'number' ? J.y : -45);      /* o GM pode pedir um ponto ate 12 m dele (a frente) */
+        const o = { uid, tipo, x: CTX.r2(px), z: CTX.r2(pz), y: CTX.r2(py), rot: CTX.r2(rot) }; a.push(o);
+        const er = salvaObj(a); difundeCidade({ t: 'dion_obj_add', o });
+        sis(J, 'Objetos: ' + tipo + ' #' + uid + ' em (' + o.x + ', ' + o.z + ')' + (er ? ' - ATENCAO: NAO salvou (' + er + ' em ' + ARQ_OBJ + ')' : ' - salvo (' + a.length + ' no arquivo)'));
+      } else if(acao === 'obj_remover'){
+        const raio = Math.max(1, Math.min(400, +m.raio || 6)), fica = [], vai = [];
+        for(const o of a) (Math.hypot(o.x - J.x, o.z - J.z) <= raio ? vai : fica).push(o);
+        if(vai.length){ const er = salvaObj(fica); difundeCidade({ t: 'dion_obj_del', uids: vai.map(o => o.uid) }); if(er) sis(J, 'Objetos: nao salvou (' + er + ')'); }
+        sis(J, 'Objetos: ' + vai.length + ' removido(s) num raio de ' + raio + ' m.');
+      } else sis(J, 'Objetos de Dion: ' + a.length + ' | ' + a.slice(0, 10).map(o => '#' + o.uid + ' ' + o.tipo.replace('npc_', '') + ' (' + o.x + ',' + o.z + ')').join(' | ') + ' | arquivo ' + ARQ_OBJ);
+      break;
+    }
+
     case 'mob_spawn':
     case 'mob_remover':
     case 'mob_lista': {                                   /* [gm] F10 > Mobs: povoar Dion na posicao do GM */
@@ -746,12 +776,12 @@ function executa(c, J, m){
       if(!(J.x > 800 && J.x < 2250)){ sis(J, 'Mobs: so da para povoar dentro de Dion (voce esta fora).'); break; }
       if(acao === 'mob_spawn'){
         const r = W.adminNasce(String(m.tipo || ''), J.x, J.z, typeof J.y === 'number' ? J.y : -22, m.qtd, m.raio, m.agr, !!m.fixo);
-        sis(J, r.erro ? ('Mobs: ' + r.erro) : ('Mobs: ' + r.n + 'x ' + r.nome + (r.chefe ? ' (boss)' : '') + ' em (' + J.x.toFixed(0) + ', ' + J.z.toFixed(0) + ')' + (r.fixo ? ' - spot FIXO salvo' : ' - temporario (volta ao reiniciar so se fixo)')));
+        sis(J, r.erro ? ('Mobs: ' + r.erro) : ('Mobs: ' + r.n + 'x ' + r.nome + (r.chefe ? ' (boss)' : '') + ' em (' + J.x.toFixed(0) + ', ' + J.z.toFixed(0) + ')' + (r.fixo ? (r.salvo && r.salvo.ok ? ' - spot FIXO salvo (' + r.salvo.n + ' no arquivo)' : ' - ATENCAO: NAO salvou o spot (' + ((r.salvo && r.salvo.erro) || '?') + ' em ' + ((r.salvo && r.salvo.arq) || '?') + ')') : ' - temporario: some ao reiniciar o servidor')));
       } else if(acao === 'mob_remover'){
         const n = W.adminRemove(J.x, J.z, Math.max(2, Math.min(400, +m.raio || 12)));
         sis(J, 'Mobs: ' + n + ' spot(s) removido(s) num raio de ' + (+m.raio || 12) + ' m.');
       } else {
-        const L = W.adminLista(); sis(J, 'Mobs de Dion: ' + L.length + ' spot(s)' + (L.length ? ' | ' + L.slice(0, 8).map(q => q.n + 'x ' + q.tipo + (q.chefe ? '*' : '') + ' (' + q.x + ',' + q.z + ')').join(' | ') : ''));
+        const L = W.adminLista(), A = W.adminArq(); sis(J, 'Mobs de Dion: ' + L.length + ' spot(s) ativos | arquivo ' + A.arq + (A.existe ? ' (' + A.salvos + ' salvos)' : ' (NAO existe)') + (L.length ? ' | ' + L.slice(0, 8).map(q => q.n + 'x ' + q.tipo + (q.chefe ? '*' : '') + ' (' + q.x + ',' + q.z + ')').join(' | ') : ''));
       }
       break;
     }
@@ -773,6 +803,7 @@ module.exports = {
   ehComando,
   comando,
   executa,
+  objetosDion,
   setLevel,
   ress,
   heal,

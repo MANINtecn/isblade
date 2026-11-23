@@ -18,7 +18,7 @@
 
 
 
-<title>L2 Ikarus - Talking Island Village</title>
+<title>L2 Ikarus - Dion</title>
 
 
 
@@ -801,18 +801,19 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/moradores.js?v=2"></script>
 <script src="js/solo_detalhe.js?v=2"></script>
 <script src="js/mundo_campo.js?v=6"></script>
-<script src="js/mapa_vivo.js?v=21"></script>
+<script src="js/mapa_vivo.js?v=22"></script>
 <script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
-<script src="js/ceu_l2.js?v=1"></script>
+<script src="js/ceu_l2.js?v=2"></script>
 <script src="js/agua_l2.js?v=1"></script>
 <script src="js/status.js?v=31"></script>
 <script src="js/l2_teleport.js?v=2"></script>
-<script src="js/l2_npcs.js?v=6"></script>
+<script src="js/l2_npcs.js?v=8"></script>
+<script src="js/dion_objetos.js?v=2"></script>
 <script src="js/horizonte.js?v=3"></script>
 <script src="js/painel_bots.js?v=6"></script>
-<script src="js/painel_admin.js?v=8"></script>
+<script src="js/painel_admin.js?v=10"></script>
 <script src="js/ui_janelas.js?v=1"></script>
 </head>
 
@@ -824,7 +825,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 <!-- TELA DE CARREGAMENTO OFICIAL LINEAGE 2 - TALKING ISLAND -->
 
-<div id="l2LoadingScreen" style="position:fixed;inset:0;z-index:99999;background:#030611 url('assets/talking_island/loading_screen.jpg') center center / cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 60px;box-sizing:border-box;opacity:1;transition:opacity .8s cubic-bezier(0.16, 1, 0.3, 1);pointer-events:all;user-select:none">
+<div id="l2LoadingScreen" style="position:fixed;inset:0;z-index:99999;background:#030611 url('assets/dion/loading_screen.jpg') center center / cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 60px;box-sizing:border-box;opacity:1;transition:opacity .8s cubic-bezier(0.16, 1, 0.3, 1);pointer-events:all;user-select:none">
 
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center, rgba(3,6,17,0.15) 0%, rgba(3,6,17,0.7) 70%, rgba(2,4,10,0.95) 100%), linear-gradient(180deg, transparent 50%, rgba(2,4,12,0.92) 85%, #02040b 100%);pointer-events:none"></div>
 
@@ -832,7 +833,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
     <div style="font-family:'Cinzel',serif,system-ui;font-size:13px;font-weight:800;letter-spacing:.25em;color:#f5c451;text-shadow:0 0 14px rgba(245,196,81,.6);margin-bottom:6px;text-transform:uppercase">
 
-      TALKING ISLAND &middot; VILA INICIAL
+      DION &middot; CIDADE INICIAL
 
     </div>
 
@@ -852,7 +853,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
     <div id="l2LoadingStatus" style="font-size:11.5px;color:#94a3b8;margin-top:8px;font-weight:500;text-shadow:0 1px 4px #000">
 
-      Carregando arquitetura da vila e Catedral de Einhasad...
+      Carregando as casas, o castelo e a Catedral de Dion...
 
     </div>
 
@@ -894,7 +895,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 
 
 
-  <div id="brand">L2 IKARUS<span>TALKING ISLAND VILLAGE</span></div>
+  <div id="brand">L2 IKARUS<span>DION</span></div>
 
 
 
@@ -1285,7 +1286,7 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=28';
-import { Net } from './js/net.js?v=56';
+import { Net } from './js/net.js?v=57';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -3880,26 +3881,25 @@ function finishL2Loading(){
 
   if(txt) txt.textContent = '100%';
 
-  if(status) status.textContent = 'Mundo pronto! Entrando em Talking Island...';
+  if(status) status.textContent = 'Mundo pronto! Entrando em Dion...';
   try{ prepShaders(scene); }catch(_){}   /* [preparo] REGRA: shaders e texturas da cidade inteira prontos atras da tela de carregamento */
 
 
 
-  setTimeout(function(){
-
+  /* [dion] 22/11/2026: a tela de carregamento so sai quando o jogador ja esta em Dion (antes ele via a vila de Talking Island ate o mapa baixar) */
+  var _querDion = !/[?&]talking=1/.test(location.search) && !/[?&]local=(curuma|fortress|pantano)/.test(location.search), _t0Dion = performance.now();
+  var _saiTela = function(){
     var screen = document.getElementById('l2LoadingScreen');
-
-    if(screen){
-
-      screen.style.opacity = '0';
-
-      screen.style.pointerEvents = 'none';
-
-      setTimeout(function(){ screen.style.display = 'none'; }, 850);
-
+    if(screen){ screen.style.opacity = '0'; screen.style.pointerEvents = 'none'; setTimeout(function(){ screen.style.display = 'none'; }, 850); }
+  };
+  var _esperaDion = function(){
+    if(_querDion && !window.__DION_PRONTO && performance.now() - _t0Dion < 150000){
+      var st = document.getElementById('l2LoadingStatus'); if(st) st.textContent = 'Baixando e montando Dion...';
+      setTimeout(_esperaDion, 200); return;
     }
-
-  }, 400);
+    _saiTela();
+  };
+  setTimeout(_esperaDion, 400);
 
 }
 
@@ -3917,7 +3917,7 @@ setTimeout(finishL2Loading, 7000);
 
   var charInfo = document.getElementById('l2LoadingCharInfo');
 
-  if(charInfo) charInfo.textContent = 'Materializando ' + pName + ' na Vila de Talking Island...';
+  if(charInfo) charInfo.textContent = 'Materializando ' + pName + ' em Dion...';
 
 })();
 
@@ -4798,7 +4798,7 @@ var colunaCidade=new THREE.Mesh(colGeo,new THREE.ShaderMaterial({uniforms:colUni
     '  gl_FragColor=vec4(c*k,1.0);',
     '}'].join('\n')}));
 colunaCidade.name='COLUNA_CIDADE';colunaCidade.renderOrder=5;
-scene.add(colunaCidade);
+scene.add(colunaCidade);window.colunaCidade=colunaCidade;/* [dion] js/dion_objetos.js clona o feixe */
 /* <<< CLAUDE [coluna] */
 
 
@@ -9108,7 +9108,7 @@ function floatText(txt,color,size,who){
 
 
 
-  var wx=wo?wo.x:(who==='p'?S.px:S.ex),wz=wo?wo.z:(who==='p'?S.pz:S.ez),wy=wo?(wo.y||2.2):(who==='p'?3.2:3.0);
+  var wx=wo?wo.x:(who==='p'?S.px:S.ex),wz=wo?wo.z:(who==='p'?S.pz:S.ez),wy=wo?(wo.y||2.2):(who==='p'?(S.py||0)+3.2:3.0);
 
 
 
@@ -11171,7 +11171,7 @@ function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo 
 
 
 
-  if(d>0)DanoTela.num(d,{x:S.px,y:3.2,z:S.pz},'r','p','',camera);/* [dano-tela] */
+  if(d>0)DanoTela.num(d,{x:S.px,y:(S.py||0)+3.2,z:S.pz},'r','p','',camera);/* [dano-tela] */
 
 
 
@@ -11215,6 +11215,8 @@ function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo 
 
 
 
+/* [dion] 22/11/2026: onde o jogador reaparece na cidade (praca de Dion; a vila antiga so com ?talking=1) */
+function cidadePos(){var d=(window.MapaVivo&&MapaVivo.on&&!/[?&]talking=1/.test(location.search))?MapaVivo.spawn('dion'):null;return d?[d[0],d[1],d[2]]:[0,8,0];}
 function resetDuel(){
 
 
@@ -11235,7 +11237,7 @@ function resetDuel(){
 
 
 
-  S.php=S.pmax;S.st=stMax();S.px=0;S.pz=6;S.face=Math.PI;S.ex=0;S.ez=-3;S.eh=0;S.hp=S.maxhp;S.dead=false;S.pdead=false;S.stun=0;S.rollT=-1;S.focus=0;S.guard=false;
+  S.php=S.pmax;S.st=stMax();var _cp=cidadePos();S.px=_cp[0];S.pz=_cp[1];if(_cp[0]>800){S.py=_cp[2];S.vx=0;S.vz=0;}S.face=Math.PI;S.ex=0;S.ez=-3;S.eh=0;S.hp=S.maxhp;S.dead=false;S.pdead=false;S.stun=0;S.rollT=-1;S.focus=0;S.guard=false;
 
 
 
@@ -11492,7 +11494,7 @@ function mobSrvAtualiza(m,dt){
   var k=Math.min(1,dt*12);m.x+=(m.tx-m.x)*k;m.z+=(m.tz-m.z)*k;var df=m.tf-m.face;while(df>Math.PI)df-=6.2832;while(df<-Math.PI)df+=6.2832;m.face+=df*k;m.t=(m.t||0)+dt;
   var y=getGroundHeight(m.x,m.z,m.ty);m.g.position.set(m.x,y,m.z);/* [pagina-unica] altura do servidor escolhe a camada do mapa */m.g.rotation.y=m.face;m.flash=Math.max(0,(m.flash||0)-dt*4);
   if(m.mats){var ei=.25+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q=0;q<m.mats.length;q++)m.mats[q].emissiveIntensity=ei;}
-  m.bar.position.set(m.x,y+2.45*m.T.size*(m.esc||1),m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;
+  m.bar.position.set(m.x,y+2.45*m.T.size*(m.esc||1),m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;if(m.tag){m.tag.visible=!m.dead;mobTagPinta(m);m.bar.children.forEach(function(c){if(c!==m.tag)c.visible=mobBarraVisivel(m);});}
   mob3dAnim(m,dt);
   if(m.dead){m.deadT+=dt;if(m.deadT>2.6)removeMob(m);}
 }
@@ -11553,14 +11555,33 @@ function tirosTick(dt){
     if(k>=1){scene.remove(p.g);p.g.geometry.dispose();TIROS.splice(i,1);}}
 }
 /* <<< CLAUDE [mob3d-cidade] */
+/* [nome-mob] 22/11/2026 (dono): etiqueta estilo L2 sobre cada mob: 'Lv N  Nome', cor pela diferenca de nivel para o jogador; chefe em dourado e maior. A barra de vida so aparece com o mob ferido ou como alvo. */
+function mobNivelDe(tp){var mn=DATA.prog&&DATA.prog.mobsNivel,d=(typeof DG!=='undefined'&&DG.diff)||'normal',e=mn&&mn[d]&&mn[d][tp];if(!e&&mn)for(var k in mn){if(mn[k]&&mn[k][tp]&&mn[k][tp].length){e=mn[k][tp];break;}}return e?e[0]:0;}/* nivel oficial do mob: data/progressao.json -> mobsNivel */
+function mobCorNivel(dif){return dif>=5?'#ff4a3a':dif>=3?'#ff9a40':dif>=1?'#ffe45a':dif>=-2?'#ffffff':dif>=-5?'#9df0a0':'#a8a8a8';}
+function mobTagCria(m){
+  try{
+    var T=m.T;if(!T||m.tag)return;var boss=/^chefe|^mini_boss/.test(m.type||'');var cv=document.createElement('canvas');cv.width=640;cv.height=96;m.tagCv=cv;
+    m.tag=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false}));m.tag.renderOrder=22;
+    var k=boss?1.9:1;m.tag.scale.set(3.4*k,.51*k,1);m.tag.position.set(0,.34*k+.12,0);m.bar.add(m.tag);m.bar.scale.setScalar(boss?2.2:1);m.tagCor='';mobTagPinta(m);
+  }catch(e){console.warn('[nome-mob]',e);}
+}
+function mobTagPinta(m){
+  var T=m.T,lv=mobNivelDe(m.type)||1,eu=(window.S&&S.lvl)||1,boss=/^chefe|^mini_boss/.test(m.type||''),cor=boss?'#ffc83a':mobCorNivel(lv-eu),chave=cor+'|'+eu;if(m.tagCor===chave)return;m.tagCor=chave;
+  var cv=m.tagCv,c=cv.getContext('2d');c.clearRect(0,0,640,96);c.font='bold 46px system-ui,Segoe UI,sans-serif';c.textAlign='center';c.textBaseline='middle';
+  var txt='Lv '+lv+'  '+T.name;c.lineWidth=8;c.strokeStyle='rgba(0,0,0,.92)';c.strokeText(txt,320,50);c.fillStyle=cor;c.fillText(txt,320,50);
+  if(boss){c.font='bold 22px system-ui,sans-serif';c.fillStyle='#ff6a3a';c.strokeText('CHEFE',320,16);c.fillText('CHEFE',320,16);}
+  m.tag.material.map.needsUpdate=true;
+}
+function mobBarraVisivel(m){return !!(m.hp<m.max||(S.ultMob===m&&performance.now()-(S.ultMobT||0)<9000)||/^chefe|^mini_boss/.test(m.type||''));}
 function mkMob(type,x,z){
   var m=mkMobBoneco(type,x,z),T=m.T,src=T.modelo&&MOB3D.cache[T.modelo];
-  if(!src)return m;
+  if(!src){mobTagCria(m);return m;}
   m.g.children.slice().forEach(function(c){m.g.remove(c);c.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material&&n.material.dispose)n.material.dispose();});});
-  var o=mob3dClone(src.scene);m.esc=/^chefe/.test(type)?1.5:1;/* [aura-chefe] chefe de campo 50% maior (so o visual) */o.scale.setScalar((T.altura||1.8)*m.esc);m.g.add(o);
+  var o=mob3dClone(src.scene);m.esc=/^chefe|^mini_boss/.test(type)?3:1;/* [aura-chefe] chefes: dobro do que era (1,5 -> 3,0), 22/11/2026 */o.scale.setScalar((T.altura||1.8)*m.esc);m.g.add(o);
   m.mats=[];o.traverse(function(n){if(n.isMesh&&n.material){n.material=n.material.clone();m.mats.push(n.material);}});
   m.mixer=new THREE.AnimationMixer(o);m.acoes={};src.clips.forEach(function(c){m.acoes[c.name]=m.mixer.clipAction(c);});
   m.mat={emissiveIntensity:0};m.modelo=o;if(m.esc>1&&window.AuraChefe){try{AuraChefe.liga(m,T.css,src.scene);}catch(e){console.warn('[aura-chefe]',e);}}/* [aura-chefe] contorno + particulas */mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);
+  mobTagCria(m);
   return m;
 }
 function mkMobBoneco(type,x,z){
@@ -11646,7 +11667,7 @@ function removeMob(m){
 
 
 
-  m.bar.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material)n.material.dispose();});
+  m.bar.traverse(function(n){if(n.geometry)n.geometry.dispose();if(n.material){if(n.material.map)n.material.map.dispose();n.material.dispose();}});
 
 
 
@@ -11676,7 +11697,7 @@ function rouboVida(an,d){var sk=an&&an.skill;return (sk&&sk.roubo&&d>0)?Math.max
 function damageMob(m,dmg,an){
   if(m&&!m.dead){var crit=an.crit=!an.dome&&Math.random()<(P.critChance!=null?P.critChance:.1);if(crit)dmg=Math.round(dmg*(P.critMult||1.5));/* [critico] sorteado a cada golpe; numero azul */}
   if(m&&!m.dead){S.ultMob=m;S.ultMobT=performance.now();}/* [alvo] */
-  if(m&&m.srv){if(!m.dead&&window.Net){Net.mhit(m.nid,dmg);m._euT=performance.now()/1000;m.flash=1;try{DanoTela.num(dmg,{x:m.x,y:2.2*((m.T&&m.T.size)||1),z:m.z},(crit||an.perfect)?'c':'n','m'+m.nid,m.stun>0?'FRAQUEZA':'',camera);}catch(_){}/* [dano-tela] mob do servidor tambem mostra o numero */}return;}/* [mob3d-cidade] a vida e do servidor */
+  if(m&&m.srv){if(!m.dead&&window.Net){Net.mhit(m.nid,dmg);m._euT=performance.now()/1000;m.flash=1;try{DanoTela.num(dmg,{x:m.x,y:(m.g?m.g.position.y:0)+2.2*((m.T&&m.T.size)||1)*(m.esc||1),z:m.z},(crit||an.perfect)?'c':'n','m'+m.nid,m.stun>0?'FRAQUEZA':'',camera);}catch(_){}/* [dano-tela] mob do servidor tambem mostra o numero */}return;}/* [mob3d-cidade] a vida e do servidor */
 
 
 
@@ -11713,7 +11734,7 @@ function damageMob(m,dmg,an){
 
 
 
-  DanoTela.num(dmg,{x:m.x,y:2.2*m.T.size,z:m.z},(crit||an.perfect)?'c':'n','m'+(m.nid!=null?m.nid:MOBS.indexOf(m)),m.stun>0?'FRAQUEZA':'',camera);/* [dano-tela] modelo Cabal */
+  DanoTela.num(dmg,{x:m.x,y:(m.g?m.g.position.y:0)+2.2*m.T.size*(m.esc||1),z:m.z},(crit||an.perfect)?'c':'n','m'+(m.nid!=null?m.nid:MOBS.indexOf(m)),m.stun>0?'FRAQUEZA':'',camera);/* [dano-tela] modelo Cabal */
 
 
 
@@ -12315,7 +12336,7 @@ function dgHub(){
 
 
 
-  S.px=0;S.pz=10;S.face=Math.PI;S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;
+  var _cq=cidadePos();S.px=_cq[0];S.pz=_cq[1]+(_cq[0]>800?0:2);if(_cq[0]>800)S.py=_cq[2];S.face=Math.PI;S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;
 
 
 
@@ -12475,7 +12496,7 @@ function dgLoadRoom(i,retry){
 
 
 
-  S.px=0;S.pz=10;S.face=Math.PI;S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;
+  var _cq=cidadePos();S.px=_cq[0];S.pz=_cq[1]+(_cq[0]>800?0:2);if(_cq[0]>800)S.py=_cq[2];S.face=Math.PI;S.vx=0;S.vz=0;S.anim=null;S.stun=0;S.rollT=-1;S.guard=false;S.pdead=false;S.buf=null;
 
 
 
@@ -12964,7 +12985,7 @@ function usouRecebido(m){
   try{Chat.sistema('Você usou '+m.nome+'.');}catch(_){}
   if(m.cura){var antes=S.php;S.php=(typeof m.hp==='number')?m.hp:Math.min(S.pmax,S.php+Math.round(S.pmax*m.cura));floatText('+'+Math.max(0,Math.round(S.php-antes)),'#7dff9a',20,'p');if(!som('pocao'))try{SFX.play('ui');}catch(_){}renderHud();}
   if(m.revive){som('pergaminho');banner('RESSUSCITADO','Pergaminho de Ressurreição','#ffe9a8');}/* [pergaminho-res] o estado volta pelo aviso resp do servidor */
-  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Talking Island...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
+  if(m.volta){som('pergaminho');banner('PERGAMINHO DE VOLTA','Voltando para Dion...','#9fd8ff');setTimeout(function(){location.href='cidade.html';},1200);}
 }
 function som(n){try{return !!(window.SomL2&&SomL2.ui(n));}catch(_){return false;}}/* [sons-l2] som de interface do L2 (js/sons_l2.js); false = usa o som antigo */
 function encRecebido(m){/* [ferreiro] resultado do encantamento (o inventario chega junto) */
@@ -14142,7 +14163,7 @@ function buildPad(){
 
 
 
-  window.__dbg={renderer:renderer,SAIDAS:SAIDAS,cam:cam,camera:camera,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},dgHub:dgHub,dgStart:dgStart,killMob:killMob,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,vrm:function(){return vrm;},mast:function(){return {lv:mastLevel(),xp:mastXp()};},castSkill:castSkill,SK:function(){return SK;}};/* so localhost: permite testes automaticos ler/alterar o estado */
+  window.__dbg={renderer:renderer,SAIDAS:SAIDAS,cam:cam,camera:camera,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},dgHub:dgHub,dgStart:dgStart,killMob:killMob,damageMob:damageMob,TELES:TELES,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,vrm:function(){return vrm;},mast:function(){return {lv:mastLevel(),xp:mastXp()};},castSkill:castSkill,SK:function(){return SK;}};/* so localhost: permite testes automaticos ler/alterar o estado */
 
 
 
@@ -14598,7 +14619,7 @@ function updateDayNightCycle(T) {
 
   // Começa às 10:00 da manhã (offset 10/24) e avança 24h a cada 240 segundos (4 minutos reais)
 
-  var cycleSec = 240.0;
+  var cycleSec = 2400.0;
 
   var gameHour = window.CeuL2 ? CeuL2.hora() : ((T / cycleSec + 10.0 / 24.0) % 1.0) * 24.0;/* [ceu] mesma hora para todos (relogio real) */
   if (window.CeuL2 && !CeuL2._ok) { CeuL2._ok = 1; try { CeuL2.init(THREE, scene, camera); } catch (e) { console.warn('ceu', e); } }
@@ -18295,7 +18316,7 @@ tryInit();
 
 
 
-gestMsg('Bem-vindo à Ilha de Talking! Treine na Arena ou entre na Dungeon.');
+gestMsg('Bem-vindo a Dion! Treine na Arena ou entre na Dungeon.');
 
 
 
@@ -18338,7 +18359,7 @@ function ambZona(){
   return base+((r===0||r===4)&&window.Lagos&&Lagos.pronto&&Lagos.distancia(S.px,S.pz)<30?'+lago':'');
 }
 setInterval(function(){if(document.hidden)return;try{SomL2.ambiente(ambZona());}catch(_){}},1500);
-setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Talking Island')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
+setTimeout(function(){try{Chat.sistema('Você entrou em: '+('Dion')+'.');}catch(_){}},2500);/* [chat] aviso de zona */
 try{Musica.init({lugar:function(){var r=MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>100?MundoCampo.regiao(S.px,S.pz):0;return ['cidade','curuma','fortress','blazing_swamp','cidade'][r]||'cidade';},mudo:function(){return SFX.isMuted();}});}catch(_){}/* [musica] faixas do L2 por lugar (data/musica.json) */
 try{Expedicao.init({pagina:'cidade',unica:true,mapa:function(){var r=MUNDO_ABERTO&&Math.hypot(S.px,S.pz)>100?MundoCampo.regiao(S.px,S.pz):0;return window.MapaVivo&&MapaVivo.porRegiao(r);},S:function(){return S;}});}catch(_){}/* [expedicao] */
 try{Moradores.init({THREE:THREE,scene:scene,camera:function(){return camera;},getS:function(){return S;},chao:function(x,z){return getGroundHeight(x,z);},enviar:function(n,t){Net.mconv(n,t);},
@@ -18357,13 +18378,13 @@ Net.init({
   skills:function(){return SK;},prog:aplicaProg,irDg:function(k){location.href='arena.html?mode=dungeon&go='+k;},fxSkill:skillFxRemoto,cc:ccRecebe,projRemoto:projRemoto,projFim:projFim,fxBasico:fxBasicoRemoto,hitFx:hitFxRemoto,floatText:floatText,banner:banner,sysMsg:sysMsg,
   iHit:function(d){S.shake=Math.max(S.shake,.08);},
   meHit:function(d,ratio,b){
-    S.php=Math.max(0,Math.round(S.pmax*ratio));DanoTela.num(d,{x:S.px,y:3.2,z:S.pz},'r','p',b?'BLOQUEOU':'',camera);/* [dano-tela] */SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);
+    S.php=Math.max(0,Math.round(S.pmax*ratio));DanoTela.num(d,{x:S.px,y:(S.py||0)+3.2,z:S.pz},'r','p',b?'BLOQUEOU':'',camera);/* [dano-tela] */SFX.play(b?'block':'hurt');hurtFlash();S.shake=Math.max(S.shake,b?.1:.25);
     if(!b&&d>=6&&clipsOn()&&!S.anim&&!S.pdead)playClip(vrm,'hit_small',{once:true,speed:1.5,fade:.05,hold:.4});
     if(S.php<=0&&!S.pdead){S.pdead=true;S.pdT=0;S.anim=null;S.buf=null;S.guard=false;SFX.play('playerDie');try{Voz.tocar('death');}catch(_){}banner('VOCE CAIU','Reaparece em instantes...','#ff4d6d');if(clipsOn())playClip(vrm,'death',{once:true,speed:.9,fade:.1,hold:99});try{if(document.exitPointerLock)document.exitPointerLock();}catch(_){}}
     renderHud();
   },
   meResp:function(x,z,ratio,keep){
-    S.php=Math.max(1,Math.round(S.pmax*ratio));if(!keep){S.px=x;S.pz=z;}S.pdead=false;S.stun=0;S.anim=null;S.rollT=-1;S.guard=false;S.buf=null;flip.rotation.x=0;flip.position.y=1.1;if(vrm&&vrm.drv)vrm.drv.hold=0;renderHud();
+    S.php=Math.max(1,Math.round(S.pmax*ratio));if(!keep){S.px=x;S.pz=z;if(x>800&&x<2250&&window.MapaVivo&&MapaVivo.on){var _spd=MapaVivo.spawn('dion');if(_spd){S.py=_spd[2];S.vx=0;S.vz=0;}}}/* [dion] reaparece na praca de Dion com a altura certa */S.pdead=false;S.stun=0;S.anim=null;S.rollT=-1;S.guard=false;S.buf=null;flip.rotation.x=0;flip.position.y=1.1;if(vrm&&vrm.drv)vrm.drv.hold=0;renderHud();
   },
   onEntrou:function(m){if(m.mapa==='pvp'){S.px=m.eu.x;S.pz=m.eu.z;S.face=m.eu.f;S.vx=0;S.vz=0;S.anim=null;S.pdead=false;S.php=S.pmax;renderHud();}}
 });

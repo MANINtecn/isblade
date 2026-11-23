@@ -15,6 +15,19 @@ chao, topo, cam, nswe = le_tile(TX, TY); capas = le_tile.capas
 N = 1024                                                      # celulas do jogo por lado
 # fatia fina -> grossa (2x2): camada base = celula (2I, 2J)
 h0 = chao[0::2, 0::2].astype(np.int32); f0 = nswe
+# [pes no chao] 22/11/2026: a altura andavel da geodata inclui o topo de pedras/arvores/muros e ficava ate 1,3 m acima da malha DESENHADA (personagem 'flutuando').
+# Onde o chao e' terreno (diferenca < 1,5 m da malha visivel) o jogador pisa na MESMA superficie da malha (mesma triangulacao de montar_chao.py); estruturas (escadas, pontes, topo de muro) mantem a altura da geodata.
+from scipy import ndimage as ndi
+_alt = np.load('raw_dion/alt_20_22.npy').astype(np.float32)
+_liso = ndi.gaussian_filter(ndi.median_filter(ndi.grey_opening(_alt, size=(25, 25)), size=11, mode='nearest'), 2.0)
+_H = np.pad(_liso[:2048, :2048].reshape(256, 8, 256, 8).mean(axis=(1, 3)), ((0, 1), (0, 1)), mode='edge')        # malha 257x257 (passo 128 uu), [i = x, j = y]
+_u = (np.arange(N) + 0.5) / 4.0; _i0 = np.clip(np.floor(_u).astype(int), 0, 255); _f = _u - _i0                     # centro da celula grossa na grade da malha
+_I, _J = np.meshgrid(_i0, _i0, indexing='ij'); _fx, _fz = np.meshgrid(_f, _f, indexing='ij')
+_a = _H[_I, _J]; _b = _H[_I, _J + 1]; _c = _H[_I + 1, _J]; _d = _H[_I + 1, _J + 1]
+_malha = np.where(_fx + _fz <= 1, _a + _fx * (_c - _a) + _fz * (_b - _a), _d + (1 - _fx) * (_b - _d) + (1 - _fz) * (_c - _d))      # triangulos (a,b,c) e (b,d,c)
+_terreno = np.abs(h0 - _malha) < 75                                                                           # 1,5 m = 75 uu
+print('celulas pisando na malha: %.1f%% (diferenca media antes %.2f m)' % (100 * _terreno.mean(), np.abs(h0 - _malha).mean() / 50))
+h0 = np.where(_terreno, np.round(_malha), h0).astype(np.int32)
 E = (nswe & 1) != 0; W = (nswe & 2) != 0; S = (nswe & 4) != 0; Nn = (nswe & 8) != 0         # pode andar para leste/oeste/sul/norte (aCis: N = y-1)
 # aresta para leste da celula grossa (I,J): bloqueada se alguma das 2 celulas finas da borda leste nao pode ir a leste, ou a vizinha (leste) nao pode vir a oeste
 def borda(a, b, eixo_x):

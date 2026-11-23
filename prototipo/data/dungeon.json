@@ -47,19 +47,62 @@
       "keep": 8,
       "projSpeed": 11
     },
-    "mini_boss": { "agressivo": true,
+    "mini_boss": {
+      "agressivo": true,
       "name": "Comandante das Sombras",
       "hp": 750,
       "dmg": 28,
       "speed": 2.8,
-      "range": 3.2,
+      "range": 6.0,
       "wind": 1.1,
       "rec": 1.6,
-      "size": 1.75,
+      "size": 3.0,
       "css": "#ff2a55",
       "armor": true,
       "aoe": true,
-      "isMiniBoss": true
+      "isMiniBoss": true,
+      "modelo": "comandante",
+      "altura": 1.1,
+      "golpes": [
+        {
+          "id": "lamina",
+          "nome": "Lamina Sombria",
+          "k": "cone",
+          "rad": 7,
+          "half": 0.9,
+          "wind": 0.65,
+          "rec": 0.5,
+          "dist": 6,
+          "mul": 1,
+          "parry": true,
+          "peso": 3
+        },
+        {
+          "id": "cortes",
+          "nome": "Cortes em Leque",
+          "k": "rect",
+          "len": 12,
+          "w": 2.2,
+          "n": 3,
+          "abre": 0.5,
+          "wind": 0.85,
+          "rec": 0.7,
+          "dist": 10,
+          "mul": 1.3,
+          "peso": 3
+        },
+        {
+          "id": "explosao",
+          "nome": "Explosao Sombria",
+          "k": "hex",
+          "rad": 6,
+          "wind": 1.0,
+          "rec": 0.9,
+          "dist": 8,
+          "mul": 1.4,
+          "peso": 2
+        }
+      ]
     },
     "fantasma": {
       "name": "Fantasma da Torre",
@@ -334,10 +377,10 @@
       "hp": 4029,
       "dmg": 46,
       "speed": 2.6,
-      "range": 3.0,
+      "range": 5.4,
       "wind": 0.9,
       "rec": 1.5,
-      "size": 1.6,
+      "size": 3.2,
       "altura": 1,
       "css": "#ffb03a",
       "xp": 100,
@@ -345,7 +388,52 @@
       "modelo": "chefe_curuma",
       "aoe": true,
       "chefeCampo": true,
-      "agressivo": true
+      "agressivo": true,
+      "golpes": [
+        {
+          "id": "ferrao",
+          "nome": "Ferrao",
+          "k": "cone",
+          "rad": 8,
+          "half": 1.0,
+          "wind": 0.7,
+          "rec": 0.5,
+          "dist": 7,
+          "mul": 1,
+          "parry": true,
+          "peso": 3
+        },
+        {
+          "id": "leque",
+          "nome": "Garras em Leque",
+          "k": "rect",
+          "len": 14,
+          "w": 2.4,
+          "n": 3,
+          "abre": 0.6,
+          "wind": 0.95,
+          "rec": 0.7,
+          "dist": 12,
+          "mul": 1.3,
+          "peso": 3
+        },
+        {
+          "id": "acido",
+          "nome": "Chuva de Acido",
+          "k": "hex",
+          "rad": 4.2,
+          "mira": true,
+          "n": 4,
+          "intervalo": 0.4,
+          "espalha": 6,
+          "wind": 0.9,
+          "rec": 0.8,
+          "dist": 18,
+          "min": 3,
+          "mul": 1.4,
+          "peso": 2
+        }
+      ]
     },
     "formiga_fort": {
       "name": "Formiga Soldado",
@@ -415,10 +503,10 @@
       "hp": 5178,
       "dmg": 62,
       "speed": 2.7,
-      "range": 3.1,
+      "range": 5.58,
       "wind": 1.0,
       "rec": 1.6,
-      "size": 1.55,
+      "size": 3.1,
       "altura": 1.1,
       "css": "#ff6a2a",
       "xp": 160,
@@ -426,7 +514,47 @@
       "modelo": "chefe_fort",
       "aoe": true,
       "chefeCampo": true,
-      "agressivo": true
+      "agressivo": true,
+      "golpes": [
+        {
+          "id": "machado",
+          "nome": "Machadada",
+          "k": "cone",
+          "rad": 8,
+          "half": 1.2,
+          "wind": 0.75,
+          "rec": 0.55,
+          "dist": 7,
+          "mul": 1.1,
+          "parry": true,
+          "peso": 3
+        },
+        {
+          "id": "investida",
+          "nome": "Investida",
+          "k": "rect",
+          "len": 16,
+          "w": 3.2,
+          "wind": 0.9,
+          "rec": 0.8,
+          "dist": 14,
+          "min": 4,
+          "mul": 1.5,
+          "avanca": 12,
+          "peso": 2
+        },
+        {
+          "id": "pisada",
+          "nome": "Pisada de Guerra",
+          "k": "hex",
+          "rad": 8,
+          "wind": 1.0,
+          "rec": 0.9,
+          "dist": 9,
+          "mul": 1.4,
+          "peso": 3
+        }
+      ]
     },
     "salamandra_fogo": {
       "name": "Salamandra de Fogo",
@@ -496,10 +624,10 @@
       "hp": 7586,
       "dmg": 97,
       "speed": 2.8,
-      "range": 3.3,
+      "range": 5.94,
       "wind": 1.0,
       "rec": 1.6,
-      "size": 1.7,
+      "size": 3.4,
       "altura": 1,
       "css": "#ffc23a",
       "xp": 230,
@@ -507,17 +635,62 @@
       "modelo": "chefe_blazing",
       "aoe": true,
       "chefeCampo": true,
-      "agressivo": true
+      "agressivo": true,
+      "golpes": [
+        {
+          "id": "garra",
+          "nome": "Garra de Fogo",
+          "k": "cone",
+          "rad": 9,
+          "half": 1.1,
+          "wind": 0.7,
+          "rec": 0.5,
+          "dist": 8,
+          "mul": 1.1,
+          "parry": true,
+          "peso": 3
+        },
+        {
+          "id": "sopro",
+          "nome": "Sopro de Fogo",
+          "k": "rect",
+          "len": 20,
+          "w": 3.6,
+          "n": 3,
+          "abre": 0.6,
+          "wind": 1.0,
+          "rec": 0.8,
+          "dist": 17,
+          "mul": 1.5,
+          "peso": 2
+        },
+        {
+          "id": "meteoros",
+          "nome": "Meteoros",
+          "k": "hex",
+          "rad": 4.8,
+          "mira": true,
+          "n": 5,
+          "intervalo": 0.35,
+          "espalha": 8,
+          "wind": 0.9,
+          "rec": 0.8,
+          "dist": 22,
+          "min": 4,
+          "mul": 1.4,
+          "peso": 2
+        }
+      ]
     },
     "chefe20_aranha": {
       "name": "Aranha Matriarca",
       "hp": 2810,
       "dmg": 29,
       "speed": 3.8,
-      "range": 3,
+      "range": 5.4,
       "wind": 0.45,
       "rec": 0.9,
-      "size": 1.76,
+      "size": 3.52,
       "altura": 2.2,
       "css": "#c8e04a",
       "armor": true,
@@ -529,11 +702,11 @@
           "id": "presas",
           "nome": "Presas",
           "k": "cone",
-          "rad": 4.5,
+          "rad": 7.2,
           "half": 0.8,
           "wind": 0.6,
           "rec": 0.45,
-          "dist": 3.8,
+          "dist": 6.08,
           "mul": 1,
           "parry": true,
           "peso": 3
@@ -542,14 +715,14 @@
           "id": "chuva",
           "nome": "Chuva de Veneno",
           "k": "hex",
-          "rad": 2.6,
+          "rad": 4.16,
           "mira": true,
           "n": 5,
           "intervalo": 0.3,
-          "espalha": 4.5,
+          "espalha": 7.2,
           "wind": 0.85,
           "rec": 0.6,
-          "dist": 15,
+          "dist": 24.0,
           "mul": 1.1,
           "peso": 3
         },
@@ -557,27 +730,27 @@
           "id": "salto",
           "nome": "Salto",
           "k": "rect",
-          "len": 12,
-          "w": 3,
+          "len": 19.2,
+          "w": 4.8,
           "wind": 0.8,
           "rec": 0.9,
-          "dist": 11,
-          "min": 4,
+          "dist": 17.6,
+          "min": 6.4,
           "mul": 1.6,
-          "avanca": 10,
+          "avanca": 16.0,
           "peso": 2
         },
         {
           "id": "teia",
           "nome": "Teia",
           "k": "cone",
-          "rad": 8,
+          "rad": 12.8,
           "half": 0.35,
           "n": 3,
           "abre": 0.9,
           "wind": 0.95,
           "rec": 0.7,
-          "dist": 7,
+          "dist": 11.2,
           "mul": 1.2,
           "peso": 2
         }
@@ -588,10 +761,10 @@
       "hp": 2810,
       "dmg": 29,
       "speed": 3.2,
-      "range": 3,
+      "range": 5.4,
       "wind": 0.5,
       "rec": 1,
-      "size": 2.1,
+      "size": 4.2,
       "altura": 2,
       "css": "#ffc23a",
       "armor": true,
@@ -603,11 +776,11 @@
           "id": "foice",
           "nome": "Foice",
           "k": "cone",
-          "rad": 5.5,
+          "rad": 8.8,
           "half": 1.15,
           "wind": 0.75,
           "rec": 0.55,
-          "dist": 4.5,
+          "dist": 7.2,
           "mul": 1.1,
           "parry": true,
           "peso": 3
@@ -616,13 +789,13 @@
           "id": "garras",
           "nome": "Garras em Leque",
           "k": "rect",
-          "len": 9,
-          "w": 1.7,
+          "len": 14.4,
+          "w": 2.72,
           "n": 3,
           "abre": 0.55,
           "wind": 0.9,
           "rec": 0.7,
-          "dist": 8,
+          "dist": 12.8,
           "mul": 1.3,
           "peso": 3
         },
@@ -630,15 +803,15 @@
           "id": "esmagar",
           "nome": "Esmagar",
           "k": "hex",
-          "rad": 3.2,
+          "rad": 5.12,
           "mira": true,
           "n": 3,
           "intervalo": 0.45,
-          "espalha": 0,
+          "espalha": 0.0,
           "wind": 0.8,
           "rec": 0.8,
-          "dist": 12,
-          "min": 2,
+          "dist": 19.2,
+          "min": 3.2,
           "mul": 1.5,
           "peso": 2
         }
@@ -649,10 +822,10 @@
       "hp": 2810,
       "dmg": 29,
       "speed": 3.6,
-      "range": 3,
+      "range": 5.4,
       "wind": 0.45,
       "rec": 0.9,
-      "size": 1.7,
+      "size": 3.4,
       "altura": 2,
       "css": "#ff8a2a",
       "armor": true,
@@ -664,11 +837,11 @@
           "id": "mordida",
           "nome": "Mordida",
           "k": "cone",
-          "rad": 5,
+          "rad": 8.0,
           "half": 0.7,
           "wind": 0.65,
           "rec": 0.5,
-          "dist": 4,
+          "dist": 6.4,
           "mul": 1,
           "parry": true,
           "peso": 3
@@ -677,24 +850,24 @@
           "id": "investida",
           "nome": "Investida",
           "k": "rect",
-          "len": 11,
-          "w": 2.6,
+          "len": 17.6,
+          "w": 4.16,
           "wind": 0.85,
           "rec": 0.7,
-          "dist": 10,
-          "min": 3,
+          "dist": 16.0,
+          "min": 4.8,
           "mul": 1.5,
-          "avanca": 9,
+          "avanca": 14.4,
           "peso": 3
         },
         {
           "id": "pisao",
           "nome": "Tremor",
           "k": "hex",
-          "rad": 6,
+          "rad": 9.6,
           "wind": 1.05,
           "rec": 0.8,
-          "dist": 5,
+          "dist": 8.0,
           "mul": 1.7,
           "peso": 2
         }
@@ -999,18 +1172,89 @@
   "drops": {
     "_nota": "Drops com autoridade do servidor (servidor/inventario.js -> abate). Adena = XP do abate x adenaPorXp x variacao (x adena do chefe). Mob comum: chance `comum` de 1 item. miniChefe (DG), chefeCampo (mapas abertos) e boss (Baium/chefe da DG): `itens` garantidos + chance `extra` de mais 1; `boost` melhora a raridade (multiplica o rarityBoost da dificuldade).",
     "adenaPorXp": 0.5,
-    "adenaVar": [0.8, 1.25],
+    "adenaVar": [
+      0.8,
+      1.25
+    ],
     "comum": 0.05,
-    "miniChefe": {"itens": 1, "extra": 0.35, "boost": 1.5, "adena": 2},
-    "chefeCampo": {"itens": 2, "extra": 0.5, "boost": 2.5, "adena": 3},
-    "boss": {"itens": 1, "extra": 0.35, "boost": 1, "adena": 1},
+    "miniChefe": {
+      "itens": 1,
+      "extra": 0.35,
+      "boost": 1.5,
+      "adena": 2
+    },
+    "chefeCampo": {
+      "itens": 2,
+      "extra": 0.5,
+      "boost": 2.5,
+      "adena": 3
+    },
+    "boss": {
+      "itens": 1,
+      "extra": 0.35,
+      "boost": 1,
+      "adena": 1
+    },
     "_graus": "Grau do item que cai, por mapa/dificuldade (chave = dif do mapa: curuma, fortress, pantano; DG: normal, medio, hard). grausChefe vale para mini-chefe, chefe de campo e chefe.",
-    "graus":      { "campo": { "sem": 1 }, "curuma": { "sem": 0.3, "D": 0.7 }, "fortress": { "D": 0.5, "C": 0.5 }, "pantano": { "C": 1 }, "normal": { "C": 1 }, "medio": { "C": 1 }, "hard": { "C": 1 } },
-    "grausChefe": { "campo": { "sem": 0.5, "D": 0.5 }, "curuma": { "D": 1 }, "fortress": { "C": 1 }, "pantano": { "C": 1 }, "normal": { "C": 1 }, "medio": { "C": 1 }, "hard": { "C": 1 } }
+    "graus": {
+      "campo": {
+        "sem": 1
+      },
+      "curuma": {
+        "sem": 0.3,
+        "D": 0.7
+      },
+      "fortress": {
+        "D": 0.5,
+        "C": 0.5
+      },
+      "pantano": {
+        "C": 1
+      },
+      "normal": {
+        "C": 1
+      },
+      "medio": {
+        "C": 1
+      },
+      "hard": {
+        "C": 1
+      }
+    },
+    "grausChefe": {
+      "campo": {
+        "sem": 0.5,
+        "D": 0.5
+      },
+      "curuma": {
+        "D": 1
+      },
+      "fortress": {
+        "C": 1
+      },
+      "pantano": {
+        "C": 1
+      },
+      "normal": {
+        "C": 1
+      },
+      "medio": {
+        "C": 1
+      },
+      "hard": {
+        "C": 1
+      }
+    }
   },
-  "agressao": { "_nota": "Agressao estilo L2 (arena.html -> mobAgro). A maioria e PASSIVA (so ataca se apanhar); agressivos (fracao por dificuldade em difficulties[].agressivos, ou mobs[].agressivo=true) atacam quem chega a menos de visao m. Quando um mob apanha, so os vizinhos parados a ate ajuda m entram junto (sem corrente). Puxado mais longe que volta m do lugar onde nasceu: desiste, volta e recupera a vida.", "visao": 7, "ajuda": 4.5, "volta": 26 },
+  "agressao": {
+    "_nota": "Agressao estilo L2 (arena.html -> mobAgro). A maioria e PASSIVA (so ataca se apanhar); agressivos (fracao por dificuldade em difficulties[].agressivos, ou mobs[].agressivo=true) atacam quem chega a menos de visao m. Quando um mob apanha, so os vizinhos parados a ate ajuda m entram junto (sem corrente). Puxado mais longe que volta m do lugar onde nasceu: desiste, volta e recupera a vida.",
+    "visao": 7,
+    "ajuda": 4.5,
+    "volta": 26
+  },
   "difficulties": {
-    "normal": { "agressivos": 0.15,
+    "normal": {
+      "agressivos": 0.15,
       "name": "Normal",
       "css": "#58e08e",
       "hp": 1,
@@ -1021,7 +1265,8 @@
       "rarityBoost": 1,
       "desc": "Inimigos padrao. Itens com as chances normais de raridade."
     },
-    "medio": { "agressivos": 0.25,
+    "medio": {
+      "agressivos": 0.25,
       "name": "Medio",
       "css": "#f5c451",
       "hp": 1.6,
@@ -1032,7 +1277,8 @@
       "rarityBoost": 1.6,
       "desc": "Mais inimigos, com mais vida e dano. Itens raros caem mais."
     },
-    "hard": { "agressivos": 0.35,
+    "hard": {
+      "agressivos": 0.35,
       "name": "Hard",
       "css": "#ff4d6d",
       "hp": 2.4,

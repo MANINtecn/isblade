@@ -8,7 +8,7 @@
     { pg: 'cidade', txt: 'Ande pela cidade: <b>W A S D</b> (no celular, o joystick).', ok: function(s){ return ini && Math.hypot(s.px - ini[0], s.pz - ini[1]) > 6; } },
     { pg: 'cidade', txt: 'Abra o <b>inventario</b>: tecla <b>I</b> ou o botao I.', ev: 'inv', n: 1 },
     { pg: 'cidade', txt: 'Visite um <b>comerciante</b> (Galladucci ou Mammon): pocoes, soulshot e equipamento.', ok: function(){ return !!(window.Loja && Loja.aberta && Loja.aberta()); } },
-    { pg: 'cidade', txt: 'Saia por qualquer <b style="color:#40ffa0">portão</b>: os monstros do Campo de Talking Island (níveis 1-20) ficam em volta da muralha.', ok: function(s){ return Math.hypot(s.px, s.pz) > 105 || !!mapaAt(); }, sempre: 1 },      /* [auditoria 13/11] o campo e a area 1-20; a Cruma virou 20-35 */
+    { pg: 'cidade', txt: 'Saia por qualquer <b style="color:#40ffa0">portão</b>: os monstros do campo em volta de Dion (níveis 1-20) ficam em volta da muralha.', ok: function(s){ return Math.hypot(s.px, s.pz) > 105 || !!mapaAt(); }, sempre: 1 },      /* [auditoria 13/11] o campo e a area 1-20; a Cruma virou 20-35 */
     { pg: 'arena', txt: 'Derrote <b>3 monstros</b>. Os mais fracos ficam perto da muralha.', ev: 'abate', n: 3 },
     { pg: 'arena', txt: 'Use uma <b>skill</b>: <b>Q</b>, <b>E</b> ou <b>R</b>.', ev: 'skill', n: 1 },
     { pg: 'arena', txt: 'Pegue seu primeiro <b>drop</b> (adena ou item).', ev: 'drop', n: 1 },

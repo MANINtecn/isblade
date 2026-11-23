@@ -217,7 +217,7 @@ const nivelInicial = () => Math.max(1, Math.min(NIVEL_MAX, ((process.env.NIVEL_I
           if(!NOME_RE.test(nome)) return resp(res, 400, { erro: 'Nome: 2 a 16 letras, numeros, espaco, _ ou -.' });
           if(c.pers.length >= PERS_MAX) return resp(res, 400, { erro: 'Limite de ' + PERS_MAX + ' personagens por conta.' });
           if(!nomeLivre(nome)) return resp(res, 409, { erro: 'Esse nome ja esta em uso. Escolha outro.' });
-          const novo = limpaPers(Object.assign({}, b, { id: '', name: nome, level: nivelInicial(), location: 'Talking Island', createdAt: new Date().toLocaleDateString('pt-BR') })); c.pers.push(novo); mexeu();
+          const novo = limpaPers(Object.assign({}, b, { id: '', name: nome, level: nivelInicial(), location: 'Dion', createdAt: new Date().toLocaleDateString('pt-BR') })); c.pers.push(novo); mexeu();
           return resp(res, 200, { pers: c.pers, char: novo, rev: c.dados.rev });
         }
         const p = c.pers.find(q => q.id === String(b.id || '')); if(!p) return resp(res, 404, { erro: 'Personagem nao encontrado.' });

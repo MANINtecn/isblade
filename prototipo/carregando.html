@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Sora:wght@200;300;400;600;800&display=swap">
 <link rel="stylesheet" href="css/portal.css?v=4">
 <style>
-  body{background-image:linear-gradient(rgba(6,7,13,.78),rgba(6,7,13,.9)),url('assets/talking_island/loading_screen.jpg');background-size:cover;background-position:center}
+  body{background-image:linear-gradient(rgba(6,7,13,.78),rgba(6,7,13,.9)),url('assets/dion/loading_screen.jpg');background-size:cover;background-position:center}
   .box{width:min(640px,100%)}
   .dica{min-height:150px;margin:30px 0 26px;display:flex;flex-direction:column;justify-content:center;transition:opacity .45s}
   .dica small{font-size:11px;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;font-weight:600}
@@ -68,7 +68,7 @@
   var visto = -1, parado = 0;
   setInterval(function(){ if(fim) return; if(feito === visto){ parado += 1; q('diag').textContent = 'Sem progresso ha ' + parado * 5 + ' s…'; if(parado >= 6){ terminou(); } } else { visto = feito; parado = 0; q('diag').textContent = ''; } }, 5000);
 
-  var ETAPAS = [['personagens', 'Preparando seus personagens…'], ['talking_island', 'Montando a Ilha de Talking…'], ['baium', 'Acordando o Baium…'], ['fx', 'Acendendo os efeitos…'], ['audio', 'Afinando os sons…'], ['l2_sounds', 'Afinando os sons…'], ['hud', 'Desenhando a interface…'], ['cenario', 'Erguendo as muralhas…']];
+  var ETAPAS = [['personagens', 'Preparando seus personagens…'], ['talking_island', 'Montando Dion…'], ['baium', 'Acordando o Baium…'], ['fx', 'Acendendo os efeitos…'], ['audio', 'Afinando os sons…'], ['l2_sounds', 'Afinando os sons…'], ['hud', 'Desenhando a interface…'], ['cenario', 'Erguendo as muralhas…']];
   function etapa(u){ for(var i = 0; i < ETAPAS.length; i++) if(u.indexOf('/' + ETAPAS[i][0]) >= 0) return ETAPAS[i][1]; return 'Baixando recursos do jogo…'; }
   var t0 = Date.now(), feito = 0, total = 1, fim = false;
   var pull = Conta.puxar();                                           /* traz os personagens da conta enquanto baixa os arquivos */
