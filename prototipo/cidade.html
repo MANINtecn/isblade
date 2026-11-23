@@ -779,7 +779,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mobile.js?v=44"></script>
 <script src="js/qualidade.js?v=3"></script>
 <script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=1"></script><script src="js/ss_l2.js?v=2"></script>
-<script src="js/aura_chefe.js?v=1"></script>
+<script src="js/aura_chefe.js?v=2"></script>
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
@@ -11494,7 +11494,7 @@ function mobSrvAtualiza(m,dt){
   var k=Math.min(1,dt*12);m.x+=(m.tx-m.x)*k;m.z+=(m.tz-m.z)*k;var df=m.tf-m.face;while(df>Math.PI)df-=6.2832;while(df<-Math.PI)df+=6.2832;m.face+=df*k;m.t=(m.t||0)+dt;
   var y=getGroundHeight(m.x,m.z,m.ty);m.g.position.set(m.x,y,m.z);/* [pagina-unica] altura do servidor escolhe a camada do mapa */m.g.rotation.y=m.face;m.flash=Math.max(0,(m.flash||0)-dt*4);
   if(m.mats){var ei=.25+m.flash*1.4+(m.state==='windup'?.3+.3*Math.sin(m.t*30):0);for(var q=0;q<m.mats.length;q++)m.mats[q].emissiveIntensity=ei;}
-  m.bar.position.set(m.x,y+2.45*m.T.size*(m.esc||1),m.z);m.bar.quaternion.copy(camera.quaternion);m.bar.visible=!m.dead;if(m.tag){m.tag.visible=!m.dead;mobTagPinta(m);m.bar.children.forEach(function(c){if(c!==m.tag)c.visible=mobBarraVisivel(m);});}
+  m.bar.position.set(m.x,y+(m.topH&&m.esc>1?m.topH+.7:2.45*m.T.size*(m.esc||1)),m.z);/* [nome-mob] chefe: etiqueta acima da cabeca medida do modelo (antes: size x esc = 23 m, fora da tela) */m.bar.quaternion.copy(camera.quaternion);if(m.topH&&m.esc>1)m.bar.scale.setScalar(Math.max(.8,Math.min(2.6,camera.position.distanceTo(m.bar.position)/15)));/* [nome-mob] chefe: etiqueta com tamanho de tela quase constante (cresce com a distancia) */m.bar.visible=!m.dead;if(m.tag){m.tag.visible=!m.dead;mobTagPinta(m);m.bar.children.forEach(function(c){if(c!==m.tag)c.visible=mobBarraVisivel(m);});}
   mob3dAnim(m,dt);
   if(m.dead){m.deadT+=dt;if(m.deadT>2.6)removeMob(m);}
 }
@@ -11562,7 +11562,7 @@ function mobTagCria(m){
   try{
     var T=m.T;if(!T||m.tag)return;var boss=/^chefe|^mini_boss/.test(m.type||'');var cv=document.createElement('canvas');cv.width=640;cv.height=96;m.tagCv=cv;
     m.tag=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false}));m.tag.renderOrder=22;
-    var k=boss?1.9:1;m.tag.scale.set(3.4*k,.51*k,1);m.tag.position.set(0,.34*k+.12,0);m.bar.add(m.tag);m.bar.scale.setScalar(boss?2.2:1);m.tagCor='';mobTagPinta(m);
+    var k=boss?1.25:1;m.tag.scale.set(3.4*k,.51*k,1);m.tag.position.set(0,.34*k+.12,0);m.bar.add(m.tag);m.bar.scale.setScalar(1);m.tagCor='';mobTagPinta(m);
   }catch(e){console.warn('[nome-mob]',e);}
 }
 function mobTagPinta(m){
@@ -11580,7 +11580,7 @@ function mkMob(type,x,z){
   var o=mob3dClone(src.scene);m.esc=/^chefe|^mini_boss/.test(type)?3:1;/* [aura-chefe] chefes: dobro do que era (1,5 -> 3,0), 22/11/2026 */o.scale.setScalar((T.altura||1.8)*m.esc);m.g.add(o);
   m.mats=[];o.traverse(function(n){if(n.isMesh&&n.material){n.material=n.material.clone();m.mats.push(n.material);}});
   m.mixer=new THREE.AnimationMixer(o);m.acoes={};src.clips.forEach(function(c){m.acoes[c.name]=m.mixer.clipAction(c);});
-  m.mat={emissiveIntensity:0};m.modelo=o;if(m.esc>1&&window.AuraChefe){try{AuraChefe.liga(m,T.css,src.scene);}catch(e){console.warn('[aura-chefe]',e);}}/* [aura-chefe] contorno + particulas */mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);
+  try{o.updateMatrixWorld(true);var _bb=new THREE.Box3().setFromObject(o);if(isFinite(_bb.max.y))m.topH=Math.min(30,Math.max(2,_bb.max.y-m.g.position.y));}catch(_){}/* [nome-mob] altura real do modelo */m.mat={emissiveIntensity:0};m.modelo=o;if(m.esc>1&&window.AuraChefe){try{AuraChefe.liga(m,T.css,src.scene);}catch(e){console.warn('[aura-chefe]',e);}}/* [aura-chefe] contorno + particulas */mob3dTocar(m,'wait');m.mixer.update(Math.random()*2);
   mobTagCria(m);
   return m;
 }

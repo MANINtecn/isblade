@@ -8,7 +8,7 @@
    REGRA de preparo: os shaders sao compilados antes de aparecer (preparar no carregamento do modelo; se faltar, liga() compila e so mostra quando terminar). */
 (function(){
   var THREE = null, CENA = null, PREP = null, ATIVAS = [], MATS = {}, UT = { value: 0 }, UESC = { value: 600 }, PRONTO = {}, PTS_MAT = null;
-  var NPART = 180, TAXA = 95;
+  var NPART = 120, TAXA = 40;
 
   var RIM_VS = [
     '#include <common>',
@@ -31,7 +31,7 @@
     '  gl_Position = projectionMatrix * mv;',
     '}'].join('\n');
   var RIM_FS = [
-    'uniform vec3 uCor; uniform float uT; uniform float uA; uniform sampler2D uMap; uniform float uTemMap;',
+    'uniform vec3 uCor; uniform float uT; uniform float uA; uniform sampler2D uMap; uniform float uTemMap; uniform float uExp; uniform float uGanho;',
     'varying float vF; varying vec3 vP; varying vec2 vUv;',
     'float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }',
     'float rn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);',
@@ -41,11 +41,11 @@
     '  if(uTemMap > 0.5 && texture2D(uMap, vUv).a < 0.45) discard;',
     '  vec3 q = vP * 2.6 - vec3(0.0, uT * 1.7, 0.0);',
     '  float ch = rn(q) * 0.65 + rn(q * 2.3 + 7.1) * 0.35;',            /* chama que sobe */
-    '  float r = pow(vF, 2.7) * (0.4 + 1.05 * ch);',
+    '  float r = pow(vF, uExp) * (0.45 + 1.1 * ch);',
     '  float pulso = 0.85 + 0.15 * sin(uT * 3.1);',
     '  vec3 c = mix(uCor, vec3(1.0, 0.96, 0.85), smoothstep(0.75, 1.1, r));',  /* borda mais forte = branco-quente */
     '  float a = clamp(r * pulso * uA, 0.0, 1.0);',
-    '  gl_FragColor = vec4(c * a * 1.4, a);',
+    '  gl_FragColor = vec4(c * a * uGanho, a);',
     '}'].join('\n');
 
   var PT_VS = [
@@ -76,11 +76,11 @@
 
   function cor(css){ return new THREE.Color(css || '#ffb03a'); }
 
-  function matRim(css, map, skin){
-    var k = css + '|' + (map ? map.uuid : '-') + '|' + (skin ? 1 : 0);
+  function matRim(css, map, skin, halo){
+    var k = css + '|' + (map ? map.uuid : '-') + '|' + (skin ? 1 : 0) + '|' + (halo ? 1 : 0);
     if(MATS[k]) return MATS[k];
     var m = new THREE.ShaderMaterial({
-      uniforms: { uCor: { value: cor(css) }, uT: UT, uA: { value: 1 }, uPush: { value: .01 }, uMap: { value: map || null }, uTemMap: { value: map ? 1 : 0 } },
+      uniforms: { uCor: { value: cor(css) }, uT: UT, uA: { value: 1 }, uPush: { value: .01 }, uExp: { value: halo ? 1.15 : 2.0 }, uGanho: { value: halo ? 1.1 : 2.1 }, uMap: { value: map || null }, uTemMap: { value: map ? 1 : 0 } },
       vertexShader: RIM_VS, fragmentShader: RIM_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide });
     m.userData.aura = 1; MATS[k] = m; return m;
   }
@@ -93,12 +93,15 @@
       var mt = Array.isArray(n.material) ? n.material[0] : n.material, g = n.geometry;
       if(!g || !g.attributes.normal) return;
       if(!g.boundingSphere) g.computeBoundingSphere();
-      var mat = matRim(css, mt && mt.map, !!n.isSkinnedMesh), c;
-      if(n.isSkinnedMesh){ c = new THREE.SkinnedMesh(g, mat); c.bind(n.skeleton, n.bindMatrix); c.bindMode = n.bindMode; }
-      else c = new THREE.Mesh(g, mat);
-      c.userData.aura = 1; c.userData.push = g.boundingSphere.radius * .022; c.frustumCulled = false; c.renderOrder = 5;
-      c.onBeforeRender = function(){ mat.uniforms.uPush.value = c.userData.push; mat.uniformsNeedUpdate = true; };      /* material dividido entre cascas: sobe o uPush de cada uma */
-      L.push([n, c]);
+      /* duas cascas por malha: contorno nitido colado no corpo + halo largo e macio que "vaza" pra fora da silhueta (energia do chefe) */
+      [[false, .03], [true, .11]].forEach(function(cf){
+        var mat = matRim(css, mt && mt.map, !!n.isSkinnedMesh, cf[0]), c;
+        if(n.isSkinnedMesh){ c = new THREE.SkinnedMesh(g, mat); c.bind(n.skeleton, n.bindMatrix); c.bindMode = n.bindMode; }
+        else c = new THREE.Mesh(g, mat);
+        c.userData.aura = 1; c.userData.push = g.boundingSphere.radius * cf[1]; c.frustumCulled = false; c.renderOrder = 5;
+        c.onBeforeRender = function(){ mat.uniforms.uPush.value = c.userData.push; mat.uniformsNeedUpdate = true; };      /* material dividido entre cascas: sobe o uPush de cada uma */
+        L.push([n, c]);
+      });
     });
     return L;
   }
