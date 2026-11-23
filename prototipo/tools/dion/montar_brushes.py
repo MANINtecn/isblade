@@ -30,13 +30,24 @@ def polys_do_modelo(mi):
 
 # portas das lojas/casas (pares de Mover H_Door_MV_01): o painel de tabuas que tapava a entrada era a parede da frente do casco interno (BSP sem o buraco da porta, que o CSG subtrativo abria)
 _at = json.load(open('raw_dion/atores_%s.json' % TILE)); _d = [((m['x'] - OX) / 50.0, (m['y'] - OY) / 50.0) for m in _at['Mover'] if m['malha'] == 'H_Door_MV_01']
-PORTAS = []
+PORTAS = []; PORTAS2 = []      # PORTAS: pares de Mover (teste por caixa); PORTAS2: portas lidas do mesh da casa (teste por distancia ao segmento da parede: o painel pode ficar ate 2 m atras do vao)
 for i_, a_ in enumerate(_d):
     for b_ in _d[i_ + 1:]:
         if np.hypot(a_[0] - b_[0], a_[1] - b_[1]) < 2.5: PORTAS.append(((a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2))
+# porta da loja de armas (Dion_NV_SH01): o casco interno tambem tapa o vao da porta com um painel de tabuas e nao ha par de Mover. Vao do mesh: x 1..76, z -300 (local, y/altura -246..-163)
+PORTAS_MESH = {'Dion_NV_SH01': ((38.0, -300.0, 0.0, -1.0), (-229.0, 4.0, -1.0, 0.0)), 'Dion_NV_BS': ((53.0, 10.0, 1.0, 0.0),)}      # (x, y local do vao, normal de saida)      # ferraria: porta em arco no plano x=53 do mesh
+for _a in _at['StaticMeshActor']:
+    if _a['malha'] in PORTAS_MESH:
+        for _lx, _ly, _dx, _dy in PORTAS_MESH[_a['malha']]:        # as duas portas do mesh: a lateral (x 1..76, z -300) e a principal, com a placa da loja (x -229, z -39..47)
+            _e3 = np.array(_a.get('esc3') or (1.0, 1.0, 1.0)); _M = matriz_ue(*(_a.get('rot') or (0, 0, 0)))
+            _w = (np.array([_lx, _ly, -205.0]) * _e3) @ _M + np.array([_a['x'], _a['y'], _a['z']]); _n = (np.array([_dx, _dy, 0.0]) * _e3) @ _M; _n = _n[:2] / np.linalg.norm(_n[:2])
+            PORTAS2.append(((_w[0] - OX) / 50.0, (_w[1] - OY) / 50.0, _n[0], _n[1]))
+from interiores import cascos
+CASCOS = {c['brush']: c['delta'] for c in cascos(pk, polys_do_modelo, polys_idx, ler_polys, matriz_ue, TILE)}
+print('cascos de interior a subir (uu):', {k: round(v, 1) for k, v in CASCOS.items()})
 print('portas (pares):', len(PORTAS), [tuple(round(v, 1) for v in p_) for p_ in PORTAS])
 por_mat = {}; n_brush = n_poly = n_porta = 0; sem_tex = collections.Counter()
-for e in pk.exports:
+for bi_, e in enumerate(pk.exports):
     if e['classe'] != 'Brush' or e['tam'] <= 0: continue
     pr = pk.propriedades(e)
     if pr.get('CsgOper') != 1 or 'Brush' not in pr: continue                    # so os aditivos (os subtrativos escavam o BSP, nao desenham)
@@ -45,6 +56,7 @@ for e in pk.exports:
     try: polys = ler_polys(pk, polys_idx[pi])
     except Exception: continue
     loc = np.array(pr.get('Location', (0, 0, 0)), np.float64); pre = np.array(pr.get('PrePivot', (0, 0, 0)), np.float64)
+    loc[2] += CASCOS.get(bi_, 0.0)        # [interiores] casco sobe ate o terreno (ver interiores.py)
     M = matriz_ue(*(pr.get('Rotation') or (0, 0, 0))); n_brush += 1
     for q in polys:
         nm = pk.nome_ref(q['mat'])
@@ -58,7 +70,13 @@ for e in pk.exports:
         uv = np.stack([((v - base) @ tu) / w, ((v - base) @ tv) / h], 1).astype(np.float32)
         game = np.stack([(v[:, 0] - OX) / 50.0, (v[:, 2] - OZ) / 50.0, (v[:, 1] - OY) / 50.0], 1).astype(np.float32)       # (a escala K entra mais abaixo)
         a, b, c = game[0], game[1], game[2]; nr = np.cross(b - a, c - a); nl = np.linalg.norm(nr)
-        if nl > 0 and abs(nr[1] / nl) < 0.6 and any(game[:, 0].min() - 1.1 <= px <= game[:, 0].max() + 1.1 and game[:, 2].min() - 1.1 <= pz <= game[:, 2].max() + 1.1 for px, pz in PORTAS): n_porta += 1; continue      # parede da frente que tapava a porta
+        if nl > 0 and abs(nr[1] / nl) < 0.6 and PORTAS2:
+            xz = game[:, [0, 2]].astype(np.float64); i0, i1 = max(((i_, j_) for i_ in range(len(xz)) for j_ in range(i_ + 1, len(xz))), key=lambda t_: np.linalg.norm(xz[t_[0]] - xz[t_[1]]))
+            seg = xz[i1] - xz[i0]; L_ = np.linalg.norm(seg); nh = np.array([nr[0], nr[2]]) / (np.hypot(nr[0], nr[2]) or 1.0)
+            if L_ >= 1.0:
+                u_ = seg / L_
+                if any(abs(np.dot(nh, np.array(pp[2:]))) >= 0.85 and abs(np.dot(np.array(pp[:2]) - xz[i0], np.array([-u_[1], u_[0]]))) <= 2.0 and -0.5 <= np.dot(np.array(pp[:2]) - xz[i0], u_) <= L_ + 0.5 for pp in PORTAS2): n_porta += 1; continue      # painel/parede da frente do vao da porta de mesh (so as que olham para o mesmo lado da porta)
+        if nl > 0 and abs(nr[1] / nl) < 0.6 and any(game[:, 0].min() - 1.1 <= px <= game[:, 0].max() + 1.1 and game[:, 2].min() - 1.1 <= pz <= game[:, 2].max() + 1.1 for px, pz in PORTAS + [q_[:2] for q_ in PORTAS2]): n_porta += 1; continue      # parede da frente que tapava a porta
         game = game * K; a, b, c = game[0], game[1], game[2]; nr = np.cross(b - a, c - a); nl = np.linalg.norm(nr)
         nr = (nr / nl) if nl > 0 else np.array([0, 1, 0], np.float32)
         dd = por_mat.setdefault(nm, {'pos': [], 'nor': [], 'uv': [], 'idx': [], 'n': 0})

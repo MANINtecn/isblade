@@ -8,6 +8,9 @@ import numpy as np
 from PIL import Image
 from escala import K
 from lib_malha import ler_gltf, matriz_ue
+from interiores import cascos, delta_em
+from ue2_pkg import Pacote
+from polys_ue2 import ler_polys
 
 TILE = sys.argv[1] if len(sys.argv) > 1 else '20_22'
 OX, OY, OZ = 16169.0, 146880.0, -1966.0
@@ -18,6 +21,22 @@ SAIDA_GLB = os.environ.get('SAIDA_GLB') or ('../../assets/dion/dion_cidade_%s.gl
 IGNORA = ('dummy', 'zoneportal', 'antiportal', 'theme_transparency', 'invisible', 'collision', 'light_glow', 'flare')
 
 atores = json.load(open('raw_dion/atores_%s.json' % TILE))
+# [interiores] moveis das lojas/casas: o piso do casco interno fica abaixo do terreno (ver interiores.py); sobe os atores que estao DENTRO de cada casco junto com ele
+_pk = Pacote('raw_dion/%s_dec.unr' % TILE)
+_src = open('montar_brushes.py', encoding='utf8').read(); _ns = {}
+_pidx = {i + 1: e for i, e in enumerate(_pk.exports) if e['classe'] == 'Polys' and e['tam'] > 0}
+import itertools
+def _enc(v):
+    b = v & 0x3F; v >>= 6; out = [b | (0x40 if v else 0)]
+    while v: c = v & 0x7F; v >>= 7; out.append(c | (0x80 if v else 0))
+    return bytes(out)
+_emap = {i: _enc(i) for i in _pidx}
+def _polys_do_modelo(mi):
+    e = _pk.exports[mi - 1]; raw = _pk.d[e['off']:e['off'] + min(e['tam'], 400)]
+    hits = [(raw.find(b), i) for i, b in _emap.items() if raw.find(b) >= 0]; p55 = [i for k, i in hits if k == 55]
+    return (p55 or [i for _, i in hits] or [None])[0]
+CASCOS = cascos(_pk, _polys_do_modelo, _pidx, ler_polys, matriz_ue, TILE)
+n_sobe = 0
 arq = json.load(open('raw_dion/malha_arquivo.json'))
 
 # --- materiais: nome -> (png difuso, tem opacidade)
@@ -55,6 +74,9 @@ for a in atores['StaticMeshActor'] + atores.get('Mover', []):      # portas e po
     esc = float(a['esc']) if a.get('esc') else 1.0
     e3 = np.array(a['esc3'] if a.get('esc3') else (1.0, 1.0, 1.0), np.float64)       # DrawScale3D (espelha/estica nos eixos locais da UE)
     rot_a = list(a.get('rot') or [0, 0, 0]); loc = np.array([a['x'], a['y'], a['z']], np.float64)
+    if a['malha'].lower().startswith(('interior_b', 'o_')):
+        _dz = delta_em(CASCOS, a['x'], a['y'], a['z'])
+        if _dz: loc[2] += _dz; n_sobe += 1
     if a.get('keyrot') and a.get('malha', '').lower() == 'h_door_mv_01':        # portas das casas/lojas: ABERTAS (KeyNum 1 = BasePos+KeyPos[1], BaseRot+KeyRot[1]); portoes do castelo/forte ficam fechados
         kr = a['keyrot'].get('1') or a['keyrot'].get(1); kp = (a.get('keypos') or {}).get('1') or (a.get('keypos') or {}).get(1)
         if kr: rot_a = [rot_a[i] + kr[i] for i in range(3)]
@@ -74,6 +96,7 @@ for a in atores['StaticMeshActor'] + atores.get('Mover', []):      # portas e po
         d = por_mat.setdefault(p['mat'], {'pos': [], 'nor': [], 'uv': [], 'idx': [], 'n': 0})
         d['pos'].append(game); d['nor'].append(nr); d['uv'].append(uv.astype(np.float32)); d['idx'].append(p['idx'].astype(np.uint32) + d['n']); d['n'] += len(game)
     n_inst += 1
+print('moveis de interior subidos:', n_sobe)
 print('instancias', n_inst, 'puladas', n_pular, 'materiais', len(por_mat))
 
 # --- GLB
