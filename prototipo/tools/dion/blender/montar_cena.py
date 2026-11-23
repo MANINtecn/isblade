@@ -19,10 +19,16 @@ mapa = importa('assets/maps/dion/dion.glb', 'DION_MAPA')
 print('objetos do mapa:', len(mapa), 'materiais:', len(bpy.data.materials))
 try:
     ref = importa('assets/personagens/human_fighter.glb', 'REFERENCIA_PERSONAGEM')
+    bpy.context.view_layer.update()
+    raiz = [o for o in ref if o.parent is None]
+    zs = []
     for o in ref:
-        if o.parent is None: o.location = (36, 21, -22.7 + 0)       # blender: x, -z, y -> (36, 21, ...) a praca
-    dims = [o.dimensions for o in ref if o.type == 'MESH']; print('referencia dims', [tuple(round(v, 2) for v in d) for d in dims][:3], 'escala', [tuple(o.scale) for o in ref if o.parent is None][:2])
-    print('personagem de referencia importado')
+        if o.type == 'MESH':
+            for c in o.bound_box: zs.append((o.matrix_world @ Vector(c)).z)
+    altura = (max(zs) - min(zs)) if zs else 1.0
+    esc = 2.25 / altura                                   # o humano do jogo tem 2,25 m
+    for o in raiz: o.scale = (esc, esc, esc); o.location = (72, 42, -45.4)        # praca (spawn) em coordenadas do Blender (x, -z, y)
+    print('personagem de referencia: altura original %.2f -> 2,25 m (escala %.4f)' % (altura, esc))
 except Exception as e: print('sem personagem', e)
 bpy.context.scene.render.engine = 'BLENDER_WORKBENCH'
 sh = bpy.context.scene.display.shading; sh.light = 'FLAT'; sh.color_type = 'TEXTURE'; sh.show_backface_culling = False

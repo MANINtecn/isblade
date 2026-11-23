@@ -17,7 +17,8 @@
  ],
  "grade": 257,
  "passo_celulas": 8,
- "altura_min_m": -45.715293884277344,
- "altura_max_m": 7.639999866485596,
+ "altura_min_m": -91.43058776855469,
+ "altura_max_m": 15.279999732971191,
+ "escala": 2.0,
  "nota": "jogo: X=(ux-OX)/50, Y=(uz-OZ)/50, Z=(uy-OY)/50"
 }

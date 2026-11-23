@@ -5,6 +5,7 @@ Camadas por celula (andares/pontes/casas): altura (m do jogo * 50, int16), espac
 Uso (tools/dion): python gerar_walkgrid_dion.py   ->  assets/maps/dion/dion_walkgrid.{bin,json}"""
 import numpy as np, json, struct, time
 from geodata_l2j import le_tile
+from escala import K
 
 TX, TY = 20, 22
 UX0, UY0 = (TX - 20) * 32768, (TY - 18) * 32768
@@ -47,7 +48,7 @@ for (cx, cy), lst in capas.items():
         d = extras.setdefault((I, J), [])
         if all(abs(h - q[0]) >= 25 for q in d): d.append((h, nw))
 # alturas base de celulas multicamada: a mais baixa; extras acima dela
-def y_jogo(h_uu): return (h_uu - OZ) / 50.0
+def y_jogo(h_uu): return (h_uu - OZ) / 50.0 * K
 counts = np.ones((N, N), np.int32)                            # [I, iz]
 ex_motor = {}
 for (I, J), lst in extras.items():
@@ -62,19 +63,19 @@ base_pos = offs[:-1].astype(np.int64)
 mask = (BX.astype(np.uint8) | (BZ.astype(np.uint8) << 1)).T.reshape(-1)       # [iz, I]
 hb = np.round(y_jogo(H.T.reshape(-1)) * 50).astype(np.int16)
 rec['h'][base_pos] = hb; rec['m'][base_pos] = mask
-rec['l'][base_pos] = 120                                      # 12 m livres (ajustado abaixo onde ha camada acima)
+rec['l'][base_pos] = int(round(12 * K * 10))                    # 12 m livres (x escala) (ajustado abaixo onde ha camada acima)
 for (I, iz), lst in ex_motor.items():
     k = iz * N + I; p = int(offs[k]); camadas = [(int(H[I, iz]), None)] + [(h, nw) for h, nw in lst]
     ys = [y_jogo(h) for h, _ in camadas]
     for q in range(1, len(camadas)):
-        rec['h'][p + q] = int(round(ys[q] * 50)); rec['m'][p + q] = 0 if (camadas[q][1] & 0xF) == 0xF else 3; rec['l'][p + q] = 120
+        rec['h'][p + q] = int(round(ys[q] * 50)); rec['m'][p + q] = 0 if (camadas[q][1] & 0xF) == 0xF else 3; rec['l'][p + q] = int(round(12 * K * 10))
     for q in range(len(camadas) - 1):
-        livre = max(0.0, min(12.0, ys[q + 1] - ys[q] - 0.15)); rec['l'][p + q] = int(round(livre * 10))
+        livre = max(0.0, min(12.0 * K, ys[q + 1] - ys[q] - 0.15)); rec['l'][p + q] = int(round(livre * 10))
 with open('../../assets/maps/dion/dion_walkgrid.bin', 'wb') as f:
     f.write(offs.astype('<u4').tobytes()); f.write(rec.tobytes())
-x0 = (UX0 - OX) / 50.0; y0 = -((UY0 + 32768 - OY) / 50.0)       # x_blender minimo; y_blender = -z do jogo
-cel = 32768 / N / 50.0
-json.dump({'versao': int(time.time()), 'celula': cel, 'raio': 330.0, 'n': N, 'camadas': total, 'altura_escala': 50, 'livre_escala': 10, 'bytes_por_camada': 4, 'x0': x0, 'y0': y0,
+x0 = (UX0 - OX) / 50.0 * K; y0 = -((UY0 + 32768 - OY) / 50.0) * K       # x_blender minimo; y_blender = -z do jogo
+cel = 32768 / N / 50.0 * K
+json.dump({'versao': int(time.time()), 'celula': cel, 'raio': 330.0, 'n': N, 'camadas': total, 'altura_escala': 50, 'escala': K, 'livre_escala': 10, 'bytes_por_camada': 4, 'x0': x0, 'y0': y0,
            'nota': 'Dion 20_22 da geodata L2J (gerar_walkgrid_dion.py). x_jogo = x0+(ix+.5)*celula; z_jogo = -(y0+(iz+.5)*celula); altura = m do jogo (praca = 0).'},
           open('../../assets/maps/dion/dion_walkgrid.json', 'w'), indent=1)
 print('walkgrid %dx%d celulas de %.2f m; %d camadas (%d extras de andares/pontes); bin %.1f MB; %.1f s' % (N, N, cel, total, total - N * N, (len(offs) * 4 + total * 4) / 1048576, time.time() - t0))

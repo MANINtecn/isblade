@@ -7,6 +7,7 @@ from PIL import Image
 from ue2_pkg import Pacote
 from polys_ue2 import ler_polys
 from lib_malha import matriz_ue
+from escala import K
 
 TILE = sys.argv[1] if len(sys.argv) > 1 else '20_22'
 OX, OY, OZ = 16169.0, 146880.0, -1966.0
@@ -27,7 +28,14 @@ def polys_do_modelo(mi):
     p55 = [i for k, i in hits if k == 55]
     return (p55 or [i for _, i in hits] or [None])[0]
 
-por_mat = {}; n_brush = n_poly = 0; sem_tex = collections.Counter()
+# portas das lojas/casas (pares de Mover H_Door_MV_01): o painel de tabuas que tapava a entrada era a parede da frente do casco interno (BSP sem o buraco da porta, que o CSG subtrativo abria)
+_at = json.load(open('raw_dion/atores_%s.json' % TILE)); _d = [((m['x'] - OX) / 50.0, (m['y'] - OY) / 50.0) for m in _at['Mover'] if m['malha'] == 'H_Door_MV_01']
+PORTAS = []
+for i_, a_ in enumerate(_d):
+    for b_ in _d[i_ + 1:]:
+        if np.hypot(a_[0] - b_[0], a_[1] - b_[1]) < 2.5: PORTAS.append(((a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2))
+print('portas (pares):', len(PORTAS), [tuple(round(v, 1) for v in p_) for p_ in PORTAS])
+por_mat = {}; n_brush = n_poly = n_porta = 0; sem_tex = collections.Counter()
 for e in pk.exports:
     if e['classe'] != 'Brush' or e['tam'] <= 0: continue
     pr = pk.propriedades(e)
@@ -48,13 +56,15 @@ for e in pk.exports:
         if cam is None: sem_tex[nm] += 1; continue
         w, h = Image.open(cam).size
         uv = np.stack([((v - base) @ tu) / w, ((v - base) @ tv) / h], 1).astype(np.float32)
-        game = np.stack([(v[:, 0] - OX) / 50.0, (v[:, 2] - OZ) / 50.0, (v[:, 1] - OY) / 50.0], 1).astype(np.float32)
+        game = np.stack([(v[:, 0] - OX) / 50.0, (v[:, 2] - OZ) / 50.0, (v[:, 1] - OY) / 50.0], 1).astype(np.float32)       # (a escala K entra mais abaixo)
         a, b, c = game[0], game[1], game[2]; nr = np.cross(b - a, c - a); nl = np.linalg.norm(nr)
+        if nl > 0 and abs(nr[1] / nl) < 0.6 and any(game[:, 0].min() - 1.1 <= px <= game[:, 0].max() + 1.1 and game[:, 2].min() - 1.1 <= pz <= game[:, 2].max() + 1.1 for px, pz in PORTAS): n_porta += 1; continue      # parede da frente que tapava a porta
+        game = game * K; a, b, c = game[0], game[1], game[2]; nr = np.cross(b - a, c - a); nl = np.linalg.norm(nr)
         nr = (nr / nl) if nl > 0 else np.array([0, 1, 0], np.float32)
         dd = por_mat.setdefault(nm, {'pos': [], 'nor': [], 'uv': [], 'idx': [], 'n': 0})
         k = len(game); tri = np.array([[0, i, i + 1] for i in range(1, k - 1)], np.uint32).reshape(-1) + dd['n']
         dd['pos'].append(game); dd['nor'].append(np.tile(nr.astype(np.float32), (k, 1))); dd['uv'].append(uv); dd['idx'].append(tri); dd['n'] += k; n_poly += 1
-print('brushes aditivos', n_brush, 'poligonos', n_poly, 'materiais', len(por_mat), 'sem textura:', dict(sem_tex))
+print('paredes de porta removidas:', n_porta); print('brushes aditivos', n_brush, 'poligonos', n_poly, 'materiais', len(por_mat), 'sem textura:', dict(sem_tex))
 
 blob = bytearray(); vistas = []; acessores = []; imagens = []; texturas = []; materiais = []; primitivas = []
 def add_view(b, alvo=None):

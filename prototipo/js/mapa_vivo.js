@@ -10,7 +10,7 @@ window.MapaVivo = (function(){
   var CFG = V.CFG = {
     curuma:   { pasta: 'curuma',        glb: 'curuma.glb',        grid: 'curuma_walkgrid',        chaoMin: -222.9, nome: 'Torre de Cruma',     niveis: '1-15',  spawn: [-50, 12, -195], regiao: 1 },
     fortress: { pasta: 'fortress',      glb: 'fortress.glb',      grid: 'fortress_walkgrid',      chaoMin: -36.4,  nome: 'Fortaleza',          niveis: '15-30', spawn: [0, 27, 3.5],    regiao: 2 },
-    dion:     { pasta: 'dion',          glb: 'dion.glb',          grid: 'dion_walkgrid',          chaoMin: -110,   nome: 'Dion',               niveis: 'Cidade', spawn: [36, -21, -22.7], regiao: 9, fixo: { pos: [1500, 0, 0], rotY: 0, x0: -323, x1: 332, z0: -316, z1: 339 } },      /* [dion] 21/11/2026: cidade-base (substitui Talking Island); fora da grade do mundo, em x ~1500 */
+    dion:     { pasta: 'dion',          glb: 'dion.glb',          grid: 'dion_walkgrid',          chaoMin: -110,   nome: 'Dion',               niveis: 'Cidade', spawn: [72, -42, -45.4], regiao: 9, fixo: { pos: [1500, 0, 0], rotY: 0, x0: -647, x1: 664, z0: -633, z1: 679 } },      /* [dion] 21/11/2026: cidade-base (substitui Talking Island); fora da grade do mundo, em x ~1500 */
     pantano:  { pasta: 'blazing_swamp', glb: 'blazing_swamp.glb', grid: 'blazing_swamp_walkgrid', chaoMin: -30.8,  nome: 'Pantano Flamejante', niveis: '30-45', spawn: [14.9, -43.9, 3.7], regiao: 3 }
   };
   var ALTURA = 2.0, RAIO = .5, PASSO = 1.04;

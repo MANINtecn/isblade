@@ -1,13 +1,14 @@
 {
- "versao": 1795179785,
- "celula": 0.64,
+ "versao": 1795394167,
+ "celula": 1.28,
  "raio": 330.0,
  "n": 1024,
  "camadas": 1127130,
  "altura_escala": 50,
+ "escala": 2.0,
  "livre_escala": 10,
  "bytes_por_camada": 4,
- "x0": -323.38,
- "y0": -339.2,
+ "x0": -646.76,
+ "y0": -678.4,
  "nota": "Dion 20_22 da geodata L2J (gerar_walkgrid_dion.py). x_jogo = x0+(ix+.5)*celula; z_jogo = -(y0+(iz+.5)*celula); altura = m do jogo (praca = 0)."
 }

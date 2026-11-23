@@ -10,6 +10,7 @@ TX, TY = 20, 22
 UX0, UY0 = (TX - 20) * 32768, (TY - 18) * 32768           # canto do tile em uu
 OX, OY, OZ = 16169.0, 146880.0, -1966.0                     # origem do jogo = MusicVolume 202201 (cidade de Dion)
 TEX = 4096; PASSO = 8
+from escala import K
 alt = np.load('raw_dion/alt_20_22.npy').astype(np.float32)   # [celulaX, celulaY], uu (1 celula = 16 uu)
 
 # --- limpa muros/cercas finos da geodata (casas e muros sao props); mantem o relevo
@@ -26,7 +27,7 @@ ux = UX0 + np.arange(n) * PASSO * 16.0
 uy = UY0 + np.arange(n) * PASSO * 16.0
 GX, GZ = np.meshgrid((ux - OX) / 50.0, (uy - OY) / 50.0, indexing='ij')
 GY = (H - OZ) / 50.0
-pos = np.stack([GX, GY, GZ], -1).reshape(-1, 3).astype(np.float32)
+pos = (np.stack([GX, GY, GZ], -1).reshape(-1, 3) * K).astype(np.float32)       # [escala] cidade K vezes maior (normais nao mudam)
 dx = np.gradient(GY, axis=0) / np.gradient(GX, axis=0)
 dz = np.gradient(GY, axis=1) / np.gradient(GZ, axis=1)
 nor = np.stack([-dx, np.ones_like(dx), -dz], -1)
@@ -142,6 +143,6 @@ js = pad(json.dumps(gltf, separators=(',', ':')).encode(), b' ')
 glb = struct.pack('<4sII', b'glTF', 2, 12 + 8 + len(js) + 8 + len(blob)) + struct.pack('<I4s', len(js), b'JSON') + js + struct.pack('<I4s', len(blob), b'BIN\x00') + blob
 open('../../assets/dion/dion_chao.glb', 'wb').write(glb)
 json.dump({'tile': [TX, TY], 'origem_uu': [OX, OY, OZ], 'escala_uu_por_unidade': 50, 'cantos_uu': [UX0, UY0, UX0 + 32768, UY0 + 32768], 'grade': n, 'passo_celulas': PASSO,
-           'altura_min_m': float(GY.min()), 'altura_max_m': float(GY.max()), 'nota': 'jogo: X=(ux-OX)/50, Y=(uz-OZ)/50, Z=(uy-OY)/50'},
+           'altura_min_m': float(GY.min() * K), 'altura_max_m': float(GY.max() * K), 'escala': K, 'nota': 'jogo: X=(ux-OX)/50, Y=(uz-OZ)/50, Z=(uy-OY)/50'},
           open('../../assets/dion/dion_chao.json', 'w'), indent=1)
 print('malha %dx%d (%d verts, %d tris); altura %.1f..%.1f m; GLB %.1f MB' % (n, n, len(pos), len(idx) // 3, GY.min(), GY.max(), len(glb) / 1048576))

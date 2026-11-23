@@ -743,7 +743,7 @@ function executa(c, J, m){
     case 'mob_lista': {                                   /* [gm] F10 > Mobs: povoar Dion na posicao do GM */
       const W = c && c.mundo && c.mundo.sub ? c.mundo.sub('dion') : null;
       if(!W){ sis(J, 'Mobs: o canal desta area nao tem o mundo de Dion.'); break; }
-      if(!(J.x > 1100 && J.x < 1900)){ sis(J, 'Mobs: so da para povoar dentro de Dion (voce esta fora).'); break; }
+      if(!(J.x > 800 && J.x < 2250)){ sis(J, 'Mobs: so da para povoar dentro de Dion (voce esta fora).'); break; }
       if(acao === 'mob_spawn'){
         const r = W.adminNasce(String(m.tipo || ''), J.x, J.z, typeof J.y === 'number' ? J.y : -22, m.qtd, m.raio, m.agr, !!m.fixo);
         sis(J, r.erro ? ('Mobs: ' + r.erro) : ('Mobs: ' + r.n + 'x ' + r.nome + (r.chefe ? ' (boss)' : '') + ' em (' + J.x.toFixed(0) + ', ' + J.z.toFixed(0) + ')' + (r.fixo ? ' - spot FIXO salvo' : ' - temporario (volta ao reiniciar so se fixo)')));

@@ -26,7 +26,7 @@ for t in tiles:
         elif c == 'MusicVolume':
             out[c].append({'n': e['nome'], 'musica': pr.get('nMusicID'), 'x': loc[0], 'y': loc[1], 'z': loc[2], 'grupo': pr.get('Group')})
         elif c == 'Mover':
-            out[c].append({'n': e['nome'], 'malha': ref(pr.get('StaticMesh', 0)), 'x': loc[0], 'y': loc[1], 'z': loc[2], 'rot': pr.get('BaseRot'), 'id_servidor': pr.get('L2ServerObjectID'), 'tipo': pr.get('L2ServerObjectType')})
+            out[c].append({'n': e['nome'], 'malha': ref(pr.get('StaticMesh', 0)), 'x': loc[0], 'y': loc[1], 'z': loc[2], 'rot': pr.get('BaseRot'), 'keypos': pr.get('KeyPos'), 'keyrot': pr.get('KeyRot'), 'id_servidor': pr.get('L2ServerObjectID'), 'tipo': pr.get('L2ServerObjectType')})
         elif c == 'ZoneInfo':
             out[c].append({'n': e['nome'], 'x': loc[0], 'y': loc[1], 'z': loc[2], 'neblina': [pr.get('DistanceFogStart'), pr.get('DistanceFogEnd')], 'cor': pr.get('AmbientVector') if not isinstance(pr.get('AmbientVector'), bytes) else None})
         elif c == 'TerrainInfo':
