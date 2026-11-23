@@ -26,6 +26,13 @@ const TIPOS_OBJ = ['npc_clarissa', 'npc_altran', 'npc_mammon', 'npc_wilford', 'n
 function lerObj(){ try { const a = JSON.parse(fs.readFileSync(ARQ_OBJ, 'utf8')); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
 function salvaObj(a){ try { fs.mkdirSync(path.dirname(ARQ_OBJ), { recursive: true }); fs.writeFileSync(ARQ_OBJ, JSON.stringify(a, null, 1)); return null; } catch(e){ return e.message; } }
 const objetosDion = () => lerObj();
+/* [portoes-dion] 23/11/2026: estado dos portoes/portas do castelo (ids 1-9) e da fortaleza (17-28) de Dion = L2ServerObjectID do mapa. Arquivo dados/dion_portoes.json {id: 'fechado'|'aberto'|'destruido'} (so os que nao estao fechados). */
+const ARQ_PORT = path.join(process.env.DATA_DIR || path.join(__dirname, 'dados'), 'dion_portoes.json');
+const GRUPOS_PORT = { castelo: [1, 2, 3, 4, 5, 6, 7, 8, 9], forte: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28] }, TODOS_PORT = GRUPOS_PORT.castelo.concat(GRUPOS_PORT.forte), ESTADOS_PORT = ['fechado', 'aberto', 'destruido'];
+let PORT = null;
+function lerPort(){ if(PORT) return PORT; PORT = {}; try { const o = JSON.parse(fs.readFileSync(ARQ_PORT, 'utf8')); for(const k of Object.keys(o)) if(TODOS_PORT.indexOf(+k) >= 0 && ESTADOS_PORT.indexOf(o[k]) >= 0) PORT[k] = o[k]; } catch(e){} return PORT; }
+function salvaPort(){ try { fs.mkdirSync(path.dirname(ARQ_PORT), { recursive: true }); const o = {}; for(const k of Object.keys(PORT)) if(PORT[k] !== 'fechado') o[k] = PORT[k]; fs.writeFileSync(ARQ_PORT, JSON.stringify(o, null, 1)); return null; } catch(e){ return e.message; } }
+const portoesDion = () => { const p = lerPort(), o = {}; for(const id of TODOS_PORT) o[id] = p[id] || 'fechado'; return o; };
 function difundeCidade(msg){ try { for(const cc of (CTX.canais.cidade || [])) CTX.difunde(cc, msg); } catch(e){} }
 
 
@@ -747,6 +754,19 @@ function executa(c, J, m){
       teleport(c, J, m.destino, m.x, m.z);
       break;
 
+    case 'portao_set':
+    case 'portao_lista': {                                /* [portoes-dion] F10 > Mobs > Portoes do castelo e da fortaleza */
+      const p = lerPort();
+      if(acao === 'portao_lista'){ const o = portoesDion(), n = k => TODOS_PORT.filter(id => o[id] === k).length; sis(J, 'Portoes de Dion: ' + n('fechado') + ' fechados, ' + n('aberto') + ' abertos, ' + n('destruido') + ' destruidos | castelo ' + GRUPOS_PORT.castelo.map(id => id + ':' + o[id]).join(' ') + ' | forte ' + GRUPOS_PORT.forte.map(id => id + ':' + o[id]).join(' ') + ' | arquivo ' + ARQ_PORT); break; }
+      const est = String(m.estado || ''); if(ESTADOS_PORT.indexOf(est) < 0){ sis(J, 'Portoes: estado invalido (' + est + ').'); break; }
+      let ids = Array.isArray(m.ids) ? m.ids.map(Number) : (GRUPOS_PORT[String(m.grupo)] || (m.grupo === 'todos' ? TODOS_PORT : []));
+      ids = ids.filter(id => TODOS_PORT.indexOf(id) >= 0); if(!ids.length){ sis(J, 'Portoes: nenhum portao escolhido.'); break; }
+      for(const id of ids){ if(est === 'fechado') delete p[id]; else p[id] = est; }
+      const er = salvaPort(); difundeCidade({ t: 'dion_portao', ids, estado: est });
+      sis(J, 'Portoes: ' + ids.length + ' -> ' + est + (er ? ' - ATENCAO: NAO salvou (' + er + ' em ' + ARQ_PORT + ')' : ' (salvo)'));
+      break;
+    }
+
     case 'obj_spawn':
     case 'obj_remover':
     case 'obj_lista': {
@@ -804,6 +824,7 @@ module.exports = {
   comando,
   executa,
   objetosDion,
+  portoesDion,
   setLevel,
   ress,
   heal,

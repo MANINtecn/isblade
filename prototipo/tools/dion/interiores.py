@@ -11,7 +11,8 @@ _cache = {}
 
 def cascos(pk, polys_do_modelo, polys_idx, ler_polys, matriz_ue, tile='20_22'):
     if tile in _cache: return _cache[tile]
-    alt = np.load('raw_dion/alt_%s.npy' % tile).astype(np.float32)
+    from escala import GEO_UU
+    alt = np.load('raw_dion/alt_%s.npy' % tile).astype(np.float32) - GEO_UU        # o terreno do jogo desce GEO_UU (escala.py)
     liso = ndi.gaussian_filter(ndi.median_filter(ndi.grey_opening(alt, size=(25, 25)), size=11, mode='nearest'), 2.0)      # a mesma limpeza de montar_chao.py
     UY0 = 131072
     out = []

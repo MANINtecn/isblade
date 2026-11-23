@@ -247,6 +247,7 @@ window.MapaVivo = (function(){
   };
   /* movimento do jogador de (x0,z0) para (x1,z1) na altura y: so vale quando o destino tem chao de um mapa carregado */
   V.bloq = function(x0, z0, x1, z1, y){
+    if(window.PortoesDion && PortoesDion.bloq(x0, z0, x1, z1, y)){ V.motivo = 'portao'; return true; }      /* [portoes-dion] portao fechado do castelo/fortaleza */
     for(var id in V.mapas){
       var M = V.mapas[id]; if(M.estado !== 2 && !M.usavel) continue;
       if(foraDaRegiao(M, x1, z1)) continue;                /* [borda] 13/11: o walkgrid passa da regiao do mapa; no campo em volta vale o terreno (era parede invisivel) */

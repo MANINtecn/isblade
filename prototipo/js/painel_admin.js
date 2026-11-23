@@ -786,6 +786,11 @@
   /* aba 'gm' (poderes) ou 'bots' (painel mestre de bots, antes o F8): o painel de bots e' encaixado aqui dentro */
   /* [gm] aba Mobs / Bosses: escolhe o mob (lista do dungeon.json), quantidade e raio; "Spawn aqui" nasce na posicao do GM em Dion; "Fixar" grava o spot (volta a nascer) */
   var MOBS_DADOS = null;
+  function opcoesPortoes(){
+    var o = '<option value="g:castelo">Castelo - todos os portoes</option><option value="g:forte">Fortaleza - todos os portoes</option><option value="g:todos">Todos (castelo + fortaleza)</option>';
+    try{ var L = window.PortoesDion ? PortoesDion.lista() : []; L.forEach(function(g){ o += '<option value="i:' + g.id + '">' + (g.grupo === 'castelo' ? 'Castelo' : 'Fortaleza') + ' #' + g.id + ' - ' + g.nome + ' (' + g.estado + ')</option>'; }); }catch(e){}
+    return o;
+  }
   function montaMobs(host){
     if(host.dataset.ok) return; host.dataset.ok = '1';
     host.innerHTML = '<div style="opacity:.7">carregando a lista de mobs...</div>';
@@ -813,6 +818,10 @@
         '<label>Raio p/ remover (m)<input id="po-raio" type="number" min="1" max="400" value="6" style="width:80px"></label></div>' +
         '<div class="pa-grid-btns"><button class="pa-btn pa-btn-gold" id="po-spawn">➕ Colocar aqui</button><button class="pa-btn" id="po-lista">📋 Listar objetos</button><button class="pa-btn" id="po-remover" style="border-color:#ff6b6b;color:#ff9a9a">🗑️ Remover objetos aqui</button></div>' +
         '<div style="opacity:.65;margin-top:10px;line-height:1.5">Os objetos ficam salvos no servidor e todos os jogadores veem. O NPC nasce virado para voce.</div>' +
+        '<div class="pa-sec-title" style="margin:16px 0 8px;color:#ffd166">🏰 Portoes do castelo e da fortaleza</div>' +
+        '<div class="pa-mobs-linha"><label style="flex:1;min-width:240px">Qual<select id="pp-qual" style="width:100%">' + opcoesPortoes() + '</select></label></div>' +
+        '<div class="pa-grid-btns"><button class="pa-btn pa-btn-gold" id="pp-abrir">🚪 Abrir</button><button class="pa-btn" id="pp-fechar">🔒 Fechar</button><button class="pa-btn" id="pp-destruir" style="border-color:#ff6b6b;color:#ff9a9a">💥 Destruir</button><button class="pa-btn" id="pp-lista">📋 Ver estado</button></div>' +
+        '<div style="opacity:.65;margin-top:10px;line-height:1.5">Portao fechado barra a passagem de todos; aberto libera; destruido some e libera. O estado fica salvo no servidor. Para voltar o portao destruido, use Fechar.</div>' +
         '<div style="opacity:.65;margin-top:10px;line-height:1.5">Chefes nascem 1 por spot e voltam em ~5 min. Mobs comuns voltam em ~45 s. A mensagem de resultado aparece no chat.</div>';
       var v = function(id){ return document.getElementById(id); };
       v('pm-spawn').onclick = function(){ som('click'); cmd('mob_spawn', { tipo: v('pm-tipo').value, qtd: +v('pm-qtd').value || 1, raio: +v('pm-raio').value || 5, agr: (+v('pm-agr').value || 0) / 100, fixo: v('pm-fixo').checked }); };
@@ -820,6 +829,11 @@
       v('po-spawn').onclick = function(){ som('click'); var S_ = window.__dbgS || window.S || {}, f = S_.face || 0; cmd('obj_spawn', { tipo: v('po-tipo').value, x: (S_.px || 0) + Math.sin(f) * 2.5, z: (S_.pz || 0) + Math.cos(f) * 2.5, y: S_.py, rot: f + Math.PI }); };
       v('po-lista').onclick = function(){ som('click'); cmd('obj_lista', {}); };
       v('po-remover').onclick = function(){ som('click'); cmd('obj_remover', { raio: +v('po-raio').value || 6 }); };
+      function portao(estado){ var q = v('pp-qual').value, d = { estado: estado }; if(q.indexOf('g:') === 0) d.grupo = q.slice(2); else d.ids = [+q.slice(2)]; cmd('portao_set', d); }
+      v('pp-abrir').onclick = function(){ som('click'); portao('aberto'); };
+      v('pp-fechar').onclick = function(){ som('click'); portao('fechado'); };
+      v('pp-destruir').onclick = function(){ som('click'); portao('destruido'); };
+      v('pp-lista').onclick = function(){ som('click'); cmd('portao_lista', {}); };
       v('pm-remover').onclick = function(){ som('click'); cmd('mob_remover', { raio: +v('pm-rem-raio').value || 12 }); };
     }).catch(function(e){ host.innerHTML = '<div style="color:#ff9a9a">nao consegui ler data/dungeon.json: ' + e + '</div>'; delete host.dataset.ok; });
   }

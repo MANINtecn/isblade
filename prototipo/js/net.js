@@ -476,6 +476,7 @@ export const Net = (function(){
     else if(m.t === 'bot_painel'){ if(window.PainelBots && window.PainelBots.toggle) window.PainelBots.toggle(m.open); }
     else if(m.t === 'bot_info'){ if(window.PainelBots && window.PainelBots.atualizaInfo) window.PainelBots.atualizaInfo(m); }
     else if(m.t === 'admin_abrir'){ if(window.PainelAdmin && window.PainelAdmin.abrir) window.PainelAdmin.abrir(m); }
+    else if(m.t === 'dion_portoes' || m.t === 'dion_portao'){ if(window.PortoesDion) PortoesDion.msg(m); }      /* [portoes-dion] estado dos portoes do castelo/fortaleza */
     else if(m.t === 'dion_obj' || m.t === 'dion_obj_add' || m.t === 'dion_obj_del'){ if(window.DionObjetos) DionObjetos.msg(m); }      /* [dion] NPCs/feixes colocados pelo GM */
     else if(m.t === 'admin_info'){ if(window.PainelAdmin && window.PainelAdmin.atualizar) window.PainelAdmin.atualizar(m); }
     else if(m.t === 'admin_speed'){ if(window.PainelAdmin && window.PainelAdmin.aplicarSpeed) window.PainelAdmin.aplicarSpeed(m.speed); }

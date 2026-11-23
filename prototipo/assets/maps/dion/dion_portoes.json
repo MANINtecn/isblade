@@ -1,0 +1,652 @@
+{
+ "versao": 1795444077,
+ "escala": 2.0,
+ "portoes": [
+  {
+   "id": 23,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -564.2806,
+     0.0,
+     -328.2806
+    ],
+    "q": [
+     -0.0,
+     0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -446.281,
+    "cz": 116.418,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -38.04,
+    "y1": -32.4
+   },
+   "node": "PORTAO_23"
+  },
+  {
+   "id": 22,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -334.5194,
+     0.0,
+     558.0369
+    ],
+    "q": [
+     0.0,
+     -0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -446.278,
+    "cz": 113.34,
+    "ux": 0.0,
+    "uz": 1.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -38.04,
+    "y1": -32.4
+   },
+   "node": "PORTAO_22"
+  },
+  {
+   "id": 26,
+   "malha": "fort02_wall_door",
+   "nome": "Portao da fortaleza",
+   "tipo": "portao",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     0.0,
+     5.44,
+     0.0
+    ],
+    "q": [
+     -0.0,
+     -0.0,
+     0.0,
+     1.0
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -349.201,
+    "cz": 154.161,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 3.2,
+    "b": 0.3,
+    "y0": -38.88,
+    "y1": -29.6
+   },
+   "node": "PORTAO_26"
+  },
+  {
+   "id": 18,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -494.3981,
+     -0.0,
+     -407.5231
+    ],
+    "q": [
+     0.0,
+     0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -452.542,
+    "cz": 43.438,
+    "ux": 1.0,
+    "uz": 0.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -38.08,
+    "y1": -32.44
+   },
+   "node": "PORTAO_18"
+  },
+  {
+   "id": 17,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -413.7632,
+     -0.0,
+     500.6395
+    ],
+    "q": [
+     -0.0,
+     -0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -455.62,
+    "cz": 43.438,
+    "ux": 1.0,
+    "uz": 0.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -38.08,
+    "y1": -32.44
+   },
+   "node": "PORTAO_17"
+  },
+  {
+   "id": 20,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -449.3209,
+     -0.0,
+     -333.7197
+    ],
+    "q": [
+     -0.0,
+     0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -391.521,
+    "cz": 56.219,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -36.92,
+    "y1": -31.28
+   },
+   "node": "PORTAO_20"
+  },
+  {
+   "id": 6,
+   "malha": "Front_Tower_Door",
+   "nome": "Portao da torre da frente",
+   "tipo": "portao",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     724.9645,
+     0.0,
+     263.0379
+    ],
+    "q": [
+     0.0,
+     -0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 233.781,
+    "cz": 494.001,
+    "ux": -1.0,
+    "uz": 0.0,
+    "a": 2.818,
+    "b": 0.3,
+    "y0": -30.759,
+    "y1": -20.4
+   },
+   "node": "PORTAO_6"
+  },
+  {
+   "id": 2,
+   "malha": "Main_Gate_Door_R",
+   "nome": "Portao principal do castelo",
+   "tipo": "portao",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     632.6155,
+     -0.0,
+     151.7783
+    ],
+    "q": [
+     0.0,
+     -0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 243.035,
+    "cz": 392.197,
+    "ux": -1.0,
+    "uz": -0.0001,
+    "a": 2.617,
+    "b": 0.3,
+    "y0": -41.109,
+    "y1": -28.16
+   },
+   "node": "PORTAO_2"
+  },
+  {
+   "id": 1,
+   "malha": "Main_Gate_Door_R",
+   "nome": "Portao principal do castelo",
+   "tipo": "portao",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     -141.3108,
+     0.0,
+     643.083
+    ],
+    "q": [
+     0.0,
+     0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 248.269,
+    "cz": 392.197,
+    "ux": -1.0,
+    "uz": -0.0001,
+    "a": 2.617,
+    "b": 0.3,
+    "y0": -41.109,
+    "y1": -28.16
+   },
+   "node": "PORTAO_1"
+  },
+  {
+   "id": 28,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -235.2391,
+     -0.0,
+     634.9204
+    ],
+    "q": [
+     -0.0,
+     -0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -436.661,
+    "cz": 199.841,
+    "ux": 1.0,
+    "uz": 0.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -36.52,
+    "y1": -30.88
+   },
+   "node": "PORTAO_28"
+  },
+  {
+   "id": 19,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -339.9619,
+     -0.0,
+     443.0806
+    ],
+    "q": [
+     0.0,
+     -0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -391.521,
+    "cz": 53.141,
+    "ux": 0.0,
+    "uz": 1.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -36.92,
+    "y1": -31.28
+   },
+   "node": "PORTAO_19"
+  },
+  {
+   "id": 4,
+   "malha": "right_brokenwall_a",
+   "nome": "Muralha quebravel (direita)",
+   "tipo": "muralha",
+   "grupo": "castelo",
+   "aberto": null,
+   "col": {
+    "cx": 175.119,
+    "cz": 459.52,
+    "ux": 0.0,
+    "uz": 1.0,
+    "a": 11.983,
+    "b": 2.56,
+    "y0": -45.998,
+    "y1": -27.282
+   },
+   "node": "PORTAO_4"
+  },
+  {
+   "id": 9,
+   "malha": "Castle_Wall_Back_DoorTower_Door",
+   "nome": "Portao do muro de tras",
+   "tipo": "portao",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     -0.12,
+     3.4,
+     0.0
+    ],
+    "q": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 229.2,
+    "cz": 632.36,
+    "ux": 0.0,
+    "uz": 1.0,
+    "a": 1.954,
+    "b": 0.3,
+    "y0": -25.445,
+    "y1": -20.253
+   },
+   "node": "PORTAO_9"
+  },
+  {
+   "id": 3,
+   "malha": "left_brokenwall_a",
+   "nome": "Muralha quebravel (esquerda)",
+   "tipo": "muralha",
+   "grupo": "castelo",
+   "aberto": null,
+   "col": {
+    "cx": 308.179,
+    "cz": 459.52,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 11.983,
+    "b": 2.56,
+    "y0": -45.998,
+    "y1": -27.282
+   },
+   "node": "PORTAO_3"
+  },
+  {
+   "id": 27,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -641.1609,
+     0.0,
+     -241.4784
+    ],
+    "q": [
+     -0.0,
+     0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -439.738,
+    "cz": 199.841,
+    "ux": 1.0,
+    "uz": 0.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -36.52,
+    "y1": -30.88
+   },
+   "node": "PORTAO_27"
+  },
+  {
+   "id": 5,
+   "malha": "Front_Tower_Door",
+   "nome": "Portao da torre da frente",
+   "tipo": "portao",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     -252.56,
+     -0.0,
+     735.44
+    ],
+    "q": [
+     -0.0,
+     0.707107,
+     0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 238.622,
+    "cz": 494.0,
+    "ux": -1.0,
+    "uz": 0.0,
+    "a": 2.818,
+    "b": 0.3,
+    "y0": -30.759,
+    "y1": -20.4
+   },
+   "node": "PORTAO_5"
+  },
+  {
+   "id": 8,
+   "malha": "Back_Tower_Door",
+   "nome": "Porta da torre de tras",
+   "tipo": "porta",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     -0.0,
+     6.76,
+     0.0
+    ],
+    "q": [
+     -0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 269.462,
+    "cz": 589.519,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 3.012,
+    "b": 0.3,
+    "y0": -11.694,
+    "y1": -1.639
+   },
+   "node": "PORTAO_8"
+  },
+  {
+   "id": 7,
+   "malha": "Castle_Wall_Back_DoorTower_Door",
+   "nome": "Portao do muro de tras",
+   "tipo": "portao",
+   "grupo": "castelo",
+   "aberto": {
+    "t": [
+     0.0,
+     3.36,
+     0.0
+    ],
+    "q": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": 282.984,
+    "cz": 583.615,
+    "ux": 1.0,
+    "uz": 0.0,
+    "a": 1.954,
+    "b": 0.3,
+    "y0": -25.442,
+    "y1": -20.25
+   },
+   "node": "PORTAO_7"
+  },
+  {
+   "id": 25,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -280.2373,
+     -0.0,
+     516.2411
+    ],
+    "q": [
+     -0.0,
+     -0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -398.24,
+    "cz": 116.42,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -38.04,
+    "y1": -32.4
+   },
+   "node": "PORTAO_25"
+  },
+  {
+   "id": 21,
+   "malha": "fort02_wall_door",
+   "nome": "Portao da fortaleza",
+   "tipo": "portao",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     0.0,
+     5.44,
+     0.0
+    ],
+    "q": [
+     0.0,
+     -0.0,
+     0.0,
+     1.0
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -486.122,
+    "cz": 74.081,
+    "ux": -0.0,
+    "uz": 1.0,
+    "a": 3.2,
+    "b": 0.3,
+    "y0": -38.88,
+    "y1": -29.6
+   },
+   "node": "PORTAO_21"
+  },
+  {
+   "id": 24,
+   "malha": "Fort02_indoor",
+   "nome": "Porta interna da fortaleza",
+   "tipo": "porta",
+   "grupo": "forte",
+   "aberto": {
+    "t": [
+     -509.9986,
+     0.0,
+     -286.4799
+    ],
+    "q": [
+     0.0,
+     0.707107,
+     -0.0,
+     0.707107
+    ],
+    "erro": 0.0
+   },
+   "col": {
+    "cx": -398.239,
+    "cz": 113.341,
+    "ux": 0.0,
+    "uz": 1.0,
+    "a": 1.582,
+    "b": 0.3,
+    "y0": -38.04,
+    "y1": -32.4
+   },
+   "node": "PORTAO_24"
+  }
+ ]
+}

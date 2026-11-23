@@ -71,6 +71,7 @@ for a in atores['StaticMeshActor'] + atores.get('Mover', []):      # portas e po
     try: prims = malha(a['malha'])
     except KeyError: n_pular += 1; continue
     if a.get('apagado'): n_pular += 1; continue
+    if a.get('id_servidor') is not None and a['malha'].lower() != 'h_door_mv_01': n_pular += 1; continue      # portoes e portas do castelo/fortaleza: pecas separadas (montar_portoes.py)
     esc = float(a['esc']) if a.get('esc') else 1.0
     e3 = np.array(a['esc3'] if a.get('esc3') else (1.0, 1.0, 1.0), np.float64)       # DrawScale3D (espelha/estica nos eixos locais da UE)
     rot_a = list(a.get('rot') or [0, 0, 0]); loc = np.array([a['x'], a['y'], a['z']], np.float64)

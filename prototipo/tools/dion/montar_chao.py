@@ -11,7 +11,8 @@ UX0, UY0 = (TX - 20) * 32768, (TY - 18) * 32768           # canto do tile em uu
 OX, OY, OZ = 16169.0, 146880.0, -1966.0                     # origem do jogo = MusicVolume 202201 (cidade de Dion)
 TEX = 4096; PASSO = 8
 from escala import K
-alt = np.load('raw_dion/alt_20_22.npy').astype(np.float32)   # [celulaX, celulaY], uu (1 celula = 16 uu)
+from escala import GEO_UU
+alt = np.load('raw_dion/alt_20_22.npy').astype(np.float32) - GEO_UU   # [celulaX, celulaY], uu (1 celula = 16 uu); menos GEO_UU: a geodata fica acima das malhas (ver escala.py)
 
 # --- limpa muros/cercas finos da geodata (casas e muros sao props); mantem o relevo
 alt = ndi.grey_opening(alt, size=(25, 25))          # tira torres e muros estreitos (props); platos largos (patio do castelo, praca) ficam

@@ -801,7 +801,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/moradores.js?v=2"></script>
 <script src="js/solo_detalhe.js?v=2"></script>
 <script src="js/mundo_campo.js?v=6"></script>
-<script src="js/mapa_vivo.js?v=22"></script>
+<script src="js/mapa_vivo.js?v=23"></script>
 <script src="js/lagos.js?v=2"></script>
 <script src="js/brilho_encanto.js?v=2"></script>
 <script src="js/sons_l2.js?v=2"></script>
@@ -811,9 +811,10 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/l2_teleport.js?v=2"></script>
 <script src="js/l2_npcs.js?v=8"></script>
 <script src="js/dion_objetos.js?v=2"></script>
+<script src="js/portoes_dion.js?v=1"></script>
 <script src="js/horizonte.js?v=3"></script>
 <script src="js/painel_bots.js?v=6"></script>
-<script src="js/painel_admin.js?v=10"></script>
+<script src="js/painel_admin.js?v=11"></script>
 <script src="js/ui_janelas.js?v=1"></script>
 </head>
 
@@ -1286,7 +1287,7 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
 import { Guardiao } from './js/guardiao.js?v=28';
-import { Net } from './js/net.js?v=57';
+import { Net } from './js/net.js?v=58';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -3176,7 +3177,7 @@ function prepShaders(raiz,semTex){
   return p||Promise.resolve();
 }
 window.__prepShaders=prepShaders;
-try{if(window.AuraChefe)AuraChefe.init(THREE,scene,prepShaders);}catch(e){console.warn('[aura-chefe] init',e);}/* [aura-chefe] */
+try{if(window.AuraChefe)AuraChefe.init(THREE,scene,prepShaders);}catch(e){console.warn('[aura-chefe] init',e);}/* [aura-chefe] */try{if(window.PortoesDion)PortoesDion.init(THREE,scene,prepShaders);}catch(e){console.warn('[portoes-dion] init',e);}/* [portoes-dion] */
 /* <<< CLAUDE [preparo] */
 
 
@@ -4627,6 +4628,7 @@ function mundoTick(dt){
   if(r!==MUNDO_REG.r){MUNDO_REG.r=r;MUNDO_REG.t=0;}else MUNDO_REG.t+=dt;
   if(r!==4)MUNDO_REG.torre=false;
   if(window.MapaVivo&&MapaVivo.on)MapaVivo.tick(S.px,S.pz);
+  if(window.PortoesDion)PortoesDion.tick(Math.min(.1,(typeof dt==='number'&&dt>0)?dt:.016));/* [portoes-dion] */
   if(window.Lagos)Lagos.tick(dt);
   if(r!==MUNDO_REG.aviso&&MUNDO_REG.t>.35&&r!==4){MUNDO_REG.aviso=r;var _id=MapaVivo.porRegiao(r),_C=_id&&MapaVivo.CFG[_id];if(_C){banner(_C.nome.toUpperCase(),'Niveis '+_C.niveis+': os monstros mais fortes ficam longe da entrada','#f5c451');try{Chat.sistema('Você entrou em: '+_C.nome);}catch(_){}}else if(d>100){try{Chat.sistema('Você entrou em: Campo de Talking Island');}catch(_){}}}/* [pagina-unica] o mapa ja esta no mundo: so avisa */
   if(r===4&&!MUNDO_REG.torre&&MUNDO_REG.t>.35){MUNDO_REG.torre=true;openPortalMenu();}

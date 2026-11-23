@@ -155,9 +155,15 @@
    "k": 1
   },
   "assets/maps/dion/dion.glb": {
-   "h": "dc42044c5e",
-   "de": 59706208,
-   "para": 26370652,
+   "h": "3c565d3735",
+   "de": 59416300,
+   "para": 26144656,
+   "k": 1
+  },
+  "assets/maps/dion/dion_portoes.glb": {
+   "h": "561c6a0a43",
+   "de": 412928,
+   "para": 324024,
    "k": 1
   },
   "assets/maps/fortress/fortress.glb": {

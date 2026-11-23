@@ -5,7 +5,7 @@ Camadas por celula (andares/pontes/casas): altura (m do jogo * 50, int16), espac
 Uso (tools/dion): python gerar_walkgrid_dion.py   ->  assets/maps/dion/dion_walkgrid.{bin,json}"""
 import numpy as np, json, struct, time
 from geodata_l2j import le_tile
-from escala import K
+from escala import K, GEO_UU
 
 TX, TY = 20, 22
 UX0, UY0 = (TX - 20) * 32768, (TY - 18) * 32768
@@ -61,7 +61,7 @@ for (cx, cy), lst in capas.items():
         d = extras.setdefault((I, J), [])
         if all(abs(h - q[0]) >= 25 for q in d): d.append((h, nw))
 # alturas base de celulas multicamada: a mais baixa; extras acima dela
-def y_jogo(h_uu): return (h_uu - OZ) / 50.0 * K
+def y_jogo(h_uu): return (h_uu - GEO_UU - OZ) / 50.0 * K      # geodata - GEO_UU: encosta nas malhas (ver escala.py)
 counts = np.ones((N, N), np.int32)                            # [I, iz]
 ex_motor = {}
 for (I, J), lst in extras.items():
