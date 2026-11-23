@@ -160,6 +160,7 @@ class Mundo {
   }
   ia(m, t, dt, vivos){
     const T = m.T;
+    if(m.pausaAte && t < m.pausaAte) return;                                                     /* [puxao] 23/11/2026: acabou de ser puxado: perde o fio por um instante */
     if(m.volta){
       const vx = m.hx - m.x, vz = m.hz - m.z, vd = Math.hypot(vx, vz); m.vt += dt; m.hp = Math.min(m.max, m.hp + m.max * dt * .25);
       if(vd < .8 || m.vt > 12){ m.x = m.hx; m.z = m.hz; m.y = m.hy; m.volta = false; m.vt = 0; m.hp = m.max; m.dano.clear(); m.alvo = 0; return; }
@@ -255,6 +256,20 @@ class Mundo {
     if(m.hp <= 0){ m.morto = true; m.mT = t; m.st = 0; return m; }
     return null;
   }
+  /* [puxao] 23/11/2026 (dono): Corrente de Puxao do Guardiao puxa o mob ate a frente dele, mas NAO sempre (probabilidade como nos jogos): mob comum 80%, bruto (armor) 35%, chefe/mini-chefe nunca.
+     O jogador manda o ponto (x, z) a ~2,6 m dele; o servidor confere distancia e chao, move o mob e o deixa 0,7 s sem agir. Devolve { ok, motivo } (ok = puxou; motivo = 'imune' | 'resistiu' | 'terreno'). */
+  puxa(Jg, id, x, z, t){
+    const m = this.mobs.get(id); if(!m || m.morto) return null;
+    if(Math.hypot(Jg.x - m.x, Jg.z - m.z) > 22) return null;                                    /* longe demais para ter acertado */
+    if(/^chefe|^mini_boss/.test(m.tipo) || m.T.isMiniBoss || m.T.golpes) return { ok: false, motivo: 'imune' };
+    if(Math.random() > (m.T.armor ? .35 : .8)) return { ok: false, motivo: 'resistiu' };
+    let dx = x - Jg.x, dz = z - Jg.z; const dd = Math.hypot(dx, dz) || 1; if(dd > 4){ dx = dx / dd * 4; dz = dz / dd * 4; }
+    const nx = Jg.x + dx, nz = Jg.z + dz, h = this.G.chao(nx, nz, m.y);
+    if(h === null || Math.abs(h - m.y) > 2.5) return { ok: false, motivo: 'terreno' };
+    m.x = nx; m.z = nz; m.y = h; m.st = 0; m.pausaAte = t + .7; m.f = Math.atan2(Jg.x - nx, Jg.z - nz);
+    if(!m.engaj || m.volta){ m.volta = false; m.alvo = Jg.id; this.engaja(m); }
+    return { ok: true };
+  }
   taunt(Jg, r, t){ let n = 0; for(const m of this.mobs.values()){ if(m.morto || Math.hypot(m.x - Jg.x, m.z - Jg.z) > r) continue; m.foco = { id: Jg.id, ate: t + FOCO_S }; m.alvo = Jg.id; if(!m.engaj) this.engaja(m, false); n++; } return n; }
   /* quem mais bateu leva o abate */
   dono(m){ let b = 0, bd = -1; for(const [id, v] of m.dano) if(v > bd){ bd = v; b = id; } return b; }
@@ -345,6 +360,7 @@ class Mundos {
   set tele(f){ this.subs.forEach(W => { W.tele = f; }); }                      /* [chefes-marcados] */
   tick(t, dt, jog){ for(const W of this.subs) W.tick(t, dt, jog); }
   hit(Jg, id, d, t){ for(const W of this.subs) if(W.mobs.has(id)) return W.hit(Jg, id, d, t); return null; }
+  puxa(Jg, id, x, z, t){ for(const W of this.subs) if(W.mobs.has(id)) return W.puxa(Jg, id, x, z, t); return null; }
   taunt(Jg, r, t){ let n = 0; for(const W of this.subs) n += W.taunt(Jg, r, t); return n; }
   dono(m){ return this.subs[0].dono(m); }
   sub(mapa){ return this.subs.find(W => W.mapa === mapa) || null; }

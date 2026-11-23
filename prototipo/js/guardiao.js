@@ -279,6 +279,7 @@ export const Guardiao = (function(){
     }
     canal.ph = 3; if(act) act.paused = false;                            /* soltou (toque rapido = na hora) ou chegou aos 3 s: o resto do clipe empurra o escudo e o feixe sai no golpe */
     canal.mult = multCarga(canal.t); an.dmg = Math.max(1, Math.round(an.dmg * canal.mult)); an.mc = +canal.mult.toFixed(2);
+    if(an.hitList) an.hitList.forEach(function(h){ h.dmg = Math.max(1, Math.round(h.dmg * canal.mult)); });      /* [hits-cabal] a carga vale para cada golpe do feixe */
     an.skill = Object.assign({}, an.skill, FEIXE);
     return false;
   };
@@ -342,6 +343,9 @@ export const Guardiao = (function(){
     if(sk.pose === 'g_s1'){                                          /* [feixe-escudo] carga: o flare nasce NA HORA do cast na face do escudo e cresce em 3 degraus (1 s, 2 s, 3 s) */
       fimCanal(); canal.ph = 2; canal.t = 0; canal.mult = .6;
       canal.ctrl = FX.feixeCarga({ getBoca: bocaEscudo });
+    } else if(sk.pose === 'g_s3'){                                   /* [hits-cabal 23/11/2026] a chuva comeca no gesto (hit .95 do clipe); os golpes do JSON acompanham o POUSO dos escudos (~0,26 s depois + o atraso de cada um) */
+      var cl3 = ctx.getVrm() && ctx.getVrm().clips[cfg.c], base3 = cl3 ? cl3.duration / cfg.sp : 1.1;
+      later(function(){ G.fxSwing({ skill: sk, part: 0, parts: (sk.hits || [1]).length, chuva: true }); }, base3 * cfg.hit);
     } else if(sk.pose === 'g_s6'){                                   /* o escudo do braco vira um disco de energia que voa ate 5,7 m, segura um instante e volta; o escudo real some do braco enquanto isso */
       var gc6 = geoEscudo(ctx.getVrm()), ev6 = FX.add(null, .01, null, cfg.solta || 1.13), al6 = (ctx.getS().anim && ctx.getS().anim.alvo) || null;      /* [mira] ponto mirado (se houver) */
       ev6.done = function(){
@@ -415,6 +419,15 @@ export const Guardiao = (function(){
   G.fxSwing = function(an){
     G.log.push((an.skill ? an.skill.pose : '?') + ':' + (an.part || 1) + '@' + agora().toFixed(2));
     var sk = an.skill; if(!sk || !ctx || !FX) return; var S = ctx.getS(), f = ctx.fx.fwd(S.face), px = S.px, pz = S.pz, sh = ctx.shake;
+    var pt0 = an.part || 1;
+    if(sk.pose === 'g_s3' && !an.chuva){ sh(.07); return; }              /* [hits-cabal] cada golpe da chuva e um escudo que pousou: o desenho (aneis, rachaduras) ja sai do proprio escudo */
+    if(pt0 > 1 && sk.pose !== 'g_s6' && sk.pose !== 'g_s3'){              /* [hits-cabal] golpes seguintes das skills de varios golpes: so um pulso curto (o efeito grande saiu no 1o) */
+      if(sk.pose === 'g_s1'){ var bp = bocaEscudo(); FX.luz(bp.x, bp.y, bp.z, { color: COR.quente, intensity: 34, life: .18 }); FX.brasas(bp.x, bp.y, bp.z, { n: 5, spread: .5, rise: 1, color: COR.ouro, life: .4, size: .1 }); sh(.12); }
+      else if(sk.pose === 'g_s2'){ FX.anel(px, pz, { r0: .8, r1: 6.4, color: COR.ouro, life: .5 }); FX.espetos(px, 1.2, pz, { n: 12, seed: 40 + pt0, size: 2.6, color: COR.fogo, life: .4 }); sh(.22); }
+      else if(sk.pose === 'g_s4'){ FX.espetos(px, 1.4, pz, { n: 10, seed: 70 + pt0, size: 2.4, color: COR.ouro, life: .4 }); sh(.15); }
+      else if(sk.pose === 'g_s5'){ FX.espetos(px + f[0] * 1.5, .6, pz + f[1] * 1.5, { n: 8, seed: 80 + pt0, size: 1.6, color: COR.fogo, life: .35 }); FX.luz(px + f[0] * 1.2, 1, pz + f[1] * 1.2, { color: COR.fogo, intensity: 18, life: .2 }); sh(.1); }
+      return;
+    }
     if(sk.pose === 'g_s1'){                                          /* [feixe-escudo] solta o leque de luz de 16 graus ate 10 m saindo da face do escudo */
       var b1 = bocaEscudo(), p1 = { x: b1.x, y: b1.y, z: b1.z, face: S.face };
       if(canal.ctrl){ canal.ctrl.soltar(p1); canal.ctrl = null; } else FX.feixeLeque({ x: p1.x, y: p1.y, z: p1.z, face: S.face, nivel: 0 });
@@ -440,7 +453,7 @@ export const Guardiao = (function(){
       buffs.defT = 6;
       FX.casca(px, 0, pz, { r0: 1.1, r1: 1.5, h0: 3, h1: 11, life: 1.0, color: COR.ouro, hot: COR.quente, power: .55, ns: 2.2, flow: -3.4 });
       FX.casca(px, 0, pz, { r0: .45, r1: .6, h0: 3, h1: 10, life: .8, color: COR.quente, hot: COR.quente, power: .5, ns: 3, flow: -4.5 });
-      [0, .2, .4].forEach(function(l, i){ FX.anel(px, pz, { r0: .8, r1: 10, color: i % 2 ? COR.fogo : COR.ouro, life: 1.2, lag: l }); });
+      [0, .1, .2].forEach(function(l, i){ FX.anel(px, pz, { r0: .8, r1: 10, color: i % 2 ? COR.fogo : COR.ouro, life: 1.2, lag: l }); });      /* [hits-cabal] um anel por golpe (os 3 golpes do JSON saem a cada 0,1 s) */
       FX.runas(px, pz, { r: 5.5, life: 3.4, color: COR.ouro }); FX.espetos(px, 1.4, pz, { n: 20, seed: 71, size: 3.2, color: COR.ouro, life: .8 });
       FX.brasas(px, .2, pz, { n: 30, spread: 3, rise: 6, color: COR.ouro, life: 3 }); FX.humo(px, pz, { n: 8, size: 1.2 }); FX.luz(px, 3, pz, { color: COR.ouro, intensity: 50, life: .7 }); sh(.7);
     } else if(sk.pose === 'g_s5'){                                   /* correntes: leque de 45 graus ate 14 m, garras roxas */

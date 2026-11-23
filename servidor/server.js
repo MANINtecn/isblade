@@ -291,10 +291,12 @@ function areaSkill(c, A, d, m){
     for(let k = 0; k < n; k++) setTimeout(() => { const t2 = agora(); for(const V of c.jog.values()){ if(V.morto || Math.hypot(V.x - x, V.z - z) > R) continue; if(aliadoDe(c, A, V, t2)) curaJog(c, A, V, d.area.cura, t2); } }, (dl + k * iv) * 1000);
     return;
   }
-  setTimeout(() => {
-    if(A.morto) return; const t2 = agora();
-    for(const V of c.jog.values()){ if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue; if(Math.hypot(V.x - x, V.z - z) <= (d.area.raio || 2) + .45) fere(c, A, V, d.dmg, t2, 0); }
-  }, dl * 1000);
+  /* [hits-cabal 23/11/2026] area.ticks = instantes (s depois do aviso) de cada golpe e area.peso = peso de cada um (o dano total d.dmg e repartido); sem ticks: 1 golpe, como sempre */
+  const tk = Array.isArray(d.area.ticks) && d.area.ticks.length ? d.area.ticks.slice(0, 8) : [0], ps = Array.isArray(d.area.peso) ? d.area.peso : [], soma = tk.reduce((s, _, i) => s + (+ps[i] > 0 ? +ps[i] : 1), 0) || 1;
+  tk.forEach((off, i) => setTimeout(() => {
+    if(A.morto) return; const t2 = agora(), dm = Math.max(1, Math.round(d.dmg * ((+ps[i] > 0 ? +ps[i] : 1) / soma)));
+    for(const V of c.jog.values()){ if(V === A || V.morto || t2 < V.imune || !podeFerir(c, A, V, t2)) continue; if(Math.hypot(V.x - x, V.z - z) <= (d.area.raio || 2) + .45) fere(c, A, V, dm, t2, 0); }
+  }, (dl + Math.max(0, Math.min(2, +off || 0))) * 1000));
 }
 /* [clerigo] cura de jogador: +1% por ponto de INT acima de 18; curar quem esta em PvP (flag/karma) deixa o curador com flag, como no L2 */
 function curaJog(c, A, V, base, t){
@@ -339,7 +341,7 @@ function suporteSkill(c, A, d, m, t){
 function tiro(J){ if(!J) return 0; if(J.isBot) return (J.en || 0) >= 4 ? 0.35 : 0; const r = J.pers && Inv.tiro(J.pers); if(!r) return 0; envia(J, { t: 'ss', id: r.id, n: r.n }); return r.bonus; }      /* soulshot automatico: 1 por ataque */
 /* ---- ataque padrao em ponto mirado (mago): o cristal brota onde ele mira (ate `alcance`) apos o aviso; quem ainda estiver no raio leva o dano (da para sair) ---- */
 function ataqueMira(c, A, m, t){
-  const mb = BASICO[A.arma], nv = mb.niveis[m.id]; if(!nv || t - A.ultB < .22) return; A.ultB = t; const dmgM = Math.round(nv.dmg * (1 + tiro(A)));
+  const mb = BASICO[A.arma], nv = mb.niveis[m.id]; if(!nv || t - A.ultB < .5) return; A.ultB = t; const dmgM = Math.round(nv.dmg * (1 + tiro(A)));      /* [mago 23/11/2026] intervalo minimo entre ataques padrao do cajado: .22 -> .5 s (o cliente ja conjura mais devagar) */
   if(typeof m.f === 'number') A.f = m.f;
   let x = +m.x, z = +m.z; if(!isFinite(x) || !isFinite(z)){ x = A.x + Math.sin(A.f) * 6; z = A.z + Math.cos(A.f) * 6; }
   const dx = x - A.x, dz = z - A.z, dd = Math.hypot(dx, dz) || 1, dist = Math.max(mb.minimo || 2, Math.min(mb.alcance || 10, dd)); x = A.x + dx / dd * dist; z = A.z + dz / dd * dist;
@@ -377,7 +379,10 @@ function ataque(c, A, m){
   if(d.suporte){ if(!parte2) suporteSkill(c, A, d, m, t); return; }                                          /* [clerigo] escudo / purificacao / prece */
   if(d.area){ if(!parte2) areaSkill(c, A, d, m); return; }                                                    /* [mago] skill de area: aviso e dano no ponto mirado */
   if(!parte2) difunde(c, { t: 'atk', id: A.id, k: m.k, v: m.k === 'b' ? m.id : (m.i | 0), f: r2(A.f) });       /* so para o visual dos outros */
-  if(d.proj){ if(!parte2) criaProj(c, A, d, m.i | 0); return; }
+  if(d.proj){ if(!parte2){      /* [hits-cabal 23/11/2026] proj.salva = instantes (s) de cada projetil da salva (ex.: Shuriken de Vento = 3); o dano da skill e repartido entre eles */
+      const sv = Array.isArray(d.proj.salva) && d.proj.salva.length ? d.proj.salva.slice(0, 6) : [0];
+      sv.forEach((off, i) => setTimeout(() => { if(A.morto) return; criaProj(c, A, Object.assign({}, d, { dmg: Math.max(1, Math.round(d.dmg / sv.length)) }), m.i | 0); }, Math.max(0, Math.min(1, +off || 0)) * 1000));
+    } return; }
   const tipoB = d.golpe ? { b: ((Combate.dados().golpeBasico || {})[d.golpe] || 1) * (1 + (ss || 0)) } : null;      /* [dano-l2] ataque padrao: golpe do combo x soulshot */                                                /* skill de projetil: voa de verdade (da para ver e desviar) */
   /* [reacao] golpe corpo a corpo de BOT: o dano cai no quadro do golpe (m.atraso s depois do aviso), reconferindo posicao/esquiva/guarda NESSE instante.
      Antes o dano era instantaneo no aviso: nao dava para esquivar nem bloquear. Humanos nao mudam (m.atraso so vem do fakes.js). */
@@ -513,6 +518,10 @@ wss.on('connection', ws => {
     else if(m.t === 'mhit'){                                        /* [mobs-servidor] dano do jogador num mob do servidor */
       const W = mundoDe(c); if(!W || J.morto) return; const t = agora(); J.mhT = (J.mhT || []).filter(x => t - x < 1); if(J.mhT.length >= 30) return; J.mhT.push(t);
       const mo = W.hit(J, m.id | 0, +m.d || 0, t); if(mo){ abateMundo(c, W, mo); if(W.aoMatar) W.aoMatar(mo); }
+    }
+    else if(m.t === 'mfx'){                                         /* [puxao] efeito de skill num mob do servidor (hoje: k 'puxa' = Corrente de Puxao do Guardiao) */
+      const W = mundoDe(c); if(!W || J.morto || m.k !== 'puxa' || typeof W.puxa !== 'function') return; const t = agora(); J.mfT = (J.mfT || []).filter(x => t - x < 1); if(J.mfT.length >= 12) return; J.mfT.push(t);
+      const r = W.puxa(J, m.id | 0, +m.x || 0, +m.z || 0, t); if(r) envia(J, { t: 'mfxr', k: 'puxa', id: m.id | 0, ok: r.ok ? 1 : 0, mt: r.motivo || '' });
     }
     else if(m.t === 'cla'){                                         /* [cla] criar / convidar / aceitar / recusar / sair / expulsar / ver */
       const t = agora(); if(!J.pers || t - (J.claT || 0) < .3) return; J.claT = t; const k = String(m.k || ''); let erro = '';

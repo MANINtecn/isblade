@@ -432,6 +432,7 @@ export const Net = (function(){
       pedDuelo = { de: m.de, nome: m.nome, ate: Date.now() + 15000 }; pedido = pedDuelo; ctx.banner('DESAFIO DE DUELO', m.nome + ' desafia voce', '#ffd166'); desenhaPed();
     } else if(m.t === 'duelsent'){ ctx.sysMsg('Desafio enviado para ' + m.nome + '...');
     } else if(m.t === 'ms'){ if(ctx.ms) ctx.ms(m.m);                   /* [mobs-servidor] mobs do mapa aberto */
+    } else if(m.t === 'mfxr'){ if(ctx.mfxr) ctx.mfxr(m);      /* [puxao] resultado do efeito (puxou / resistiu / imune) */
     } else if(m.t === 'mdmg'){ if(ctx.mdmg) ctx.mdmg(m);
     } else if(m.t === 'mtiro'){ if(ctx.mtiro) ctx.mtiro(m);
     } else if(m.t === 'mtele'){ if(ctx.mtele) ctx.mtele(m);            /* [chefes-marcados] marcas no chao dos golpes do chefe */
@@ -870,7 +871,8 @@ export const Net = (function(){
   N.usar = function(id){ if(!N.on) return false; send({ t: 'usar', id: id }); return true; };
   N.chat = function(txt, c){ if(N.on) send({ t: 'chat', m: String(txt).slice(0, 120), c: c || '' }); return N.on; };      /* chat: '' geral, 'g' grupo */
   if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){ N._dbgSend = send; N._dbgRemotos = remotos; }      /* so testes locais */
-  N.mhit = function(id, d){ if(N.on) send({ t: 'mhit', id: id, d: Math.round(d) }); };      /* [mobs-servidor] dano num mob do servidor */
+  N.mhit = function(id, d){ if(N.on) send({ t: 'mhit', id: id, d: Math.round(d) }); };
+  N.mfx = function(id, o){ if(N.on) send({ t: 'mfx', id: id, k: o.k, x: Math.round(o.x * 100) / 100, z: Math.round(o.z * 100) / 100 }); };      /* [puxao] efeito de skill num mob do servidor */      /* [mobs-servidor] dano num mob do servidor */
   N.mconv = function(n, txt){ if(N.on) send({ t: 'mconv', n: n, m: String(txt || '').slice(0, 160) }); };      /* [moradores] conversa */
   N.mtaunt = function(r){ if(N.on) send({ t: 'mtaunt', r: r }); };
   N.mago = function(id, x, z, f, d){ if(N.on) send({ t: 'atk', k: 'b', id: id, f: r2(f), x: r2(x), z: r2(z), d: r2(d) }); };      /* ataque padrao do mago: ponto mirado + tempo ate os cristais brotarem */

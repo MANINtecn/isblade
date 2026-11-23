@@ -28,6 +28,16 @@ _malha = np.where(_fx + _fz <= 1, _a + _fx * (_c - _a) + _fz * (_b - _a), _d + (
 _terreno = np.abs(h0 - _malha) < 75                                                                           # 1,5 m = 75 uu
 print('celulas pisando na malha: %.1f%% (diferenca media antes %.2f m)' % (100 * _terreno.mean(), np.abs(h0 - _malha).mean() / 50))
 h0 = np.where(_terreno, np.round(_malha), h0).astype(np.int32)
+# [pisos de interior] 23/11/2026: dentro de lojas/casas o piso desenhado (BSP interior_B_floor) fica ate 16 uu (0,6 m) ACIMA do terreno ja descido (GEO_UU) e o pe do personagem sumia nele.
+# Dentro da pegada de cada piso o chao andavel passa a ser a altura do proprio piso (interiores.py/montar_brushes.py gravam raw_dion/interiores_20_22.json). Teto = piso a mais de 40 uu do terreno: ignorado.
+import cv2, os
+if os.path.exists('raw_dion/interiores_20_22.json'):
+    _pisos = json.load(open('raw_dion/interiores_20_22.json'))['pisos']; _n = 0
+    for _p in _pisos:
+        if not (-10 <= _p['zf'] - _p['terreno'] <= 40): continue
+        _m = np.zeros((2048, 2048), np.uint8); cv2.fillPoly(_m, [np.round(np.array([[a_ / 16.0, (b_ - UY0 - 131072 + 131072) / 16.0] for a_, b_ in _p['pol']])).astype(np.int32)], 1)   # [linha=y, coluna=x]
+        _mx = _m.T[0::2, 0::2].astype(bool); h0 = np.where(_mx, int(round(_p['zf'] + GEO_UU)), h0); _n += int(_mx.sum())
+    print('celulas ancoradas em piso de interior:', _n)
 E = (nswe & 1) != 0; W = (nswe & 2) != 0; S = (nswe & 4) != 0; Nn = (nswe & 8) != 0         # pode andar para leste/oeste/sul/norte (aCis: N = y-1)
 # aresta para leste da celula grossa (I,J): bloqueada se alguma das 2 celulas finas da borda leste nao pode ir a leste, ou a vizinha (leste) nao pode vir a oeste
 def borda(a, b, eixo_x):

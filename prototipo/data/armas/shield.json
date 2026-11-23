@@ -19,18 +19,31 @@
       "name": "Feixe do Escudo",
       "pose": "g_s1",
       "cd": 12,
-      "dmg": 55,
+      "dmg": 17,
       "dur": 0.9,
       "range": 10,
       "half": 0.1396,
-      "carga": [0.6, 2],
+      "carga": [
+        0.6,
+        2
+      ],
       "ifr": 0,
       "intr": 2,
       "hitk": 0.26,
       "css": "#ff8a2a",
       "unlock": 1,
       "desc": "Segure a tecla ate 3 s carregando com o escudo erguido a frente; ao soltar, um leque de luz de 16 graus sai do escudo ate 10 m e atinge todos os alvos no caminho. Toque rapido solta na hora. Dano pela carga: 60% (na hora), 100% (1 s), 150% (2 s), 200% (3 s, solta sozinho). Golpe pelas costas interrompe a carga.",
-      "icon": "aegis_burst"
+      "icon": "aegis_burst",
+      "hits": [
+        0.261,
+        0.303,
+        0.345
+      ],
+      "peso": [
+        1,
+        1,
+        1.4
+      ]
     },
     {
       "name": "Fortaleza Egide",
@@ -40,7 +53,7 @@
         "e": "derrubado"
       },
       "cd": 20,
-      "dmg": 40,
+      "dmg": 18,
       "dur": 1.2,
       "range": 7,
       "half": 3.14,
@@ -51,7 +64,15 @@
       "burst": true,
       "unlock": 30,
       "desc": "Crava o escudo no chao e ergue uma zona de 6 m por 8 s: dentro dela voce recebe metade do dano e recupera 10% do dano que causa como vida.",
-      "icon": "shield_wall"
+      "icon": "shield_wall",
+      "hits": [
+        0.63,
+        0.7
+      ],
+      "peso": [
+        1,
+        1.2
+      ]
     },
     {
       "name": "Chuva de Escudos",
@@ -61,7 +82,7 @@
         "e": "leve"
       },
       "cd": 10,
-      "dmg": 70,
+      "dmg": 8,
       "dur": 1,
       "range": 11,
       "half": 1.57,
@@ -71,7 +92,29 @@
       "css": "#e8eef6",
       "unlock": 10,
       "desc": "Escudos caem num leque de 180 graus a frente, ate 11 m.",
-      "icon": "shield_slam"
+      "icon": "shield_slam",
+      "hits": [
+        1.187,
+        1.22,
+        1.253,
+        1.285,
+        1.318,
+        1.35,
+        1.383,
+        1.416,
+        1.448
+      ],
+      "peso": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1.4,
+        1.8
+      ]
     },
     {
       "name": "Rugido do Guardiao",
@@ -81,7 +124,7 @@
         "e": "stagger"
       },
       "cd": 16,
-      "dmg": 20,
+      "dmg": 7,
       "dur": 1,
       "range": 10,
       "half": 3.14,
@@ -93,7 +136,17 @@
       "taunt": true,
       "unlock": 25,
       "desc": "Um grito que chama a atencao dos inimigos em 10 m e da +30% de defesa por 6 s.",
-      "icon": "taunt_roar"
+      "icon": "taunt_roar",
+      "hits": [
+        0.41,
+        0.4585,
+        0.507
+      ],
+      "peso": [
+        1,
+        1,
+        1.3
+      ]
     },
     {
       "name": "Corrente de Puxao",
@@ -103,7 +156,7 @@
         "e": "stun"
       },
       "cd": 12,
-      "dmg": 45,
+      "dmg": 15,
       "dur": 1,
       "range": 14,
       "half": 0.39,
@@ -114,7 +167,17 @@
       "pull": true,
       "unlock": 20,
       "desc": "Cravando o escudo, correntes saem num cone de 45 graus ate 14 m e puxam o alvo ate voce.",
-      "icon": "rising_strike"
+      "icon": "rising_strike",
+      "hits": [
+        0.445,
+        0.5,
+        0.555
+      ],
+      "peso": [
+        1,
+        1,
+        1.3
+      ]
     },
     {
       "name": "Arremesso do Escudo",
@@ -134,7 +197,7 @@
         null
       ],
       "cd": 12,
-      "dmg": 22,
+      "dmg": 19,
       "dur": 1.5,
       "range": 10,
       "half": 0.8,
@@ -163,6 +226,14 @@
         8,
         8,
         8
+      ],
+      "peso": [
+        1,
+        1,
+        1,
+        1.2,
+        1.2,
+        1.6
       ]
     }
   ],

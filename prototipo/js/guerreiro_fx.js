@@ -326,6 +326,10 @@
   G.hitN = function(pose, hx, hz, o){
     var swd = o.rig && o.rig.swd2h, tp = pontaMundo(swd), last = o.last !== false, part = o.part || 1, f = o.face || 0, fx = Math.sin(f), fz = Math.cos(f);
     var ex = tp ? tp.x : hx, ey = tp ? Math.max(.4, tp.y) : 1.3, ez = tp ? tp.z : hz, pt = function(){ var q = peitoDe(o); return q; };
+    /* [hits-cabal 23/11/2026] Investida, Contra-Golpe e Fenda agora tem varios golpes: os intermediarios so mostram um corte/pulso curto no alvo; a explosao grande fica no ultimo (Fenda: a fenda inteira sai no 1o) */
+    if(o.parts > 1 && (pose === 'w_n6' ? part > 1 : (pose === 'w_n0' || pose === 'w_n1') && !last)){
+      flareN(ex, ey, ez, pose === 'w_n6' ? 2 : 1.7, part % 2 ? ACO : CARM2, .25, false); espinhos(ex, ey, ez, leve() ? 3 : 6, 1, ACO, .2); brasas(ex, ey, ez, 6, 1.4, 1.2); agita(.12); return;
+    }
     if(pose === 'w_n0'){                                                                           /* linha de corte no alvo; 0,38 s depois explode */
       var cx = (o.px != null ? o.px : hx) - fx * 1.2, cz = (o.pz != null ? o.pz : hz) - fz * 1.2, mk = marcaN(cx, 1.25, cz, 0, ACO); flareN(cx, 1.25, cz, 1.2, ACO, .25, false);
       seq(.42, function(u){ mk.scale.set(2.4 + u * .6, .26 * (1 - u * .4), 1); }, function(){ some(mk); flareN(cx, 1.25, cz, 4.4, CARM2, .6); flareN(cx, 1.25, cz, 2, ACO, .35, false); estilhacosN(cx, 1.25, cz, leve() ? 4 : 8, CARM2); brasas(cx, 1.2, cz, 18, 2.4, 2); veuN(cx, cz, .5, 3.6, ACO, .2, .7, 6); agita(.5); flash('#ff3a1a', .2, 260); });

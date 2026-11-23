@@ -21,7 +21,7 @@
       "caminho": true,
       "icon": "w_investida",
       "cd": 6,
-      "dmg": 90,
+      "dmg": 30,
       "dur": 2.312,
       "range": 3.2,
       "half": 1.3,
@@ -30,14 +30,24 @@
       "hitk": 0.3063,
       "css": "#ff3a1a",
       "unlock": 5,
-      "desc": "Arrancada de 7,6 m atravessando o alvo; o corte explode depois que voce passou. Invulneravel no inicio da arrancada."
+      "desc": "Arrancada de 7,6 m atravessando o alvo; o corte explode depois que voce passou. Invulneravel no inicio da arrancada.",
+      "hits": [
+        0.3063,
+        0.355,
+        0.405
+      ],
+      "peso": [
+        1,
+        1,
+        1.3
+      ]
     },
     {
       "name": "Contra-Golpe",
       "pose": "w_n1",
       "icon": "w_contra",
       "cd": 9,
-      "dmg": 140,
+      "dmg": 40,
       "dur": 3.396,
       "range": 3.6,
       "half": 1.1,
@@ -51,14 +61,24 @@
         "t": 1.5
       },
       "unlock": 1,
-      "desc": "Guarda dourada: o golpe que chega na janela e aparado (sem dano). Passo a frente e revide pesado que atordoa 1,5 s."
+      "desc": "Guarda dourada: o golpe que chega na janela e aparado (sem dano). Passo a frente e revide pesado que atordoa 1,5 s.",
+      "hits": [
+        0.5521,
+        0.6,
+        0.648
+      ],
+      "peso": [
+        1,
+        1,
+        1.5
+      ]
     },
     {
       "name": "Corte Lancador",
       "pose": "w_n5",
       "icon": "w_lancador",
       "cd": 12,
-      "dmg": 90,
+      "dmg": 77,
       "dur": 3.5,
       "range": 3.6,
       "half": 1.3,
@@ -74,14 +94,19 @@
       "armor": true,
       "launch": true,
       "unlock": 10,
-      "desc": "Crava a espada no pe do alvo, arranca quebrando o chao em leque e lanca; o corte subindo emenda direto no corte descendo, cravando a espada na vertical na frente do corpo. 3 golpes."
+      "desc": "Crava a espada no pe do alvo, arranca quebrando o chao em leque e lanca; o corte subindo emenda direto no corte descendo, cravando a espada na vertical na frente do corpo. 3 golpes.",
+      "peso": [
+        1,
+        1,
+        1.5
+      ]
     },
     {
       "name": "Fenda Sismica",
       "pose": "w_n6",
       "icon": "w_fenda",
       "cd": 14,
-      "dmg": 140,
+      "dmg": 32,
       "dur": 3.688,
       "range": 9.0,
       "half": 0.3,
@@ -95,14 +120,26 @@
         "t": 1.6
       },
       "unlock": 15,
-      "desc": "Crava a espada e a fenda corre 9 m em linha reta: rochas sobem, quem estiver no caminho e jogado para cima e atordoado 1,6 s."
+      "desc": "Crava a espada e a fenda corre 9 m em linha reta: rochas sobem, quem estiver no caminho e jogado para cima e atordoado 1,6 s.",
+      "hits": [
+        0.2938,
+        0.33,
+        0.366,
+        0.402
+      ],
+      "peso": [
+        1,
+        1,
+        1,
+        1.5
+      ]
     },
     {
       "name": "Tufao",
       "pose": "w_n2",
       "icon": "w_tufao",
       "cd": 18,
-      "dmg": 34,
+      "dmg": 32,
       "dur": 5.438,
       "range": 3.2,
       "half": 3.14,
@@ -126,7 +163,19 @@
       "mover": true,
       "roubo": 0.2,
       "unlock": 20,
-      "desc": "9 voltas violentas com a lamina deitada (voce move o tufao com o direcional; sem direcao gira no lugar) e explosao final. Cada golpe rouba 20% do dano em vida."
+      "desc": "9 voltas violentas com a lamina deitada (voce move o tufao com o direcional; sem direcao gira no lugar) e explosao final. Cada golpe rouba 20% do dano em vida.",
+      "peso": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1.8
+      ]
     },
     {
       "name": "Modo de Batalha",
@@ -156,7 +205,7 @@
       "pose": "w_n4",
       "icon": "w_execucao",
       "cd": 28,
-      "dmg": 75,
+      "dmg": 66,
       "dur": 4.729,
       "range": 3.8,
       "half": 1.2,
@@ -173,7 +222,14 @@
       ],
       "armor": true,
       "unlock": 30,
-      "desc": "Arrancada ate o alvo e 5 cortes encadeados (horizontal, volta, sobe, giro e vertical); cada corte deixa uma marca de luz que detona no golpe final."
+      "desc": "Arrancada ate o alvo e 5 cortes encadeados (horizontal, volta, sobe, giro e vertical); cada corte deixa uma marca de luz que detona no golpe final.",
+      "peso": [
+        1,
+        1,
+        1,
+        1,
+        1.6
+      ]
     }
   ],
   "variants": []

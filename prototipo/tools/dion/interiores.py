@@ -15,7 +15,7 @@ def cascos(pk, polys_do_modelo, polys_idx, ler_polys, matriz_ue, tile='20_22'):
     alt = np.load('raw_dion/alt_%s.npy' % tile).astype(np.float32) - GEO_UU        # o terreno do jogo desce GEO_UU (escala.py)
     liso = ndi.gaussian_filter(ndi.median_filter(ndi.grey_opening(alt, size=(25, 25)), size=11, mode='nearest'), 2.0)      # a mesma limpeza de montar_chao.py
     UY0 = 131072
-    out = []
+    out = []; todos = []
     for bi, e in enumerate(pk.exports):
         if e['classe'] != 'Brush' or e['tam'] <= 0: continue
         pr = pk.propriedades(e)
@@ -34,8 +34,11 @@ def cascos(pk, polys_do_modelo, polys_idx, ler_polys, matriz_ue, tile='20_22'):
             m = np.zeros((2048, 2048), np.uint8); cv2.fillPoly(m, [pts], 1); ys, xs = np.nonzero(m)
             if len(xs) < 4: continue
             zf = float(v[0, 2]); terr = float(np.median(liso[xs, ys])); delta = terr - zf + FOLGA
+            todos.append({'pol': [[round(float(a_), 1), round(float(b_), 1)] for a_, b_ in v[:, :2]], 'zf': round(zf, 1), 'terreno': round(terr, 1), 'brush': bi})
             if delta < 4: continue                                                           # piso ja fica acima do terreno
             out.append({'brush': bi, 'pol': v[:, :2].copy(), 'zf': zf, 'delta': float(delta)})
+    import json
+    json.dump({'pisos': todos}, open('raw_dion/interiores_%s.json' % tile, 'w'))      # todos os pisos de interior (pegada + altura): gerar_walkgrid_dion.py ancora o chao andavel neles
     _cache[tile] = out
     return out
 
