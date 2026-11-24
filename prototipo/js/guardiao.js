@@ -202,6 +202,7 @@ export const Guardiao = (function(){
   };
 
   /* clipe de parado/andando do escudo conforme esteja ou nao em combate (retorna null se nao for a classe) */
+  G.guardaNativa = function(){ var l2 = true; try { l2 = localStorage.getItem('isblade.guardaL2') !== '0'; } catch(e){} return l2; };      /* [postura] bloqueio usa a postura nativa do L2 (1 mao) em vez do g_guard do Blender */
   G.clipeLoco = function(wpn, rig, tipo){
     if(wpn !== 'shield' || !rig || !rig.clips || !rig.clips.g_idle) return null;
     var c = rig.clips;
@@ -635,7 +636,7 @@ export const Guardiao = (function(){
     var tipo = (localStorage.getItem('isblade.char_type') || '').toLowerCase(), a = AJ[tipo];
     vestirEscudo(r.shd);
     var shd = ctx.getWPN() === 'shield';
-    var alvo = (a && shd && !st.em) ? 1 : 0, alvoG = (shd && st.em && r.drv && r.drv.curName === 'guard') ? 1 : 0, alvoR = (shd && !st.em) ? 1 : 0;
+    var Sg = ctx.getS(), bloqueando = !!(shd && Sg && Sg.guard && G.guardaNativa()), alvo = (a && shd && !st.em && !bloqueando) ? 1 : 0, alvoG = (shd && ((st.em && r.drv && r.drv.curName === 'guard') || bloqueando)) ? 1 : 0, alvoR = (shd && !st.em && !bloqueando) ? 1 : 0;      /* [postura] segurando o bloqueio: escudo erguido a frente sobre a postura nativa */
     if(!a && !alvoG && !gK && !alvoR && !rK && !r.shd.userData.base0) return;
     ajK += (alvo - ajK) * Math.min(1, dt * 6); gK += (alvoG - gK) * Math.min(1, dt * 8); rK += (alvoR - rK) * Math.min(1, dt * 6);
     var h = r.shd; if(!h.userData.base0) h.userData.base0 = { p: h.position.clone(), r: h.rotation.clone() };

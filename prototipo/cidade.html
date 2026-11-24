@@ -778,7 +778,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/conta.js?v=5"></script><script>Conta.fluxo();</script>
 <script src="js/mobile.js?v=44"></script>
 <script src="js/qualidade.js?v=3"></script>
-<script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=2"></script><script src="js/ss_l2.js?v=2"></script>
+<script src="js/voz.js?v=1"></script><script src="js/dano_tela.js?v=4"></script><script src="js/ss_l2.js?v=2"></script>
 <script src="js/aura_chefe.js?v=2"></script>
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
@@ -1286,7 +1286,7 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=31';
+import { Guardiao } from './js/guardiao.js?v=32';
 import { Net } from './js/net.js?v=60';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
@@ -6562,7 +6562,7 @@ function playerLoco(){
 
 
 
-    if(WPN==='shield' && vrm && vrm.clips.g_guard) want = 'g_guard';/* CLAUDE [guardiao] */
+    if(WPN==='shield' && vrm && vrm.clips.g_guard) want = (vrm.clips.AtkWait_1HS && Guardiao.guardaNativa()) ? 'AtkWait_1HS' : 'g_guard';/* CLAUDE [guardiao]. [postura 23/11/2026] bloqueio com espada curta: a postura nativa do L2 + o escudo erguido a frente (o g_guard do Blender era para o escudo sozinho e deixava a espada vertical) */
 
 
 
