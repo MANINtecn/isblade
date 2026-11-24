@@ -39,6 +39,7 @@
       if(!camera||!window.THREE||!pos)return;
       var v=new THREE.Vector3(pos.x,pos.y,pos.z).project(camera);if(v.z>1)return;
       var x=(v.x*.5+.5)*innerWidth,y=(-v.y*.5+.5)*innerHeight,tam=TAM.t*(innerWidth<700?.8:1);
+      y=Math.max(TAM.n*.64*5.4+tam,Math.min(innerHeight-70,y));      /* o total tambem sempre cabe na tela */
       var d=document.createElement('div');d.className='dn t';d.style.left=x+'px';d.style.top=(y-TAM.n*.64*5.4)+'px';d.style.fontSize=tam+'px';
       var r=document.createElement('i');r.textContent=n+' GOLPES'+(c?'  ·  '+c+' CRIT':'');d.appendChild(r);
       var b=document.createElement('b');b.textContent=String(valor);d.appendChild(b);
@@ -55,6 +56,7 @@
         if(v.z>1)return;/* atras da camera */
         var x=(v.x*.5+.5)*innerWidth,y=(-v.y*.5+.5)*innerHeight,tam=TAM[tipo]*(innerWidth<700?.85:1);
         /* [dano-tela 23/11/2026] pilha por alvo: o numero NOVO nasce embaixo e empurra os anteriores para cima (ate 8); cada um some devagar (2,6 s) */
+        y=Math.max(tam*3.2,Math.min(innerHeight-70,y));      /* [dano-tela 24/11/2026] o numero NOVO sempre cabe na tela (chefe grande perto da camera empurrava tudo para cima do topo) */
         var k=chave||'_',P=PILHA[k]||(PILHA[k]=[]),i,passo=tam*.64;      /* [dano-tela] pilha APERTADA como no Cabal (conferido em imagens: numeros quase se tocam, coluna centrada sobre o alvo) */
         for(i=P.length-1;i>=0;i--)if(!P[i].isConnected)P.splice(i,1);
         var d=document.createElement('div');d.className='dn '+tipo;d.style.fontSize=tam+'px';
