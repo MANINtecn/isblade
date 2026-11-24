@@ -141,9 +141,41 @@ export const Guardiao = (function(){
     });
   };
 
+  /* [postura 23/11/2026] clipes NATIVOS do L2 de 1 mao (espada curta + escudo). O Humano M tem os 255 clipes do L2, mas os outros modelos (ex.: Humana F, so 51 clipes) vieram sem eles e o Guardiao caia nos
+     clipes de DUAS maos (espada vertical/esticada, escudo nas costas). Aqui busca esses clipes no Humano M e os entrega a qualquer raca/sexo (so rotacoes + quadril na escala da raca, como o resto). */
+  var NATIVOS_1H = ['Wait_1HS', 'AtkWait_1HS', 'Run_1HS', 'Walk_1HS', 'Atk01_1HS', 'Atk02_1HS', 'Atk03_1HS', 'ShieldAtk_1HS'], natCache = null;
+  G.anexarNativos = function(rig, THREE){
+    if(!rig || !rig.clips || rig.clips.AtkWait_1HS) return;                       /* ja tem (Humano M) */
+    var loader = window.L2Cache ? window.L2Cache.loader() : (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
+    natCache = natCache || new Promise(function(ok){ loader.load('assets/personagens/human_fighter_nograde.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); });
+    natCache.then(function(all){
+      if(rig.clips.AtkWait_1HS) return;
+      var pelvis = null, bip = null; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis') pelvis = o; else if(o.name === 'Bip01') bip = o; });
+      var ky = 1; if(pelvis){ rig.root.updateMatrixWorld(true); var wp = new THREE.Vector3(); pelvis.getWorldPosition(wp); ky = Math.max(.5, Math.min(1.6, (wp.y / rig.root.scale.y) / 25.9)); }
+      var n = 0;
+      NATIVOS_1H.forEach(function(nome){
+        var src = null; all.forEach(function(c){ if(c.name === nome || c.name === nome + '_MFighter') src = c; }); if(!src || rig.clips[nome]) return;
+        var c = src.clone(), tr = [];
+        c.tracks.forEach(function(t){
+          var dot = t.name.lastIndexOf('.'), node = t.name.slice(0, dot), prop = t.name.slice(dot + 1);
+          if(prop === 'scale') return;
+          if(prop === 'position'){
+            var ref = node === 'Bip01_Pelvis' ? pelvis : (node === 'Bip01' ? bip : null);        /* so o quadril/raiz guardam movimento: escalados para o corpo da raca */
+            if(ref){ var v = t.values.slice(), x0 = v[0], y0 = v[1], z0 = v[2]; for(var i = 0; i < v.length; i += 3){ v[i] = ref.position.x + (v[i] - x0) * ky; v[i + 1] = ref.position.y + (v[i + 1] - y0) * ky; v[i + 2] = ref.position.z + (v[i + 2] - z0) * ky; } tr.push(new THREE.VectorKeyframeTrack(t.name, t.times, v)); }
+            return;
+          }
+          tr.push(t);
+        });
+        c.tracks = tr; c.name = nome; rig.clips[nome] = c; n++;
+      });
+      rig.guardiaoNativos = n;
+    });
+  };
+
   /* junta os clipes g_* aos do personagem (mesmos nomes de osso); os clipes entram depois de ~100 ms, e sao usados por nome na hora de tocar */
   G.anexarClipes = function(rig, THREE){
     if(!rig || !rig.clips) return;
+    G.anexarNativos(rig, THREE);
     G.anexarCast(rig, THREE);
     G.anexarGuerreiro(rig, THREE);
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
@@ -636,6 +668,8 @@ export const Guardiao = (function(){
     var tipo = (localStorage.getItem('isblade.char_type') || '').toLowerCase(), a = AJ[tipo];
     vestirEscudo(r.shd);
     var shd = ctx.getWPN() === 'shield';
+    if(shd && G.guardaNativa()){ /* [postura 23/11/2026] com os clipes nativos do L2 (1 mao) o escudo fica NATIVO no braco esquerdo (osso Shield_L_Bone): os deslocamentos de repouso/guarda foram feitos para os clipes antigos de 2 maos e jogavam o escudo para as costas */
+      var hb = r.shd.userData.base0; if(hb){ r.shd.position.copy(hb.p); r.shd.rotation.copy(hb.r); } ajK = gK = rK = 0; return; }
     var Sg = ctx.getS(), bloqueando = !!(shd && Sg && Sg.guard && G.guardaNativa()), alvo = (a && shd && !st.em && !bloqueando) ? 1 : 0, alvoG = (shd && ((st.em && r.drv && r.drv.curName === 'guard') || bloqueando)) ? 1 : 0, alvoR = (shd && !st.em && !bloqueando) ? 1 : 0;      /* [postura] segurando o bloqueio: escudo erguido a frente sobre a postura nativa */
     if(!a && !alvoG && !gK && !alvoR && !rK && !r.shd.userData.base0) return;
     ajK += (alvo - ajK) * Math.min(1, dt * 6); gK += (alvoG - gK) * Math.min(1, dt * 8); rK += (alvoR - rK) * Math.min(1, dt * 6);
@@ -653,6 +687,7 @@ export const Guardiao = (function(){
   G.ajusteRemoto = function(r, arma, clipe, tipo, dt){
     if(!r || !r.shd || !window.THREE) return; vestirEscudo(r.shd);
     var T = window.THREE, shd = arma === 'shield', e = r._aj || (r._aj = { ajK: 0, gK: 0, rK: 0 });
+    if(shd && G.guardaNativa()){ var hb = r.shd.userData.base0; if(hb){ r.shd.position.copy(hb.p); r.shd.rotation.copy(hb.r); } e.rK = e.gK = e.ajK = 0; return; }      /* [postura] escudo nativo (ver ajusteParado) */
     var repouso = !clipe || /^(g_idle|g_run_rest|g_walk|g_draw|g_sheathe|idle|idle_hand|walk|walk_hand|run_hand)$/.test(clipe);
     var alvoR = (shd && repouso) ? 1 : 0, alvoG = (shd && clipe === 'guard') ? 1 : 0, a = AJ[tipo];
     if(!alvoR && !alvoG && !e.rK && !e.gK) { if(r.shd.userData.base0) { var b0 = r.shd.userData.base0; r.shd.position.copy(b0.p); r.shd.rotation.copy(b0.r); } return; }
