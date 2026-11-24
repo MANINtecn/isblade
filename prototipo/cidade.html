@@ -1286,8 +1286,8 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=29';
-import { Net } from './js/net.js?v=59';
+import { Guardiao } from './js/guardiao.js?v=31';
+import { Net } from './js/net.js?v=60';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
    Migracao: os dados antigos (globais) ficam com o PRIMEIRO personagem que carregar depois desta mudanca; os outros comecam do zero. */
@@ -3541,7 +3541,7 @@ if (window.MundoCampo) MundoCampo.carregar(THREE, scene, { baixa: QUAL.nivel ===
   if (/[?&]malha=1/.test(location.search)) MundoCampo.verMalha(true);/* [malha] */
   if (window.Lagos) Lagos.carregar(THREE, scene, { baixa: QUAL.nivel === 'baixa' }).catch(function(e){ console.warn('lagos', e); });/* [lagos] bacias fechadas do terreno, com agua propria (nao e o mar) */
   if (typeof waterMesh !== 'undefined') waterMesh.visible = false;/* [mar] o mar da ilha antiga (plano em -4,6) vazava no terreno novo (falsa lagoa perto da cidade, Pantano alagado); o mundo aberto e fechado por cordilheira e os mapas tem a propria agua */
-  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer, preparar: prepShaders })) { var _lc = /[?&]local=(curuma|fortress|pantano|dion)/.exec(location.search) || (/[?&]talking=1/.test(location.search) ? null : [0, 'dion']), _sp = _lc && MapaVivo.spawn(_lc[1]);      /* [dion] 21/11: sem ?local= o jogo comeca em Dion (a vila de Talking Island so com ?talking=1) */ if (_sp && _lc[1] === 'dion') { window.__DION_ESPERA = true; MapaVivo.precarrega('dion'); var _wd = setInterval(function () { if (MapaVivo.pronto('dion') || performance.now() > 90000) { clearInterval(_wd); S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; S.vx = 0; S.vz = 0; MUNDO_ULT = [S.px, S.pz]; window.__DION_PRONTO = true; } }, 150); } else if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
+  if (window.MapaVivo && MapaVivo.init(THREE, scene, { baixa: QUAL.nivel === 'baixa', renderer: renderer, preparar: prepShaders })) { var _lc = /[?&]local=(curuma|fortress|pantano|dion)/.exec(location.search) || (/[?&]talking=1/.test(location.search) ? null : [0, 'dion']), _sp = _lc && MapaVivo.spawn(_lc[1]);      /* [dion] 21/11: sem ?local= o jogo comeca em Dion (a vila de Talking Island so com ?talking=1) */ if (_sp && _lc[1] === 'dion') { window.__DION_ESPERA = true; MapaVivo.precarrega('dion'); var _wd = setInterval(function () { if (MapaVivo.pronto('dion') || performance.now() > 90000) { clearInterval(_wd); var _gp = posSalva(_sp); S.px = _gp[0]; S.pz = _gp[1]; S.py = _gp[2]; S.vx = 0; S.vz = 0; MUNDO_ULT = [S.px, S.pz]; window.__DION_PRONTO = true;      /* [posicao 23/11/2026] recarregar a pagina continua onde estava */ } }, 150); } else if (_sp) { S.px = _sp[0]; S.pz = _sp[1]; S.py = _sp[2]; MUNDO_ULT = [S.px, S.pz]; } }/* [pagina-unica] */
   SAIDAS.forEach(function(s){ if (s.gate && s.gate.group) s.gate.group.visible = false; var bx = s.gx + s.nx, bz = s.gz + s.nz; for (var k = OBST.length - 1; k >= 0; k--) { if (Math.hypot(OBST[k].x - bx, OBST[k].z - bz) < 2.6) OBST.splice(k, 1); } });
 }).catch(function(e){ console.warn('mundo', e); if (window.PerfLog) PerfLog.marca('mundo_falhou', { m: String(e && e.message || e).slice(0, 120) }); });
 
@@ -4655,6 +4655,7 @@ window.__malhaResumo=function(){
   if(!MALHA.lista.length)L.push('(nenhum)');MALHA.lista.forEach(function(p){L.push('x '+p.x+' z '+p.z+' y '+p.y+' regiao '+p.reg+' motivo '+p.mot+' qualidade '+p.q+' '+p.t);});return L.join('\n');};
 function malhaComando(t){
   t=String(t||'').trim().toLowerCase();
+  if(t==='/dion'||t==='/praca'){var _cp0=cidadePos();S.px=_cp0[0];S.pz=_cp0[1];if(_cp0[0]>800)S.py=_cp0[2];S.vx=0;S.vz=0;MUNDO_ULT=[S.px,S.pz];Chat.sistema('De volta a praca de Dion.');return true;}/* [posicao] voltar a Dion de proposito */
   if(t==='/malha'){var on=MundoCampo.verMalha();Chat.sistema(on?'Malha ligada: VERMELHO = nao se anda, AZUL = dentro de um mapa (vale a malha dele). /malha de novo desliga.':'Malha desligada.');return true;}
   if(t==='/travas'){Chat.sistema(MALHA.lista.length?('Pontos sem passagem anotados ('+MALHA.lista.length+'): '+MALHA.lista.slice(-6).map(function(p){return '('+p.x+', '+p.z+') '+p.mot;}).join(' | ')):'Nenhum ponto sem passagem anotado ainda.');return true;}
   if(t==='/pos'){var dx=S.px-1500,dy=S.py||0;Chat.sistema('Posicao: mundo ('+S.px.toFixed(1)+', '+S.pz.toFixed(1)+', y '+dy.toFixed(1)+') | Dion local ('+dx.toFixed(1)+', '+S.pz.toFixed(1)+') | olhando '+(((S.face||0)*57.2958)%360).toFixed(0)+' graus');return true;}/* [dion] ajuda a apontar peca fora do lugar */
@@ -11244,6 +11245,17 @@ function hurtPlayer(d,soft,quiet){if(S.pdead)return;/* ja caido: golpe no corpo 
 
 
 /* [dion] 22/11/2026: onde o jogador reaparece na cidade (praca de Dion; a vila antiga so com ?talking=1) */
+/* [posicao 23/11/2026] (dono): recarregar a pagina (F5) continua ONDE O PERSONAGEM ESTAVA; so volta para a praca de Dion quando MORRE ou quando ele pede (/dion, Gatekeeper, botao de voltar).
+   Guarda a posicao a cada 2 s no navegador, por personagem (localStorage isblade.pos.<id>); morto = apaga (volta a Dion); mais de 7 dias ou sem chao carregado no ponto = praca. */
+function posSalvaChave(){try{return 'isblade.pos.'+(localStorage.getItem('isblade_active_character_id')||'x');}catch(_){return null;}}
+function posSalva(sp){
+  try{var k=posSalvaChave(),j=k&&JSON.parse(localStorage.getItem(k)||'null');
+    if(!j||!isFinite(j.x)||!isFinite(j.z)||!isFinite(j.y)||Date.now()-(j.t||0)>7*864e5)return sp;
+    var ok=(window.MapaVivo&&MapaVivo.chao&&MapaVivo.chao(j.x,j.z,j.y)!==null)||(window.MundoCampo&&MundoCampo.pronto&&MundoCampo.anda&&MundoCampo.anda(j.x,j.z));
+    return ok?[j.x,j.z,j.y]:sp;}catch(_){return sp;}
+}
+function salvaPos(){try{var k=posSalvaChave();if(!k||!window.S)return;if(S.pdead||S.dead){localStorage.removeItem(k);return;}if(window.DG&&DG.on)return;if(!window.__DION_PRONTO)return;localStorage.setItem(k,JSON.stringify({x:Math.round(S.px*100)/100,z:Math.round(S.pz*100)/100,y:Math.round((S.py||0)*100)/100,t:Date.now()}));}catch(_){}}
+setInterval(salvaPos,2000);window.addEventListener('pagehide',salvaPos);
 function cidadePos(){var d=(window.MapaVivo&&MapaVivo.on&&!/[?&]talking=1/.test(location.search))?MapaVivo.spawn('dion'):null;return d?[d[0],d[1],d[2]]:[0,8,0];}
 function resetDuel(){
 
@@ -14196,7 +14208,7 @@ function buildPad(){
 
 
 
-  window.__dbg={castSkill:castSkill,hitsSoma:hitsSoma,renderer:renderer,SAIDAS:SAIDAS,cam:cam,camera:camera,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},dgHub:dgHub,dgStart:dgStart,killMob:killMob,damageMob:damageMob,TELES:TELES,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,vrm:function(){return vrm;},mast:function(){return {lv:mastLevel(),xp:mastXp()};},castSkill:castSkill,SK:function(){return SK;}};/* so localhost: permite testes automaticos ler/alterar o estado */
+  window.__dbg={castSkill:castSkill,perform:perform,hitsSoma:hitsSoma,renderer:renderer,SAIDAS:SAIDAS,cam:cam,camera:camera,scene:scene,fx:{slashArc:slashArc,groundRing:groundRing,lightColumn:lightColumn,streak:streak,spark:spark,burst:burst},dgHub:dgHub,dgStart:dgStart,killMob:killMob,damageMob:damageMob,TELES:TELES,DG:DG,MOBS:MOBS,OBST:OBST,dgLoadRoom:dgLoadRoom,BOSS:function(){return BOSS_ON;},SFX:SFX,S:S,P:P,INV:function(){return INV;},ST:function(){return ST;},dropLoot:dropLoot,mkItem:mkItem,addItem:addItem,equipItem:equipItem,setWeapon:setWeapon,addMastery:addMastery,vrm:function(){return vrm;},mast:function(){return {lv:mastLevel(),xp:mastXp()};},castSkill:castSkill,SK:function(){return SK;}};/* so localhost: permite testes automaticos ler/alterar o estado */
 
 
 

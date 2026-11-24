@@ -209,7 +209,8 @@ export const Guardiao = (function(){
     if(st.em){
       /* em combate: guarda e corrida de duas maos do proprio Lineage 2 da raca (balanco vivo); 'isblade.guardaL2' = '0' volta aos clipes do Blender */
       var l2 = true; try { l2 = localStorage.getItem('isblade.guardaL2') !== '0'; } catch(e){}
-      if(l2) return tipo === 'run' ? (c.run ? 'run' : (c.g_run_rest ? 'g_run_rest' : null)) : (c.guard ? 'guard' : 'g_guard');
+      /* [postura 23/11/2026] (dono): o Guardiao agora usa ESPADA CURTA + ESCUDO, entao a postura de combate e a nativa do L2 de uma mao (AtkWait_1HS parado, Run_1HS correndo); 'guard' era a guarda de duas maos e deixava a espada esticada para tras */
+      if(l2) return tipo === 'run' ? (c.Run_1HS ? 'Run_1HS' : (c.run ? 'run' : (c.g_run_rest ? 'g_run_rest' : null))) : (c.AtkWait_1HS ? 'AtkWait_1HS' : (c.guard ? 'guard' : 'g_guard'));
       return tipo === 'run' ? (c.g_run_rest ? 'g_run_rest' : null) : 'g_guard';
     }
     /* fora de combate: cada raca do Lineage 2 usa a propria animacao de descanso (nao forcamos a do humano) */
@@ -230,9 +231,12 @@ export const Guardiao = (function(){
   /* ataque basico (3 golpes) usa as poses 'sweep','thrust','spin' do jogo; as 6 skills usam g_s1..g_s6 (data/armas/shield.json).
      hit/cut = fracao do clipe em que o golpe acerta / em que a animacao termina (ja volta para a guarda); sp = velocidade. */
   var CM = {
-    sweep:  { c: 'g_atk1',   sp: 2.0, hit: .58, cut: .86, lg: 2.6 },
-    thrust: { c: 'g_atk2',   sp: 1.9, hit: .52, cut: .92, lg: 0 },
-    spin:   { c: 'g_atk3',   sp: 1.7, hit: .58, cut: .82, lg: 0 },
+    /* [ataque-padrao 23/11/2026] (dono) combo leve de ESPADA CURTA + ESCUDO com clipes nativos do L2 (1 mao). Pico de velocidade medido no jogo (clipe de 1,5 s): Atk01_1HS espada em 0,667 s;
+       ShieldAtk_1HS escudo em 0,792 s; Atk03_1HS espada em 0,729 s. Tempos alvo: golpe 1 impacto ~0,39 s e livre em 0,56 s; golpe 2 impacto ~0,50 s e livre em 0,67 s; golpe 3 impacto ~0,50 s e livre em 0,85 s (combo ~2,1 s, era ~2,4 s).
+       sweep = espadada em arco; thrust = escudada de frente; spin = bate a espada no escudo e a onda de choque abre em volta (360 graus). Antigos (Blender, escudo girando): g_atk1/2/3. */
+    sweep:  { c: 'Atk01_1HS',     sp: 1.7,  hit: .444, cut: .635, lg: 1.2 },
+    thrust: { c: 'ShieldAtk_1HS', sp: 1.6,  hit: .528, cut: .709, lg: .6 },
+    spin:   { c: 'Atk03_1HS',     sp: 1.45, hit: .486, cut: .82,  lg: 0 },
     g_s1:   { c: 'l2_feixe', sp: 1.0, hit: .261, cut: .40, lg: 0, fz: .333 },   /* [feixe-escudo] Magicshot do L2 espelhado (1,92 s): escudo erguido a frente = pose de carga (congela em fz), empurra o escudo e solta o feixe em 24/92 */
     g_s2:   { c: 'l2_s2', sp: 2.0, hit: .63, cut: .75, lg: 0 },       /* SpAtk03_2HS do L2: pulo + pancada ajoelhado com o escudo no chao (impacto em 1,03 s) */
     g_s3:   { c: 'l2_s3', sp: 2.0, hit: .95, cut: .995, lg: 0 },       /* CastLong do L2 (recortado, x1,6): invocacao com os bracos erguidos; a chuva cai ao baixar (2,10 s) */
@@ -375,41 +379,44 @@ export const Guardiao = (function(){
     var S = ctx.getS(), f = ctx.fx.fwd(S.face), p = posEscudo() || { x: S.px, y: 1.25, z: S.pz };
     return { x: p.x + f[0] * .3, y: p.y, z: p.z + f[1] * .3 };
   }
+  function posEspada(){ var h = ctx && ctx.getVrm() && ctx.getVrm().swd1h; if(!h || !window.THREE) return posEscudo(); var bx = new window.THREE.Box3().setFromObject(h); return bx.isEmpty() ? posEscudo() : bx.getCenter(new window.THREE.Vector3()); }
   G.aoAtacar = function(an){
     if(!ctx || !FX || !an || an.skill || ctx.getWPN() !== 'shield') return;
     var cfg = CM[an.id], rig = ctx.getVrm(), clip = rig && cfg && rig.clips[cfg.c]; if(!clip) return;
     var hit = clip.duration / cfg.sp * cfg.hit, S = ctx.getS(), f = ctx.fx.fwd(S.face);
     function pe(dx, dz, n, size){ var s = ctx.getS(); FX.humo(s.px + dx, s.pz + dz, { n: n, size: size }); }
-    if(an.id === 'sweep'){
-      later(function(){ pe(-f[0] * .6, -f[1] * .6, 5, 1.1); }, hit * .1);
-      FX.trilha(posEscudo, { color: COR.aco, hot: COR.quente, width: .55, life: hit * .5 + .4, n: 26, lag: hit * .5 });
-    } else if(an.id === 'thrust'){
-      FX.trilha(posEscudo, { color: COR.aco, hot: COR.quente, width: .8, life: hit * .7 + .5, n: 34, lag: hit * .3 });
-      FX.trilha(function(){ var p = posEscudo(); if(p) p.y += .55; return p; }, { color: COR.ambar, hot: COR.quente, width: .4, life: hit * .7 + .5, n: 30, lag: hit * .34 });
-      [.3, .5, .7].forEach(function(k, i){ later(function(){ var s = ctx.getS(); FX.casca(s.px, .25 + i * .55, s.pz, { r0: 1.0, r1: 1.7 + i * .2, h0: .4, h1: .5, life: .5, color: COR.aco, hot: COR.branco, power: .5, ns: 3, flow: -6, alpha: .55 }); }, hit * k); });
-    } else if(an.id === 'spin'){
-      later(function(){ pe(-f[0] * .4, -f[1] * .4, 4, 1.2); }, hit * .12);
-      FX.trilha(posEscudo, { color: COR.ambar, hot: COR.quente, width: .32, life: hit * .6 + .35, n: 30, lag: hit * .4 });
+    if(an.id === 'sweep'){                                           /* espadada: rastro de aco na lamina */
+      later(function(){ pe(-f[0] * .5, -f[1] * .5, 3, .9); }, hit * .1);
+      FX.trilha(posEspada, { color: COR.aco, hot: COR.quente, width: .5, life: hit * .5 + .3, n: 24, lag: hit * .45 });
+    } else if(an.id === 'thrust'){                                   /* escudada: rastro curto no escudo */
+      FX.trilha(posEscudo, { color: COR.aco, hot: COR.quente, width: .7, life: hit * .6 + .3, n: 26, lag: hit * .4 });
+    } else if(an.id === 'spin'){                                     /* a espada sobe e desce sobre o escudo: rastros dos dois */
+      later(function(){ pe(-f[0] * .3, -f[1] * .3, 3, 1.0); }, hit * .12);
+      FX.trilha(posEspada, { color: COR.ambar, hot: COR.quente, width: .4, life: hit * .6 + .3, n: 26, lag: hit * .35 });
+      FX.trilha(posEscudo, { color: COR.aco, hot: COR.quente, width: .5, life: hit * .4 + .3, n: 20, lag: hit * .55 });
     }
   };
   G.fxBasico = function(an){
     if(!ctx || !FX || !an || an.skill || ctx.getWPN() !== 'shield') return false;
     var S = ctx.getS(), f = ctx.fx.fwd(S.face), px = S.px, pz = S.pz, sh = ctx.shake, ix = px + f[0] * 1.8, iz = pz + f[1] * 1.8;
-    if(an.id === 'sweep'){
-      FX.espetos(ix, 1.3, iz, { n: 14, seed: 71, size: 2.4, color: COR.ouro, hot: COR.quente, life: .4 });
-      FX.casca(ix, 0, iz, { r0: .5, r1: 2.2, h0: .35, h1: .3, life: .5, color: COR.aco, hot: COR.branco, power: .55, ns: 3, flow: -5, alpha: .6, expand: 'out' });
-      FX.humo(ix, iz, { n: 4, size: 1.0 }); FX.brasas(ix, .4, iz, { n: 14, spread: 1.4, rise: 1.6, color: COR.ouro, life: 1.0, size: .16 }); FX.luz(ix, 1.2, iz, { color: COR.ouro, intensity: 35, life: .3 }); sh(.18);
-    } else if(an.id === 'thrust'){
-      FX.casca(px, 0, pz, { r0: 1.0, r1: 3.8, h0: .55, h1: .45, life: .6, color: COR.aco, hot: COR.branco, power: .5, ns: 2.6, flow: -6, alpha: .7, expand: 'out' });
-      FX.espetos(px + f[0] * 1.2, 1.2, pz + f[1] * 1.2, { n: 18, seed: 72, size: 3, color: COR.ouro, hot: COR.quente, life: .45 });
-      for(var i = 0; i < 4; i++){ var a = S.face + i * 1.5708 + .6; FX.humo(px + Math.sin(a) * 1.4, pz + Math.cos(a) * 1.4, { n: 2, size: .9 }); }
-      FX.brasas(px, .5, pz, { n: 18, spread: 2.2, rise: 1.8, color: COR.ouro, life: 1.0, size: .16 }); FX.luz(px, 1.3, pz, { color: COR.quente, intensity: 40, life: .35 }); sh(.22);
-    } else if(an.id === 'spin'){                                     /* golpe final: o escudo racha o chao */
-      FX.cratera(ix, iz, { R: 1.4, life: 3 }); FX.rachaduras(ix, iz, { R: 3.4, seed: 73, n: 10, life: 3, hold: .8, color: COR.fogo });
-      FX.casca(ix, 0, iz, { r0: .6, r1: 4.0, h0: .6, h1: .5, life: .6, color: COR.ambar, hot: COR.quente, power: .5, ns: 2.6, flow: -6, alpha: .75, expand: 'out' });
-      FX.espetos(ix, 1.0, iz, { n: 22, seed: 74, size: 3.4, color: COR.fogo, hot: COR.quente, life: .6 });
-      FX.rochas(ix, iz, { n: 7, sz: [.12, .3], spd: [1.5, 3.5], vz: [4, 7.5], rad: [.3, 1.4] }); FX.humo(ix, iz, { n: 7, size: 1.3 });
-      FX.brasas(ix, .3, iz, { n: 24, spread: 2.6, rise: 3, color: COR.ouro, life: 1.8, size: .2 }); FX.luz(ix, 1.4, iz, { color: COR.ouro, intensity: 60, life: .5 }); sh(.4);
+    if(an.id === 'sweep'){                                           /* espadada */
+      FX.espetos(ix, 1.3, iz, { n: 10, seed: 71, size: 2.2, color: COR.ouro, hot: COR.quente, life: .35 });
+      FX.casca(ix, 0, iz, { r0: .5, r1: 2.0, h0: .3, h1: .25, life: .4, color: COR.aco, hot: COR.branco, power: .55, ns: 3, flow: -5, alpha: .5, expand: 'out' });
+      FX.brasas(ix, .4, iz, { n: 8, spread: 1.2, rise: 1.4, color: COR.ouro, life: .8, size: .14 }); FX.luz(ix, 1.2, iz, { color: COR.ouro, intensity: 28, life: .25 }); sh(.14);
+    } else if(an.id === 'thrust'){                                   /* escudada: impacto seco na frente, empurra */
+      var bx = px + f[0] * 1.5, bz = pz + f[1] * 1.5;
+      FX.espetos(bx, 1.2, bz, { n: 14, seed: 72, size: 2.8, color: COR.ouro, hot: COR.quente, life: .4 });
+      FX.anel(bx, bz, { r0: .3, r1: 2.2, color: COR.aco, life: .35 });
+      FX.humo(bx, bz, { n: 3, size: .9 }); FX.brasas(bx, .6, bz, { n: 10, spread: 1.0, rise: 1.4, color: COR.ouro, life: .8, size: .14 }); FX.luz(bx, 1.3, bz, { color: COR.quente, intensity: 34, life: .25 }); sh(.2);
+    } else if(an.id === 'spin'){                                     /* o aco bate no escudo: clarao e onda de choque em 360 graus (sem rachar o chao) */
+      var cp = posEscudo() || { x: px + f[0] * .5, y: 1.2, z: pz + f[1] * .5 };
+      FX.luz(cp.x, cp.y, cp.z, { color: COR.quente, intensity: 60, life: .25 });
+      FX.espetos(cp.x, cp.y, cp.z, { n: 12, seed: 73, size: 2.0, color: COR.quente, hot: COR.branco, life: .3 });
+      FX.casca(px, 0, pz, { r0: .8, r1: 4.0, h0: .5, h1: .4, life: .5, color: COR.aco, hot: COR.branco, power: .5, ns: 2.6, flow: -6, alpha: .65, expand: 'out' });
+      FX.anel(px, pz, { r0: .6, r1: 4.2, color: COR.ouro, life: .5 }); FX.anel(px, pz, { r0: .6, r1: 3.2, color: COR.quente, life: .4, lag: .06 });
+      FX.espetos(px, .8, pz, { n: 20, seed: 74, size: 2.6, color: COR.ouro, hot: COR.quente, life: .4 });
+      for(var i = 0; i < 4; i++){ var a = S.face + i * 1.5708 + .6; FX.humo(px + Math.sin(a) * 2.2, pz + Math.cos(a) * 2.2, { n: 2, size: .9 }); }
+      FX.brasas(px, .4, pz, { n: 16, spread: 2.4, rise: 2, color: COR.ouro, life: 1.0, size: .15 }); sh(.3);
     } else return false;
     return true;
   };

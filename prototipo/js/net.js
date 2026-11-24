@@ -24,7 +24,7 @@ export const Net = (function(){
     dwarf_m: 'dwarf_m_nograde.glb?v=2', dwarf_m_nograde: 'dwarf_m_nograde.glb?v=2',
     darkelf_m: 'darkelf_m.glb?v=5', darkelf_f: 'darkelf_f.glb?v=5', darkelf: 'darkelf_f.glb?v=5'
   };
-  var ONCE = /^(m_cast|g_atk|g_skill|slash|punch|roll|g_roll|hit_|block_hit|parry|death|skill_|staff_|boss_)/;
+  var ONCE = /^(m_cast|g_atk|g_skill|slash|punch|roll|g_roll|hit_|block_hit|parry|death|skill_|staff_|boss_|Atk0|ShieldAtk|SpAtk)/;      /* [ataque-padrao 23/11/2026] clipes nativos de 1 mao do Guardiao tocam uma vez */
   var BASICOS = { sweep: 1, thrust: 1, spin: 1, up: 1, down: 1, wedge: 1 };
   var COR_TIME = { A: '#6fb4ff', B: '#ff7b6b' };
   function r2(v){ return Math.round(v * 100) / 100; }
