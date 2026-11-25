@@ -44,7 +44,7 @@
     try{
       var antes = new Set(PREP.scene.children), ax = window.S ? S.px : 0, az = window.S ? S.pz : 0;      /* o que o aquecimento criar sai da cena depois (rochas, fissuras, marcas ficavam no chao da arena) */
       var oq = { rig: rig, px: -3000, pz: -3000, face: 0, an: { hitT: .3, hitList: [{ t: .3 }, { t: .5 }], total: 1.2, lg: 3 } };
-      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, -3000, -3000, oq); }catch(e){} });
+      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, -3000, -3000, oq); }catch(e){} }); try{ fendaLuz(-3000, -3000, 0); }catch(e){}      /* [fenda-luz] o shader da rachadura tambem compila aqui */
       R.setRenderTarget(rt); R.compile(PREP.scene, PREP.camera); R.setRenderTarget(null); /* PREP.scene: na cidade 'cena' e' um proxy (FXCENA), nao um Object3D */
       vivos.slice().forEach(function(f){ try{ f(99); }catch(e){} }); vivos.length = 0;
       PREP.scene.children.slice().forEach(function(o){ if(!antes.has(o)) PREP.scene.remove(o); });
@@ -271,6 +271,50 @@
     for(var i = 0; i < (leve() ? Math.ceil(n / 2) : n); i++){ (function(){ var s = sprite(txN('vento'), cor || 0xffe8d0, 1, 1), k = rnd(.1, .9), h = rnd(.4, 1.8), w = rnd(1.2, 2.4), ti = (t0 || 0) + k * .15; s.scale.set(w, .07, 1); s.visible = false; cena.add(s);
       seq(ti + .25, function(u, t){ if(t < ti) return; s.visible = true; var e = (t - ti) / .25; s.position.set(x + fx * (L * k + e * .6), h, z + fz * (L * k + e * .6)); s.material.opacity = 1 - e; }, function(){ some(s); }); })(); }
   }
+  /* [fenda-luz 25/11/2026] rachadura de luz: fita emissiva irregular com ramos, halo largo no chao, colunas finas e brasas. Mesmo tempo do Blender (24 qps):
+     a frente corre 9 m em 0,42 s, abre em 0,25 s, esfria e some ate ~1,85 s. Shader proprio (um programa so, compilado no aquecimento). */
+  var FENDA_VS = 'varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }';
+  var FENDA_FS = 'uniform float frente, abertura, brilho, forca, tempo; varying vec2 vUv; varying vec3 vW;' +
+    'vec3 rampa(float d){ vec3 c0 = vec3(1.0, .97, .85), c1 = vec3(1.0, .78, .28), c2 = vec3(1.0, .42, .06), c3 = vec3(.75, .06, .03);' +
+    ' if(d < .18) return mix(c0, c1, d / .18); if(d < .42) return mix(c1, c2, (d - .18) / .24); return mix(c2, c3, clamp((d - .42) / .33, 0.0, 1.0)); }' +
+    'void main(){ float d = abs(vUv.y - .5) * 2.0 / max(abertura, .05); if(d >= 1.0) discard;' +
+    ' float a = d < .42 ? 1.0 : (d < .75 ? mix(1.0, .45, (d - .42) / .33) : mix(.45, 0.0, (d - .75) / .25));' +
+    ' float rv = 1.0 - smoothstep(frente, frente + .04, vUv.x);' +
+    ' float n = .84 + .16 * sin(vUv.x * 70.0 - tempo * 9.0 + vUv.y * 2.0);'      /* pulsa ao longo da fenda (sem grade quadriculada) */ +
+    ' gl_FragColor = vec4(rampa(d) * a * rv * brilho * forca * n, 1.0); }';
+  function matFenda(forca){ return new T.ShaderMaterial({ uniforms: { frente: { value: 0 }, abertura: { value: .12 }, brilho: { value: 0 }, forca: { value: forca }, tempo: { value: 0 } }, vertexShader: FENDA_VS, fragmentShader: FENDA_FS, transparent: true, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); }
+  function linhaQuebrada(x, z, rx, rz, comp, n, desvio){ var P = [[x, z]], ang = 0; for(var i = 1; i <= n; i++){ ang += rnd(-desvio, desvio); ang *= .7; var c = Math.cos(ang), s = Math.sin(ang), dx = rx * c - rz * s, dz = rz * c + rx * s, q = P[P.length - 1]; P.push([q[0] + dx * comp / n, q[1] + dz * comp / n]); } return P; }
+  function fitaFenda(P, larg, largFim, y, u0, u1, mat){        /* u = 0..1 no comprimento (frente), v = 0..1 na largura */
+    var n = P.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = [];
+    var ox = P[0][0], oz = P[0][1], gch = typeof window.fxChao === 'function' ? window.fxChao : null, g0 = gch ? gch(ox, oz) : 0;      /* [fenda-luz] o efeito fica na posicao da cravada (a cena sobe ate o chao dali) e cada ponto acompanha o relevo */
+    for(var i = 0; i < n; i++){ var a = P[Math.min(i + 1, n - 1)], b = P[Math.max(i - 1, 0)], dx = a[0] - b[0], dz = a[1] - b[1], l = Math.hypot(dx, dz) || 1, lx = -dz / l, lz = dx / l, k = i / (n - 1), w = (larg * (1 - k) + largFim * k) * (larg < .5 ? rnd(.75, 1.25) : 1) / 2, hy = y + (gch ? (gch(P[i][0], P[i][1]) || 0) - g0 : 0);
+      pos.set([P[i][0] - ox + lx * w, hy, P[i][1] - oz + lz * w, P[i][0] - ox - lx * w, hy, P[i][1] - oz - lz * w], i * 6); var u = u0 + (u1 - u0) * k; uv.set([u, 0, u, 1], i * 4);
+      if(i < n - 1) idx.push(2 * i, 2 * i + 1, 2 * i + 3, 2 * i, 2 * i + 3, 2 * i + 2); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('uv', new T.BufferAttribute(uv, 2)); g.setIndex(idx);
+    var m = new T.Mesh(g, mat); m.position.set(ox, 0, oz); m.frustumCulled = false; m.renderOrder = 3; cena.add(m); return m;
+  }
+  function fendaLuz(x0, z0, f){
+    var fx = Math.sin(f), fz = Math.cos(f), ABRE = .42, VIDA = 1.85, pul = 0, L = leve();
+    var P = linhaQuebrada(x0, z0, fx, fz, 9, L ? 30 : 46, .55), pecas = [];
+    function peca(m, halo){ pecas.push({ m: m, halo: halo }); }
+    peca(fitaFenda(P, .2, .08, .03, 0, 1, matFenda(2.6)), false);      /* no jogo (dia, chao claro, camera longe) mais larga e forte que no Blender */
+    peca(fitaFenda(P, 1.4, .6, .02, 0, 1, matFenda(.65)), true);
+    for(var k = 0; k < (L ? 4 : 7); k++){ var i = Math.floor(rnd(3, P.length - 4)), u0 = i / (P.length - 1), lado = k % 2 ? 1 : -1, r = rnd(.5, 1), rx = fx * 1.1 - fz * lado * r, rz = fz * 1.1 + fx * lado * r, lr = Math.hypot(rx, rz);
+      peca(fitaFenda(linhaQuebrada(P[i][0], P[i][1], rx / lr, rz / lr, rnd(.5, 1.3), 10, .9), .09, .015, .031, u0, Math.min(1, u0 + .12), matFenda(2.4)), false); }
+    var cols = []; for(var c = 0; c < (L ? 4 : 9); c++){ var tc = rnd(.05, .95), q = P[Math.floor(tc * (P.length - 1))], h = rnd(.9, 2.2), gm = new T.PlaneGeometry(.1, h); gm.translate(0, h / 2, 0);
+      var ua = gm.attributes.uv; for(var j = 0; j < ua.count; j++){ var vy = ua.getY(j), vx = ua.getX(j); ua.setXY(j, vy, vx); }      /* u = altura (a luz sobe), v = largura */
+      var mc = new T.Mesh(gm, matFenda(1.3)); mc.position.set(q[0], 0, q[1]); mc.rotation.y = f + rnd(-.4, .4); mc.frustumCulled = false; cena.add(mc); cols.push({ m: mc, t0: tc * ABRE }); }
+    var brasT = []; for(var b = 0; b < (L ? 4 : 9); b++) brasT.push(rnd(0, 1));
+    function curva(t, K){ for(var i = 1; i < K.length; i++) if(t <= K[i][0]){ var a = K[i - 1], z = K[i], e = (t - a[0]) / (z[0] - a[0]); e = .5 - .5 * Math.cos(Math.PI * e); return a[1] + (z[1] - a[1]) * e; } return K[K.length - 1][1]; }
+    var KA = [[0, .12], [.25, 1], [.92, 1.1], [1.67, .35], [VIDA, .2]], KB = [[0, 1.6], [.33, 1.15], [1.08, .9], [VIDA, 0]], tb = 0;
+    seq(VIDA, function(u, t){
+      var fr = Math.min(1.05, t / ABRE * 1.05), ab = curva(t, KA), br = curva(t, KB) + pul; pul = Math.max(0, pul - .04);
+      pecas.forEach(function(p){ var U = p.m.material.uniforms; U.frente.value = fr; U.abertura.value = ab; U.brilho.value = br * (p.halo ? .7 : 1); U.tempo.value = t; });
+      cols.forEach(function(cc){ var U = cc.m.material.uniforms, e = t - cc.t0; U.frente.value = Math.max(-.05, Math.min(1.05, e / .2)); U.abertura.value = .8; U.brilho.value = e < 0 ? 0 : Math.max(0, 1.2 * (1 - e / .37)); U.tempo.value = t; });
+      while(tb < brasT.length && brasT[tb] * ABRE <= t){ var q2 = P[Math.floor(brasT[tb] * (P.length - 1))]; brasas(q2[0], .1, q2[1], 3, 2.4, 1.2); tb++; }
+    }, function(){ pecas.forEach(function(p){ p.m.material.dispose(); some(p.m); }); cols.forEach(function(cc){ cc.m.material.dispose(); some(cc.m); }); });
+    return { pulso: function(){ pul = .9; agita(.25); var q3 = P[P.length - 1]; flareN(q3[0], .5, q3[1], 2.2, BRASA, .3); } };
+  }
   function estrelasStun(x, z, dur){ for(var k = 0; k < 4; k++){ (function(k){ var s = sprite(txN('flare'), OURO, .6, 1); cena.add(s); seq(dur, function(u, t){ var a = k * 1.5708 + t * 6; s.position.set(x + Math.cos(a) * .5, 2.3 + .06 * Math.sin(t * 9), z + Math.sin(a) * .5); s.material.opacity = u < .9 ? 1 : (1 - u) / .1; }, function(){ some(s); }); })(k); } }
   function auraLamina(swd, dur, cor){
     if(!swd) return; var P = ponta(swd); if(!P) return; var L = [];
@@ -321,6 +365,7 @@
     }
     else if(pose === 'w_n6'){                                                                      /* Fenda Sismica: lamina acende e o corpo pega brasa na cravada */
       auraLamina(swd, tm.ht + .8, BRASA); contornoN(rig, BRASA, tm.ht + .7, function(t){ return t < tm.ht ? .15 : Math.max(0, .85 - (t - tm.ht) * 1.3); }); trilha(swd, tm.ht + .05, 1);
+      seq(tm.ht, function(){}, function(){ var p = pontaMundo(swd), px = p ? p.x : (window.S ? S.px : x) + fx * 1.4, pz = p ? p.z : (window.S ? S.pz : z) + fz * 1.4; G._fendaUlt = fendaLuz(px, pz, window.S ? S.face : f); agita(.45); });   /* [fenda-luz] a rachadura abre no quadro da cravada mesmo sem alvo (golpe no chao) */
     }
   };
   G.hitN = function(pose, hx, hz, o){
@@ -328,6 +373,7 @@
     var ex = tp ? tp.x : hx, ey = tp ? Math.max(.4, tp.y) : 1.3, ez = tp ? tp.z : hz, pt = function(){ var q = peitoDe(o); return q; };
     /* [hits-cabal 23/11/2026] Investida, Contra-Golpe e Fenda agora tem varios golpes: os intermediarios so mostram um corte/pulso curto no alvo; a explosao grande fica no ultimo (Fenda: a fenda inteira sai no 1o) */
     if(o.parts > 1 && (pose === 'w_n6' ? part > 1 : (pose === 'w_n0' || pose === 'w_n1') && !last)){
+      if(pose === 'w_n6' && G._fendaUlt) G._fendaUlt.pulso();                                      /* [fenda-luz] 2o hit = onda: a fenda inteira pulsa */
       flareN(ex, ey, ez, pose === 'w_n6' ? 2 : 1.7, part % 2 ? ACO : CARM2, .25, false); espinhos(ex, ey, ez, leve() ? 3 : 6, 1, ACO, .2); brasas(ex, ey, ez, 6, 1.4, 1.2); agita(.12); return;
     }
     if(pose === 'w_n0'){                                                                           /* linha de corte no alvo; 0,38 s depois explode */
@@ -355,10 +401,8 @@
       if(!last){ flareN(ex, ey, ez, 1.8, ACO, .3); brasas(ex, ey, ez, 8, 1.4, 1.6); agita(.15); return; }
       fenda(ex, ez, 4.2, BRASA, 2.2, .3); fenda(ex, ez, 2.8, CARM, 2, 1.2); for(var e8 = 0; e8 < 8; e8++){ var a8 = e8 * .785 + rnd(-.2, .2); lajesN(ex, ez, 1, a8, .8, 1.5, 1.05, rnd(1, 1.8)); } lascas(ex, ez, 30, 4.8, .2); flareN(ex, .8, ez, 4.4, ACO, .55); veuN(ex, ez, .5, 3.6, BRASA, .2, .7, 6); agita(.7); flash('#ff6a14', .25, 300);
     }
-    else if(pose === 'w_n6'){                                                                      /* a fenda corre 9 m pela frente: segmentos, rochas, jatos e flares; fecha com explosao */
-      var x0 = ex, z0 = ez; flareN(x0, .6, z0, 2.8, ACO, .4); fenda(x0, z0, 2.2, BRASA, 2.2, .4); agita(.45); estrelasStun(hx, hz, 1.45);
-      var passos = Math.round(9 / .75); for(var k = 0; k < passos; k++){ (function(k){ setTimeout(function(){ var d = .4 + k * .75, cx = x0 + fx * d, cz = z0 + fz * d; fissuraN(cx, cz, f, 1.45, 1.1, k % 2 ? BRASA : CARM, 1.8); lajesN(cx, cz, 3, k % 2 ? f + 1.57 : f - 1.57, .7, 1.4, 1.05); if(k % 2 === 0){ veuN(cx, cz, .26, 2.2 + rnd(0, .9), BRASA, .25, .7, 5); flareN(cx, .5, cz, 1.4, BRASA, .25, false); agita(.08); } lascas(cx, cz, 4, 2.4, .12);
-        if(k === passos - 1){ flareN(cx, .8, cz, 4, ACO, .5); veuN(cx, cz, .7, 5.2, ACO, .45, .75, 6); lascas(cx, cz, 16, 3.6, .18); agita(.4); } }, k * 50); })(k); }
+    else if(pose === 'w_n6'){                                                                      /* [fenda-luz 25/11/2026] a fenda corre 9 m pela frente SO DE LUZ (aprovada no Blender: tools/blender_fx/fenda_luz.py); sem rochas/blocos */
+      flareN(ex, .6, ez, 2.8, ACO, .4); estrelasStun(hx, hz, 1.45);                                 /* a rachadura ja abriu no swing (fendaLuz) */
     }
   };
   G.modo = function(rig, dur){ if(!G.pronto || !rig) return; auraLamina(rig.swd2h, dur, CARM2); contornoN(rig, CARM2, dur, function(t, u){ return u > .95 ? (1 - u) / .05 * .55 : .45 + .15 * Math.sin(t * 5); }); var tb_ = 0, tt_ = 0; vivos.push(function(dt){ tt_ += dt; tb_ -= dt; if(tb_ <= 0){ tb_ = leve() ? .7 : .36; if(window.S) brasas(S.px, .4, S.pz, 4, 2.8, .7); } return tt_ >= dur; });   /* aura de brasas do buff (Blender: aura_br a cada 18 quadros) */
@@ -366,7 +410,7 @@
   G.modoRemoto = function(x, z){ if(!G.pronto) return; flareN(x, 1.8, z, 3, BRASA, .5); brasas(x, .5, z, 20, 2.6, 1); };
   G.remotoN = function(pose, e){ var x = e.x, z = e.z, f = e.f || 0, fx = Math.sin(f), fz = Math.cos(f);
     if(pose === 'w_n0') G.hitN('w_n0', x, z, { px: x, pz: z, face: f, last: true });
-    else if(pose === 'w_n6') G.hitN('w_n6', x + fx * 1.4, z + fz * 1.4, { face: f, last: true });
+    else if(pose === 'w_n6'){ fendaLuz(x + fx * 1.4, z + fz * 1.4, f); flareN(x + fx * 1.4, .6, z + fz * 1.4, 2.8, ACO, .4); }
     else if(pose === 'w_n2') vorticeN(function(){ return { x: x, z: z }; }, 3.2, 40, CARM2);
     else flareN(x + fx * 1.5, 1.3, z + fz * 1.5, 2.6, CARM2, .45);
   };

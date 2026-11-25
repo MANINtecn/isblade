@@ -32,7 +32,7 @@ const DUELO_CONTAGEM = 3, DUELO_FUGA = 45, DUELO_PEDIDO_S = 15;
 
 /* ---- dados de combate (os mesmos do jogo) ---- */
 const SKILLS = {};                                                 /* arma -> [{cd, dmg (por golpe), range, half}] */
-try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0, suporte: s.suporte || null, dur: s.dur || 0, carga: Array.isArray(s.carga) ? s.carga : null, caminho: !!s.caminho, lg: s.lg || 0, nh: Array.isArray(s.hits) ? s.hits.length : 1 })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
+try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.skills) SKILLS[j.id] = j.skills.map(s => ({ nome: s.name, cd: s.cd, dmg: s.dmg, range: s.range, half: s.half, proj: s.proj || null, area: s.area || null, zona: s.zona || null, cura: s.cura || 0, suporte: s.suporte || null, dur: s.dur || 0, carga: Array.isArray(s.carga) ? s.carga : null, caminho: !!s.caminho, linha: s.linha || null, lg: s.lg || 0, nh: Array.isArray(s.hits) ? s.hits.length : 1 })); }); } catch (e) { console.warn('sem data/armas:', e.message); }
 const BASICO = {};                                              /* arma -> ataque padrao em ponto mirado (data/armas/<arma>.json -> basico), ex.: cajado/mago */
 try { fs.readdirSync(path.join(RAIZ, 'data', 'armas')).filter(f => f.endsWith('.json')).forEach(f => { const j = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data', 'armas', f), 'utf8')); if(j.id && j.basico && j.basico.niveis) BASICO[j.id] = j.basico; }); } catch(e){ console.log('basico:', e.message); }
 const BASIC = { sweep: { dmg: 18, range: 3.6, half: 1.6 }, thrust: { dmg: 27, range: 4.2, half: .5 }, spin: { dmg: 33, range: 3.6, half: Math.PI }, up: { dmg: 21, range: 3.4, half: 1 }, down: { dmg: 24, range: 3.4, half: 1 }, wedge: { dmg: 30, range: 3.6, half: 1 } };
@@ -370,7 +370,7 @@ function ataque(c, A, m){
     const i = m.i | 0, lista = SKILLS[A.arma], s = lista && lista[i]; if(!s) return;
     if((m.p | 0) > 1){ if(A.ultSk !== A.arma + i || t - A.ultSkT > Math.max(3, (s.dur || 0) + 1)) return; if((A.skPartes = (A.skPartes || 0) + 1) >= (s.nh || 1)) return; parte2 = true; }      /* [hits-cabal] no maximo nh-1 golpes extras por lancamento (antes: ilimitado dentro da janela) */   /* [guerreiro] janela = duracao da skill (Tufao ~4,2 s) */            /* 2o golpe da mesma skill: sem nova recarga */
     else { if((A.cd[A.arma + i] || 0) > t + .9) return; A.cd[A.arma + i] = t + s.cd; A.ultSk = A.arma + i; A.ultSkT = t; A.skPartes = 0; }
-    d = { dmg: s.dmg, range: s.range, half: s.half, proj: s.proj, area: s.area, zona: s.zona, cura: s.cura, suporte: s.suporte };
+    d = { dmg: s.dmg, range: s.range, half: s.half, linha: s.linha, proj: s.proj, area: s.area, zona: s.zona, cura: s.cura, suporte: s.suporte };
     if(s.caminho && isFinite(m.x0) && isFinite(m.z0) && Math.hypot(m.x0 - A.x, m.z0 - A.z) <= (s.lg || 8) + 2) d.p0 = { x: +m.x0, z: +m.z0 };   /* [caminho] Investida: corredor do ponto de partida ate onde o golpe sai (limitado ao avanco da skill) */
     if(s.carga){ const mc = typeof m.mc === 'number' && isFinite(m.mc) ? Math.max(s.carga[0], Math.min(s.carga[1], m.mc)) : s.carga[0]; d.dmg = Math.round(d.dmg * mc); }   /* [feixe-escudo] skill carregada: o cliente manda o multiplicador da carga, o servidor limita (sem carga informada = o minimo) */
   } else return;
@@ -391,6 +391,8 @@ function ataque(c, A, m){
     if(V === A || V.morto || t < V.imune || !podeFerir(c, A, V, t)) continue;
     if(d.p0){ const vx = A.x - d.p0.x, vz = A.z - d.p0.z, L = vx * vx + vz * vz, k = L ? Math.max(0, Math.min(1, ((V.x - d.p0.x) * vx + (V.z - d.p0.z) * vz) / L)) : 0;
       if(Math.hypot(V.x - d.p0.x - vx * k, V.z - d.p0.z - vz * k) <= (d.half || 1.3) + .45 + .6) fere(c, A, V, d.dmg, t, 0, tipoB); continue; }   /* [caminho] quem estava no caminho do avanco (+0,6 m de latencia) */
+    if(d.linha){ const sf = Math.sin(A.f), cf = Math.cos(A.f), ax = A.x + sf * (d.linha.ini || .8), az = A.z + cf * (d.linha.ini || .8), k = Math.max(0, Math.min(d.linha.comp, (V.x - ax) * sf + (V.z - az) * cf));      /* [fenda-luz 25/11/2026] linha: quem esta em cima da fenda inteira (mesma faixa do cliente) */
+      if(Math.hypot(V.x - ax - sf * k, V.z - az - cf * k) <= d.linha.larg + .45 + .6) fere(c, A, V, d.dmg, t, 0, tipoB); continue; }
     const dx = V.x - A.x, dz = V.z - A.z, dist = Math.hypot(dx, dz); if(dist > d.range + .6) continue;                  /* +0,6 m: latencia */
     if(d.half < 3.1 && Math.abs(angDif(Math.atan2(dx, dz), A.f)) > d.half + Math.atan2(.45, Math.max(dist, .5)) + .12) continue;
     fere(c, A, V, d.dmg, t, 0, tipoB);

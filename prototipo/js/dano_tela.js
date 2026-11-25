@@ -58,13 +58,13 @@
         var x=(v.x*.5+.5)*innerWidth,y=(-v.y*.5+.5)*innerHeight,tam=TAM[tipo]*(innerWidth<700?.85:1);
         /* [dano-tela 23/11/2026] pilha por alvo: o numero NOVO nasce embaixo e empurra os anteriores para cima (ate 8); a pilha some junta quando os hits param */
         y=Math.max(tam*3.2,Math.min(innerHeight-70,y));      /* [dano-tela 24/11/2026] o numero NOVO sempre cabe na tela (chefe grande perto da camera empurrava tudo para cima do topo) */
-        var k=chave||'_',P=PILHA[k]||(PILHA[k]=[]),i,passo=tam*.88;      /* [dano-tela 25/11/2026] coluna RETA: cada hit novo empurra os outros exatamente uma linha (antes .64 sobrepunha e tremia +-3 px) */
+        var k=chave||'_',P=PILHA[k]||(PILHA[k]=[]),i,passo=tam*.45;      /* [dano-tela 25/11/2026] ESCADINHA do Cabal (video 1:44, quadro a quadro): o hit novo fica NA FRENTE e cobre a parte de baixo do anterior; do de cima aparece ~metade. Sem tremido, sem desvio lateral */
         for(i=P.length-1;i>=0;i--)if(!P[i].isConnected)P.splice(i,1);
         var d=document.createElement('div');d.className='dn '+tipo;d.style.fontSize=tam+'px';
         if(rotulo){var r=document.createElement('i');r.textContent=rotulo;d.appendChild(r);}
         var b=document.createElement('b');b.textContent=String(valor);d.appendChild(b);
         d.style.left=x+'px';d.style.top=y+'px';
-        P.unshift(d);
+        P.unshift(d);      /* o mais novo entra por ultimo no DOM: fica na frente sem mexer no z-index (que e baixo de proposito, abaixo do HUD) */
         P.forEach(function(e,n){
           if(n>=MAXP){e.classList.add('sai');setTimeout(function(){e.remove();},320);return;}
           e.style.left=x+'px';e.style.top=(y-n*passo)+'px';

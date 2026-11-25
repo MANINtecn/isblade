@@ -98,6 +98,11 @@
       "dur": 1.79,
       "range": 9.0,
       "half": 0.3,
+      "linha": {
+        "comp": 9.0,
+        "larg": 1.2,
+        "ini": 0.8
+      },
       "ifr": 0,
       "intr": 2,
       "hitk": 0.6279,
