@@ -783,7 +783,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
-<script src="js/guerreiro_fx.js?v=26"></script>
+<script src="js/guerreiro_fx.js?v=27"></script>
 <script src="js/l2_cache.js?v=1"></script>
 <script src="js/remote_vis.js?v=3"></script>
 <script src="js/diag_off.js?v=1"></script>
@@ -11863,7 +11863,7 @@ function hitMobs(an,rng,half){
 
 
 
-    if(an.skill&&an.skill.linha){var LN=an.skill.linha,lsf=Math.sin(S.face),lcf=Math.cos(S.face),lax=S.px+lsf*(LN.ini||.8),laz=S.pz+lcf*(LN.ini||.8);if(distSeg(m.x,m.z,lax,laz,lax+lsf*LN.comp,laz+lcf*LN.comp)-m.r*.6>LN.larg)return;}/* [fenda-luz 25/11/2026] linha: acerta quem esta em cima da fenda inteira (faixa comp x 2*larg a frente), nao num cone */else if(an.p0&&an.skill&&an.skill.caminho){if(distSeg(m.x,m.z,an.p0.x,an.p0.z,S.px,S.pz)-m.r*.6>(an.skill.half||1.3)+.2)return;}else{/* [caminho] acerta quem ficou no caminho do avanco */
+    if(an.skill&&an.skill.linha){var LN=an.skill.linha,lsf=Math.sin(S.face),lcf=Math.cos(S.face),lax=S.px+lsf*(LN.ini||.8),laz=S.pz+lcf*(LN.ini||.8);if(distSeg(m.x,m.z,lax,laz,lax+lsf*LN.comp,laz+lcf*LN.comp)-m.r*.6>LN.larg)return;var kLin=(m.x-lax)*lsf+(m.z-laz)*lcf;}/* [fenda-luz 25/11/2026] linha: acerta quem esta em cima da fenda inteira (faixa comp x 2*larg a frente), nao num cone */else if(an.p0&&an.skill&&an.skill.caminho){if(distSeg(m.x,m.z,an.p0.x,an.p0.z,S.px,S.pz)-m.r*.6>(an.skill.half||1.3)+.2)return;}else{/* [caminho] acerta quem ficou no caminho do avanco */
     if(reach>rng)return;
 
 
@@ -11872,6 +11872,7 @@ function hitMobs(an,rng,half){
 
 
 
+    if(an.skill&&an.skill.linha&&an.skill.linha.vel&&kLin>.3){var atL=Math.min(an.skill.linha.comp,kLin)/an.skill.linha.vel,dL=mobDmg(an);setTimeout(function(){if(!m.dead)damageMob(m,dL,an);},atL*1000);n++;return;}/* [fenda-luz 26/11/2026] o dano chega junto com a frente da rachadura (vel m/s), nao na linha inteira de uma vez */
     damageMob(m,mobDmg(an),an);n++;
 
 

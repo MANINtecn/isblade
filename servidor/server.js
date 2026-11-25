@@ -392,7 +392,8 @@ function ataque(c, A, m){
     if(d.p0){ const vx = A.x - d.p0.x, vz = A.z - d.p0.z, L = vx * vx + vz * vz, k = L ? Math.max(0, Math.min(1, ((V.x - d.p0.x) * vx + (V.z - d.p0.z) * vz) / L)) : 0;
       if(Math.hypot(V.x - d.p0.x - vx * k, V.z - d.p0.z - vz * k) <= (d.half || 1.3) + .45 + .6) fere(c, A, V, d.dmg, t, 0, tipoB); continue; }   /* [caminho] quem estava no caminho do avanco (+0,6 m de latencia) */
     if(d.linha){ const sf = Math.sin(A.f), cf = Math.cos(A.f), ax = A.x + sf * (d.linha.ini || .8), az = A.z + cf * (d.linha.ini || .8), k = Math.max(0, Math.min(d.linha.comp, (V.x - ax) * sf + (V.z - az) * cf));      /* [fenda-luz 25/11/2026] linha: quem esta em cima da fenda inteira (mesma faixa do cliente) */
-      if(Math.hypot(V.x - ax - sf * k, V.z - az - cf * k) <= d.linha.larg + .45 + .6) fere(c, A, V, d.dmg, t, 0, tipoB); continue; }
+      if(Math.hypot(V.x - ax - sf * k, V.z - az - cf * k) <= d.linha.larg + .45 + .6){ const at = d.linha.vel && k > .3 ? k / d.linha.vel : 0;      /* o dano chega com a frente da rachadura */
+        if(at > 0) setTimeout(() => { if(!V.morto && c.jog.get(V.id) === V) fere(c, A, V, d.dmg, agora(), 0, tipoB); }, at * 1000); else fere(c, A, V, d.dmg, t, 0, tipoB); } continue; }
     const dx = V.x - A.x, dz = V.z - A.z, dist = Math.hypot(dx, dz); if(dist > d.range + .6) continue;                  /* +0,6 m: latencia */
     if(d.half < 3.1 && Math.abs(angDif(Math.atan2(dx, dz), A.f)) > d.half + Math.atan2(.45, Math.max(dist, .5)) + .12) continue;
     fere(c, A, V, d.dmg, t, 0, tipoB);

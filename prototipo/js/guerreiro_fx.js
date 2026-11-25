@@ -328,24 +328,29 @@
      com fios, fumaca escura atras = peso), FUNIL fino de vento em volta e ONDA DE CHOQUE na altura da lamina no golpe final. Nada no chao.
      Tudo guiado pelo proprio golpe (S.anim): carga enquanto o relogio esta antes do 1o hit, rastro do 1o ao ultimo hit; acaba junto com a skill. */
   var TUF_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+  /* [tufao-luz 26/11/2026] igual ao Blender: fios por RUIDO (fbm, como o Noise do Blender esticado), nao por seno (dava listras regulares); energia, funil e fumaca com
+     mistura NORMAL (cor fiel como no Blender; a aditiva com brilho alto estourava o vermelho para amarelo/branco); so o fio da lamina (miolo) continua aditivo */
+  var TUF_RUIDO = 'float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }' +
+    'float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }' +
+    'float fbm(vec2 p){ return (.5 * vn(p) + .25 * vn(p * 2.03) + .125 * vn(p * 4.01) + .0625 * vn(p * 8.0)) / .9375; }';
   var TUF_PERFIL = 'float perfil(float v){ if(v < .25) return mix(0.0, .45, v / .25); if(v < .7) return mix(.45, .9, (v - .25) / .45); if(v < .9) return mix(.9, 1.0, (v - .7) / .2); return mix(1.0, 0.0, (v - .9) / .1); }';
   var TUF_FS = {
-    energia: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_PERFIL +
+    energia: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_RUIDO + TUF_PERFIL +
       'void main(){ float u = vUv.x, v = vUv.y; vec3 c = v < .6 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), v / .6) : mix(vec3(1.0, .16, .07), vec3(1.0, .36, .1), (v - .6) / .4);' +
-      ' float f = .5 + .5 * sin(v * 70.0 + sin(u * 6.0 + tempo * 3.0) * 3.0); float mist = mix(.06, 1.0, smoothstep(.45, .7, f));' +
-      ' float a = perfil(v) * pow(u, 1.3) * mist * brilho; gl_FragColor = vec4(c * a * forca, 1.0); }',
+      ' float fio = smoothstep(.45, .7, fbm(vec2(u * 4.8, v * 33.0))); float mist = mix(.06, 1.0, fio);' +
+      ' float a = clamp(perfil(v) * pow(u, 1.3) * mist * brilho, 0.0, 1.0); gl_FragColor = vec4(c * forca, a); }',
     miolo: 'uniform float brilho, tempo, forca; varying vec2 vUv;' +
       'void main(){ float u = vUv.x, v = vUv.y; float a = v < .5 ? 0.0 : (v < .78 ? mix(0.0, .5, (v - .5) / .28) : (v < .92 ? mix(.5, 1.0, (v - .78) / .14) : 1.0));' +
       ' vec3 c = v < .85 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), clamp((v - .5) / .35, 0.0, 1.0)) : mix(vec3(1.0, .16, .07), vec3(1.0, .95, .86), (v - .85) / .15);' +
       ' a *= pow(u, 1.6) * brilho; gl_FragColor = vec4(c * a * forca, 1.0); }',
     fumaca: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_PERFIL +
       'void main(){ float a = .5 * perfil(vUv.y) * pow(vUv.x, 1.3) * brilho; gl_FragColor = vec4(.06, 0.0, .01, a); }',
-    vento: 'uniform float brilho, tempo, forca; varying vec2 vUv;' +
-      'void main(){ float u = vUv.x, v = vUv.y; float f = .5 + .5 * sin(v * 60.0 + sin(u * 25.13 + tempo * 4.0) * 2.0); float s = smoothstep(.56, .76, f * (.7 + .3 * sin(u * 31.4 + v * 9.0)));' +
-      ' vec3 c = s < .4 ? mix(vec3(.06, 0.0, .01), vec3(.55, .01, .03), s / .4) : (s < .75 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), (s - .4) / .35) : mix(vec3(1.0, .16, .07), vec3(1.0, .4, .14), (s - .75) / .25));' +
-      ' float a = s * 4.0 * v * (1.0 - v) * brilho * .55; gl_FragColor = vec4(c * a * forca, 1.0); }'
+    vento: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_RUIDO +
+      'void main(){ float u = vUv.x, v = vUv.y; float s = smoothstep(.56, .76, fbm(vec2(u * 7.5, v * 30.0)));' +
+      ' vec3 c = s < .4 ? mix(vec3(.14, 0.0, .02), vec3(.55, .01, .03), s / .4) : (s < .75 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), (s - .4) / .35) : mix(vec3(1.0, .16, .07), vec3(1.0, .4, .14), (s - .75) / .25));' +
+      ' float a = clamp(s * 4.0 * v * (1.0 - v) * brilho * .55, 0.0, 1.0); gl_FragColor = vec4(c * forca, a); }'
   };
-  function matTuf(tipo, forca){ return new T.ShaderMaterial({ uniforms: { brilho: { value: 0 }, tempo: { value: 0 }, forca: { value: forca } }, vertexShader: TUF_VS, fragmentShader: TUF_FS[tipo], transparent: true, blending: tipo === 'fumaca' ? T.NormalBlending : T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); }
+  function matTuf(tipo, forca){ return new T.ShaderMaterial({ uniforms: { brilho: { value: 0 }, tempo: { value: 0 }, forca: { value: forca } }, vertexShader: TUF_VS, fragmentShader: TUF_FS[tipo], transparent: true, blending: tipo === 'miolo' ? T.AdditiveBlending : T.NormalBlending, depthWrite: false, side: T.DoubleSide }); }
   function fitaViva(n, mat){                                       /* fita de n amostras (2 vertices cada) atualizada todo quadro, em coordenadas do mundo */
     var pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = [];
     for(var i = 0; i < n; i++){ uv.set([i / (n - 1), 0, i / (n - 1), 1], i * 4); if(i < n - 1) idx.push(2 * i, 2 * i + 1, 2 * i + 3, 2 * i, 2 * i + 3, 2 * i + 2); }
@@ -367,9 +372,9 @@
   function tufaoLuz(rig, an, L){
     var swd = rig && rig.swd2h, P0 = swd && ponta(swd); if(!P0 || !an) return;
     var leve_ = leve(), t1 = L[0] - .06, t2 = L[L.length - 1] + .08, hist = [], vivo = true, tReal = 0, fimT = -1, ondaFeita = false;
-    var mEn = matTuf('energia', 3.4), mMi = matTuf('miolo', 4.0), mFu = leve_ ? null : matTuf('fumaca', 1), mCa = matTuf('miolo', 3.2);
+    var mEn = matTuf('energia', 1.15), mMi = matTuf('miolo', 2.2), mFu = leve_ ? null : matTuf('fumaca', 1), mCa = matTuf('miolo', 3.2);
     var fEn = fitaViva(22, mEn), fMi = fitaViva(16, mMi), fFu = mFu ? fitaViva(26, mFu) : null, fCa = fitaViva(9, mCa);
-    var fun = [funil(.9, 1.7, 2.2, matTuf('vento', 2.8))]; if(!leve_) fun.push(funil(1.2, 2.1, 2.6, matTuf('vento', 2.0)));      /* no jogo (dia, chao claro) mais forte que no Blender */
+    var fun = [funil(.9, 1.7, 2.2, matTuf('vento', 1.15))]; if(!leve_) fun.push(funil(1.2, 2.1, 2.6, matTuf('vento', 1.05)));
     var fas = []; for(var k = 0; k < (leve_ ? 8 : 16); k++){ var s = sprite(txN('flare'), k % 3 ? 0xffa030 : 0xfff0d8, rnd(.12, .22), 1); s.visible = false; cena.add(s); fas.push({ s: s, a: rnd(0, 6.28), r: rnd(1.2, 2.2), y: rnd(.3, 2), k: rnd(.3, 1), t0: rnd(0, .25) }); }
     var ow = new T.Vector3(), tw = new T.Vector3(), pe = new T.Vector3();
     function lamina(k){ return ow.clone().lerp(tw, k); }
