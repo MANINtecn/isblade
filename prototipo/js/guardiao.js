@@ -580,8 +580,8 @@ export const Guardiao = (function(){
     }
   };
   G.buffs = buffs;
-  /* Fortaleza Egide: dentro da zona (8 s) parte do dano causado volta como vida. Equilibrado: 10% do dano; devolve a cura (o jogo aplica). */
-  var DRENO = .10, DRENO_GIRO = .35, GIRO = false;   /* o golpe do domo girando cura 35% (o comum, 10%) */
+  /* Fortaleza Egide: dentro da zona (8 s) parte do dano causado volta como vida. Equilibrado: 15% do dano (era 10%); devolve a cura (o jogo aplica). */
+  var DRENO = .15, DRENO_GIRO = .52, GIRO = false;   /* [balanco 26/11/2026] dono: curava pouco -> +50% (15% comum, 52% no golpe do domo girando); recarga 20 -> 26 s */
   G.drenar = function(dmg){
     if(!ctx || ctx.getWPN() !== 'shield' || !(dmg > 0)) return 0; var z = buffs.zona, S = ctx.getS();
     if(!z || z.t <= 0 || Math.hypot(S.px - z.x, S.pz - z.z) > z.r) return 0;

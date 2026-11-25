@@ -128,7 +128,7 @@
       "name": "Tufao",
       "pose": "w_n2",
       "icon": "w_tufao",
-      "cd": 18,
+      "cd": 24,
       "dmg": 8,
       "dur": 5.438,
       "range": 3.2,
@@ -182,7 +182,7 @@
       ],
       "armor": true,
       "mover": true,
-      "roubo": 0.2,
+      "roubo": 0.3,
       "unlock": 20,
       "desc": "9 voltas violentas com a lamina deitada (voce move o tufao com o direcional; sem direcao gira no lugar) e explosao final. Cada golpe rouba 20% do dano em vida.",
       "peso": [
