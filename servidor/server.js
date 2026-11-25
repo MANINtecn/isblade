@@ -516,7 +516,7 @@ wss.on('connection', ws => {
       const v = Prog.perde(J.pers); Contas.grava(); envia(J, Object.assign({ t: 'prog', perdeu: v }, Prog.info(J.pers)));
     }
     else if(m.t === 'mhit'){                                        /* [mobs-servidor] dano do jogador num mob do servidor */
-      const W = mundoDe(c); if(!W || J.morto) return; const t = agora(); J.mhT = (J.mhT || []).filter(x => t - x < 1); if(J.mhT.length >= 30) return; J.mhT.push(t);
+      const W = mundoDe(c); if(!W || J.morto) return; const t = agora(); J.mhT = (J.mhT || []).filter(x => t - x[0] < 1); const mid = m.id | 0; if(J.mhT.length >= 150 || J.mhT.filter(x => x[1] === mid).length >= 15) return; J.mhT.push([t, mid]);      /* [tufao 25/11/2026] skill de area com varios hits (Tufao: 3 por giro): ate 15 hits/s em CADA mob e 150/s no total (antes 30/s no total cortava dano com 4+ mobs em volta) */
       const mo = W.hit(J, m.id | 0, +m.d || 0, t); if(mo){ abateMundo(c, W, mo); if(W.aoMatar) W.aoMatar(mo); }
     }
     else if(m.t === 'mfx'){                                         /* [puxao] efeito de skill num mob do servidor (hoje: k 'puxa' = Corrente de Puxao do Guardiao) */

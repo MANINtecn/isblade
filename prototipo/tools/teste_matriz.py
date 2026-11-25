@@ -51,10 +51,10 @@ def roda(corpo, classe):
             if r['nivel_mast'] < 30: r['falhas'].append('nivel nao subiu (mast=%s): teste invalido' % r['nivel_mast'])
             r['modelo'] = pg.evaluate("(function(){var v=window.__dbg&&__dbg.vrm&&__dbg.vrm();if(!v)return null;return {tipo:v.charType||null,clipes:v.drv?Object.keys(v.drv.actions).length:0}})()")
             if not r['modelo'] or not r['modelo']['clipes']: r['falhas'].append('modelo/clipes nao carregou')
-            if classe == 'guerreiro':                 # [guerreiro-l2] as skills 2-7 tem de rodar nos golpes nativos do L2 (W_NAT em js/guardiao.js), em toda raca/sexo
+            if classe == 'guerreiro':                 # [guerreiro-l2] as skills 2,3,4,6,7 rodam nos golpes nativos do L2 (Investida e Tufao no clipe do Blender) (W_NAT em js/guardiao.js), em toda raca/sexo
                 pg.wait_for_timeout(3000)
                 r['clipes_guerreiro'] = pg.evaluate("(function(){var v=__dbg.vrm();var w=v&&v.wClips||{};var o={};Object.keys(w).forEach(function(k){o[k]=w[k].psa+(v.clips[k]?'':' SEM CLIPE')});return o})()")
-                falta = [k for k in ('w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6') if not str(r['clipes_guerreiro'].get(k, '')).startswith('L2:')]
+                falta = [k for k in ('w_n1', 'w_n3', 'w_n4', 'w_n5', 'w_n6') if not str(r['clipes_guerreiro'].get(k, '')).startswith('L2:')] + [k for k in ('w_n0', 'w_n2') if not r['clipes_guerreiro'].get(k) or 'SEM CLIPE' in str(r['clipes_guerreiro'].get(k))]      # w_n0 (Investida) e w_n2 (Tufao) ficam no clipe do Blender
                 if falta: r['falhas'].append('golpe nativo do L2 nao carregou em %s' % falta)
             def spawn(): adm({'acao': 'mob_spawn', 'tipo': 'sapo_curuma', 'qtd': 5, 'raio': 4, 'agr': 0, 'fixo': False}); pg.wait_for_timeout(3500)
             spawn()
@@ -73,7 +73,7 @@ def roda(corpo, classe):
                     # repoe alvos e posicao (skills de dash mudam a posicao; mortos sao respawnados). Na 2a tentativa sempre spawna alvos novos.
                     if tent == 2 or pg.evaluate("__dbg.MOBS.filter(function(m){return m.srv&&!m.dead}).length") < 2:
                         spawn()
-                    pg.evaluate("S.px=__p0[0];S.pz=__p0[1];var q=__dbg.MOBS.filter(function(m){return m.srv&&!m.dead}).sort(function(a,b){return Math.hypot(a.x-S.px,a.z-S.pz)-Math.hypot(b.x-S.px,b.z-S.pz)})[0];if(q)S.face=Math.atan2(q.x-S.px,q.z-S.pz);window.__log=[];S.php=S.pmax||9999;")
+                    pg.evaluate("S.px=__p0[0];S.pz=__p0[1];var q=__dbg.MOBS.filter(function(m){return m.srv&&!m.dead}).sort(function(a,b){return Math.hypot(a.x-S.px,a.z-S.pz)-Math.hypot(b.x-S.px,b.z-S.pz)})[0];if(q){S.face=Math.atan2(q.x-S.px,q.z-S.pz);S.aimM=q;}window.__log=[];S.php=S.pmax||9999;")
                     pg.evaluate("S.cd[%d]=0" % i)
                     res = pg.evaluate("__dbg.castSkill(%d)" % i)
                     pg.wait_for_timeout(1500)

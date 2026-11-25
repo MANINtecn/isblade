@@ -103,10 +103,10 @@ export const Guardiao = (function(){
   var W_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter' };
   var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.1726,cut:0.7857,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
   /* [guerreiro-l2 25/11/2026] skills sobre os golpes NATIVOS do L2 (espada de 2 maos, human_fighter_nograde.glb), escolhidos na galeria (tools/blender_fx/galeria_nativos.py).
-     O hit cai no quadro do impacto MEDIDO no Blender (pico de velocidade da espada, 24 qps): hit = quadro / ultimo quadro. rep = o golpe se repete (Tufao = 3 giros, 1 hit por giro).
+     O hit cai no quadro do impacto MEDIDO no Blender (pico de velocidade da espada, 24 qps): hit = quadro / ultimo quadro. rep = o golpe se repete. O Tufao (w_n2) ficou no clipe do Blender (10 giros; o dono preferiu).
      Os mesmos numeros estao em data/armas/sword.json -> hits (o servidor le de la). A Investida (w_n0) continua no clipe do Blender (dash), so com 1 hit. */
   var W_NAT = { w_n1:{src:'SpAtk01_2HS',hit:27/42,cut:.97,sp:1,lg:.6}, w_n6:{src:'SpAtk03_2HS',hit:27/43,cut:.97,sp:1,lg:1.2}, w_n5:{src:'SpAtk18_2HS',hit:11/18,cut:.97,sp:.8,lg:1.1},
-               w_n4:{src:'SpAtk19_2HS',hit:12/18,cut:.97,sp:.75,lg:.8}, w_n2:{src:'SpAtk04_1HS',rep:3,hit:21/110,cut:.97,sp:1,lg:0}, w_n3:{src:'SpAtk11_2HS',hit:.5,cut:.97,sp:.6,lg:0} };
+               w_n4:{src:'SpAtk19_2HS',hit:12/18,cut:.97,sp:.75,lg:.8}, w_n3:{src:'SpAtk11_2HS',hit:.5,cut:.97,sp:.6,lg:0} };
   function repeteClipe(THREE, c, n){                                  /* junta n copias do clipe (1 quadro de folga entre elas) */
     var P = c.duration + 1 / 24, tr = c.tracks.map(function(t){
       var k = t.times.length, vs = t.values.length / k, T = new Float32Array(k * n), V = new Float32Array(t.values.length * n);

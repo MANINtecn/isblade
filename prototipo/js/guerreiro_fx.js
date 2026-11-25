@@ -336,6 +336,7 @@
     }
     else if(pose === 'w_n1'){ flareN(ex, ey, ez, 2.8, CARM2, .45); flareN(ex, ey, ez, 1.1, ACO, .22, false); espinhos(ex, ey, ez, leve() ? 6 : 10, 1, ACO, .25); brasas(ex, ey, ez, 16, 2.2, 1.8); estrelasStun(hx, hz, 1.5); agita(.45); }
     else if(pose === 'w_n2'){
+      if(!last && (part - 1) % 4){ flareN(ex, ey, ez, .9, part % 2 ? SANG : ACO, .16, false); return; }      /* [tufao 25/11/2026] 4 hits por giro: o efeito cheio so no 1o de cada giro */
       if(!last){ flareN(ex, ey, ez, 1.5, part % 2 ? SANG : ACO, .28, part % 2 === 0); drenoN(ex, ey, ez, leve() ? 2 : 4, pt, CARM2); if(part % 3 === 0){ var px_ = window.S ? S.px : hx, pz_ = window.S ? S.pz : hz; lascas(px_, pz_, 3, 2.6, .07); brasas(px_, .6, pz_, 6, 2.2, 2.4); } agita(.12); return; }
       var X = window.S ? S.px : hx, Z = window.S ? S.pz : hz; flareN(X, 1.1, Z, 4.6, CARM2, .6); flareN(X, 1.1, Z, 3.4, SANG, .7, false); estilhacosN(X, 1.1, Z, leve() ? 5 : 10, CARM2); drenoN(X + 1.5, 1.2, Z, leve() ? 4 : 10, pt, CARM2); brasas(X, 1, Z, 30, 2.6, 2.4); estrelasStun(hx, hz, 1.25); setTimeout(function(){ var q = window.S ? { x: S.px, z: S.pz } : { x: X, z: Z }; veuN(q.x, q.z, .8, 2.4, SANG, .37, .88, 8); }, 450); agita(.6); flash('#c01008', .22, 300);
     }
