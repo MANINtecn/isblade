@@ -37,7 +37,7 @@ def roda(corpo, classe):
         init = ("sessionStorage.setItem('isblade.fluxo','1');localStorage.setItem('isblade.conta_token','%s');localStorage.setItem('isblade.conta_user','x');"
                 "localStorage.setItem('isblade_active_character_id','%s');localStorage.setItem('isblade.char_type','%s');localStorage.setItem('isblade.weapon','%s');") % (tk, ch['id'], corpo, CLASSES[classe])
         with sync_playwright() as p:
-            b = p.chromium.launch(channel='chrome', args=['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
+            b = p.chromium.launch(channel='chrome', args=['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'])      # placa de video de verdade (~60 qps); a emulacao por software rodava a 2-17 qps
             c = b.new_context(service_workers='block', viewport={'width': 480, 'height': 300}); c.add_init_script(init); pg = c.new_page(); pg.set_default_timeout(120000); errs = []
             pg.on('pageerror', lambda e: errs.append(str(e)[:160]))
             pg.goto(B + '/cidade.html?q=baixa'); pg.wait_for_function('window.__DION_PRONTO', timeout=300000); pg.wait_for_timeout(8000)

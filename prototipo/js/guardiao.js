@@ -101,7 +101,7 @@ export const Guardiao = (function(){
   /* ---------- Guerreiro (espada 2 maos), skills 1,3,4,5,6: clipes baked do Blender (tools/blender_fx/guerreiro_clips_export.py -> assets/personagens/guerreiro_clips/<PSA>.glb)
      so o Humano M por enquanto. Mesmo retarget do anexarCast: so rotacoes + movimento (delta) do quadril e do osso raiz. hit/cut = fracao do clipe (medidos no Blender) */
   var W_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter' };
-  var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.1726,cut:0.7857,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
+  var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0,segura:[5/24,.5]}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.1726,cut:0.7857,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
   /* [guerreiro-l2 25/11/2026] skills sobre os golpes NATIVOS do L2 (espada de 2 maos, human_fighter_nograde.glb), escolhidos na galeria (tools/blender_fx/galeria_nativos.py).
      O hit cai no quadro do impacto MEDIDO no Blender (pico de velocidade da espada, 24 qps): hit = quadro / ultimo quadro. rep = o golpe se repete. O Tufao (w_n2) ficou no clipe do Blender (10 giros; o dono preferiu).
      Os mesmos numeros estao em data/armas/sword.json -> hits (o servidor le de la). A Investida (w_n0) continua no clipe do Blender (dash), so com 1 hit. */
@@ -157,7 +157,7 @@ export const Guardiao = (function(){
       list.forEach(function(src){
         if(!W_T[src.name] || W_NAT[src.name]) return;                    /* as do L2 nativo entram abaixo */
         var c = conv(src); rig.clips[src.name] = c;
-        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: (MED[src.name] && MED[src.name].rm) || null, ini: (MED[src.name] && MED[src.name].ini) || 0, pausas: (MED[src.name] && MED[src.name].pausas) || null, psa: psa };   /* ini: onde o corpo comeca a se mexer; pausas: hit-stop gravado no Blender (s do clipe) */
+        var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: (MED[src.name] && MED[src.name].rm) || null, ini: (MED[src.name] && MED[src.name].ini) || 0, pausas: (MED[src.name] && MED[src.name].pausas) || null, segura: m.segura || null, psa: psa };      /* [tufao-luz] segura = carga antes do giro */   /* ini: onde o corpo comeca a se mexer; pausas: hit-stop gravado no Blender (s do clipe) */
       });
       Object.keys(W_NAT).forEach(function(k){
         var m = W_NAT[k], src = null; NAT.forEach(function(c){ if(c.name === m.src || c.name === m.src + '_MFighter') src = c; }); if(!src) return;

@@ -44,7 +44,7 @@
     try{
       var antes = new Set(PREP.scene.children), ax = window.S ? S.px : 0, az = window.S ? S.pz : 0;      /* o que o aquecimento criar sai da cena depois (rochas, fissuras, marcas ficavam no chao da arena) */
       var oq = { rig: rig, px: -3000, pz: -3000, face: 0, an: { hitT: .3, hitList: [{ t: .3 }, { t: .5 }], total: 1.2, lg: 3 } };
-      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, -3000, -3000, oq); }catch(e){} }); try{ fendaLuz(-3000, -3000, 0); }catch(e){}      /* [fenda-luz] o shader da rachadura tambem compila aqui */
+      ['w_n0', 'w_n1', 'w_n2', 'w_n3', 'w_n4', 'w_n5', 'w_n6'].forEach(function(po){ try{ G.swingN(po, oq); if(G.hitN) G.hitN(po, -3000, -3000, oq); }catch(e){} }); try{ fendaLuz(-3000, -3000, 0); }catch(e){} try{ tufaoLuz(rig, oq.an, [.3, .5]); }catch(e){}      /* [fenda-luz] o shader da rachadura tambem compila aqui */
       R.setRenderTarget(rt); R.compile(PREP.scene, PREP.camera); R.setRenderTarget(null); /* PREP.scene: na cidade 'cena' e' um proxy (FXCENA), nao um Object3D */
       vivos.slice().forEach(function(f){ try{ f(99); }catch(e){} }); vivos.length = 0;
       PREP.scene.children.slice().forEach(function(o){ if(!antes.has(o)) PREP.scene.remove(o); });
@@ -323,6 +323,88 @@
   }
   function tempos(an){ var ht = (an && an.hitT) || .5, L = an && an.hitList ? an.hitList.map(function(h){ return h.t; }) : [ht]; return { ht: ht, L: L, tot: (an && an.total) || 2 }; }
 
+  /* [tufao-luz 25/11/2026] Tufao v7 aprovado no Blender (tools/blender_fx/tufao_luz.py): CARGA (a lamina se enche de energia e faiscas douradas sao puxadas
+     para ela durante a segura de 0,5 s do golpe), RASTRO da espada em 3 camadas seguindo a lamina DE VERDADE (miolo branco-quente no fio, energia vermelha/dourada
+     com fios, fumaca escura atras = peso), FUNIL fino de vento em volta e ONDA DE CHOQUE na altura da lamina no golpe final. Nada no chao.
+     Tudo guiado pelo proprio golpe (S.anim): carga enquanto o relogio esta antes do 1o hit, rastro do 1o ao ultimo hit; acaba junto com a skill. */
+  var TUF_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+  var TUF_PERFIL = 'float perfil(float v){ if(v < .25) return mix(0.0, .45, v / .25); if(v < .7) return mix(.45, .9, (v - .25) / .45); if(v < .9) return mix(.9, 1.0, (v - .7) / .2); return mix(1.0, 0.0, (v - .9) / .1); }';
+  var TUF_FS = {
+    energia: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_PERFIL +
+      'void main(){ float u = vUv.x, v = vUv.y; vec3 c = v < .6 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), v / .6) : mix(vec3(1.0, .16, .07), vec3(1.0, .36, .1), (v - .6) / .4);' +
+      ' float f = .5 + .5 * sin(v * 70.0 + sin(u * 6.0 + tempo * 3.0) * 3.0); float mist = mix(.06, 1.0, smoothstep(.45, .7, f));' +
+      ' float a = perfil(v) * pow(u, 1.3) * mist * brilho; gl_FragColor = vec4(c * a * forca, 1.0); }',
+    miolo: 'uniform float brilho, tempo, forca; varying vec2 vUv;' +
+      'void main(){ float u = vUv.x, v = vUv.y; float a = v < .5 ? 0.0 : (v < .78 ? mix(0.0, .5, (v - .5) / .28) : (v < .92 ? mix(.5, 1.0, (v - .78) / .14) : 1.0));' +
+      ' vec3 c = v < .85 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), clamp((v - .5) / .35, 0.0, 1.0)) : mix(vec3(1.0, .16, .07), vec3(1.0, .95, .86), (v - .85) / .15);' +
+      ' a *= pow(u, 1.6) * brilho; gl_FragColor = vec4(c * a * forca, 1.0); }',
+    fumaca: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_PERFIL +
+      'void main(){ float a = .5 * perfil(vUv.y) * pow(vUv.x, 1.3) * brilho; gl_FragColor = vec4(.06, 0.0, .01, a); }',
+    vento: 'uniform float brilho, tempo, forca; varying vec2 vUv;' +
+      'void main(){ float u = vUv.x, v = vUv.y; float f = .5 + .5 * sin(v * 60.0 + sin(u * 25.13 + tempo * 4.0) * 2.0); float s = smoothstep(.56, .76, f * (.7 + .3 * sin(u * 31.4 + v * 9.0)));' +
+      ' vec3 c = s < .4 ? mix(vec3(.06, 0.0, .01), vec3(.55, .01, .03), s / .4) : (s < .75 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), (s - .4) / .35) : mix(vec3(1.0, .16, .07), vec3(1.0, .4, .14), (s - .75) / .25));' +
+      ' float a = s * 4.0 * v * (1.0 - v) * brilho * .55; gl_FragColor = vec4(c * a * forca, 1.0); }'
+  };
+  function matTuf(tipo, forca){ return new T.ShaderMaterial({ uniforms: { brilho: { value: 0 }, tempo: { value: 0 }, forca: { value: forca } }, vertexShader: TUF_VS, fragmentShader: TUF_FS[tipo], transparent: true, blending: tipo === 'fumaca' ? T.NormalBlending : T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }); }
+  function fitaViva(n, mat){                                       /* fita de n amostras (2 vertices cada) atualizada todo quadro, em coordenadas do mundo */
+    var pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = [];
+    for(var i = 0; i < n; i++){ uv.set([i / (n - 1), 0, i / (n - 1), 1], i * 4); if(i < n - 1) idx.push(2 * i, 2 * i + 1, 2 * i + 3, 2 * i, 2 * i + 3, 2 * i + 2); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('uv', new T.BufferAttribute(uv, 2)); g.setIndex(idx);
+    var m = new T.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = 4; cena.add(m); return m;      /* posicao (0,0,0): a cena nao desloca (vertices ja estao no mundo) */
+  }
+  function poeFita(m, A, B){                                       /* A[i], B[i] = pontos de dentro e de fora da amostra i (A.length <= n) */
+    var p = m.geometry.attributes.position, n = p.count / 2, k = A.length;
+    for(var i = 0; i < n; i++){ var j = Math.min(k - 1, Math.max(0, i - (n - k))), a = A[j], b = B[j]; p.setXYZ(2 * i, a.x, a.y, a.z); p.setXYZ(2 * i + 1, b.x, b.y, b.z); }
+    p.needsUpdate = true;
+  }
+  function funil(r0, r1, h, mat){
+    var nv = 40, nh = 8, pos = [], uv = [], idx = [];
+    for(var j = 0; j <= nh; j++){ var tt = j / nh, r = r0 + (r1 - r0) * tt; for(var i = 0; i <= nv; i++){ var a = i / nv * Math.PI * 2; pos.push(Math.cos(a) * r, .05 + h * tt, Math.sin(a) * r); uv.push(i / nv, tt); } }
+    for(j = 0; j < nh; j++) for(i = 0; i < nv; i++){ var q = j * (nv + 1) + i; idx.push(q, q + 1, q + nv + 2, q, q + nv + 2, q + nv + 1); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+    var m = new T.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = 3; cena.add(m); return m;
+  }
+  function tufaoLuz(rig, an, L){
+    var swd = rig && rig.swd2h, P0 = swd && ponta(swd); if(!P0 || !an) return;
+    var leve_ = leve(), t1 = L[0] - .06, t2 = L[L.length - 1] + .08, hist = [], vivo = true, tReal = 0, fimT = -1, ondaFeita = false;
+    var mEn = matTuf('energia', 3.4), mMi = matTuf('miolo', 4.0), mFu = leve_ ? null : matTuf('fumaca', 1), mCa = matTuf('miolo', 3.2);
+    var fEn = fitaViva(22, mEn), fMi = fitaViva(16, mMi), fFu = mFu ? fitaViva(26, mFu) : null, fCa = fitaViva(9, mCa);
+    var fun = [funil(.9, 1.7, 2.2, matTuf('vento', 2.8))]; if(!leve_) fun.push(funil(1.2, 2.1, 2.6, matTuf('vento', 2.0)));      /* no jogo (dia, chao claro) mais forte que no Blender */
+    var fas = []; for(var k = 0; k < (leve_ ? 8 : 16); k++){ var s = sprite(txN('flare'), k % 3 ? 0xffa030 : 0xfff0d8, rnd(.12, .22), 1); s.visible = false; cena.add(s); fas.push({ s: s, a: rnd(0, 6.28), r: rnd(1.2, 2.2), y: rnd(.3, 2), k: rnd(.3, 1), t0: rnd(0, .25) }); }
+    var ow = new T.Vector3(), tw = new T.Vector3(), pe = new T.Vector3();
+    function lamina(k){ return ow.clone().lerp(tw, k); }
+    vivos.push(function(dt){
+      tReal += dt; var em = window.S && S.anim === an, tt = em ? an.tt : 1e9;
+      if(!em && fimT < 0) fimT = tReal;
+      swd.updateMatrixWorld(true); ow.copy(P0.org); swd.localToWorld(ow); tw.copy(P0.tip); swd.localToWorld(tw);
+      if(rig.root) rig.root.getWorldPosition(pe);
+      var carga = em && tt < t1, gira = em && tt >= t1 && tt <= t2, fade = fimT < 0 ? 1 : Math.max(0, 1 - (tReal - fimT) / .3);
+      /* carga: fita ao longo da lamina que engrossa e acende; faiscas puxadas para ela */
+      var eC = carga ? Math.min(1, tReal / Math.max(.2, (an.segura ? an.segura[1] : 0) + .25)) : 0, dir = tw.clone().sub(ow).normalize(), lado = dir.clone().cross(new T.Vector3(0, 1, 0));
+      if(lado.lengthSq() < 1e-4) lado.set(1, 0, 0); lado.normalize().multiplyScalar(.03 + .1 * eC);
+      var CA = [], CB = []; for(var i = 0; i < 9; i++){ var q = lamina(.1 + .95 * i / 8); CA.push(q.clone().sub(lado)); CB.push(q.clone().add(lado)); }
+      poeFita(fCa, CA, CB); mCa.uniforms.brilho.value = carga ? .3 + 1.6 * eC : Math.max(0, mCa.uniforms.brilho.value - dt * 6); mCa.uniforms.tempo.value = tReal;
+      fas.forEach(function(f){ var e = (tReal - f.t0) / .45; if(e < 0 || e > 1 || !carga){ f.s.visible = false; return; } f.s.visible = true; var alvo = lamina(f.k), x0 = pe.x + Math.cos(f.a) * f.r, z0 = pe.z + Math.sin(f.a) * f.r, ee = e * e;
+        f.s.position.set(x0 + (alvo.x - x0) * ee, pe.y + f.y + (alvo.y - pe.y - f.y) * ee, z0 + (alvo.z - z0) * ee); f.s.material.opacity = e < .8 ? 1 : (1 - e) / .2; });
+      /* rastro: guarda mao/ponta e desenha os ultimos ~0,17 s (meia-lua de ~160 graus) */
+      if(gira) hist.push({ t: tReal, o: ow.clone(), p: tw.clone() });
+      while(hist.length > 3 && tReal - hist[0].t > .24) hist.shift();
+      function janela(seg){ var r = hist.filter(function(h){ return tReal - h.t <= seg; }); if(r.length < 3) r = hist.slice(-3); return r.length >= 2 ? r : null; }      /* aparelho lento: no minimo 3 amostras (o rastro nao some) */
+      function camada(f, seg, k0, k1, dy){ var H = janela(seg); if(!H){ f.visible = false; return; } f.visible = true; var A = [], B = []; H.forEach(function(h){ var a = h.o.clone().lerp(h.p, k0), b = h.o.clone().lerp(h.p, k1); a.y += dy; b.y += dy; A.push(a); B.push(b); }); poeFita(f, A, B); }
+      camada(fEn, .17, .2, 1.12, 0); camada(fMi, .125, .8, 1.03, 0); if(fFu) camada(fFu, .21, .1, 1.2, -.04);
+      var bR = (gira ? 1 : 0) * fade, fin = em && L.length && tt >= L[L.length - 1] - .12 ? 1.5 : 1;
+      [mEn, mMi].forEach(function(m){ m.uniforms.brilho.value = bR * fin; m.uniforms.tempo.value = tReal; }); if(mFu) mFu.uniforms.brilho.value = .9 * bR;
+      /* funil fino em volta, gira e acompanha o corpo */
+      fun.forEach(function(f, i){ f.position.set(pe.x, pe.y, pe.z); f.rotation.y -= dt * (i ? 9 : 13); var U = f.material.uniforms, alvoB = gira ? (i ? .62 : .75) : 0; U.brilho.value += (alvoB * fade - U.brilho.value) * Math.min(1, dt * 6); U.tempo.value = tReal; });
+      /* golpe final: onda de choque na altura da lamina */
+      if(!ondaFeita && em && L.length && tt >= L[L.length - 1]){ ondaFeita = true; var yy = Math.max(pe.y + .6, (ow.y + tw.y) / 2), rg = new T.Mesh(new T.RingGeometry(.85, 1.2, 56), aditivo(0xff2a12, txN('halo'), 1)); rg.rotation.x = -Math.PI / 2; rg.position.set(pe.x, yy, pe.z); rg.frustumCulled = false; cena.add(rg);
+        seq(.38, function(u){ var s_ = 1 + 2.6 * u; rg.scale.set(s_, s_, s_); rg.material.opacity = 1 - u; }, function(){ some(rg); }); flareN(pe.x, yy, pe.z, 3, ACO, .3); agita(.35); }
+      var acabou = fimT >= 0 && tReal - fimT > .32;
+      if(acabou || tReal > 12){ [fEn, fMi, fCa].concat(fFu ? [fFu] : [], fun).forEach(function(m){ m.material.dispose(); some(m); }); fas.forEach(function(f){ f.s.material.dispose(); if(f.s.parent) f.s.parent.remove(f.s); }); return true; }
+      return false;
+    });
+  }
+  G.tufao = function(rig, an){ if(!G.pronto || !an) return; var L = an.hitList ? an.hitList.map(function(h){ return h.t; }) : [an.hitT || .5]; tufaoLuz(rig, an, L); };
   G.swingN = function(pose, o){
     var rig = o.rig, swd = rig && rig.swd2h, x = o.px, z = o.pz, f = o.face || 0, tm = tempos(o.an), fx = Math.sin(f), fz = Math.cos(f);
     if(pose === 'w_n0'){                                                                           /* Investida: arrancada com ecos, linhas de vento e rastro no chao */
@@ -341,12 +423,8 @@
       setTimeout(function(){ var p = pontaMundo(swd); if(p) flareN(p.x, p.y, p.z, 1.2, OURO, .3, false); }, g0 * 1000);
       sombrasN(rig, .32, .03, CARM2, .26, .6, tm.ht - .3); ecosN(rig, tm.ht - .14, tm.ht - .04, .07, CARM2, .3, .5); trilha(swd, tm.ht + .1, 1.1);
     }
-    else if(pose === 'w_n2'){                                                                      /* Tufao: lamina deitada, vortice de vento, sombras da espada, contorno de sangue */
-      var giro = (tm.L[tm.L.length - 2] || tm.ht) + .1; contornoN(rig, SANG, tm.tot + .4, function(t){ return t < .3 ? t / .3 * .5 : (t < tm.tot ? .5 + .25 * Math.sin(t * 9) : Math.max(0, .5 - (t - tm.tot) * 2)); });
-      auraLamina(swd, tm.tot, SANG); trilha(swd, giro, .9); sombrasN(rig, giro, .045, CARM2, .2, .6, tm.ht * .6);
-      seloN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, 1.7, SANG, tm.tot + .2, .6);   /* selo de postura (Blender: selo 's' preso ao corpo) */
-      vorticeN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, giro, 70, CARM2);
-      if(!leve()) vorticeN(function(){ return { x: window.S ? S.px : x, z: window.S ? S.pz : z }; }, giro, 30, SANG);
+    else if(pose === 'w_n2'){                                                                      /* [tufao-luz 25/11/2026] Tufao v7: carga, rastro da espada em 3 camadas, funil fino (tufaoLuz) */
+      /* nada aqui: o swing roda a cada hit; o Tufao nasce uma vez no inicio do golpe (G.tufao, chamado no mkAnim) */
     }
     else if(pose === 'w_n3'){                                                                      /* Modo de Batalha: estilhacos convergem para a lamina enquanto ele concentra */
       var P0 = swd && ponta(swd); if(P0){ for(var j = 0; j < (leve() ? 10 : 26); j++){ (function(){ var s = sprite(txN('losango'), BRASA, .2, 1), a0 = rnd(0, 6.28), r0 = rnd(1.2, 2), z0 = rnd(-.2, 1.6), t0 = rnd(0, tm.ht * .7), d = rnd(.3, .5); s.visible = false; cena.add(s);

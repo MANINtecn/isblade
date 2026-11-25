@@ -783,7 +783,7 @@ body:not(.combo-ui) #panel,body:not(.combo-ui) #chain,body:not(.combo-ui) #winba
 <script src="js/mago_fx.js?v=4"></script>
 <script src="js/mago_fx2.js?v=1"></script>
 <script src="js/clerigo_fx.js?v=9"></script>
-<script src="js/guerreiro_fx.js?v=22"></script>
+<script src="js/guerreiro_fx.js?v=26"></script>
 <script src="js/l2_cache.js?v=1"></script>
 <script src="js/remote_vis.js?v=3"></script>
 <script src="js/diag_off.js?v=1"></script>
@@ -1286,7 +1286,7 @@ window.AssetsWeb && window.AssetsWeb.instala(THREE.GLTFLoader, THREE);      /* [
 
 /* >>> CLAUDE [guardiao] 2026-10-27 — modulo do Guardiao e regras de classe por arma */
 
-import { Guardiao } from './js/guardiao.js?v=37';
+import { Guardiao } from './js/guardiao.js?v=38';
 import { Net } from './js/net.js?v=60';
 import { CC } from './js/cc.js?v=1';
 /* >>> CLAUDE [perchar] dados de PROGRESSO por personagem (inventario, escolha de skills, maestria, DGs feitas): chave = base + '.' + id do personagem ativo.
@@ -6506,7 +6506,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
 
-    an.clipMode=true;an.tt=0;an.hitT=base*cm.hit;an.total=base*cm.cut;an.lg=cm.lg;if(cm.rm){an.rm=cm.rm;an.rmSp=cm.sp||1;an.rmP=0;}/* [guerreiro] curva do corpo do Blender */if(cm.ini||cm.pausas){an.ini=(cm.ini||0)/(cm.sp||1);an.pausas=cm.pausas;an.tt=an.ini;if(an.rm){var q0=Math.min(an.rm.length-1,Math.floor((cm.ini||0)*48));an.rmP=an.rm[q0];}}/* [ritmo] sem a espera parada do inicio */
+    an.clipMode=true;an.tt=0;an.hitT=base*cm.hit;an.total=base*cm.cut;an.lg=cm.lg;if(cm.rm){an.rm=cm.rm;an.rmSp=cm.sp||1;an.rmP=0;}/* [guerreiro] curva do corpo do Blender */if(cm.segura)an.segura=cm.segura;if(cm.ini||cm.pausas){an.ini=(cm.ini||0)/(cm.sp||1);an.pausas=cm.pausas;an.tt=an.ini;if(an.rm){var q0=Math.min(an.rm.length-1,Math.floor((cm.ini||0)*48));an.rmP=an.rm[q0];}}/* [ritmo] sem a espera parada do inicio */
 
 
 
@@ -6518,7 +6518,7 @@ function mkAnim(pose,dmg,sk,perfect,skill){
 
 
 
-      an.hi=0;an.hitT=an.hitList[0].t;
+      an.hi=0;an.hitT=an.hitList[0].t;if(pose==='w_n2'&&WPN==='sword'&&window.GuerreiroFX&&GuerreiroFX.tufao){try{GuerreiroFX.tufao(vrm,an);}catch(_){}}/* [tufao-luz] o efeito do Tufao nasce UMA vez no inicio do golpe (carga + giro) */
 
 
 
@@ -16349,7 +16349,7 @@ function frame2(dt,T){
 
 
 
-    var _k=1;if(an.pausas){var _ct=an.tt*(an.sp||1);for(var _pi=0;_pi<an.pausas.length;_pi++){var _pp=an.pausas[_pi];if(_ct>=_pp[0]+.08&&_ct<_pp[1]){_k=7;break;}}if(an.act)an.act.timeScale=(an.sp||1)*_k;}/* [ritmo] hit-stop do Blender vira hit-stop curto de jogo */
+    var _k=1;if(an.segura&&an.tt*(an.sp||1)>=an.segura[0]&&(an.segT||0)<an.segura[1]){an.segT=(an.segT||0)+dt;_k=0;if(an.act)an.act.timeScale=0;}/* [tufao-luz 25/11/2026] CARGA: o golpe segura segura[1] s no tempo de clipe segura[0] (relogio e clipe param juntos: hits, curva do corpo e pausas seguem alinhados) */else if(an.pausas){var _ct=an.tt*(an.sp||1);for(var _pi=0;_pi<an.pausas.length;_pi++){var _pp=an.pausas[_pi];if(_ct>=_pp[0]+.08&&_ct<_pp[1]){_k=7;break;}}if(an.act)an.act.timeScale=(an.sp||1)*_k;}else if(an.segura&&an.act)an.act.timeScale=(an.sp||1);/* [ritmo] hit-stop do Blender vira hit-stop curto de jogo */
     if(!Guardiao.canalTick(an,dt))an.tt+=dt*_k; /* >>> CLAUDE [guardiao] 2026-10-28 — skill canalizada <<< */
 
 
