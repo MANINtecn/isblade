@@ -102,6 +102,24 @@ export const Guardiao = (function(){
      so o Humano M por enquanto. Mesmo retarget do anexarCast: so rotacoes + movimento (delta) do quadril e do osso raiz. hit/cut = fracao do clipe (medidos no Blender) */
   var W_PSA = { human_fighter:'MFighter', fighter:'MFighter', starter:'MFighter' };
   var W_T = { w_n0:{hit:0.3063,cut:0.4577,sp:1,lg:7.6}, w_n1:{hit:0.5521,cut:0.6847,sp:1,lg:0.6}, w_n2:{hit:0.1379,cut:0.8751,sp:1,lg:0.0}, w_n3:{hit:0.362,cut:0.4061,sp:1,lg:0.0}, w_n4:{hit:0.1278,cut:0.7683,sp:1,lg:2.4}, w_n5:{hit:0.1726,cut:0.7857,sp:1,lg:1.1}, w_n6:{hit:0.2938,cut:0.4565,sp:1,lg:0.0} };   /* [guerreiro] kit novo 15/11/2026 (guerreiro_clips/medidas.json): hit = 1o golpe, cut = fim, lg = avanco em metros feito por codigo */
+  /* [guerreiro-l2 25/11/2026] skills sobre os golpes NATIVOS do L2 (espada de 2 maos, human_fighter_nograde.glb), escolhidos na galeria (tools/blender_fx/galeria_nativos.py).
+     O hit cai no quadro do impacto MEDIDO no Blender (pico de velocidade da espada, 24 qps): hit = quadro / ultimo quadro. rep = o golpe se repete (Tufao = 3 giros, 1 hit por giro).
+     Os mesmos numeros estao em data/armas/sword.json -> hits (o servidor le de la). A Investida (w_n0) continua no clipe do Blender (dash), so com 1 hit. */
+  var W_NAT = { w_n1:{src:'SpAtk01_2HS',hit:27/42,cut:.97,sp:1,lg:.6}, w_n6:{src:'SpAtk03_2HS',hit:27/43,cut:.97,sp:1,lg:1.2}, w_n5:{src:'SpAtk18_2HS',hit:11/18,cut:.97,sp:.8,lg:1.1},
+               w_n4:{src:'SpAtk19_2HS',hit:12/18,cut:.97,sp:.75,lg:.8}, w_n2:{src:'SpAtk04_1HS',rep:3,hit:21/110,cut:.97,sp:1,lg:0}, w_n3:{src:'SpAtk11_2HS',hit:.5,cut:.97,sp:.6,lg:0} };
+  function repeteClipe(THREE, c, n){                                  /* junta n copias do clipe (1 quadro de folga entre elas) */
+    var P = c.duration + 1 / 24, tr = c.tracks.map(function(t){
+      var k = t.times.length, vs = t.values.length / k, T = new Float32Array(k * n), V = new Float32Array(t.values.length * n);
+      for(var r = 0; r < n; r++){ for(var i = 0; i < k; i++) T[r * k + i] = t.times[i] + r * P; V.set(t.values, r * k * vs); }
+      return new t.constructor(t.name, T, V);
+    });
+    return new THREE.AnimationClip(c.name, P * n - 1 / 24, tr);
+  }
+  var natTodos = null;
+  function nativosL2(THREE){                                           /* os 114 clipes nativos do L2 (Humano M); um download so, dividido com anexarNativos */
+    var loader = window.L2Cache ? window.L2Cache.loader() : (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
+    return natTodos || (natTodos = new Promise(function(ok){ loader.load('assets/personagens/human_fighter_nograde.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); }));
+  }
   var wCache = {};
   G.anexarGuerreiro = function(rig, THREE){
     if(!rig || !rig.clips) return;
@@ -110,16 +128,15 @@ export const Guardiao = (function(){
     var loader = (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
     var pr = wCache[psa] || (wCache[psa] = new Promise(function(ok){ loader.load('assets/personagens/guerreiro_clips/' + psa + '.glb?v=4', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); });}));
     var prM = wCache[psa + '_rm'] || (wCache[psa + '_rm'] = fetch('assets/personagens/guerreiro_clips/medidas.json?v=6').then(function(r){ return r.ok ? r.json() : {}; }).catch(function(){ return {}; }));   /* [guerreiro] curva do corpo do Blender (rm = metros por quadro a 48 fps) */
-    Promise.all([pr, prM]).then(function(ab){
-      var list = ab[0], MED = ab[1] || {};
-      if(!list || !list.length) return;
+    Promise.all([pr, prM, nativosL2(THREE)]).then(function(ab){
+      var list = ab[0] || [], MED = ab[1] || {}, NAT = ab[2] || [];
+      if(!list.length && !NAT.length) return;
       var nos = {}; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis' || o.name === 'Bip01') nos[o.name] = o; });
       var ky = 1;
       if(outra && nos.Bip01_Pelvis){ rig.root.updateMatrixWorld(true); var wp = new THREE.Vector3(); nos.Bip01_Pelvis.getWorldPosition(wp); ky = Math.max(.5, Math.min(1.6, (wp.y / rig.root.scale.y) / 25.9)); }   /* altura do quadril da raca / do Humano M (mesma referencia do Guardiao) */
       rig.wKy = +ky.toFixed(3);
       rig.wClips = rig.wClips || {};
-      list.forEach(function(src){
-        if(!W_T[src.name]) return;
+      function conv(src){
         var c = src.clone(), tr = [];
         c.tracks.forEach(function(t){
           var dot = t.name.lastIndexOf('.'), node = t.name.slice(0, dot), prop = t.name.slice(dot + 1);
@@ -135,8 +152,17 @@ export const Guardiao = (function(){
           }
           tr.push(t);
         });
-        c.tracks = tr; rig.clips[src.name] = c;
+        c.tracks = tr; return c;
+      }
+      list.forEach(function(src){
+        if(!W_T[src.name] || W_NAT[src.name]) return;                    /* as do L2 nativo entram abaixo */
+        var c = conv(src); rig.clips[src.name] = c;
         var m = W_T[src.name]; rig.wClips[src.name] = { c: src.name, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: (MED[src.name] && MED[src.name].rm) || null, ini: (MED[src.name] && MED[src.name].ini) || 0, pausas: (MED[src.name] && MED[src.name].pausas) || null, psa: psa };   /* ini: onde o corpo comeca a se mexer; pausas: hit-stop gravado no Blender (s do clipe) */
+      });
+      Object.keys(W_NAT).forEach(function(k){
+        var m = W_NAT[k], src = null; NAT.forEach(function(c){ if(c.name === m.src || c.name === m.src + '_MFighter') src = c; }); if(!src) return;
+        var c = conv(src); if(m.rep > 1) c = repeteClipe(THREE, c, m.rep); c.name = k; rig.clips[k] = c;
+        rig.wClips[k] = { c: k, sp: m.sp, hit: m.hit, cut: m.cut, lg: m.lg || 0, rm: null, ini: 0, pausas: null, psa: 'L2:' + m.src };
       });
     });
   };
@@ -147,7 +173,7 @@ export const Guardiao = (function(){
   G.anexarNativos = function(rig, THREE){
     if(!rig || !rig.clips || rig.clips.AtkWait_1HS) return;                       /* ja tem (Humano M) */
     var loader = window.L2Cache ? window.L2Cache.loader() : (window._l2GltfLoader = window._l2GltfLoader || new THREE.GLTFLoader());
-    natCache = natCache || new Promise(function(ok){ loader.load('assets/personagens/human_fighter_nograde.glb?v=2', function(g){ ok(g.animations || []); }, undefined, function(){ ok([]); }); });
+    natCache = natCache || nativosL2(THREE);
     natCache.then(function(all){
       if(rig.clips.AtkWait_1HS) return;
       var pelvis = null, bip = null; rig.root.traverse(function(o){ if(o.name === 'Bip01_Pelvis') pelvis = o; else if(o.name === 'Bip01') bip = o; });

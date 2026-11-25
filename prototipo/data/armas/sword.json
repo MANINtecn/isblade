@@ -21,7 +21,7 @@
       "caminho": true,
       "icon": "w_investida",
       "cd": 6,
-      "dmg": 30,
+      "dmg": 90,
       "dur": 2.312,
       "range": 3.2,
       "half": 1.3,
@@ -32,28 +32,24 @@
       "unlock": 5,
       "desc": "Arrancada de 7,6 m atravessando o alvo; o corte explode depois que voce passou. Invulneravel no inicio da arrancada.",
       "hits": [
-        0.3063,
-        0.355,
-        0.405
+        0.3063
       ],
       "peso": [
-        1,
-        1,
-        1.3
+        1
       ]
     },
     {
-      "name": "Contra-Golpe",
+      "name": "Golpe Montante",
       "pose": "w_n1",
       "icon": "w_contra",
       "cd": 9,
-      "dmg": 40,
-      "dur": 3.396,
+      "dmg": 130,
+      "dur": 1.75,
       "range": 3.6,
       "half": 1.1,
-      "ifr": 0.95,
-      "intr": 1,
-      "hitk": 0.5521,
+      "ifr": 0,
+      "intr": 2,
+      "hitk": 0.6429,
       "css": "#ffc24a",
       "armor": true,
       "golpe": {
@@ -63,14 +59,10 @@
       "unlock": 1,
       "desc": "Guarda dourada: o golpe que chega na janela e aparado (sem dano). Passo a frente e revide pesado que atordoa 1,5 s.",
       "hits": [
-        0.5521,
-        0.6,
-        0.648
+        0.6429
       ],
       "peso": [
-        1,
-        1,
-        1.5
+        1
       ]
     },
     {
@@ -78,27 +70,23 @@
       "pose": "w_n5",
       "icon": "w_lancador",
       "cd": 12,
-      "dmg": 77,
-      "dur": 3.5,
+      "dmg": 210,
+      "dur": 0.9375,
       "range": 3.6,
       "half": 1.3,
       "ifr": 0,
       "intr": 2,
-      "hitk": 0.1726,
+      "hitk": 0.6111,
       "css": "#ff6a14",
       "hits": [
-        0.1726,
-        0.3988,
-        0.6429
+        0.6111
       ],
       "armor": true,
       "launch": true,
       "unlock": 10,
       "desc": "Crava a espada no pe do alvo, arranca quebrando o chao em leque e lanca; o corte subindo emenda direto no corte descendo, cravando a espada na vertical na frente do corpo. 3 golpes.",
       "peso": [
-        1,
-        1,
-        1.5
+        1
       ]
     },
     {
@@ -106,13 +94,13 @@
       "pose": "w_n6",
       "icon": "w_fenda",
       "cd": 14,
-      "dmg": 32,
-      "dur": 3.688,
+      "dmg": 90,
+      "dur": 1.79,
       "range": 9.0,
       "half": 0.3,
       "ifr": 0,
       "intr": 2,
-      "hitk": 0.2938,
+      "hitk": 0.6279,
       "css": "#ff7a20",
       "armor": true,
       "golpe": {
@@ -122,16 +110,12 @@
       "unlock": 15,
       "desc": "Crava a espada e a fenda corre 9 m em linha reta: rochas sobem, quem estiver no caminho e jogado para cima e atordoado 1,6 s.",
       "hits": [
-        0.2938,
-        0.33,
-        0.366,
-        0.402
+        0.6279,
+        0.6977
       ],
       "peso": [
         1,
-        1,
-        1,
-        1.5
+        0.5
       ]
     },
     {
@@ -139,25 +123,18 @@
       "pose": "w_n2",
       "icon": "w_tufao",
       "cd": 18,
-      "dmg": 32,
-      "dur": 5.438,
+      "dmg": 100,
+      "dur": 4.5833,
       "range": 3.2,
       "half": 3.14,
       "ifr": 0,
       "intr": 2,
-      "hitk": 0.1379,
+      "hitk": 0.1909,
       "css": "#d01010",
       "hits": [
-        0.1379,
-        0.2069,
-        0.2682,
-        0.3333,
-        0.3908,
-        0.4521,
-        0.5134,
-        0.5709,
-        0.6284,
-        0.7739
+        0.1909,
+        0.5273,
+        0.8636
       ],
       "armor": true,
       "mover": true,
@@ -167,14 +144,7 @@
       "peso": [
         1,
         1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1.8
+        1.3
       ]
     },
     {
@@ -183,12 +153,12 @@
       "icon": "w_modo",
       "cd": 45,
       "dmg": 0,
-      "dur": 6.792,
+      "dur": 1.0417,
       "range": 0.5,
       "half": 3.14,
       "ifr": 0,
       "intr": 0,
-      "hitk": 0.362,
+      "hitk": 0.5,
       "css": "#ff4a1a",
       "suporte": {
         "tipo": "modo",
@@ -205,32 +175,25 @@
       "pose": "w_n4",
       "icon": "w_execucao",
       "cd": 28,
-      "dmg": 66,
-      "dur": 4.729,
+      "dmg": 300,
+      "dur": 1.0,
       "range": 3.8,
       "half": 1.2,
       "ifr": 0,
       "intr": 2,
-      "hitk": 0.1278,
+      "hitk": 0.6667,
       "css": "#ff2a10",
       "hits": [
-        0.1278,
-        0.2511,
-        0.3524,
-        0.5198,
-        0.652
+        0.6667
       ],
       "armor": true,
       "unlock": 30,
       "desc": "Arrancada ate o alvo e 5 cortes encadeados (horizontal, volta, sobe, giro e vertical); cada corte deixa uma marca de luz que detona no golpe final.",
       "peso": [
-        1,
-        1,
-        1,
-        1,
-        1.6
+        1
       ]
     }
   ],
-  "variants": []
+  "variants": [],
+  "_guerreiro_l2": "25/11/2026: skills sobre golpes nativos do L2 (js/guardiao.js -> W_NAT). hits = quadro do impacto / ultimo quadro, medido no Blender (pico de velocidade da espada). 1 hit por golpe visivel."
 }

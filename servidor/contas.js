@@ -35,6 +35,7 @@ module.exports = function(opts){
   /* limite por IP: 30 pedidos/min em geral e 10 contas novas/hora */
   const lim = new Map();
   function limite(ip, chave, max, janelaMs){
+    if(process.env.SEM_LIMITE === '1') return true;      /* so o servidor de teste local (tools/teste_matriz.py); nunca na VPS */
     const k = chave + '|' + ip, t = Date.now(), a = (lim.get(k) || []).filter(x => t - x < janelaMs);
     if(a.length >= max){ lim.set(k, a); return false; }
     a.push(t); lim.set(k, a); return true;
