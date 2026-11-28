@@ -344,7 +344,7 @@
       ' vec3 c = v < .85 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), clamp((v - .5) / .35, 0.0, 1.0)) : mix(vec3(1.0, .16, .07), vec3(1.0, .95, .86), (v - .85) / .15);' +
       ' a *= pow(u, 1.6) * brilho; gl_FragColor = vec4(c * a * forca, 1.0); }',
     fumaca: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_PERFIL +
-      'void main(){ float a = .5 * perfil(vUv.y) * pow(vUv.x, 1.3) * brilho; gl_FragColor = vec4(.06, 0.0, .01, a); }',
+      'void main(){ float u = vUv.x; float a = .22 * perfil(vUv.y) * 4.0 * u * (1.0 - u) * brilho; gl_FragColor = vec4(.06, 0.0, .01, a); }',      /* [tufao 28/11] sutil e no meio do rastro (perto da lamina virava um quadrado preto) */
     vento: 'uniform float brilho, tempo, forca; varying vec2 vUv;' + TUF_RUIDO +
       'void main(){ float u = vUv.x, v = vUv.y; float s = smoothstep(.56, .76, fbm(vec2(u * 7.5, v * 30.0)));' +
       ' vec3 c = s < .4 ? mix(vec3(.14, 0.0, .02), vec3(.55, .01, .03), s / .4) : (s < .75 ? mix(vec3(.55, .01, .03), vec3(1.0, .16, .07), (s - .4) / .35) : mix(vec3(1.0, .16, .07), vec3(1.0, .4, .14), (s - .75) / .25));' +
@@ -355,7 +355,7 @@
     var pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = [];
     for(var i = 0; i < n; i++){ uv.set([i / (n - 1), 0, i / (n - 1), 1], i * 4); if(i < n - 1) idx.push(2 * i, 2 * i + 1, 2 * i + 3, 2 * i, 2 * i + 3, 2 * i + 2); }
     var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('uv', new T.BufferAttribute(uv, 2)); g.setIndex(idx);
-    var m = new T.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = 4; cena.add(m); return m;      /* posicao (0,0,0): a cena nao desloca (vertices ja estao no mundo) */
+    var m = new T.Mesh(g, mat); m.frustumCulled = false; m.renderOrder = 4; m.visible = false; cena.add(m); return m;      /* nasce escondida ate ter amostras; posicao (0,0,0): a cena nao desloca (vertices ja estao no mundo) */
   }
   function poeFita(m, A, B){                                       /* A[i], B[i] = pontos de dentro e de fora da amostra i (A.length <= n) */
     var p = m.geometry.attributes.position, n = p.count / 2, k = A.length;
@@ -388,15 +388,15 @@
       var eC = carga ? Math.min(1, tReal / Math.max(.2, (an.segura ? an.segura[1] : 0) + .25)) : 0, dir = tw.clone().sub(ow).normalize(), lado = dir.clone().cross(new T.Vector3(0, 1, 0));
       if(lado.lengthSq() < 1e-4) lado.set(1, 0, 0); lado.normalize().multiplyScalar(.03 + .1 * eC);
       var CA = [], CB = []; for(var i = 0; i < 9; i++){ var q = lamina(.1 + .95 * i / 8); CA.push(q.clone().sub(lado)); CB.push(q.clone().add(lado)); }
-      poeFita(fCa, CA, CB); mCa.uniforms.brilho.value = carga ? .3 + 1.6 * eC : Math.max(0, mCa.uniforms.brilho.value - dt * 6); mCa.uniforms.tempo.value = tReal;
+      poeFita(fCa, CA, CB); fCa.visible = true; mCa.uniforms.brilho.value = carga ? .3 + 1.6 * eC : Math.max(0, mCa.uniforms.brilho.value - dt * 6); mCa.uniforms.tempo.value = tReal;
       fas.forEach(function(f){ var e = (tReal - f.t0) / .45; if(e < 0 || e > 1 || !carga){ f.s.visible = false; return; } f.s.visible = true; var alvo = lamina(f.k), x0 = pe.x + Math.cos(f.a) * f.r, z0 = pe.z + Math.sin(f.a) * f.r, ee = e * e;
         f.s.position.set(x0 + (alvo.x - x0) * ee, pe.y + f.y + (alvo.y - pe.y - f.y) * ee, z0 + (alvo.z - z0) * ee); f.s.material.opacity = e < .8 ? 1 : (1 - e) / .2; });
       /* rastro: guarda mao/ponta e desenha os ultimos ~0,17 s (meia-lua de ~160 graus) */
       if(gira) hist.push({ t: tReal, o: ow.clone(), p: tw.clone() });
       while(hist.length > 3 && tReal - hist[0].t > .24) hist.shift();
       function janela(seg){ var r = hist.filter(function(h){ return tReal - h.t <= seg; }); if(r.length < 3) r = hist.slice(-3); return r.length >= 2 ? r : null; }      /* aparelho lento: no minimo 3 amostras (o rastro nao some) */
-      function camada(f, seg, k0, k1, dy){ var H = janela(seg); if(!H){ f.visible = false; return; } f.visible = true; var A = [], B = []; H.forEach(function(h){ var a = h.o.clone().lerp(h.p, k0), b = h.o.clone().lerp(h.p, k1); a.y += dy; b.y += dy; A.push(a); B.push(b); }); poeFita(f, A, B); }
-      camada(fEn, .17, .2, 1.12, 0); camada(fMi, .125, .8, 1.03, 0); if(fFu) camada(fFu, .21, .1, 1.2, -.04);
+      function camada(f, seg, k0, k1, dy, min){ var H = janela(seg); if(!H || H.length < (min || 2)){ f.visible = false; return; } f.visible = true; var A = [], B = []; H.forEach(function(h){ var a = h.o.clone().lerp(h.p, k0), b = h.o.clone().lerp(h.p, k1); a.y += dy; b.y += dy; A.push(a); B.push(b); }); poeFita(f, A, B); }
+      camada(fEn, .17, .2, 1.12, 0); camada(fMi, .125, .8, 1.03, 0); if(fFu) camada(fFu, .21, .1, 1.2, -.04, 5);      /* fumaca so com curva formada */
       var bR = (gira ? 1 : 0) * fade, fin = em && L.length && tt >= L[L.length - 1] - .12 ? 1.5 : 1;
       [mEn, mMi].forEach(function(m){ m.uniforms.brilho.value = bR * fin; m.uniforms.tempo.value = tReal; }); if(mFu) mFu.uniforms.brilho.value = .9 * bR;
       /* funil fino em volta, gira e acompanha o corpo */

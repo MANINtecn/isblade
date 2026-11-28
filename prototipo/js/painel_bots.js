@@ -820,7 +820,7 @@
   /* [tvt-puxa-jogador] guerra de times e bots de time so fazem sentido no salao do Baium (arena de PvP): de qualquer outro lugar, o jogador e' levado para la
      e SO DEPOIS os bots nascem (o pedido fica em sessionStorage e e' retomado quando a arena abre e o servidor confirma que e' admin). Ele entra no time escolhido ('Meu time'). */
   var CHAVE_PEND = 'isblade.bots_pendente';
-  function noSalaoPvp(){ return /arena\.html/.test(location.pathname) && /[?&]go=pvp/.test(location.search); }
+  /* [cleanUrls 28/11/2026] na Vercel (cleanUrls) a arena e /arena, sem .html: o teste antigo jogava fora o pedido do TvT e os bots nunca nasciam */ function noSalaoPvp(){ return /\/arena(\.html)?$/.test(location.pathname) && /[?&]go=pvp/.test(location.search); }
   function querSalao(){ return estado.tipoJogo === 'tvt' || estado.tipoJogo === 'azul' || estado.tipoJogo === 'vermelho'; }
 
   function dispararBots(e){

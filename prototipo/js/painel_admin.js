@@ -911,7 +911,7 @@
 
     /* Arena PvP e Salao do Baium sao OUTRA pagina (arena.html), nao um ponto da cidade: de fora, o botao leva para la; de dentro da arena, Cidade e as 3 areas voltam para a cidade.
        (antes so mudava x/z na pagina atual: na cidade o jogador caia num ponto qualquer e nunca ia para o Salao) */
-    var emArena = /arena\.html/.test(location.pathname), modo = (location.search.match(/[?&]mode=(\w+)/) || [])[1] || '', ir = (location.search.match(/[?&]go=(\w+)/) || [])[1] || '', rota = null;
+    var emArena = /\/arena(\.html)?$/.test(location.pathname), modo = (location.search.match(/[?&]mode=(\w+)/) || [])[1] || '', ir = (location.search.match(/[?&]go=(\w+)/) || [])[1] || '', rota = null;
     if(dKey === 'baium'){ if(!(emArena && modo === 'duel')) rota = 'arena.html?mode=duel'; }
     else if(dKey === 'arena'){ if(!(emArena && modo === 'dungeon' && ir === 'pvp')) rota = 'arena.html?mode=dungeon&go=pvp'; }
     else if(emArena){ rota = dKey === 'cidade' ? 'cidade.html' : 'cidade.html?local=' + dKey; }

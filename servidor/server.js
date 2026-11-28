@@ -5,6 +5,13 @@
    Uso:  node servidor/server.js   (PORT=8000, CAP=50, PVP_MULT=.5, AOI=90)   ->  http://localhost:8000/selecao.html */
 'use strict';
 const http = require('http'), fs = require('fs'), path = require('path');
+/* [protecao 28/11/2026] um erro nao tratado (numa mensagem de jogador, num timer, num bot) derrubava o processo inteiro: todo mundo caia e os bots sumiam ate o .bat religar.
+   Agora o erro vai para o console e para <DATA_DIR>/erros.log (com data e pilha) e o servidor CONTINUA. Limite de 20 registros por minuto para o arquivo nao crescer sem fim. */
+{ const arqErro = path.join(process.env.DATA_DIR || path.join(__dirname, 'dados'), 'erros.log'); let janela = 0, nJan = 0;
+  const registra = (tipo, e) => { const agoraMs = Date.now(); if(agoraMs - janela > 60000){ janela = agoraMs; nJan = 0; } if(++nJan > 20) return;
+    const txt = '[' + new Date().toISOString() + '] ' + tipo + ': ' + ((e && e.stack) || String(e)) + String.fromCharCode(10); console.error(txt); try { fs.appendFileSync(arqErro, txt); } catch(_){} };
+  process.on('uncaughtException', e => registra('uncaughtException', e));
+  process.on('unhandledRejection', e => registra('unhandledRejection', e)); }
 let WebSocketServer;
 try { WebSocketServer = require('ws').WebSocketServer; } catch (e) { WebSocketServer = require(path.join(__dirname, '..', 'prototipo', 'node_modules', 'ws')).WebSocketServer; }
 
